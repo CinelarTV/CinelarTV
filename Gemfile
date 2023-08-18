@@ -64,3 +64,9 @@ end
 
 
 gem "shakapacker", "= 7.0"
+
+gem "rails-settings-cached", "~> 2.9"
+
+gem "devise", "~> 4.9"
+
+gem "devise_uid", "~> 0.1.1"

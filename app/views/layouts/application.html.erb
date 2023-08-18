@@ -1,16 +1,37 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>CinelarTVAio</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag "application" %>
-    <%= javascript_pack_tag "application" %>
-  </head>
-
-  <body>
-    <%= yield %>
-  </body>
+   <head>
+      <meta charset="utf-8">
+      <title><%= content_for?(:title) ? yield(:title) : SiteSetting.site_name %></title>
+      <%= csrf_meta_tags %>
+      <%= csp_meta_tag %>
+   </head>    
+   <body
+      class="app-body<% if device == "mobile" %> is-mobile<% end %>">
+      <cinelar-assets>
+         <cinelar-assets-stylesheets>
+          <%= render partial: "partials/stylesheet" %>
+         </cinelar-assets-stylesheets>
+         <cinelar-essentials-preload>
+            <div class="hidden" id="data-preloaded" data-preloaded="<%= preloaded_json %>"></div>
+         </cinelar-essentials-preload>
+      </cinelar-assets>
+      <!--The application is rendered at runtime on client-side-->
+      <div id="cinelartv">
+         <%- if include_splash? %>
+            <%= render partial: "common/splash" %>
+         <%- end %>
+      </div>
+      <noscript data-path="<%= request.env["PATH_INFO"] %>">
+         <div>
+            <!-- Fallback in case of JavaScript disabled / Crawler -->
+    <main class="container mx-auto mt-28 px-5 flex">
+              <%= yield %>
+    </main>
+            <!-- End of Fallback -->
+         </div>
+      </noscript>
+      <%= render_external_scripts %>
+      <%= javascript_pack_tag "boot-cinelartv" %>
+   </body>
 </html>

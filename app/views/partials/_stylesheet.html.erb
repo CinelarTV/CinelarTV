@@ -1,0 +1,10 @@
+<%= stylesheet_pack_tag "cinelartv\\application", media: "all" %>
+<%= render_external_stylesheets %>
+<style id="app-theming"> 
+    :root {
+        --c-background-color: <%= SiteSetting.background_color %>;
+        --c-body-text-color: <%= SiteSetting.body_text_color %>;
+        --c-header-background-color: <%= SiteSetting.header_background_color %>;
+        --c-font-family-base: <%= SiteSetting.base_font_family %>;
+    }
+</style>
