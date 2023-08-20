@@ -10,10 +10,25 @@ Rails.application.routes.draw do
   }
 
   get '/user/profiles', to: 'session#profiles'
+  # Routes that don't need a controller, can fallback to the application controller
+  get 'profiles/select', to: 'application#index'
+
+  post '/user/create-profile', to: 'profiles#create'
+  post '/user/select-profile', to: 'session#select_profile'
+  post '/user/deassign-profile', to: 'session#deassign_profile'
 
   # Dev route to refresh the settings
   if Rails.env.development?
     get "/r", to: "application#refresh_settings"
   end
+
+  draw :admin
+
+  authenticated :user, ->(u) { u.has_role?(:admin) } do
+    mount Logster::Web => "/logs"
+  end
+
+  # Catch all route, to render the app (vue-router will take care of the routing)
+  get "*path", to: "application#index"
 
 end

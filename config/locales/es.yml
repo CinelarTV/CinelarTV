@@ -1,0 +1,17 @@
+---
+es:
+  js:
+    admin:
+      nav:
+        dashboard: "Panel de control"
+        settings: "Configuración"
+        updater: "Actualizador"
+      settings:
+        experimental:
+          enable_web_updater:
+            description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
+            title: "Actualizador web experimental"
+          title: "Experimental"
+      updater:
+        ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
+        ready_title: "¿Listo para actualizar?"

@@ -73,11 +73,11 @@
 }
 
 #current-user {
-    @apply rounded-full border-4 bg-blue-50 border-blue-100 hover:border-blue-200 transition-all
+    @apply rounded-md transition-all flex items-center cursor-pointer bg-white bg-opacity-5 hover:bg-opacity-10;
 }
 
 .user-menu-items {
-    @apply absolute right-0 mt-2 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none list-none
+    @apply absolute right-0 mt-2 origin-top-right divide-y divide-gray-100 rounded-md bg-white bg-opacity-5 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none list-none
 }
 
 .user-menu-items .menu-item {
@@ -95,7 +95,14 @@
 
 
 #current-user .avatar {
-    height: 32px;
-    width: 32px;
-    @apply rounded-full
+    height: 40px;
+    width: 40px;
+    @apply rounded-md;
+}
+
+#current-user .user-name {
+    @apply text-white;
+    @apply px-4;
+    @apply font-semibold;
+    @apply text-sm;
 }

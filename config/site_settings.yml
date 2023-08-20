@@ -41,6 +41,12 @@ general:
     regex: '^[a-zA-Z0-9 ]*$'
     validator: 'SettingValidator'
 
+  default_locale:
+    client: true
+    refresh: true
+    default: 'es'
+    validator: 'SettingValidator'
+
   enable_splash_screen:
     client: true
     refresh: true
@@ -77,11 +83,44 @@ customization:
     refresh: true
     default: 'Jost*'
 
+  primary_color:
+    client: true
+    refresh: true
+    default: '#181818FF'
+    type: 'color'
+  
+  secondary_color:
+    client: true
+    refresh: true
+    default: '#181818FF'
+    type: 'color'
+
+  tertiary_color:
+    client: true
+    refresh: true
+    default: '#181818FF'
+    type: 'color'
+
+  quaternary_color:
+    client: true
+    refresh: true
+    default: 'rgba(255, 255, 255, 0.2)'
+    type: 'color'
+
+
+developer:
+  enable_js_error_reporting:
+    client: true
+    refresh: true
+    default: false
+    validator: 'SettingValidator'
+
 experimental:
   enable_web_updater:
     client: true
     refresh: true
     default: false
+    type: 'boolean'
 
   external_stylesheets:
     client: true

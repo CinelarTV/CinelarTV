@@ -15,6 +15,16 @@ class ProfilesController < ApplicationController
     def edit
       @profile = current_user.profiles.find(params[:id])
     end
+
+    def create
+      @profile = current_user.profiles.new(profile_params)
+        if @profile.save
+            render json: { message: 'Profile created successfully', status: :ok}
+            else
+            render json: { error: @profile.errors.full_messages.join(', ') }, status: :unprocessable_entity
+            end
+    end
+    
     
     def update
       @profile = current_user.profiles.find(params[:id])

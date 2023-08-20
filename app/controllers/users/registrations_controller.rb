@@ -18,7 +18,7 @@ module Users
             user_id: @user.id,
             name: @user.username.upcase,
             profile_type: 'OWNER',
-            avatar_id: 'default'
+            avatar_id: 'coolCat' # Default avatar
           }
           Profile.create(main_profile_data)
           # ... Additional logic for successful registration ...

@@ -1,0 +1,76 @@
+.profile-card {
+  @apply flex flex-col;
+  @apply items-center;
+  @apply justify-center;
+  @apply rounded-lg;
+  @apply shadow-lg;
+  @apply bg-white;
+  @apply p-4;
+  @apply text-center;
+  @apply text-gray-800;
+  @apply bg-opacity-5;
+  @apply transition-all duration-100 ease-in-out;
+  @apply hover:bg-opacity-100;
+  @apply hover:shadow-2xl;
+  @apply hover:scale-105;
+  @apply cursor-pointer;
+    &:hover .profile-avatar {
+        @apply border-2 border-black;
+    }
+
+    &:hover .icon {
+        @apply text-black;
+    }
+
+    &:hover .profile-name {
+        @apply text-black;
+    }
+
+    &:hover .button {
+        @apply bg-black;
+        @apply !text-white;
+    }
+
+    &:hover .icon {
+        @apply !text-white;
+    }
+
+
+
+
+    &:focus {
+        @apply outline-none;
+        @apply bg-opacity-100;
+        @apply shadow-2xl;
+        @apply scale-105;
+        @apply ring-2 ring-black ring-opacity-50;
+    }
+
+    &:focus .profile-avatar {
+        @apply border-2 border-black;
+    }
+
+    &:focus .icon {
+        @apply text-black;
+    }
+
+    &:focus .profile-name {
+        @apply text-black;
+    }
+
+
+}
+
+.profile-avatar {
+  @apply rounded-lg;
+  @apply h-24 w-24;
+  @apply object-cover;
+  @apply border-2 border-white;
+}
+
+.profile-name {
+  @apply text-lg;
+  @apply font-semibold;
+  @apply mt-2;
+  color: #FFFFFF
+}

@@ -2,7 +2,7 @@
     <div id="home-explore">
         <div class="mx-auto mt-5">
             <h2 class="text-center font-medium text-2xl">
-                ¡Te damos la bienvenida a {{ SiteSettings.site_name }}!
+                ¡Te damos la bienvenida a {{ SiteSettings.site_name }}, {{ currentUser?.current_profile?.name }}!
             </h2>
         </div>
     </div>

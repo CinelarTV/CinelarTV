@@ -19,10 +19,6 @@
                     <MessageCircle :size="24" />
                 </div>
                 <UserMenu />
-                <button class="btn btn-primary" @click="OpenLoginModal">
-                    <User :size="24" />
-                    Login
-                </button>
                 <LoginModal ref="loginModal" />
             </div>
         </div>
@@ -32,6 +28,8 @@
 <script setup>
 import { ref } from 'vue'
 import LoginModal from '../components/modals/login.modal.vue'
+import { SiteSettings, currentUser } from '../pre-initializers/essentials-preload';
+import UserMenu from '../components/user-menu.vue'
 import {
     CompassIcon as ExploreIcon,
     SearchIcon,
@@ -61,8 +59,4 @@ const headerItems = ref([
         showItem: true
     }
 ])
-
-const OpenLoginModal = () => {
-    loginModal.value.setIsOpen(true)
-}
 </script>

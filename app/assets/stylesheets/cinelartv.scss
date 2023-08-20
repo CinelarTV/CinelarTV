@@ -2,10 +2,63 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+@import "admin.scss";
 @import "components/_header.scss";
 @import "errors.scss";
+@import "profiles.scss";
+@import "components/_forms.scss";
+
+:root {
+  --dialog-background-color: #181818;
+}
+
+* {
+  user-select: none; /* Disable selection for all elements */
+}
 
 html, body {
   background-color: var(--c-background-color);
   color: var(--c-body-text-color);
+  @apply h-full;
 }
+
+#cinelartv, #mountpoint, #profile-selector {
+  @apply h-full
+}
+
+
+img.emoji {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  display: inline;
+}
+
+
+.dialog {
+  background-color: var(--dialog-background-color);
+}
+
+.dialog-backdrop {
+  @apply fixed inset-0 bg-black bg-opacity-25
+}
+
+.modal-site-logo {
+  max-height: 2.4em;
+  display: flex;
+  align-items: center;
+}
+
+.loading-request {
+  @apply animate-spin mr-3
+}
+
+.button {
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-white bg-opacity-5 hover:bg-opacity-10 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-white;
+  user-select: none;
+
+  & .dark & {
+    @apply bg-black bg-opacity-5 hover:bg-opacity-10
+  }
+}
+

@@ -13,12 +13,30 @@ module ApplicationHelper
       def preloaded_json
         exposed_settings = SiteSetting.exposed_settings
 
-        user_with_profile = current_user.to_h.merge(profile: current_profile)
+        @current_user = current_user
+        @current_profile = current_profile
+        puts "current_profile: #{@current_profile}"
+        user_with_profile = @current_user.as_json(include: {
+          profiles: {
+            include: :preferences
+          }
+        })
+
+        if(@current_user) 
+          user_with_profile = user_with_profile.merge({
+            admin: @current_user.has_role?(:admin),
+          })
+        end
+        
+        if @current_profile
+          user_with_profile = user_with_profile.merge(current_profile: @current_profile)
+        end
+
 
         {
           SiteSettings: exposed_settings,
           isMobile: device == "mobile",
-          currentUser: user_with_profile
+          currentUser: user_with_profile,
         }.to_json
       end
 
@@ -43,6 +61,7 @@ module ApplicationHelper
           stylesheet_link_tag(stylesheet)
         end.join.html_safe
       end
+
 
 
 

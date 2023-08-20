@@ -6,5 +6,17 @@
         --c-body-text-color: <%= SiteSetting.body_text_color %>;
         --c-header-background-color: <%= SiteSetting.header_background_color %>;
         --c-font-family-base: <%= SiteSetting.base_font_family %>;
+        --c-primary-color: <%= SiteSetting.primary_color %>;
+        --c-secondary-color: <%= SiteSetting.secondary_color %>;
+        --c-tertiary-color: <%= SiteSetting.tertiary_color %>;
+        --c-quaternary-color: <%= SiteSetting.quaternary_color %>;
+
+        <%= generate_color_variants(SiteSetting.primary_color, 'primary') %>
+        <%= generate_color_variants(SiteSetting.secondary_color, 'secondary') %>
+        <%= generate_color_variants(SiteSetting.tertiary_color, 'tertiary') %>
+        <%= generate_color_variants(SiteSetting.quaternary_color, 'quaternary') %>
+        
+      
+
     }
 </style>

@@ -9,8 +9,8 @@ class Profile < ApplicationRecord
 
 
   def validate_profile_count
-    return unless user && user.profiles.count >= 4
+    return unless user && user.profiles.count >= 5
 
-    errors.add(:base, "User can't have more than 4 profiles")
+    errors.add(:base, "User can't have more than 5 profiles")
   end
 end

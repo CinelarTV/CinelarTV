@@ -1,33 +1,17 @@
-# Files in the config/locales directory are used for internationalization
-# and are automatically loaded by Rails. If you want to use locales other
-# than English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# The following keys must be escaped otherwise they will not be retrieved by
-# the default I18n backend:
-#
-# true, false, on, off, yes, no
-#
-# Instead, surround them with single quotes.
-#
-# en:
-#   "true": "foo"
-#
-# To learn more, please read the Rails Internationalization guide
-# available at https://guides.rubyonrails.org/i18n.html.
-
+---
 en:
-  hello: "Hello world"
+  js:
+    admin:
+      nav:
+        dashboard: "Dashboard"
+        settings: "Settings"
+        updater: "Upgrader"
+      settings:
+        experimental:
+          enable_web_updater:
+            description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
+            title: "Experimental web updater"
+          title: "Experimental"
+      updater:
+        ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
+        ready_title: "¿Ready for update?"

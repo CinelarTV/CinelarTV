@@ -70,3 +70,17 @@ gem "rails-settings-cached", "~> 2.9"
 gem "devise", "~> 4.9"
 
 gem "devise_uid", "~> 0.1.1"
+
+gem "rolify", "~> 6.0"
+
+gem "message_bus"
+
+# For multi-lingual app
+gem "i18n-js", "~> 3"  
+
+gem "rack-mini-profiler", "~> 2.0"
+
+# Redis
+gem "redis"
+gem "logster"
+

@@ -1,0 +1,186 @@
+@import "./common/admin/base.scss";
+
+.admin-dashboard {
+    @apply mt-10 
+}
+
+.admin-dashboard .panel {
+    @apply px-4 py-4
+}
+
+.admin-main-nav {
+    @apply flex;
+}
+
+.admin-main-nav .nav.nav-pills {
+    @apply flex
+}
+
+.nav-item {
+    @apply px-4 py-2 flex transition-colors hover:bg-[var(--c-tertiary-400)] hover:text-[var(--c-primary)] cursor-pointer;
+}
+
+
+.admin-nav-active {
+    @apply bg-[var(--c-tertiary-50)] text-white
+}
+
+.admin-container>.nav-pills {
+
+    .nav-pills--active {
+        color: var(--m-primary);
+    }
+}
+
+.version-checks .section-title {
+    flex: 1 1 100%;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5em;
+}
+
+.version-check {
+    display: flex;
+    flex: 1 1 50%;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-self: flex-start;
+    justify-content: space-between;
+    padding-top: 1em;
+}
+
+.version-check .version-number {
+    font-size: var(--font-up-2);
+    line-height: var(--line-height-small);
+    box-sizing: border-box;
+    font-weight: bold;
+    margin-bottom: 2em;
+    margin-right: 1em;
+    flex: 1 1 27%;
+}
+
+.version-check .version-number h4 {
+    font-size: var(--font-down-2);
+    margin-bottom: 0.5em;
+}
+
+.version-check .version-number h3 {
+    flex: 1 0 auto;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.version-check .version-number .sha-link {
+    display: inline-flex;
+    font-size: var(--font-down-2);
+    font-weight: normal;
+}
+
+@media screen and (max-width: 850px) {
+    .version-check .version-status {
+        max-width: unset;
+    }
+}
+
+.version-check .version-status {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1em 0;
+    flex: 1 1 24%;
+    box-sizing: border-box;
+    padding-right: 20px;
+    min-width: 250px;
+}
+
+.version-check .version-status .face {
+    margin: 0 0.75em 0 0;
+    font-size: var(--font-up-3);
+}
+
+.version-check .version-status .face>.up-to-date {
+    @apply text-green-500
+}
+
+.version-check .upgrade-header {
+    flex: 1 1 100%;
+}
+
+.settings .setting-container {
+    padding-bottom: 20px;
+}
+
+.setting-title {
+    float: left;
+    margin-right: 12px;
+}
+
+.setting-value {
+    padding-right: 20px;
+}
+
+.setting-value.input {
+    @apply px-4 py-2 border-2 border-gray-300 rounded-md hover:border-gray-400 transition-colors active:border-gray-500 focus:outline-none
+}
+
+.setting-value.textarea {
+    @apply px-4 py-2 border-2 border-gray-300 rounded-md hover:border-gray-400 transition-colors focus:border-blue-400 focus:outline-none w-full overflow-auto
+}
+
+.setting-description {
+    display: block;
+    padding-top: 4px;
+    color: #888;
+    font-weight: 400;
+    font-size: var(--font-down-1);
+}
+
+.setting-image-uploader {
+    display: flex;
+}
+
+.uploaded-image-preview {
+    height: 270px;
+    width: 400px;
+    max-height: 150px;
+    margin-bottom: 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #C5C5C5;
+}
+
+
+.image-upload-controls {
+    position: relative;
+    display: flex;
+    padding: 10px;
+    float: right;
+}
+
+
+
+.settings-submit {
+    @apply px-4 py-2 text-white bg-m-primary hover:bg-m-primary-100
+}
+
+.terminal-updating {
+    margin-top: 20px;
+    overflow-x: scroll;
+    height: 400px;
+    white-space: pre;
+    font-family: monospace;
+    background-color: #000;
+    color: #ddd;
+    padding: 10px;
+}
+
+@media screen and (max-width: 600px) {
+    .admin-container {
+        padding: .5em .5em 5%;
+        margin-bottom: 1rem;
+    }
+
+    .settings .setting-container .setting-image-uploader .uploaded-image-preview {
+        max-width: 320px;
+    }
+
+}
