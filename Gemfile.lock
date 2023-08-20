@@ -99,6 +99,7 @@ GEM
       devise (>= 3.0.0)
       railties (>= 3.0)
     erubi (1.12.0)
+    ffi (1.15.5)
     globalid (1.1.0)
       activesupport (>= 5.0)
     i18n (1.14.1)
@@ -198,6 +199,16 @@ GEM
     rexml (3.2.6)
     rolify (6.0.1)
     rubyzip (2.3.2)
+    sass-rails (6.0.0)
+      sassc-rails (~> 2.1, >= 2.1.1)
+    sassc (2.4.0)
+      ffi (~> 1.9)
+    sassc-rails (2.1.2)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     selenium-webdriver (4.10.0)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
@@ -217,6 +228,7 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (1.6.3-x64-mingw-ucrt)
     thor (1.2.2)
+    tilt (2.2.0)
     timeout (0.4.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -261,6 +273,7 @@ DEPENDENCIES
   rails-settings-cached (~> 2.9)
   redis
   rolify (~> 6.0)
+  sass-rails
   selenium-webdriver
   shakapacker (= 7.0)
   sprockets-rails
