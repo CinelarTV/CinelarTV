@@ -1,4 +1,6 @@
 import { showPreloaderError } from './cinelartv/pre-initializers/essentials-preload';
+import '../builds/cinelartv-wind.css'
+
 
 import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(module => {
     const CinelarTV = module.default;
