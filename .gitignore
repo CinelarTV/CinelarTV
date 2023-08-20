@@ -39,3 +39,6 @@
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+
+# Ignore tailwind build output, because we use precompile in production
+/app/assets/builds
