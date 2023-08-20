@@ -6,10 +6,11 @@
             <h1 class="text-2xl font-bold mt-6 mb-16" v-emoji>
                 ¿Quién eres? 🍿
             </h1>
-            <div class="mt-4 mb-32 flex flex-row space-x-8">
+            <div class="mt-4 mb-12 md:mb-32 grid grid-cols-2 space-x-4 md:flex md:flex-row md:space-x-8">
                 <template v-for="profile in currentUser.profiles">
-                    <div :class="`profile-card ${editMode ? 'editing' : ''}`" @keydown="e => handleKeyDown(e, profile)" @click="selectProfile(profile)"
-                        tabindex="0" role="button" aria-label="Seleccionar perfil {{ profile.name }}">
+                    <div :class="`profile-card ${editMode ? 'editing' : ''}`" @keydown="e => handleKeyDown(e, profile)"
+                        @click="selectProfile(profile)" tabindex="0" role="button"
+                        aria-label="Seleccionar perfil {{ profile.name }}">
                         <img :src="getProfileAvatar(profile.avatar_id)" class="profile-avatar"
                             alt="Avatar de perfil {{ profile.name }}" />
                         <h2 class="profile-name">{{ profile.name }}</h2>
@@ -104,7 +105,7 @@ const getProfileAvatar = (avatar) => {
 }
 
 const selectProfile = (profile) => {
-    if(editMode.value) return; // Don't do anything if we're in edit mode
+    if (editMode.value) return; // Don't do anything if we're in edit mode
     console.log(profile);
     axios.post('/user/select-profile', {
         user: {
