@@ -13,10 +13,13 @@ Rails.application.routes.draw do
   # Routes that don't need a controller, can fallback to the application controller
   get 'profiles/select', to: 'application#index'
 
+
   post '/user/create-profile', to: 'profiles#create'
   post '/user/select-profile', to: 'session#select_profile'
   post '/user/deassign-profile', to: 'session#deassign_profile'
   delete '/user/profiles/:id', to: 'profiles#destroy'
+
+  get '/user/default-avatars', to: 'profiles#default_avatars'
 
   # Dev route to refresh the settings
   if Rails.env.development?

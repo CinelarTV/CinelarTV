@@ -25,7 +25,7 @@ class ProfilesController < ApplicationController
     if @profile.save
       render json: { message: "Profile created successfully", status: :ok }
     else
-      render json: { error: @profile.errors.full_messages.join(", ") }, status: :unprocessable_entity
+      render json: { errors: @profile.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
@@ -49,6 +49,14 @@ class ProfilesController < ApplicationController
     end
   end
 
+  def default_avatars
+    # List default avatars (Currently is a static list, but in the future we allow the Admin to add more)
+    render json: [
+      { id: 'coolCat', name: 'Cool Cat', path: '/assets/default/avatars/coolCat.png' },
+      { id: 'cuteCat', name: 'Cute Cat', path: '/assets/default/avatars/cuteCat.png' },
+    ]
+  end
+
   private
 
   def profile_params
@@ -57,4 +65,5 @@ class ProfilesController < ApplicationController
       whitelisted[:profile_type] = params[:profile][:profile_type] if params[:profile][:profile_type].in? ["NORMAL", "KIDS"]
     end
   end
+  
 end

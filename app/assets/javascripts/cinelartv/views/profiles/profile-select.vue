@@ -30,7 +30,7 @@
                     <h2 class="profile-name">Crear perfil</h2>
                 </div>
 
-                <CreateProfileModal ref="createProfileModal" />
+                <CreateProfileModal :avatar-list="avatarList" ref="createProfileModal" />
             </div>
 
             <div class="flex flex-row space-x-8 items-center justify-center">
@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { SiteSettings, currentUser } from '../../pre-initializers/essentials-preload';
 import { PlusCircleIcon } from 'lucide-vue-next'
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue'
@@ -53,6 +53,7 @@ import { PencilIcon, Trash2Icon } from 'lucide-vue-next';
 
 const createProfileModal = ref(null)
 const editMode = ref(false)
+const avatarList = ref([])
 
 const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -128,4 +129,19 @@ const toggleEditMode = () => {
     editMode.value = !editMode.value;
     // Reset any other variables or state if needed
 }
+
+const fetchAvatars = () => {
+    axios.get('/user/default-avatars')
+        .then((response) => {
+            console.log(response)
+            avatarList.value = response.data
+        })
+        .catch((error) => {
+            console.log(error)
+        })
+}
+
+onMounted(() => {
+    fetchAvatars()
+})
 </script>

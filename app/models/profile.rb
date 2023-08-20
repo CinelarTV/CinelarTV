@@ -6,6 +6,7 @@ class Profile < ApplicationRecord
   
 
   validate :validate_profile_count, on: :create
+  validates :name, presence: true, length: { minimum: 3, maximum: 20 }
 
 
   def validate_profile_count

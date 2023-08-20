@@ -61,6 +61,10 @@ img.emoji {
   & .dark & {
     @apply bg-black bg-opacity-5 hover:bg-opacity-10
   }
+
+  & .icon {
+    @apply mr-2
+  }
 }
 
 .wrap {

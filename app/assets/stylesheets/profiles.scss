@@ -74,3 +74,39 @@
   @apply mt-2;
   color: #FFFFFF
 }
+
+.avatar-list {
+  /* @apply grid tailwind */
+    @apply grid grid-cols-2 gap-4;
+    @apply mt-4;
+ 
+    & .avatar {
+        @apply rounded-lg;
+        @apply h-16 w-16;
+        @apply object-cover;
+        @apply border-2 border-white;
+        @apply cursor-pointer;
+
+        & img {
+            @apply rounded-lg;
+            @apply h-16 w-16;
+            @apply object-cover;
+        }
+
+    }
+
+    & .avatar:hover {
+        @apply border-2 border-black;
+    }
+
+    & .avatar:focus {
+        @apply border-2 border-black;
+    }
+
+    & .avatar.selected {
+        @apply border-2 border-black;
+    }
+
+
+
+}

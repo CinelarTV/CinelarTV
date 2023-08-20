@@ -1,5 +1,13 @@
 ---
 es:
+  activerecord:
+    errors:
+      models:
+        profile:
+          attributes:
+            name:
+              blank: "El nombre no puede estar en blanco"
+              too_short: "El nombre es demasiado corto, debe tener al menos %{count} caracteres"
   js:
     admin:
       nav:
@@ -12,6 +20,27 @@ es:
             description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
             title: "Actualizador web experimental"
           title: "Experimental"
+        general:
+          allow_registration:
+            description: "Permite a los usuarios registrarse en el sitio"
+            title: "¿Permitir el registro?"
+          default_locale:
+            description: "El idioma predeterminado de tu sitio"
+            title: "Idioma predeterminado"
+          enable_splash_screen:
+            description: "Activa la pantalla de bienvenida cuando se carga la aplicación"
+            title: "Habilitar pantalla de carga"
+          site_description:
+            description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+            title: "Descripción del sitio"
+          site_logo:
+            description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación"
+            title: "Logotipo del sitio"
+          site_name:
+            description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+            title: "Nombre del sitio"
+          title: "General"
+        save: "Guardar"
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"

@@ -17,13 +17,16 @@ const http = axios.create({
     }
   }, function (error) {
     if (error.response.status === 404) {
-        AppRouter.replace('/not-found')
+        //AppRouter.replace('/not-found')
     }
 
     if (error.response.status === 500 || error.response.code === 502) {
         if (process.env.NODE_ENV !== 'development') {
-          AppRouter.replace('/exception')
+          //AppRouter.replace('/exception')
         }
+    }
+    if(error.response.status === 422) {
+      return Promise.reject(error.response.data);
     }
     return Promise.reject(error);
   });

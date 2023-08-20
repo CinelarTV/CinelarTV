@@ -13,6 +13,13 @@
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
                             class="dialog create-profile w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all">
+                            <template v-if="errors">
+                                <div class="alert alert-danger">
+                                    <template v-for="error in errors">
+                                        <p>{{ error }}</p>
+                                    </template>
+                                </div>
+                            </template>
                             <div class="image-container justify-center flex pb-4">
                                 <img :src="SiteSettings.site_logo" class="modal-site-logo" />
                             </div>
@@ -24,19 +31,24 @@
                                     ¿Quién eres? 🍿
                                 </p>
 
-                                <form id="create-profile-form" @submit="console.log(e)" type="POST">
-                                    <input type="text" v-model="name" id="create-profile-name-input" placeholder="Nombre"
+                                <form id="create-profile-form" @submit="submitCreateProfile" type="POST">
+                                    <c-input type="text" v-model="name" id="create-profile-name-input" placeholder="Nombre"
                                         class="mb-4" />
-                                    <input type="text" v-model="avatar" id="create-profile-avatar-input"
-                                        placeholder="Avatar" />
+                                    <div class="avatar-list">
+                                        <template v-for="avatar in avatarList">
+                                            <div class="avatar" @click="selectedAvatar = avatar.id" :class="{ 'selected': selectedAvatar === avatar.id }">
+                                                <img :src="avatar.path" :alt="avatar.name" />
+                                            </div>
+                                        </template>
+                                    </div>
 
                                     <div class="mt-4">
-                                        <button type="submit" class="create-profile-button" @click="submitCreateProfile">
+                                        <button type="submit" class="button">
                                             <template v-if="loading">
                                                 <LoaderIcon :size="18" class="icon loading-request" />
                                             </template>
                                             <template v-else>
-                                                <Unlock :size="18" class="icon" />
+                                                <PlusIcon :size="18" class="icon" />
                                             </template>
                                             Crear perfil
                                         </button>
@@ -52,15 +64,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { SiteSettings, currentUser } from '../../pre-initializers/essentials-preload';
 import { Unlock, LoaderIcon } from 'lucide-vue-next'
+import { PlusIcon } from 'lucide-vue-next';
+
+const props = defineProps({
+    avatarList: {
+        type: Array,
+        default: []
+    }
+})
 
 const isOpen = ref(false)
 const loading = ref(false)
 const name = ref('')
-const avatar = ref('')
+const selectedAvatar = ref('')
+const errors = ref()
 
 
 const setIsOpen = (value) => {
@@ -71,23 +92,25 @@ defineExpose({
     setIsOpen
 })
 
-const submitCreateProfile = () => {
+const submitCreateProfile = (e) => {
+    e.preventDefault()
     loading.value = true
+    errors.value = null
 
     const data = {
         name: name.value,
-        avatar: avatar.value
+        avatar_id: selectedAvatar.value
     }
 
     axios.post('/user/create-profile', data)
         .then((response) => {
-            console.log(response)
             loading.value = false
             setIsOpen(false)
+            window.location.reload()
         })
         .catch((error) => {
-            console.log(error)
             loading.value = false
+            errors.value = error.errors
         })
 }
 
