@@ -11,7 +11,6 @@
                     <router-link class="flex site-nav--btn" :to="i.to" v-if="i.showItem">
                         <component :is="i.icon" :size="20" class="icon"></component>
                         {{ i.title }}
-                        
                     </router-link>
                 </template>
             </div>
