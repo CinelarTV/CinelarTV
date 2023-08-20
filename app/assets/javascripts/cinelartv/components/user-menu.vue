@@ -116,10 +116,16 @@ const menuItems = ref([
         visible: isMainProfile.value
     },
     {
+        text: 'Administrar contenido',
+        icon: WrenchIcon,
+        href: '/admin/content-manager',
+        visible: currentUser?.admin && isMainProfile.value
+    },
+    {
         text: 'Administrador',
         icon: WrenchIcon,
         href: '/admin',
-        visible: currentUser?.admin
+        visible: currentUser?.admin && isMainProfile.value
     },
     {
         text: 'Mis Tickets',
