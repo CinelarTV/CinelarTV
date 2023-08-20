@@ -60,6 +60,12 @@ general:
     type: 'boolean'
     validator: 'SettingValidator'
 
+  base_url:
+    client: true
+    refresh: true
+    validator: 'SettingValidator'
+    readonly: true
+
 customization:
   background_color:
     client: true

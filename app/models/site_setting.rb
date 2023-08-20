@@ -14,10 +14,11 @@ class SiteSetting < RailsSettings::Base
           # Iterar sobre cada ajuste y añadirlo utilizando
 
           field key.to_sym,
-          default: options["default"],
+          default: options["default"] || ENV["CINELAR_#{key.upcase}"],
           validates: { presence: true },
           type: options["type"],
-          exposed_to_client: options["client"] || false
+          exposed_to_client: options["client"] || false,
+          readonly: options["readonly"] || false,
         end
         end
       end
