@@ -16,18 +16,18 @@
                             <div class="image-container justify-center flex pb-4">
                                 <img :src="SiteSettings.site_logo" class="modal-site-logo" />
                             </div>
-                            <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900" v-emoji>
+                            <DialogTitle as="h3" class="text-lg font-medium text-center leading-6 text-[var(--c-primary-800)]" v-emoji>
                                 Welcome back to {{ SiteSettings.site_name }} 👋!
                             </DialogTitle>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-500 mb-4">
-                                    Ready to go back to school?
+                                    
                                 </p>
 
                                 <form id="login-form" @submit="console.log(e)" type="POST">
-                                    <input type="email" v-model="email" id="login-email-input" placeholder="E-mail"
+                                    <c-input type="email" v-model="email" id="login-email-input" placeholder="E-mail"
                                         class="mb-4" />
-                                    <input type="password" v-model="password" id="login-password-input"
+                                    <c-input type="password" v-model="password" id="login-password-input"
                                         placeholder="Password" />
 
                                     <div class="mt-4">
