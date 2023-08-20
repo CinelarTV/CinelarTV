@@ -105,12 +105,13 @@
 }
 
 .settings .setting-container {
-    padding-bottom: 20px;
+    @apply flex flex-row items-center mb-4
+
 }
 
 .setting-title {
     float: left;
-    margin-right: 12px;
+    @apply mr-auto
 }
 
 .setting-value {
@@ -118,7 +119,8 @@
 }
 
 .setting-value.input {
-    @apply px-4 py-2 border-2 border-gray-300 rounded-md hover:border-gray-400 transition-colors active:border-gray-500 focus:outline-none
+    @apply px-4 py-2 border-2 border-gray-300 rounded-md hover:border-gray-400 transition-colors active:border-gray-500 focus:outline-none;
+    
 }
 
 .setting-value.textarea {
