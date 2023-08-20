@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
     end
 
     def refresh_settings
-        SiteSetting.load_settings
+        SiteSetting.reload_settings
         redirect_to app_path
     end
 

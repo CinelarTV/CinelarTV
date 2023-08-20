@@ -70,7 +70,7 @@
     },
     computed: {
       commitUrl() {
-        return `https://github.com/MiEducacion/MiEducacion/commits/${this.dashboardData.version_check.installed_sha}`
+        return `https://github.com/CinelarTV/CinelarTV-AIO/commits/${this.dashboardData.version_check.installed_sha}`
       },
       formattedSha() {
         return this.dashboardData.version_check.installed_sha.substr(0, 10)

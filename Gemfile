@@ -84,3 +84,5 @@ gem "rack-mini-profiler", "~> 2.0"
 gem "redis"
 gem "logster"
 
+# Postgres on production
+gem "pg", "~> 1.2"

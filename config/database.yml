@@ -22,4 +22,10 @@ test:
 
 production:
   <<: *default
-  database: db/production.sqlite3
+  adapter: postgresql
+  encoding: unicode
+  database: <%= ENV['CINELAR_DB'] || 'cinelar' %>
+  host: <%= ENV['CINELAR_DB_HOSTNAME'] || 'localhost' %>
+  username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
+  password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
+  port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>

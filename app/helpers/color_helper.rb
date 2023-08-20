@@ -26,7 +26,6 @@ module ColorHelper
     adjusted_value = channel_value - variant * 0.1 * (channel_value < 128 ? -1 : 1) # Inverted adjustment for darker variants
     # Round the result
     adjusted_value = adjusted_value.round
-    puts "adjusted_value: #{adjusted_value}"
     # Clamp the result to the valid range
     [0, adjusted_value, 255].sort[1]
     end

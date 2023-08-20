@@ -52,6 +52,13 @@ general:
     refresh: true
     default: true
     validator: 'SettingValidator'
+  
+  allow_registration:
+    client: true
+    refresh: true
+    default: true
+    type: 'boolean'
+    validator: 'SettingValidator'
 
 customization:
   background_color:
@@ -113,6 +120,7 @@ developer:
     client: true
     refresh: true
     default: false
+    type: 'boolean'
     validator: 'SettingValidator'
 
 experimental:

@@ -12,7 +12,6 @@ class SiteSetting < RailsSettings::Base
 
         settings_data.each do |key, options|
           # Iterar sobre cada ajuste y añadirlo utilizando
-          # field :site_name, default: (ENV["MIEDUCACION_SITE_NAME"] || "MiEducación"), validates: { presence: true }
 
           field key.to_sym,
           default: options["default"],
@@ -37,6 +36,10 @@ class SiteSetting < RailsSettings::Base
     end
   
     settings
+  end
+
+  def self.reload_settings
+    self.clear_cache
   end
   
 

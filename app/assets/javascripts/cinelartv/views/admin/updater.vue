@@ -70,7 +70,7 @@ var updateStatus = ref(null)
 const handleFailed = () => {
     let expandableLogs = getElementById("expandable-logs")
     MessageBus.unsubscribe('/admin/upgrade')
-    currentLine.value = 'Failed to update MiEducación';
+    currentLine.value = 'Failed to update CinelarTV. Please check the logs for more information.';
     expandableLogs.setAttribute("open", "true");
 }
 
