@@ -1,5 +1,5 @@
 <template>
-    <div class="admin-dashboard">
+    <div class="admin-dashboard wrap">
       <div class="admin-main-nav">
         <ul class="nav nav-pills overflow-x-auto">
           <li v-for="link in adminLinks" :key="link.to">

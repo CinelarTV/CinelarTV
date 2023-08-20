@@ -2,7 +2,7 @@
     <div id="mountpoint">
 
         <SiteHeader v-if="$route.meta.showHeader !== false" />
-        <main class="wrap">
+        <main>
             <SiteBanner />
             <router-view />
         </main>
