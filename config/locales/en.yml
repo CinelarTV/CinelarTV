@@ -11,10 +11,10 @@ en:
   js:
     admin:
       nav:
+        content: "Manage content"
         dashboard: "Dashboard"
         settings: "Settings"
         updater: "Upgrader"
-        content: "Manage content"
         users: "Users"
       settings:
         experimental:

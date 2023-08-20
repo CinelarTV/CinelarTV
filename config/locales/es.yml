@@ -11,9 +11,11 @@ es:
   js:
     admin:
       nav:
+        content: "Administrar contenido"
         dashboard: "Panel de control"
         settings: "Configuración"
         updater: "Actualizador"
+        users: "Usuarios"
       settings:
         experimental:
           enable_web_updater:
