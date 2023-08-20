@@ -40,5 +40,5 @@
 yarn-debug.log*
 .yarn-integrity
 
-# Ignore tailwind build output, because we use precompile in production
-/app/assets/builds
+# Ignore css build files
+/app/assets/builds/*.css
