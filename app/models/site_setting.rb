@@ -18,7 +18,7 @@ class SiteSetting < RailsSettings::Base
           validates: { presence: true },
           type: options["type"],
           exposed_to_client: options["client"] || false,
-          readonly: options["readonly"] || false,
+          readonly: options["readonly"] || false
         end
         end
       end
