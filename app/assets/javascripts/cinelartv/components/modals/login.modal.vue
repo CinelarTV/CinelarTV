@@ -30,9 +30,9 @@
                                     <c-input type="password" v-model="password" id="login-password-input"
                                         placeholder="Password" />
 
-                                    <div class="mt-4">
-                                        <a @click="forgotPassword" class="forgot-password">Forgot password</a>
-                                        <button type="submit" class="login-button" @click="submitLogin">
+                                    <div class="mt-4 flex items-center space-x-6 justify-center">
+                                        <a @click="forgotPassword" class="button dark forgot-password">Forgot password</a>
+                                        <button type="submit" class="button login-button" @click="submitLogin">
                                             <template v-if="loading">
                                                 <LoaderIcon :size="18" class="icon loading-request" />
                                             </template>
