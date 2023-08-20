@@ -10,7 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_19_014230) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_20_215219) do
+  create_table "categories", force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.string "image"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "contents", force: :cascade do |t|
+    t.string "title"
+    t.string "description"
+    t.string "banner"
+    t.string "cover"
+    t.string "type"
+    t.string "url"
+    t.integer "year"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "episodes", force: :cascade do |t|
+    t.string "title"
+    t.string "description"
+    t.string "url"
+    t.integer "season_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["season_id"], name: "index_episodes_on_season_id"
+  end
+
   create_table "preferences", force: :cascade do |t|
     t.integer "profile_id", null: false
     t.string "key"
@@ -39,6 +69,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_19_014230) do
     t.index ["name", "resource_type", "resource_id"], name: "index_roles_on_name_and_resource_type_and_resource_id"
     t.index ["name"], name: "index_roles_on_name"
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
+  end
+
+  create_table "seasons", force: :cascade do |t|
+    t.string "title"
+    t.string "description"
+    t.integer "content_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_seasons_on_content_id"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -71,6 +110,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_19_014230) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
+  add_foreign_key "episodes", "seasons"
   add_foreign_key "preferences", "profiles"
   add_foreign_key "profiles", "users"
+  add_foreign_key "seasons", "contents"
 end

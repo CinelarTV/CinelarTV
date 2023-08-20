@@ -14,6 +14,8 @@ en:
         dashboard: "Dashboard"
         settings: "Settings"
         updater: "Upgrader"
+        content: "Manage content"
+        users: "Users"
       settings:
         experimental:
           enable_web_updater:

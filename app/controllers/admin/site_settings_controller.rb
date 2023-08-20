@@ -17,7 +17,7 @@ module Admin
                 type: setting[:type],
                 readonly: setting[:readonly],
                 value: SiteSetting.send(setting[:key]),
-                options: setting[:options]
+                options: setting[:options],
               } unless setting[:options][:hidden]
             end
   

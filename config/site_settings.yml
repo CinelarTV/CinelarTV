@@ -1,149 +1,129 @@
-# Available options:
-#
-# default            - The default value of the setting. For upload site settings, use a string containing the path to the default image.
-# client             - Set to true if the javascript should have access to this setting's value.
-# refresh            - Set to true if clients should refresh when the setting is changed.
-# min                - For a string setting, the minimum length. For an integer setting, the minimum value.
-# max                - For a string setting, the maximum length. For an integer setting, the maximum value.
-# regex              - A regex that the value must match.
-# validator          - The name of the class that will be use to validate the value of the setting.
-# secret             - Set to true if input type should be password and value needs to be scrubbed from logs (default false).
-# enum               - The setting has a fixed set of allowed values, and only one can be chosen.
-#
-#
-
-#
-
+---
 general:
   site_name:
     client: true
     exposed_to_client: true
     refresh: true
-    default: 'CinelarTV'
+    default: CinelarTV
     min: 1
     max: 50
-    regex: '^[a-zA-Z0-9 ]*$'
-    validator: 'SettingValidator'
-
+    regex: ^[a-zA-Z0-9 ]*$
   site_logo:
     client: true
     refresh: true
-    default: '/assets/default/cinelartv_default_logo.svg'
-    validator: 'SettingValidator'
-    type: 'upload'
-
+    default: /assets/default/cinelartv_default_logo.svg
+    type: upload
   site_description:
     client: true
     refresh: true
-    default: 'CinelarTV'
+    default: CinelarTV
     min: 1
     max: 50
-    regex: '^[a-zA-Z0-9 ]*$'
-    validator: 'SettingValidator'
-
+    regex: ^[a-zA-Z0-9 ]*$
   default_locale:
     client: true
     refresh: true
-    default: 'es'
-    validator: 'SettingValidator'
-
+    default: es
+    validator: "AllowedValuesValidator"
+    type: enum
+    allowed_values:
+      - en
+      - es
+      - pt
   enable_splash_screen:
     client: true
     refresh: true
     default: true
-    validator: 'SettingValidator'
-  
+    type: boolean
   allow_registration:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
-    validator: 'SettingValidator'
-
+    type: boolean
   base_url:
     client: true
     refresh: true
-    validator: 'SettingValidator'
-    readonly: true
+    readonly: true,
+    hidden: true
+content:
+  tmdb_api_key:
+    client: true
+    refresh: true
+    default: ""
+    type: string
+    secret: true
+  
+storage:
+  allow_video_direct_link:
+    client: true
+    refresh: true
+    default: false
+    type: boolean
 
+    
 customization:
   background_color:
     client: true
     refresh: true
-    default: '#000000'
-    type: 'color'
-  
+    default: "#000000"
+    type: color
   body_text_color:
     client: true
     refresh: true
-    default: '#ffffff'
-    type: 'color'
-
+    default: "#ffffff"
+    type: color
   header_background_color:
     client: true
     refresh: true
-    default: '#000000'
-    type: 'color'
-
+    default: "#000000"
+    type: color
   base_font_family:
     client: true
     refresh: true
-    default: 'Jost*'
-
-
+    default: Jost*
   header_font_family:
     client: true
     refresh: true
-    default: 'Jost*'
-
+    default: Jost*
   primary_color:
     client: true
     refresh: true
-    default: '#181818FF'
-    type: 'color'
-  
+    default: "#181818FF"
+    type: color
   secondary_color:
     client: true
     refresh: true
-    default: '#181818FF'
-    type: 'color'
-
+    default: "#181818FF"
+    type: color
   tertiary_color:
     client: true
     refresh: true
-    default: '#181818FF'
-    type: 'color'
-
+    default: "#181818FF"
+    type: color
   quaternary_color:
     client: true
     refresh: true
-    default: 'rgba(255, 255, 255, 0.2)'
-    type: 'color'
-
-
+    default: rgba(255, 255, 255, 0.2)
+    type: color
 developer:
   enable_js_error_reporting:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
-    validator: 'SettingValidator'
-
+    type: boolean
 experimental:
   enable_web_updater:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
-
+    type: boolean
   external_stylesheets:
     client: true
     refresh: true
-    default: 'https://fonts.cdnfonts.com/css/jost'
-    type: 'list'
-
+    default: https://fonts.cdnfonts.com/css/jost
+    type: list
   external_scripts:
     client: true
     refresh: true
-    default: ''
-    type: 'list'
+    default: ""
+    type: list

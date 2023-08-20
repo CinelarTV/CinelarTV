@@ -89,3 +89,5 @@ gem "logster"
 
 # Postgres on production
 gem "pg", "~> 1.2"
+
+gem "themoviedb-api", "~> 1.4"

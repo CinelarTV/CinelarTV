@@ -39,6 +39,19 @@
                                 </Listbox>
                             </div>
 
+                            <div v-else-if="setting.type === 'enum'">
+                                <Listbox v-model="settings[setting.key]">
+                                    <ListboxButton class="setting-value input">{{ settings[setting.key] || setting.value }}
+                                    </ListboxButton>
+                                    <ListboxOptions>
+                                        <ListboxOption v-for="option in setting.options.allowed_values" :key="option"
+                                            :value="option">
+                                            {{ option }}
+                                        </ListboxOption>
+                                    </ListboxOptions>
+                                </Listbox>
+                            </div>
+
 
                             <div v-else-if="setting.type === 'image'">
                                 <div class="setting-image-uploader">

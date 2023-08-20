@@ -21,6 +21,9 @@ Rails.application.routes.draw do
 
   get '/user/default-avatars', to: 'profiles#default_avatars'
 
+  get '/contents/search', to: 'contents#search'
+
+
   # Dev route to refresh the settings
   if Rails.env.development?
     get "/r", to: "application#refresh_settings"

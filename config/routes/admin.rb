@@ -7,6 +7,9 @@ namespace :admin do
     post "upgrade" => "updates#run_update"
     get "updates/progress" => "updates#check_progress"
 
+
+    # Content Management related routes
+    get '/contents/recommended-metadata', to: 'contents#find_recommended_metadata'
   
     
   end

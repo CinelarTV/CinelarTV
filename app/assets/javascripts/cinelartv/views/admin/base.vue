@@ -26,6 +26,14 @@ const adminLinks = [
     to: '/admin/dashboard'
   },
   {
+    title: $t("js.admin.nav.content"),
+    to: '/admin/content'
+  },
+  {
+    title: $t("js.admin.nav.users"),
+    to: '/admin/users'
+  },
+  {
     title: $t("js.admin.nav.settings"),
     to: '/admin/settings'
   },
