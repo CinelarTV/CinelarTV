@@ -15,7 +15,7 @@
                             alt="Avatar de perfil {{ profile.name }}" />
                         <h2 class="profile-name">{{ profile.name }}</h2>
                         <div v-if="editMode" class="flex flex-row space-x-2 relative top-0 mt-2 right-0">
-                            <button class="button" @click="deleteProfile(profile)">
+                            <button class="button" @click="deleteProfile(profile)" v-if="profile.profile_type !== 'OWNER'">
                                 <Trash2Icon :size="16" class="icon text-white mr-2" />
                                 Eliminar
                             </button>

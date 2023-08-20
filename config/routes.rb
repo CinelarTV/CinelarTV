@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   post '/user/create-profile', to: 'profiles#create'
   post '/user/select-profile', to: 'session#select_profile'
   post '/user/deassign-profile', to: 'session#deassign_profile'
+  delete '/user/profiles/:id', to: 'profiles#destroy'
 
   # Dev route to refresh the settings
   if Rails.env.development?
