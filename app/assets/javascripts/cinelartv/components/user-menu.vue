@@ -56,6 +56,8 @@ import LoginModal from './modals/login.modal.vue'
 import { currentUser } from '../pre-initializers/essentials-preload';
 import { UserIcon, LogOut, CreditCardIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { WrenchIcon } from 'lucide-vue-next';
+import { ClapperboardIcon } from 'lucide-vue-next';
+import { ArrowRightLeftIcon } from 'lucide-vue-next';
 
 const isMainProfile = ref(false)
 
@@ -95,7 +97,7 @@ const menuItems = ref([
     },
     {
         text: 'Cambiar Perfil',
-        icon: UserIcon,
+        icon: ArrowRightLeftIcon,
         onClick: () => {
             axios.post('/user/deassign-profile', {
                 user: {
@@ -117,7 +119,7 @@ const menuItems = ref([
     },
     {
         text: 'Administrar contenido',
-        icon: WrenchIcon,
+        icon: ClapperboardIcon,
         href: '/admin/content-manager',
         visible: currentUser?.admin && isMainProfile.value
     },
