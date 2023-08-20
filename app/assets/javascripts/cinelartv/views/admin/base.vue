@@ -27,7 +27,7 @@ const adminLinks = [
   },
   {
     title: $t("js.admin.nav.content"),
-    to: '/admin/content'
+    to: '/admin/content-manager'
   },
   {
     title: $t("js.admin.nav.users"),
