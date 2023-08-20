@@ -10,13 +10,7 @@ class Admin::UpdatesController < Admin::BaseController
       end
     end
   
-    def emergency_update
-        CinelarTV::Updater.run_update
-        render html: "CinelarTV started Emergency Update. Please wait a few minutes and refresh the page."
-      end
-    end
 
-    
     def run_update
       if !SiteSetting.enable_web_updater
         render json: {
