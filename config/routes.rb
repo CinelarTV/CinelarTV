@@ -31,4 +31,7 @@ Rails.application.routes.draw do
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 
+  # Assets route, to serve files from public/assets
+  get "/assets/*path.:ext", to: redirect("/assets/%{path}.%{ext}")
+
 end
