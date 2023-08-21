@@ -13,6 +13,15 @@ es:
               too_short: "El nombre es demasiado corto, debe tener al menos %{count} caracteres"
   js:
     admin:
+      content_manager:
+        nav:
+          all_content: "Todo el contenido"
+          categories: "Categorías"
+          episodes: "Episodios"
+          movies: "Películas"
+          seasons: "Temporadas"
+          series: "Series"
+          servers: "Servidores"
       nav:
         content: "Administrar contenido"
         dashboard: "Panel de control"

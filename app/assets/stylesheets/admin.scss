@@ -18,6 +18,10 @@
 
 .nav-item {
     @apply px-4 py-2 flex transition-colors hover:bg-[var(--c-tertiary-400)] hover:text-[var(--c-primary)] cursor-pointer;
+
+    & .icon {
+        @apply mr-2
+    }
 }
 
 

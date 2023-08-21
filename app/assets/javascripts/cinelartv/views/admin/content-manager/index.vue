@@ -1,15 +1,15 @@
 <template>
     <div class="panel content-manager">
-        <div class="panel-header">
-            <h2 class="panel-title">Gestor de Contenido</h2>
-        </div>
         <div class="panel-body">
-            <div class="content-manager--nav">
-                <div class="content-manager--nav__item" v-for="item in navItems" :key="item.to">
-                    <router-link :to="item.to" class="btn btn-primary">
-                        {{ item.title }}
-                    </router-link>
-                </div>
+            <div class="admin-main-nav">
+                <ul class="nav nav-pills overflow-x-auto">
+                    <li v-for="item in navItems" :key="item.to">
+                        <router-link class="nav-item min-w-0 whitespace-nowrap" :to="item.to" active-class="admin-nav-active">
+                            <component :is="item.icon" :size="20" class="icon"></component>
+                            {{ item.title }}
+                        </router-link>
+                    </li>
+                </ul>
             </div>
             <router-view />
         </div>
@@ -22,22 +22,24 @@ import { useRoute } from 'vue-router'
 import { useMeta } from 'vue-meta'
 import { getCurrentInstance } from 'vue'
 import { SiteSettings } from '../../../pre-initializers/essentials-preload'
+import { ClapperboardIcon, TvIcon } from 'lucide-vue-next'
+import { ShapesIcon } from 'lucide-vue-next'
+import { RouterIcon } from 'lucide-vue-next'
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 
 const navItems = [
     {
-        title: $t("js.admin.content_manager.nav.movies"),
-        to: '/admin/content-manager/movies'
+        icon: ClapperboardIcon,
+        title: $t("js.admin.content_manager.nav.all_content"),
+        to: '/admin/content-manager/all'
     },
     {
-        title: $t("js.admin.content_manager.nav.series"),
-        to: '/admin/content-manager/series'
+        icon: ShapesIcon,
+        title: $t("js.admin.content_manager.nav.categories"),
+        to: '/admin/content-manager/categories'
     },
     {
-        title: $t("js.admin.content_manager.nav.episodes"),
-        to: '/admin/content-manager/episodes'
-    },
-    {
+        icon: RouterIcon,
         title: $t("js.admin.content_manager.nav.servers"),
         to: '/admin/content-manager/servers'
     },
