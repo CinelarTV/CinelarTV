@@ -10,7 +10,6 @@ class SiteSetting < RailsSettings::Base
         settings.each do |category, settings_data|
           scope category.to_sym do
             settings_data.each do |key, options|
-              puts "Adding setting #{key} with options #{options}"
               field key.to_sym,
                     default: options["default"] || ENV["CINELAR_#{key.upcase}"],
                     type: options["type"],
