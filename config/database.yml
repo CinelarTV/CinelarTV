@@ -11,7 +11,13 @@ default: &default
 
 development:
   <<: *default
-  database: db/development.sqlite3
+  adapter: postgresql
+  encoding: unicode
+  database: <%= ENV['CINELAR_DB'] || 'cinelar' %>
+  host: <%= ENV['CINELAR_DB_HOSTNAME'] || 'localhost' %>
+  username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
+  password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
+  port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

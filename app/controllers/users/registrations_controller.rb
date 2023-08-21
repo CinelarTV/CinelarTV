@@ -11,21 +11,31 @@ module Users
       end
   
       def create
-        @user = User.new(user_params)
-        if @user.save
-          # Create the main profile for the user
-          main_profile_data = {
-            user_id: @user.id,
-            name: @user.username.upcase,
-            profile_type: 'OWNER',
-            avatar_id: 'coolCat' # Default avatar
-          }
-          Profile.create(main_profile_data)
-          # ... Additional logic for successful registration ...
-        else
-          # ... Logic for failed registration ...
+        @user = User.new(sign_up_params)
+        
+        respond_to do |format|
+          if @user.save
+            main_profile_data = {
+              user_id: @user.id,
+              name: @user.username.upcase,
+              profile_type: 'OWNER',
+              avatar_id: 'coolCat' # Default avatar
+            }
+            Profile.create(main_profile_data)
+            
+            if SiteSetting.waiting_on_first_user && @user.email == SiteSetting.developer_email
+              @user.add_role(:super_admin)
+              SiteSetting.waiting_on_first_user = false
+            end
+            
+            sign_in(@user) # Sign in the newly registered user
+            format.html { redirect_to '/', notice: 'User registered successfully!' }
+          else
+            format.html { render :new }
+          end
         end
       end
+      
   
       protected
   
@@ -42,7 +52,8 @@ module Users
           :email,
           :password,
           :password_confirmation,
-          :remember_me
+          :remember_me,
+          :username,
         ]
       end
     end

@@ -21,6 +21,16 @@ class SiteSetting < RailsSettings::Base
             end
           end
         end
+
+        # Set internal settings
+
+        scope :internal do
+          field :waiting_on_first_user,
+                default: -> { default_waiting_on_first_user_value },
+                type: :boolean
+
+          
+        end
       end
     end
 
@@ -40,6 +50,14 @@ class SiteSetting < RailsSettings::Base
     end
 
     private
+
+    def default_waiting_on_first_user_value
+      begin
+        !User.exists?
+      rescue ActiveRecord::NoDatabaseError
+        true
+      end
+    end
 
     def build_validators(options)
       validator_names = options.split("|")

@@ -6,7 +6,8 @@ Rails.application.routes.draw do
   root to: "application#index", as: "app"
 
   devise_for :users, controllers: {
-    sessions: "users/sessions"
+    sessions: "users/sessions",
+    registrations: "users/registrations"
   }
 
   get '/user/profiles', to: 'session#profiles'

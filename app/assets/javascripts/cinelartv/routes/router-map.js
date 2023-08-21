@@ -1,11 +1,15 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { currentUser, SiteSettings } from '../pre-initializers/essentials-preload'
+import { success } from 'high-console'
 
 function loadRoutes() {
     const routes = require.context('./', true, /\.route\.js$/)
+
     return routes.keys()
         .map(routes)         // import module
-        .map(m => m.default)  // get `default` export from each resolved module
+        .map(m => {
+            return m.default
+        })  // get `default` export from each resolved module
 }
 
 let routes = loadRoutes()

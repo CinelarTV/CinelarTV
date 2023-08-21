@@ -15,18 +15,19 @@
             <MenuItems class="user-menu-items">
                 <div class="py-1">
                     <MenuItem v-slot="{ active }" as="li" v-for="i in menuItems" :key="i.text">
-                        <template v-if="i.onClick">
-                            <button @click="i.onClick" class="menu-item" :class='{ "bg-white bg-opacity-10": active }'>
-                                <component :is="i.icon" :size="20" class="icon"></component>
-                                <span class="ml-2 whitespace-nowrap">{{ i.text }}</span>
-                            </button>
-                        </template>
-                        <template v-else-if="i.href">
-                            <router-link v-if="i.visible" class="menu-item" :class='{ "bg-white bg-opacity-10": active }' :to="i.href">
-                                <component :is="i.icon" :size="20" class="icon"></component>
-                                <span class="ml-2 whitespace-nowrap">{{ i.text }}</span>
-                            </router-link>
-                        </template>
+                    <template v-if="i.onClick">
+                        <button @click="i.onClick" class="menu-item" :class='{ "bg-white bg-opacity-10": active }'>
+                            <component :is="i.icon" :size="20" class="icon"></component>
+                            <span class="ml-2 whitespace-nowrap">{{ i.text }}</span>
+                        </button>
+                    </template>
+                    <template v-else-if="i.href">
+                        <router-link v-if="i.visible" class="menu-item" :class='{ "bg-white bg-opacity-10": active }'
+                            :to="i.href">
+                            <component :is="i.icon" :size="20" class="icon"></component>
+                            <span class="ml-2 whitespace-nowrap">{{ i.text }}</span>
+                        </router-link>
+                    </template>
                     </MenuItem>
 
                     <MenuItem as="li">
@@ -41,11 +42,17 @@
             </MenuItems>
         </transition>
     </Menu>
-    <button v-else @click="openLoginModal()" class="login-button flex" href="/users/sign_in">
-        <LoginModal ref="loginModal" />
-        <UserIcon :size="18" class="mr-2" />
-        Login
-    </button>
+    <div class="flex items-center space-x-2" v-else>
+        <button @click="openSignupModal" class="button">
+            <SignupModal ref="signupModal" />
+            Sign up
+        </button>
+        <button @click="openLoginModal()" class="button">
+            <LoginModal ref="loginModal" />
+            <UserIcon :size="18" class="icon" />
+            Login
+        </button>
+    </div>
 </template>
   
   
@@ -58,6 +65,7 @@ import { UserIcon, LogOut, CreditCardIcon, HelpCircleIcon } from 'lucide-vue-nex
 import { WrenchIcon } from 'lucide-vue-next';
 import { ClapperboardIcon } from 'lucide-vue-next';
 import { ArrowRightLeftIcon } from 'lucide-vue-next';
+import SignupModal from './modals/signup.modal.vue';
 
 const isMainProfile = ref(false)
 
@@ -138,9 +146,15 @@ const menuItems = ref([
 ])
 
 const loginModal = ref(null)
+const signupModal = ref(null)
+
 
 const openLoginModal = () => {
     loginModal.value.setIsOpen(true)
+}
+
+const openSignupModal = () => {
+    signupModal.value.setIsOpen(true)
 }
 
 const userLogout = () => {
