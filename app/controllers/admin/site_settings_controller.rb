@@ -52,8 +52,12 @@ module Admin
           setting_params.keys.each do |key|
             # Si el campo es el de la imagen del sitio, ya lo actualizamos, por lo que no necesitamos hacer nada aquí
             next if key == 'site_logo'
-  
-            SiteSetting.send("#{key}=", setting_params[key].strip) unless setting_params[key].nil?
+            puts "Setting #{key} to #{setting_params[key]}"
+            @new_value = setting_params[key]
+            
+
+            puts "Setting #{key} to #{@new_value}"
+            SiteSetting.send("#{key}=", @new_value) unless setting_params[key].nil?
           end
   
           render json: { message: 'I18n.t("js.core.success_settings")' }, status: :ok

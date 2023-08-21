@@ -1,6 +1,6 @@
 <template>
     <template v-if="loading">
-        <m-spinner />
+        <c-spinner />
     </template>
 
     <template v-else>

@@ -2,6 +2,9 @@
 es:
   activerecord:
     errors:
+      messages:
+        invalid: "Inválido %{model}"
+        record_invalid: "La validación falló: %{errors}"
       models:
         profile:
           attributes:

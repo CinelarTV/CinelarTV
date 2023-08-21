@@ -29,6 +29,14 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.content.manager',
+            path: '/admin/content-manager',
+            component: () => import('../views/admin/content-manager/index.vue'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.settings',
             path: 'settings',
             redirect: '/admin/site_settings',
@@ -44,7 +52,7 @@ const AdminRoutes = {
                     meta: {
                         requireAdmin: true
                     }
-                }
+                },
             ]
         }
     ],

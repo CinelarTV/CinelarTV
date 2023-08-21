@@ -1,6 +1,6 @@
 <template>
     <div class="panel">
-      <m-spinner v-if="!dashboardData" />
+      <c-spinner v-if="!dashboardData" />
       <div v-else id="admin-dashboard" class="pt-2">
         <section id="updates-available" class="inline-flex px-4 py-2 w-full bg-emerald-500 text-white mb-8" v-if="dashboardData.version_check.updates_available">
           <UploadCloud />

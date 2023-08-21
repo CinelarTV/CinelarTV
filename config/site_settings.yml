@@ -12,7 +12,7 @@ general:
     client: true
     refresh: true
     default: /assets/default/cinelartv_default_logo.svg
-    type: upload
+    type: 'upload'
   site_description:
     client: true
     refresh: true
@@ -25,7 +25,7 @@ general:
     refresh: true
     default: es
     validator: "AllowedValuesValidator"
-    type: enum
+    type: 'enum'
     allowed_values:
       - en
       - es
@@ -34,12 +34,12 @@ general:
     client: true
     refresh: true
     default: true
-    type: boolean
+    type: 'boolean'
   allow_registration:
     client: true
     refresh: true
     default: true
-    type: boolean
+    type: 'boolean'
   base_url:
     client: true
     refresh: true
@@ -50,7 +50,7 @@ content:
     client: true
     refresh: true
     default: ""
-    type: string
+    type: 'string'
     secret: true
   
 storage:
@@ -58,25 +58,25 @@ storage:
     client: true
     refresh: true
     default: false
-    type: boolean
+    type: 'boolean'
 
-    
+
 customization:
   background_color:
     client: true
     refresh: true
     default: "#000000"
-    type: color
+    type: 'color'
   body_text_color:
     client: true
     refresh: true
     default: "#ffffff"
-    type: color
+    type: 'color'
   header_background_color:
     client: true
     refresh: true
     default: "#000000"
-    type: color
+    type: 'color'
   base_font_family:
     client: true
     refresh: true
@@ -89,12 +89,12 @@ customization:
     client: true
     refresh: true
     default: "#181818FF"
-    type: color
+    type: 'color'
   secondary_color:
     client: true
     refresh: true
     default: "#181818FF"
-    type: color
+    type: 'color'
   tertiary_color:
     client: true
     refresh: true
@@ -109,21 +109,21 @@ developer:
   enable_js_error_reporting:
     client: true
     refresh: true
-    default: false
-    type: boolean
+    default: true
+    type: 'boolean'
 experimental:
   enable_web_updater:
     client: true
     refresh: true
     default: false
-    type: boolean
+    type: 'boolean'
   external_stylesheets:
     client: true
     refresh: true
     default: https://fonts.cdnfonts.com/css/jost
-    type: list
+    type: 'list'
   external_scripts:
     client: true
     refresh: true
     default: ""
-    type: list
+    type: 'list'
