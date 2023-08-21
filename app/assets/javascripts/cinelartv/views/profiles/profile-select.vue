@@ -41,6 +41,16 @@
                 </button>
             </div>
         </div>
+        <div class="loading-overlay" v-if="loadingProfile">
+            <div class="overlay-content">
+                <img :src="getProfileAvatar(profileSelected.avatar_id)" class="profile-avatar"
+                    alt="Avatar de perfil {{ profileSelected.name }}" />
+                <h2 class="profile-name">{{ profileSelected.name }}</h2>
+
+                Cargando perfil...
+                <c-spinner />
+            </div>
+        </div>
     </div>
 </template>
 
@@ -50,10 +60,18 @@ import { SiteSettings, currentUser } from '../../pre-initializers/essentials-pre
 import { PlusCircleIcon } from 'lucide-vue-next'
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue'
 import { PencilIcon, Trash2Icon } from 'lucide-vue-next';
+import { Howl, Howler } from 'howler';
 
 const createProfileModal = ref(null)
 const editMode = ref(false)
 const avatarList = ref([])
+const loadingProfile = ref(false)
+const profileSelected = ref({})
+
+const buttonClickedSound = new Howl({
+    src: '/assets/audio/profile-selected.mp3',
+    volume: 0.5,
+});
 
 const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -107,18 +125,23 @@ const getProfileAvatar = (avatar) => {
 
 const selectProfile = (profile) => {
     if (editMode.value) return; // Don't do anything if we're in edit mode
-    console.log(profile);
-    axios.post('/user/select-profile', {
-        user: {
-            selected_profile_id: profile.id
-        }
+    profileSelected.value = profile;
+    loadingProfile.value = true;
+    setTimeout(() => {
+        // Just to add a little delay to the loading screen
+        axios.post('/user/select-profile', {
+            user: {
+                selected_profile_id: profile.id
+            }
 
-    }).then((response) => {
-        console.log(response);
-        window.location.href = '/';
-    }).catch((error) => {
-        console.log(error);
-    });
+        }).then((response) => {
+            console.log(response);
+            window.location.href = '/';
+        }).catch((error) => {
+            console.log(error);
+        });
+    }, 3000);
+
 }
 
 const createProfile = () => {
@@ -145,3 +168,25 @@ onMounted(() => {
     fetchAvatars()
 })
 </script>
+
+<style scoped>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+</style>

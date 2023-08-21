@@ -14,6 +14,7 @@
     "compression-webpack-plugin": "9",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
+    "howler": "^2.2.3",
     "i18n-js": "3.9.2",
     "lucide-vue-next": "^0.268.0",
     "message-bus-client": "^4.3.8",
