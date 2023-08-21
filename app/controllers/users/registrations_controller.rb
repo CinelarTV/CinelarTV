@@ -28,6 +28,8 @@ module Users
               SiteSetting.waiting_on_first_user = false
             end
             
+
+            
             sign_in(@user) # Sign in the newly registered user
             format.html { redirect_to '/', notice: 'User registered successfully!' }
           else
