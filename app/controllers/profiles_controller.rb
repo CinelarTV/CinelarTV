@@ -54,6 +54,8 @@ class ProfilesController < ApplicationController
     render json: [
       { id: 'coolCat', name: 'Cool Cat', path: '/assets/default/avatars/coolCat.png' },
       { id: 'cuteCat', name: 'Cute Cat', path: '/assets/default/avatars/cuteCat.png' },
+      { id: 'dino_boy', name: 'Dino Boy', path: '/assets/default/avatars/dino_boy.png' },
+      { id: 'baby_unicorn', name: 'Baby Unicorn', path: '/assets/default/avatars/baby_unicorn.png' },
     ]
   end
 

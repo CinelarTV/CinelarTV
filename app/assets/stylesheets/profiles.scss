@@ -77,26 +77,24 @@
 
 .avatar-list {
   /* @apply grid tailwind */
-    @apply grid grid-cols-2 gap-4;
+    @apply grid grid-cols-4 gap-4;
+    @apply justify-items-center;
     @apply mt-4;
  
     & .avatar {
         @apply rounded-lg;
         @apply h-16 w-16;
-        @apply object-cover;
         @apply border-2 border-white;
         @apply cursor-pointer;
 
         & img {
-            @apply rounded-lg;
-            @apply h-16 w-16;
-            @apply object-cover;
+            @apply rounded-md;
         }
 
     }
 
     & .avatar:hover {
-        @apply border-2 border-black;
+        @apply border-2 border-black rounded-lg;
     }
 
     & .avatar:focus {
