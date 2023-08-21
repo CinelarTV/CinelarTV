@@ -29,6 +29,14 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.users',
+            path: 'users',
+            component: () => import('../views/admin/users.vue'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.content.manager',
             path: '/admin/content-manager',
             component: () => import('../views/admin/content-manager/index.vue'),
