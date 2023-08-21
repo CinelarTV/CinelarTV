@@ -15,7 +15,7 @@ module CinelarTV
     end
 
     def self.updates_available?
-        CinelarTV.git_version != remote_version # temporarily
+      CinelarTV.git_version != remote_version # temporarily
     end
 
     def self.last_commit_message
@@ -41,17 +41,18 @@ module CinelarTV
 
       CinelarTV.maintenance_enabled = true
 
-
       percent(0)
 
       log("")
       log("
-         ____ _            _           _______     __
-        / ___(_)_ __   ___| | __ _ _ _|_   _\ \   / /
-       | |   | | '_ \ / _ \ |/ _` | '__|| |  \ \ / / 
-       | |___| | | | |  __/ | (_| | |   | |   \ V /  
-        \____|_|_| |_|\___|_|\__,_|_|   |_|    \_/         
-                                               
+       
+░█████╗░██╗███╗░░██╗███████╗██╗░░░░░░█████╗░██████╗░░░░████████╗██╗░░░██╗
+██╔══██╗██║████╗░██║██╔════╝██║░░░░░██╔══██╗██╔══██╗░░░╚══██╔══╝██║░░░██║
+██║░░╚═╝██║██╔██╗██║█████╗░░██║░░░░░███████║██████╔╝░░░░░░██║░░░╚██╗░██╔╝
+██║░░██╗██║██║╚████║██╔══╝░░██║░░░░░██╔══██║██╔══██╗░░░░░░██║░░░░╚████╔╝░
+╚█████╔╝██║██║░╚███║███████╗███████╗██║░░██║██║░░██║██╗░░░██║░░░░░╚██╔╝░░
+░╚════╝░╚═╝╚═╝░░╚══╝╚══════╝╚══════╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░░╚═╝░░░░░░╚═╝░░░  
+
       ")
       log("")
       log("")
@@ -71,7 +72,6 @@ module CinelarTV
       log("")
       percent(10)
 
-
       run("git pull")
       percent(25)
 
@@ -85,7 +85,6 @@ module CinelarTV
       run("rake db:migrate")
 
       percent(65)
-
 
       percent(80)
 
@@ -111,7 +110,7 @@ module CinelarTV
       [
         "FAILED TO UPGRADE",
         e.inspect,
-        e.backtrace.join("\n")
+        e.backtrace.join("\n"),
       ].each do |message|
         warn(message)
         log(message)
@@ -121,10 +120,6 @@ module CinelarTV
     def self.run(cmd)
       log "$ #{cmd}"
       msg = +""
-
-
-
-
 
       retval = nil
       Open3.popen2e("cd #{Rails.root} && #{cmd} 2>&1") do |_in, out, wait_thread|
