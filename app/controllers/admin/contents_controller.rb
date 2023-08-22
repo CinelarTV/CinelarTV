@@ -13,7 +13,7 @@ module Admin
         return
       end
 
-      api_key = SiteSetting.tmdb_api_key
+      api_key = SiteSetting.tmdb_api_key.strip
       Rails.logger.info("Using TMDB API Key: #{api_key}")
       @config = Tmdb::Configuration.get
       Tmdb::Api.key(api_key)
