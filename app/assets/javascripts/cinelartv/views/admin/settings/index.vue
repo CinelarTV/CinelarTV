@@ -93,9 +93,9 @@
                         </div>
 
                     </div>
-                    <button :loading="btnLoading" type="submit" @click="updateSettings" class="settings-submit">
+                    <c-button :loading="btnLoading" type="submit" @click="updateSettings" class="settings-submit">
                         {{ $t("js.admin.settings.save") }}
-                    </button>
+                    </c-button>
                 </form>
             </div>
         </div>
