@@ -69,10 +69,10 @@ class BaseUploader < CarrierWave::Uploader::Base
             access_key_id: SiteSetting.s3_access_key_id,
             secret_access_key: SiteSetting.s3_secret_access_key,
             region: SiteSetting.s3_region,
+          endpoint: SiteSetting.s3_endpoint || "https://s3.#{SiteSetting.s3_region}.amazonaws.com",
           }
           config.aws_bucket  = SiteSetting.s3_bucket
           config.aws_acl     = "public-read"
-          config.endpoint    = SiteSetting.s3_endpoint if SiteSetting.s3_endpoint.present? && SiteSetting.s3_endpoint != "s3.amazonaws.com"
         end
       end
     end
