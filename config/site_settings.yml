@@ -67,6 +67,21 @@ customization:
     refresh: true
     default: true
     type: 'boolean'
+  homescreen_cards_style:
+    client: true
+    refresh: true
+    default: "CinelarTV"
+    type: 'enum'
+    allowed_values:
+      - poster
+      - backdrop
+      - CinelarTV
+      - custom_html
+  homescreen_cards_custom_html:
+    client: true
+    refresh: true
+    default: ""
+    type: 'code'
   background_color:
     client: true
     refresh: true
