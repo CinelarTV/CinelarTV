@@ -117,7 +117,12 @@ storage:
     default: ""
     type: 'string'
     secret: false
-
+  cdn_url:
+    client: true
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: false
 
 customization:
   enable_carousel:
