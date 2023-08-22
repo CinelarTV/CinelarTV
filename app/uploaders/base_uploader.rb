@@ -66,8 +66,8 @@ class BaseUploader < CarrierWave::Uploader::Base
 
         configure do |config|
           config.aws_credentials = {
-            aws_access_key_id: SiteSetting.s3_access_key_id,
-            aws_secret_access_key: SiteSetting.s3_secret_access_key,
+            access_key_id: SiteSetting.s3_access_key_id,
+            secret_access_key: SiteSetting.s3_secret_access_key,
             region: SiteSetting.s3_region,
           }
           config.aws_bucket  = SiteSetting.s3_bucket
