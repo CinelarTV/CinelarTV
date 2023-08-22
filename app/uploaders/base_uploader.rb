@@ -5,6 +5,8 @@ class BaseUploader < CarrierWave::Uploader::Base
   include CarrierWave::MiniMagick
   require "aws-sdk-s3"
 
+  
+
   # Choose what kind of storage to use for this uploader based on SiteSetting, and fall back to file
   # storage if nothing is set. This is useful for development and testing.
   def self.configure_storage
@@ -15,15 +17,15 @@ class BaseUploader < CarrierWave::Uploader::Base
       Rails.logger.info("Using S3 for uploads")
       storage :aws
       # Set the endpoint to the SiteSetting if it exists, otherwise use the default endpoint for the region
-      @endpoint = SiteSetting.s3_endpoint.presence || "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
+      @endpoint = SiteSetting.s3_endpoint ? SiteSetting.s3_endpoint : "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
       configure do |config|
         config.aws_credentials = {
           access_key_id: SiteSetting.s3_access_key_id,
           secret_access_key: SiteSetting.s3_secret_access_key,
-          region: SiteSetting.s3_region,
+          region: SiteSetting.s3_region || "us-east-1",
           endpoint: @endpoint,
         }
-        config.aws_bucket = SiteSetting.s3_bucket
+        config.aws_bucket = SiteSetting.s3_bucket || "cinelartv"
         config.aws_acl = "public-read"
       end
     end
