@@ -56,9 +56,9 @@ module Admin
 
           puts "Setting #{key} to #{@new_value}"
           SiteSetting.send("#{key}=", @new_value) unless setting_params[key].nil?
-          update_carrierwave_setting if is_storage_related?(key)
         end
 
+        update_carrierwave_setting if is_storage_related?(setting_params.keys)
         render json: { message: 'I18n.t("js.core.success_settings")' }, status: :ok
       end
     end
@@ -73,8 +73,9 @@ module Admin
       SiteSetting.keys
     end
 
-    def is_storage_related?(key)
-      key == "storage_provider" || key == "s3_access_key_id" || key == "s3_secret_access_key" || key == "s3_bucket" || key == "s3_region" || key == "s3_endpoint"
+    def is_storage_related?(params)
+      @related_keys ||= %w[storage_provider s3_access_key_id s3_secret_access_key s3_bucket s3_region s3_endpoint]
+      @related_keys.include?(params)
     end
 
     def update_carrierwave_setting
