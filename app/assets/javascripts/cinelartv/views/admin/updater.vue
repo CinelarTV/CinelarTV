@@ -101,7 +101,7 @@ onMounted(() => {
 
 const runUpdate = () => {
     updating.value = true
-    axios.post('/admin/upgrade')
+    axios.post('/admin/upgrade.json')
         .then(response => {
             if (response.data.error_type === "no_updates_available") {
                 updating.value = false

@@ -102,7 +102,7 @@ const submitCreateProfile = (e) => {
         avatar_id: selectedAvatar.value
     }
 
-    axios.post('/user/create-profile', data)
+    axios.post('/user/create-profile.json', data)
         .then((response) => {
             loading.value = false
             setIsOpen(false)

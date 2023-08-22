@@ -90,6 +90,8 @@ function submitRegistration(e) {
         })
         .then((res) => {
             loading.value = false
+            setIsOpen(false)
+            window.location.reload()
             // Handle successful registration
         })
         .catch((e) => {

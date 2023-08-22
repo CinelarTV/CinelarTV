@@ -12,31 +12,34 @@ module Users
   
       def create
         @user = User.new(sign_up_params)
-        
-        respond_to do |format|
-          if @user.save
-            main_profile_data = {
-              user_id: @user.id,
-              name: @user.username.upcase,
-              profile_type: 'OWNER',
-              avatar_id: 'coolCat' # Default avatar
-            }
-            Profile.create(main_profile_data)
-            
-            if SiteSetting.waiting_on_first_user && @user.email == SiteSetting.developer_email
-              @user.add_role(:super_admin)
-              SiteSetting.waiting_on_first_user = false
-            end
-            
-
-            
+      
+        if @user.save
+          main_profile_data = {
+            user_id: @user.id,
+            name: @user.username.upcase,
+            profile_type: 'OWNER',
+            avatar_id: 'coolCat' # Default avatar
+          }
+          Profile.create(main_profile_data)
+      
+          if SiteSetting.waiting_on_first_user && @user.email == SiteSetting.developer_email
+            @user.add_role(:super_admin)
+            SiteSetting.waiting_on_first_user = false
+          end
+      
+          respond_to do |format|
+            format.json { render json: @user, status: :created }
             sign_in(@user) # Sign in the newly registered user
             format.html { redirect_to '/', notice: 'User registered successfully!' }
-          else
+          end
+        else
+          respond_to do |format|
             format.html { render :new }
+            format.json { render json: @user.errors, status: :unprocessable_entity }
           end
         end
       end
+      
       
   
       protected

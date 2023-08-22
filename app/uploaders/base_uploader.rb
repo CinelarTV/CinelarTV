@@ -19,8 +19,7 @@ class BaseUploader < CarrierWave::Uploader::Base
       # Set the endpoint to the SiteSetting if it exists, otherwise use the default endpoint for the region
       @endpoint = SiteSetting.s3_endpoint ? SiteSetting.s3_endpoint : "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
       @cdn_url = ''
-      if test
-        SiteSetting.cdn_enabled && SiteSetting.cdn_url
+      if SiteSetting.cdn_enabled && SiteSetting.cdn_url
         @cdn_url = SiteSetting.cdn_url
       else
         @cdn_url = nil

@@ -129,7 +129,7 @@ const selectProfile = (profile) => {
     loadingProfile.value = true;
     setTimeout(() => {
         // Just to add a little delay to the loading screen
-        axios.post('/user/select-profile', {
+        axios.post('/user/select-profile.json', {
             user: {
                 selected_profile_id: profile.id
             }

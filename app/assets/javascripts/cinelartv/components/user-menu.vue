@@ -107,7 +107,7 @@ const menuItems = ref([
         text: 'Cambiar Perfil',
         icon: ArrowRightLeftIcon,
         onClick: () => {
-            axios.post('/user/deassign-profile', {
+            axios.post('/user/deassign-profile.json', {
                 user: {
                     selected_profile_id: null
                 }
