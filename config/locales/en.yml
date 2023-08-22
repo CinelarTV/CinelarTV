@@ -29,6 +29,39 @@ en:
         updater: "Upgrader"
         users: "Users"
       settings:
+        content:
+          title: "Content"
+          tmdb_api_key:
+            description: "The API key of your TMDB account, you can get it <a href='https://www.themoviedb.org/settings/api' target='_blank'>here</a>"
+            title: "TMDB API key"
+        customization:
+          background_color:
+            description: "The background color of the application, this will be the color of the splash screen and the background of the application"
+            title: "Background color"
+          base_font_family:
+            description: "The font family of the application"
+            title: "Base font family"
+          body_text_color:
+            description: "The color of the text of the application"
+            title: "Body text color"
+          enable_carousel:
+            description: "Enables the carousel on the home page"
+            title: "Enable carousel"
+          header_background_color:
+            description: "The background color of the application header"
+            title: "Header background color"
+          header_font_family:
+            description: "The font family of the application header"
+            title: "Header font family"
+          primary_color:
+            description: "The primary color of the application, this will be the color of the buttons and the links"
+            title: "Primary color"
+          title: "Customization"
+        developer:
+          enable_js_error_reporting:
+            description: "Enables the reporting of JavaScript errors, this will send the errors to the server and will be displayed in the console. You can see the reports in <a href='/logs'>/logs</a>"
+            title: "Enable JavaScript error reporting"
+          title: "Developer"
         experimental:
           enable_web_updater:
             description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
@@ -55,6 +88,11 @@ en:
             title: "Site name"
           title: "General"
         save: "Save"
+        storage:
+          allow_video_direct_link:
+            description: "Allows the direct link of the videos. This can be a problem if you don't have control over the server where the videos are hosted, as it can cause a high consumption of bandwidth or interruptions in the service"
+            title: "Allow video direct link"
+          title: "Storage"
       updater:
         ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
         ready_title: "¿Ready for update?"

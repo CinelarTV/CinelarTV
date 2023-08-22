@@ -154,7 +154,7 @@ const toggleEditMode = () => {
 }
 
 const fetchAvatars = () => {
-    axios.get('/user/default-avatars')
+    axios.get('/user/default-avatars.json')
         .then((response) => {
             console.log(response)
             avatarList.value = response.data

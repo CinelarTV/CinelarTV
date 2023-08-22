@@ -1,7 +1,7 @@
 <template>
     <div class="panel settings">
-        <SettingCategorySelector v-if="categories" :value="currentCategory" :categories="categories"
-            @update:currentCategory="onCurrentCategoryChange" />
+
+        <c-select v-if="categories" :options="categories.map(category => ({ value: category.name, label: $t(`js.admin.settings.${category.name}.title`) }))" :modelValue="currentCategory" @update:modelValue="currentCategory = $event" />
 
         <SiteSettingsIndex v-if="currentCategory && filteredSettings" :settingsData="filteredSettings" :category="currentCategory" />
 </div>
@@ -12,7 +12,6 @@
 
 import { onMounted, computed } from 'vue'
 import axios from 'axios'
-import SettingCategorySelector from '../../../components/admin/settings/category-selector.vue'
 import SiteSettingsIndex from './index.vue'
 import { ref } from 'vue'
 
@@ -63,7 +62,6 @@ onMounted(() => {
 export default {
     name: 'AdminSettings',
     components: {
-        SettingCategorySelector,
         SiteSettingsIndex
     },
     metaInfo: {

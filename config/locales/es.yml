@@ -29,6 +29,39 @@ es:
         updater: "Actualizador"
         users: "Usuarios"
       settings:
+        content:
+          title: "Contenido"
+          tmdb_api_key:
+            description: "La clave API de tu cuenta de TMDB, la puedes obtener <a href='https://www.themoviedb.org/settings/api' target='_blank'>aquí</a>."
+            title: "Clave de API TMDB"
+        customization:
+          background_color:
+            description: "El color de fondo de la aplicación, será el color de la pantalla de carga y el fondo de la aplicación"
+            title: "Color de fondo"
+          base_font_family:
+            description: "La fuente de la aplicación"
+            title: "Fuente base"
+          body_text_color:
+            description: "El color del texto de la aplicación"
+            title: "Color del texto del cuerpo"
+          enable_carousel:
+            description: "Activa el carrusel en la página de inicio"
+            title: "Activar carrusel"
+          header_background_color:
+            description: "El color de fondo del encabezado de la aplicación"
+            title: "Color de fondo del encabezado"
+          header_font_family:
+            description: "La fuente del encabezado de la aplicación"
+            title: "Fuente del Encabezado"
+          primary_color:
+            description: "El color principal de la aplicación, será el color de los botones y los enlaces"
+            title: "Color primario"
+          title: "Personalización"
+        developer:
+          enable_js_error_reporting:
+            description: "Permite informar de errores de JavaScript, esto enviará los errores al servidor y se mostrará en la consola. Puede ver los informes en <a href='/logs'>/logs</a>"
+            title: "Habilitar el informe de errores de JavaScript"
+          title: "Desarrollador"
         experimental:
           enable_web_updater:
             description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
@@ -55,6 +88,11 @@ es:
             title: "Nombre del sitio"
           title: "General"
         save: "Guardar"
+        storage:
+          allow_video_direct_link:
+            description: "Permite el enlace directo de los vídeos. Esto puede ser un problema si no tienes control sobre el servidor donde se alojan los vídeos, ya que puede provocar un alto consumo de ancho de banda o interrupciones en el servicio"
+            title: "Permitir enlace directo de vídeo"
+          title: "Almacenamiento"
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"

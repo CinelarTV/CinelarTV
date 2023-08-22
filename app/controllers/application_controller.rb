@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
+
+    # Crea un before_action, si el usuario está logueado, pero no tiene un perfil seleccionado, lo redirige a la página de selección de perfil.
+    #before_action :check_profile_if_signed_in
+
     def index
     end
 
@@ -18,5 +22,16 @@ class ApplicationController < ActionController::Base
       end
       helper_method :current_profile
 
+      private 
+
+      def check_profile_if_signed_in
+        # Ignore if request is POST or JSON format
+        return if request.post? || request.format.json? 
+        @select_profile_path = '/profiles/select'
+        return if request.path == @select_profile_path # Agrega esta línea para evitar el bucle
+        if user_signed_in? && !current_profile
+          redirect_to @select_profile_path # Cambia "select_profile_path" a la ruta adecuada
+        end
+      end
     
 end
