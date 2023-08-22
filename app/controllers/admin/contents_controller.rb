@@ -12,8 +12,11 @@ module Admin
         render json: { error: "Title is required" }, status: :unprocessable_entity
         return
       end
+
+      api_key = SiteSetting.tmdb_api_key
+      Rails.logger.info("Using TMDB API Key: #{api_key}")
       @config = Tmdb::Configuration.get
-      Tmdb::Api.key(SiteSetting.tmdb_api_key)
+      Tmdb::Api.key(api_key)
       Tmdb::Api.language(SiteSetting.default_locale)
       @search = Tmdb::Search.multi(params[:title])
       puts @search
