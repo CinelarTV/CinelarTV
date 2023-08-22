@@ -88,7 +88,16 @@ module CinelarTV
 
       percent(100)
 
+      
+
       log("DONE")
+      log("")
+      log("********************************************************")
+      log("***  CinelarTV Update - Complete!  ***")
+      log("********************************************************")
+      log("")
+      log("")
+      log("***  Restarting Puma  ***")
       publish("status", "complete")
       CinelarTV.maintenance_enabled = false
 
