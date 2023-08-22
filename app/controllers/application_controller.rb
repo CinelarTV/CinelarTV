@@ -2,6 +2,8 @@
 
 class ApplicationController < ActionController::Base
 
+  before_action :reload_storage_config
+
     # Crea un before_action, si el usuario está logueado, pero no tiene un perfil seleccionado, lo redirige a la página de selección de perfil.
     #before_action :check_profile_if_signed_in
 
@@ -32,6 +34,11 @@ class ApplicationController < ActionController::Base
         if user_signed_in? && !current_profile
           redirect_to @select_profile_path # Cambia "select_profile_path" a la ruta adecuada
         end
+      end
+
+      def reload_storage_config
+        Rails.logger.info("Reloading storage config")
+        BaseUploader.configure_storage
       end
     
 end
