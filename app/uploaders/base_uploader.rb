@@ -3,11 +3,29 @@
 class BaseUploader < CarrierWave::Uploader::Base
   include CarrierWave::BombShelter
   include CarrierWave::MiniMagick
-  require 'aws-sdk-s3'
+  require "aws-sdk-s3"
 
-
-  def initialize(*args)
-    super
+  # Choose what kind of storage to use for this uploader based on SiteSetting, and fall back to file
+  # storage if nothing is set. This is useful for development and testing.
+  def configure_storage
+    if SiteSetting.storage_provider == "local"
+      Rails.logger.info("Using local file storage for uploads")
+      storage :file
+    else
+      Rails.logger.info("Using S3 for uploads")
+      storage :aws
+      @endpoint = "https://#{SiteSetting.s3_endpoint}" if SiteSetting.s3_endpoint.present? && SiteSetting.s3_endpoint != "s3.amazonaws.com"
+      configure do |config|
+        config.aws_credentials = {
+          access_key_id: SiteSetting.s3_access_key_id,
+          secret_access_key: SiteSetting.s3_secret_access_key,
+          region: SiteSetting.s3_region,
+          endpoint: @endpoint,
+        }
+        config.aws_bucket = SiteSetting.s3_bucket
+        config.aws_acl = "public-read"
+      end
+    end
   end
 
   EXTENSION_ALLOWLIST = %w[jpg jpeg jpe gif png ico bmp dng].freeze
@@ -52,31 +70,6 @@ class BaseUploader < CarrierWave::Uploader::Base
   end
 
   private
-
-  # Choose what kind of storage to use for this uploader based on SiteSetting, and fall back to file
-  # storage if nothing is set. This is useful for development and testing.
-  class << self
-    def configure_storage
-      if SiteSetting.storage_provider == "local"
-        Rails.logger.info("Using local file storage for uploads")
-        storage :file
-      else
-        Rails.logger.info("Using S3 for uploads")
-        storage :aws
-
-        configure do |config|
-          config.aws_credentials = {
-            access_key_id: SiteSetting.s3_access_key_id,
-            secret_access_key: SiteSetting.s3_secret_access_key,
-            region: SiteSetting.s3_region,
-          }
-          config.aws_bucket  = SiteSetting.s3_bucket
-          config.aws_acl     = "public-read"
-          config.aws_credentials[:endpoint] = SiteSetting.s3_endpoint || "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
-        end
-      end
-    end
-  end
 
   configure_storage
 end
