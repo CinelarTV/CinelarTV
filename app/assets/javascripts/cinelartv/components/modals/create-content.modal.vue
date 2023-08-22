@@ -160,7 +160,7 @@ const submitCreateContent = (e) => {
 const findRecommendedMetadata = () => {
     loadingRecommendations.value = true
     // Modify the API endpoint based on your requirements
-    axios.get(`/admin/contents/recommended-metadata?title=${contentData.value.name}`)
+    axios.get(`/admin/contents/recommended-metadata.json?title=${contentData.value.name}`)
         .then((response) => {
             console.log(response.data)
             recommendedContent.value = response.data
