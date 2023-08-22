@@ -54,8 +54,11 @@ es:
             description: "La fuente del encabezado de la aplicación"
             title: "Fuente del Encabezado"
           primary_color:
-            description: "El color principal de la aplicación, será el color de los botones y los enlaces"
+            description: ""
             title: "Color primario"
+          tertiary_color:
+            description: "Se utiliza para algunos enlaces y pestañas"
+            title: "Color terciario"
           title: "Personalización"
         developer:
           enable_js_error_reporting:

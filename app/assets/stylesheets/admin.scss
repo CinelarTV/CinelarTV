@@ -137,7 +137,13 @@
     color: #888;
     font-weight: 400;
     font-size: var(--font-down-1);
+
+    & a {
+        @apply text-[var(--c-tertiary-400)] hover:text-[var(--c-tertiary-500)]
+    }
 }
+
+
 
 .setting-image-uploader {
     display: flex;

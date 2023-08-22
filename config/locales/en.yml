@@ -54,8 +54,11 @@ en:
             description: "The font family of the application header"
             title: "Header font family"
           primary_color:
-            description: "The primary color of the application, this will be the color of the buttons and the links"
+            description: ""
             title: "Primary color"
+          tertiary_color:
+            description: "Used for some links and tabs"
+            title: "Tertiary color"
           title: "Customization"
         developer:
           enable_js_error_reporting:
