@@ -123,6 +123,11 @@ storage:
     default: ""
     type: 'string'
     secret: false
+  cdn_enabled:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
 
 customization:
   enable_carousel:

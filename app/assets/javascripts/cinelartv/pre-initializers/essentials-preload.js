@@ -18,6 +18,9 @@ export const showPreloaderError = () => {
     throw "Unable to boot CinelarTV: Essential preloaded data not found";
   }
   
+  if (preloaded?.SiteSettings?.cdn_enabled && preloaded?.SiteSettings?.cdn_url) {
+    preloaded.SiteSettings.site_logo = preloaded.SiteSettings.cdn_url + preloaded.SiteSettings.site_logo
+  }
   
   let preloadedData = {
     currentUser: preloaded.currentUser,
@@ -33,6 +36,7 @@ export const showPreloaderError = () => {
   }
   
   export const { SiteSettings, currentUser, isMobile } = preloadedData;
+
   
   export const Language = {
     current: preloadedData.currentUser?.locale || preloadedData.SiteSettings.default_locale,
