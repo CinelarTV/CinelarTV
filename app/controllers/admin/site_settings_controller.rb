@@ -34,8 +34,11 @@ module Admin
           # Si el campo es el de la imagen del sitio, cargar y procesar la imagen
           logo_uploader = LogoUploader.new
           logo_uploader.store!(setting_params[key])
+          # Replace all before /uploads, because we only need path
+          @logo_path = "/uploads" + logo_uploader.url.split('/uploads').last
+
           # Store only the path of the image, because maybe the image is stored in S3, or using a CDN
-          SiteSetting.send("#{key}=", '/' + logo_uploader.store_dir + logo_uploader.filename)
+          SiteSetting.send("#{key}=", @logo_path)
         else
           # Si no, actualizar el valor de la configuración
           setting = SiteSetting.new(var: key)
