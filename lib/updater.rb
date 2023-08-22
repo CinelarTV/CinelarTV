@@ -41,6 +41,12 @@ module CinelarTV
 
       CinelarTV.maintenance_enabled = true
 
+      # Stash all local changes before upgrading to avoid conflicts (Except on development)
+      if Rails.env.production?
+        log("Stashing local changes...")
+        run("git stash")
+      end
+
       percent(0)
 
       log("")
