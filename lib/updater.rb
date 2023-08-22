@@ -43,7 +43,7 @@ module CinelarTV
 
       # Stash all local changes before upgrading to avoid conflicts (Except on development)
       if Rails.env.production?
-        log("Stashing local changes...")
+        log("Stashing local changes...") 
         run("git stash")
       end
 
