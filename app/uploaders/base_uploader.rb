@@ -14,7 +14,8 @@ class BaseUploader < CarrierWave::Uploader::Base
     else
       Rails.logger.info("Using S3 for uploads")
       storage :aws
-      @endpoint = "https://#{SiteSetting.s3_endpoint}" if SiteSetting.s3_endpoint.present? && SiteSetting.s3_endpoint != "s3.amazonaws.com"
+      # Set the endpoint to the SiteSetting if it exists, otherwise use the default endpoint for the region
+      @endpoint = SiteSetting.s3_endpoint.presence || "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
       configure do |config|
         config.aws_credentials = {
           access_key_id: SiteSetting.s3_access_key_id,
