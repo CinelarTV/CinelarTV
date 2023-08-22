@@ -6,8 +6,7 @@
     backface-visibility: hidden;
     left: 0;
     height: 4em;
-    background-color: var(--c-header-background-color);
-    @apply sticky top-0
+    @apply sticky top-0 bg-opacity-60 bg-[var(--c-header-background-color)]
 }
 
 .site-header-wrap {

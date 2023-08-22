@@ -9,10 +9,14 @@ import Logster from './lib/logster'
 import globalComponents from './lib/global-components';
 import I18n from './lib/i18n'
 import ColorPicker from './plugins/color-picker'
+import * as ConfirmDialog from 'vuejs-confirm-dialog'
+import { createPinia } from 'pinia'
 require('./lib/axios-setup')
 require('./lib/message-bus')
 
 const CinelarTV = createApp(App)
+const pinia = createPinia()
+
 
 
 let pluginMap = [
@@ -23,7 +27,9 @@ let pluginMap = [
     twemoji,
     Logster,
     I18n,
-    ColorPicker
+    ColorPicker,
+    ConfirmDialog,
+    pinia
 ]
 
 pluginMap.map(plugin => {

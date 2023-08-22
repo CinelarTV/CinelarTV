@@ -53,7 +53,7 @@ img.emoji {
   @apply animate-spin mr-3
 }
 
-.button {
+.button, .c-button {
   @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-white bg-opacity-5 hover:bg-opacity-10 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-white;
   user-select: none;
   @apply cursor-pointer;

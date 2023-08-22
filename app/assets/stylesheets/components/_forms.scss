@@ -1,4 +1,13 @@
 .c-input {
-    @apply px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 border-2 block w-full sm:text-sm border-gray-500 rounded-md;
-    @apply bg-transparent
+    @apply px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 border-2 block w-full sm:text-sm border-[--c-primary-300] rounded-md;
+    @apply bg-transparent;
+}
+
+.c-input.select {
+    @apply flex items-center;
+}
+
+.c-select-option {
+    @apply px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm rounded-md;
+    @apply bg-[--c-primary-50] cursor-pointer hover:bg-[--c-primary-300]
 }

@@ -7,7 +7,7 @@ class Admin::BaseController < ApplicationController
     private
   
     def verify_admin
-      redirect_to root_path, alert: 'No tienes permisos suficientes para acceder a esta página.' unless current_user.has_role?(:admin)
+      redirect_to '/', alert: 'No tienes permisos suficientes para acceder a esta página.' unless current_user.has_role?(:admin)
     end
   end
   

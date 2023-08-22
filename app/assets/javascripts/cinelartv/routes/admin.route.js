@@ -39,10 +39,21 @@ const AdminRoutes = {
         {
             name: 'admin.content.manager',
             path: '/admin/content-manager',
-            component: () => import('../views/admin/content-manager/index.vue'),
+            redirect: '/admin/content-manager/all',
+            component: () => import('../views/admin/content-manager/base.vue'),
             meta: {
                 requireAdmin: true
-            }
+            },
+            children: [
+                {
+                    name: 'admin.content.manager.all',
+                    path: 'all',
+                    component: () => import('../views/admin/content-manager/index.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
+                },
+            ]
         },
         {
             name: 'admin.settings',

@@ -1,15 +1,17 @@
 <template>
-    <input class="c-input" v-bind="$attrs" @input="updateValue" />
-  </template>
-  <script setup>
-    import { ref, watch } from 'vue'
-    const props = defineProps(['modelValue'])
-    const emit = defineEmits(['update:modelValue'])
-    const value = ref(props.modelValue)
-    watch(value, (newValue) => {
-      emit('update:modelValue', newValue)
-    })
-    const updateValue = (e) => {
-      value.value = e.target.value
-    }
-  </script>
+  <input class="c-input" v-bind="$attrs" :value="modelValue" @input="updateValue($event.target.value)" />
+</template>
+
+<script setup>
+import { defineProps, defineEmits } from 'vue'
+
+const props = defineProps({
+  modelValue: String
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const updateValue = (value) => {
+  emit('update:modelValue', value)
+}
+</script>

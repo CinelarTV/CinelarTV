@@ -40,16 +40,14 @@
                             </div>
 
                             <div v-else-if="setting.type === 'enum'">
-                                <Listbox v-model="settings[setting.key]">
-                                    <ListboxButton class="setting-value input">{{ settings[setting.key] || setting.value }}
-                                    </ListboxButton>
-                                    <ListboxOptions>
-                                        <ListboxOption v-for="option in setting.options.allowed_values" :key="option"
-                                            :value="option">
-                                            {{ option }}
-                                        </ListboxOption>
-                                    </ListboxOptions>
-                                </Listbox>
+                                <c-select
+                                    :options="setting.options.allowed_values.map(option => ({ value: option, label: $t(`js.admin.settings.${category}.${setting.key}.options.${option}`) }))"
+                                    :placeholder="settings[setting.key] || setting.value"
+                                    v-model="settings[setting.key]"
+                                    @update:modelValue="settings[setting.key] = $event"
+                                    :modelValue="settings[setting.key] || setting.value"
+                                    :label="$t(`js.admin.settings.${category}.${setting.key}.title`)" />
+                                
                             </div>
 
 

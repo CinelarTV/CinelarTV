@@ -9,6 +9,7 @@ namespace :admin do
 
 
     # Content Management related routes
+    get '/content-manager/all', to: 'contents#index'
     get '/contents/recommended-metadata', to: 'contents#find_recommended_metadata'
 
     # User Management related routes
