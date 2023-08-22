@@ -52,9 +52,22 @@
                                         Image
                                     </label>
                                     <div class="mt-1">
-                                        <c-input type="file" name="content_image" id="content_image"
-                                            v-model="contentData.content_image"
+                                        <c-image-upload v-model="contentData.content_image" v-if="!contentData.content_banner.startsWith('tmdb://')"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+
+
+                                    </div>
+
+                                    <label for="content_banner" class="block text-sm font-medium mt-4">
+                                        Banner
+                                    </label>
+                                    <div class="mt-1">
+                                        <c-image-upload v-if="!contentData.content_banner.startsWith('tmdb://')" v-model="contentData.content_banner" @update:model-value="value => contentData.content_banner = value"
+                                            
+                                            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+
+                                        
+
 
                                     </div>
 
@@ -87,6 +100,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import axios from 'axios' // Import axios if not already imported
 import { SparklesIcon } from 'lucide-vue-next';
 import RecommendedMetadataModal from './recommended-metadata.modal.vue'
+import cImageUpload from '../forms/c-image-upload.vue';
 
 const props = defineProps({
     // Define your props here
@@ -104,13 +118,15 @@ const contentData = ref({
     name: '',
     content_type: '',
     content_description: '',
-    content_image: ''
+    content_cover: '',
+    content_banner: ''
 })
 const recommendedContent = ref(null)
 const metadataModal = ref()
 const errors = ref()
 
 const setIsOpen = (value) => {
+    clearData()
     isOpen.value = value
 }
 
@@ -124,9 +140,18 @@ const recommendedMetadataSelected = (content) => {
     contentData.value.name = content.title || content.name || content.original_name;
     contentData.value.content_type = content.media_type === 'movie' ? 'MOVIE' : 'TVSHOW';
     contentData.value.content_description = content.overview;
-    contentData.value.content_image = content.image;
+    contentData.value.content_cover = 'tmdb://' + content.poster_path.replace('/', '');
+    contentData.value.content_banner = 'tmdb://' + content.backdrop_path.replace('/', '');
 
     console.log(contentData.value)
+}
+
+const clearData = () => {
+    contentData.value.name = ''
+    contentData.value.content_type = ''
+    contentData.value.content_description = ''
+    contentData.value.content_cover = ''
+    contentData.value.content_banner = ''
 }
 
 

@@ -19,6 +19,10 @@ const Components = [
         name: 'c-textarea',
         component: require('../components/forms/c-textarea.vue').default
     },
+    {
+        name: 'c-image-upload',
+        component: require('../components/forms/c-image-upload.vue').default
+    },
 ]
 
 export default {

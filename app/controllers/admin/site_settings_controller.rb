@@ -35,7 +35,6 @@ module Admin
             logo_uploader = LogoUploader.new
             logo_uploader.store!(setting_params[key])
             SiteSetting.send("#{key}=", logo_uploader.url)
-            SiteSetting.send("resized_#{key}=", logo_uploader.resized_logo.url)
           else
             # Si no, actualizar el valor de la configuración
             setting = SiteSetting.new(var: key)

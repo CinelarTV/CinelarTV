@@ -91,3 +91,7 @@ gem "logster"
 gem "pg", "~> 1.2"
 
 gem "themoviedb-api", "~> 1.4"
+
+gem "carrierwave", "~> 3.0"
+
+gem "carrierwave-bombshelter", "~> 0.2.2"

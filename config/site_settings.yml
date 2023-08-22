@@ -12,7 +12,7 @@ general:
     client: true
     refresh: true
     default: /assets/default/cinelartv_default_logo.svg
-    type: 'upload'
+    type: 'image'
   site_description:
     client: true
     refresh: true
@@ -59,6 +59,64 @@ storage:
     refresh: true
     default: false
     type: 'boolean'
+  storage_provider:
+    client: true
+    refresh: true
+    default: local
+    type: 'enum'
+    allowed_values:
+      - local
+      - s3
+  s3_access_key_id:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
+  s3_secret_access_key:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
+  s3_bucket:
+    client: true
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: false
+  s3_region:
+    client: true
+    refresh: true
+    default: ""
+    type: 'enum'
+    allowed_values:
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+      - ap-east-1
+      - ap-south-1
+      - ap-northeast-2
+      - ap-southeast-1
+      - ap-southeast-2
+      - ap-northeast-1
+      - ca-central-1
+      - cn-north-1
+      - cn-northwest-1
+      - eu-central-1
+      - eu-west-1
+      - eu-west-2
+      - eu-west-3
+      - eu-north-1
+      - me-south-1
+      - sa-east-1
+  s3_endpoint:
+    client: true
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: false
 
 
 customization:

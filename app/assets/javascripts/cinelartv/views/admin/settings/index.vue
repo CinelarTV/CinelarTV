@@ -56,10 +56,10 @@
                                     <div class="uploaded-image-preview" :id="`preview-${setting.key}`"
                                         :style="`background-image: url('${setting.value}')`">
                                         <div class="image-upload-controls">
-                                            <m-icon-button :title="`${$t('js.admin.image_uploader_title')}`"
+                                            <c-button :title="`${$t('js.admin.image_uploader_title')}`"
                                                 @click="uploaderButton(`upload-${setting.key}`)">
-                                                <UploadCloud />
-                                            </m-icon-button>
+                                                <UploadCloudIcon />
+                                            </c-button>
                                             <input :ref="`upload-${setting.key}`" class="d-none" @change="handleImageChange"
                                                 :v-model:value="settings[setting.key]" :id="`upload-${setting.key}`"
                                                 type="file" accept="image/*" />
@@ -118,6 +118,7 @@ import {
     ListboxOptions,
     ListboxOption,
 } from '@headlessui/vue'
+import { UploadCloudIcon } from 'lucide-vue-next';
 
 
 const toast = inject('$toast');
