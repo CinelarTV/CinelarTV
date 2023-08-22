@@ -89,7 +89,7 @@ module Admin
           }
           config.aws_bucket = SiteSetting.s3_bucket
           config.aws_acl = "public-read"
-          config.aws_credentials[:endpoint] = SiteSetting.s3_endpoint || "https://s3.#{SiteSetting.s3_region}.amazonaws.com",
+          config.aws_credentials[:endpoint] = SiteSetting.s3_endpoint || "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
         end
       end
     end
