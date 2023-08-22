@@ -14,13 +14,15 @@ module Admin
           return
         end
 
+       # Get the TMDB API Key from the Site Settings
         api_key = SiteSetting.tmdb_api_key.strip
+        # Initialize the TMDB API
+        tmdb = Tmdb::Api.key(api_key)
+        # Log the API Key
+
         Rails.logger.info("Using TMDB API Key: #{api_key}")
-        @config = Tmdb::Configuration.get
-        Tmdb::Api.key(api_key)
-        Tmdb::Api.language(SiteSetting.default_locale)
+
         @search = Tmdb::Search.multi(params[:title])
-        puts @search
         # Render as JSON
         render json: {
                  data: @search.table,
