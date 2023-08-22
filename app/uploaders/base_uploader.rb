@@ -31,10 +31,10 @@ class BaseUploader < CarrierWave::Uploader::Base
           secret_access_key: SiteSetting.s3_secret_access_key,
           region: SiteSetting.s3_region || "us-east-1",
           endpoint: @endpoint,
-          asset_host: @cdn_url
         }
         config.aws_bucket = SiteSetting.s3_bucket || "cinelartv"
         config.aws_acl = "public-read"
+        config.asset_host = @cdn_url
       end
     end
   end
