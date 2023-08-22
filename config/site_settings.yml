@@ -47,7 +47,7 @@ general:
     hidden: true
 content:
   tmdb_api_key:
-    client: true
+    client: false
     refresh: true
     default: ""
     type: 'string'
