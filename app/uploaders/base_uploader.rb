@@ -18,12 +18,20 @@ class BaseUploader < CarrierWave::Uploader::Base
       storage :aws
       # Set the endpoint to the SiteSetting if it exists, otherwise use the default endpoint for the region
       @endpoint = SiteSetting.s3_endpoint ? SiteSetting.s3_endpoint : "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
+      @cdn_url = ''
+      if test
+        SiteSetting.cdn_enabled && SiteSetting.cdn_url
+        @cdn_url = SiteSetting.cdn_url
+      else
+        @cdn_url = nil
+      end
       configure do |config|
         config.aws_credentials = {
           access_key_id: SiteSetting.s3_access_key_id,
           secret_access_key: SiteSetting.s3_secret_access_key,
           region: SiteSetting.s3_region || "us-east-1",
           endpoint: @endpoint,
+          asset_host: @cdn_url
         }
         config.aws_bucket = SiteSetting.s3_bucket || "cinelartv"
         config.aws_acl = "public-read"
