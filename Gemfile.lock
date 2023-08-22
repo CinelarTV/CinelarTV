@@ -68,6 +68,22 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
+    aws-eventstream (1.2.0)
+    aws-partitions (1.808.0)
+    aws-sdk-core (3.180.3)
+      aws-eventstream (~> 1, >= 1.0.2)
+      aws-partitions (~> 1, >= 1.651.0)
+      aws-sigv4 (~> 1.5)
+      jmespath (~> 1, >= 1.6.1)
+    aws-sdk-kms (1.71.0)
+      aws-sdk-core (~> 3, >= 3.177.0)
+      aws-sigv4 (~> 1.1)
+    aws-sdk-s3 (1.132.1)
+      aws-sdk-core (~> 3, >= 3.179.0)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.6)
+    aws-sigv4 (1.6.0)
+      aws-eventstream (~> 1, >= 1.0.2)
     bcrypt (3.1.19)
     bindex (0.8.1)
     bootsnap (1.16.0)
@@ -89,6 +105,9 @@ GEM
       image_processing (~> 1.1)
       marcel (~> 1.0.0)
       ssrf_filter (~> 1.0)
+    carrierwave-aws (1.6.0)
+      aws-sdk-s3 (~> 1.0)
+      carrierwave (>= 2.0, < 4)
     carrierwave-bombshelter (0.2.2)
       activesupport (>= 3.2.0)
       carrierwave
@@ -132,6 +151,7 @@ GEM
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    jmespath (1.6.2)
     logster (2.12.2)
     loofah (2.21.3)
       crass (~> 1.0.2)
@@ -295,9 +315,11 @@ PLATFORMS
   x64-mingw-ucrt
 
 DEPENDENCIES
+  aws-sdk-s3 (~> 1)
   bootsnap
   capybara
   carrierwave (~> 3.0)
+  carrierwave-aws (~> 1.6)
   carrierwave-bombshelter (~> 0.2.2)
   debug
   devise (~> 4.9)

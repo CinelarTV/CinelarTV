@@ -57,11 +57,13 @@ module Admin
 
             puts "Setting #{key} to #{@new_value}"
             SiteSetting.send("#{key}=", @new_value) unless setting_params[key].nil?
+            update_carrierwave_setting if is_storage_related?(key)
           end
   
           render json: { message: 'I18n.t("js.core.success_settings")' }, status: :ok
         end
       end
+      
   
       private
   
@@ -72,5 +74,29 @@ module Admin
       def settings_keys
         SiteSetting.keys
       end
+
+      def is_storage_related? (key)
+        key == "storage_provider" || key == "s3_access_key_id" || key == "s3_secret_access_key" || key == "s3_bucket" || key == "s3_region" || key == "s3_endpoint"
+      end
+
+      def update_carrierwave_setting
+        BaseUploader.configure do |config|
+          config.storage = SiteSetting.storage_provider == "local" ? :file : :aws
+
+          if config.storage == :aws
+            config.aws_credentials = {
+              aws_access_key_id: SiteSetting.s3_access_key_id,
+              aws_secret_access_key: SiteSetting.s3_secret_access_key,
+              region: SiteSetting.s3_region,
+            }
+            config.aws_bucket  = SiteSetting.s3_bucket
+            config.aws_acl = "public-read"
+            config.endpoint = SiteSetting.s3_endpoint if SiteSetting.s3_endpoint.present? && SiteSetting.s3_endpoint != "s3.amazonaws.com"
+            
+          end
+        end
+        end
+
+
     end
   end

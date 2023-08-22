@@ -95,3 +95,7 @@ gem "themoviedb-api", "~> 1.4"
 gem "carrierwave", "~> 3.0"
 
 gem "carrierwave-bombshelter", "~> 0.2.2"
+
+gem 'aws-sdk-s3', '~> 1'
+
+gem "carrierwave-aws", "~> 1.6"

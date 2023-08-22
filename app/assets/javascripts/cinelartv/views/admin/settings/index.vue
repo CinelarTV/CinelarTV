@@ -42,12 +42,11 @@
                             <div v-else-if="setting.type === 'enum'">
                                 <c-select
                                     :options="setting.options.allowed_values.map(option => ({ value: option, label: $t(`js.admin.settings.${category}.${setting.key}.options.${option}`) }))"
-                                    :placeholder="settings[setting.key] || setting.value"
-                                    v-model="settings[setting.key]"
+                                    :placeholder="settings[setting.key] || setting.value" v-model="settings[setting.key]"
                                     @update:modelValue="settings[setting.key] = $event"
                                     :modelValue="settings[setting.key] || setting.value"
                                     :label="$t(`js.admin.settings.${category}.${setting.key}.title`)" />
-                                
+
                             </div>
 
 
@@ -141,15 +140,19 @@ function updateSettings(e) {
         btnLoading.value = true
         axios.post('/admin/site_settings.json', formData)
             .then((response) => {
-                toast(
-                    response.data.message, {
-                    class: [
-                        'm-notifier',
-                        'success'
-                    ]
-                }
-                )
                 btnLoading.value = false
+                try {
+                    toast(
+                        response.data.message, {
+                        class: [
+                            'm-notifier',
+                            'success'
+                        ]
+                    }
+                    )
+                } catch (error) {
+                    //
+                }
                 window.location.reload()
             })
             .catch((error) => {
