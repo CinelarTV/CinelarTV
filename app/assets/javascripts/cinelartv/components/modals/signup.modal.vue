@@ -80,7 +80,7 @@ function submitRegistration(e) {
     e.preventDefault()
     loading.value = true
     axios
-        .post('/users', {
+        .post('/users.json', {
             user: {
                 username: username.value,
                 email: email.value,
