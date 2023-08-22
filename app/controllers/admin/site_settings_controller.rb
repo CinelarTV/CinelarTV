@@ -31,11 +31,24 @@ module Admin
         next if setting_params[key].nil?
 
         if key == "site_logo"
-          # Si el campo es el de la imagen del sitio, cargar y procesar la imagen
           logo_uploader = LogoUploader.new
           logo_uploader.store!(setting_params[key])
 
           SiteSetting.send("#{key}=", logo_uploader.url)
+
+
+          elsif key == "site_mobile_logo"
+          logo_uploader = LogoUploader.new
+          logo_uploader.store!(setting_params[key])
+
+          SiteSetting.send("#{key}=", logo_uploader.url)
+
+          elsif key == "site_favicon"
+          logo_uploader = LogoUploader.new
+          logo_uploader.store!(setting_params[key])
+
+          SiteSetting.send("#{key}=", logo_uploader.url)
+
         else
           # Si no, actualizar el valor de la configuración
           setting = SiteSetting.new(var: key)

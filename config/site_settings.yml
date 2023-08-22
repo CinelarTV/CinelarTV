@@ -13,6 +13,16 @@ general:
     refresh: true
     default: /assets/default/cinelartv_default_logo.svg
     type: 'image'
+  site_mobile_logo:
+    client: true
+    refresh: true
+    default: /assets/default/cinelartv_default_logo.png
+    type: 'image'
+  site_favicon:
+    client: true
+    refresh: true
+    default: /assets/default/cinelartv_default_favicon.png
+    type: 'image'
   site_description:
     client: true
     refresh: true
