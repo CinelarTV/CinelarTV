@@ -7,7 +7,7 @@ class BaseUploader < CarrierWave::Uploader::Base
 
   # Choose what kind of storage to use for this uploader based on SiteSetting, and fall back to file
   # storage if nothing is set. This is useful for development and testing.
-  def configure_storage
+  def self.configure_storage
     if SiteSetting.storage_provider == "local"
       Rails.logger.info("Using local file storage for uploads")
       storage :file
