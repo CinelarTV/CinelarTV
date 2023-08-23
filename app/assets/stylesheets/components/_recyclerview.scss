@@ -1,0 +1,32 @@
+.recyclerview {
+    display: grid;
+    grid-template-areas: "left right";
+    grid-template-columns: repeat(2,calc(var(--dv-carousel-column-margin) - var(--dv-carousel-column-gap)));
+    grid-template-rows: 1fr;
+    justify-content: space-between;
+    overflow: auto;
+}
+
+.recyclerview > ul {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: row;
+    -webkit-scroll-snap-type: x proximity;
+    -ms-scroll-snap-type: x proximity;
+    scroll-snap-type: x proximity;
+}
+
+.recyclerview-card-article {
+    --dv-packshot-width: calc((var(--dv-screen-width) - var(--dv-carousel-column-margin)*2 - var(--dv-carousel-column-gap)*var(--dv-card-gap-number))/var(--dv-card-number)*1);
+    display: flex;
+    flex-direction: column;
+    width: var(--dv-packshot-width);
+}
+
+
+@media (min-width: 55em) and (max-width: 79.99em) {
+    .content-card {
+        --dv-card-number: var(--override-dv-card-number,4);
+        --dv-card-gap-number: var(--override-dv-card-gap-number,3);
+    }
+}

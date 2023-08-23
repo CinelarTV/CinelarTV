@@ -47,26 +47,24 @@
                         {{ categoryName }}
                     </h3>
 
-                    <div class="carousel-root">
-                        <ul class="carousel-ul content-scroll-container">
-                            <li v-for="data in contentArray" :key="data.id">
-                                <article>
+                    <div class="recyclerview">
+                        <ul>
+                            <li v-for="data in contentArray" :key="data.id" class="content-item">
+                                <article class="recyclerview-card-article">
                                     <div class="content-card">
                                         <img :src="data.banner" alt="Cover Image" />
                                     </div>
                                 </article>
                             </li>
-
                         </ul>
                     </div>
-
                 </template>
             </section>
-
-
         </div>
     </div>
+    
 </template>
+
   
 <script setup>
 import { PlusIcon } from 'lucide-vue-next';
@@ -116,13 +114,21 @@ onMounted(async () => {
     /* Remove spacing from the last item */
 }
 
+.content-carousel {
+    overflow: hidden;
+    margin-bottom: 20px;
+    /* Agrega un margen inferior para separar las secciones */
+}
+
+.content-container {
+    display: flex;
+    gap: var(--dv-carousel-column-gap);
+    padding: 0 var(--dv-carousel-column-gap);
+    overflow-x: auto;
+}
+
 .content-card {
-    --border-radius: 8px;
-    background-color: #33373d;
-    border-bottom-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    max-height: 80px;
+    flex: 0 0 calc(var(--standard-hero-card-width) / 6);
+    /* Divide el ancho entre 2 para mostrar 2 elementos por fila */
 }
 </style>
