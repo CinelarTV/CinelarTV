@@ -3,6 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <%= tag.meta name: "theme-color", content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "msapplication-navbutton-color",
+             content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "apple-mobile-web-app-status-bar-style",
+             content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "apple-mobile-web-app-capable", content: "yes" %>
+    <%= tag.meta name: "apple-mobile-web-app-title", content: SiteSetting.site_name %>
+    <%= tag.meta name: "application-name", content: SiteSetting.site_name %>
+    <%= tag.meta name: "msapplication-tooltip", content: SiteSetting.site_name %>
+    <%= tag.meta name: "msapplication-starturl", content: "/" %>
+    <%= tag.meta name: "msapplication-TileColor",
+             content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "msapplication-TileImage", content: SiteSetting.site_favicon %>
+
     <title><%= content_for?(:title) ? yield(:title) : SiteSetting.site_name %></title>
     <link rel="icon" type="image/png" href="<%= SiteSetting.site_favicon %>">
     <link rel="manifest" href="/manifest.webmanifest">
