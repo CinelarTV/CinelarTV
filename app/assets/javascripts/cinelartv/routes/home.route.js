@@ -4,10 +4,7 @@ let HomeRoute = {
     name: 'home.index',
     path: '/',
     alias: '/home',
-    component: Home,
-    meta: {
-        requiresAuth: true,
-    }
+    component: Home
  }
 
  
