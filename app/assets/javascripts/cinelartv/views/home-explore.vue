@@ -40,6 +40,30 @@
                     </ul>
                 </div>
             </section>
+
+            <section id="main-content">
+                <template v-for="(contentArray, categoryName) in homepage.content">
+                    <h3 class="text-2xl font-bold mb-4">
+                        {{ categoryName }}
+                    </h3>
+
+                    <div class="carousel-root">
+                        <ul class="carousel-ul content-scroll-container">
+                            <li v-for="data in contentArray" :key="data.id">
+                                <article>
+                                    <div class="content-card">
+                                        <img :src="data.banner" alt="Cover Image" />
+                                    </div>
+                                </article>
+                            </li>
+
+                        </ul>
+                    </div>
+
+                </template>
+            </section>
+
+
         </div>
     </div>
 </template>
@@ -69,3 +93,36 @@ onMounted(async () => {
     }
 });
 </script>
+
+<style scoped>
+/* Add this to your existing CSS or a dedicated CSS file */
+#main-content .content-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    padding-bottom: 20px;
+    /* Add some spacing at the bottom */
+}
+
+#main-content .content-items {
+    flex: 0 0 auto;
+    /* Allow the items to take up their natural width */
+    margin-right: 10px;
+    /* Add spacing between items */
+}
+
+#main-content .content-items:last-child {
+    margin-right: 0;
+    /* Remove spacing from the last item */
+}
+
+.content-card {
+    --border-radius: 8px;
+    background-color: #33373d;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    max-height: 80px;
+}
+</style>
