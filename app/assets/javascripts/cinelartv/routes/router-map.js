@@ -1,6 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { currentUser, SiteSettings } from '../pre-initializers/essentials-preload'
 import { success } from 'high-console'
+import CinelarTV from '../application'
 
 function loadRoutes() {
     const routes = require.context('./', true, /\.route\.js$/)
@@ -69,6 +70,7 @@ AppRouter.beforeEach((to, from, next) => {
 
     // Permite la navegación normal
     next();
+    CinelarTV.config.globalProperties.$progress.finish()
 });
 
 
@@ -78,6 +80,7 @@ AppRouter.afterEach((to, from) => {
         window.MiniProfiler.pageTransition();
     }
     document.body.setAttribute('data-current-path', to.path);
+    CinelarTV.config.globalProperties.$progress.finish()
 })
 
 

@@ -38,7 +38,7 @@ module Admin
 
     def create
       @content = Content.new(content_params)
-    
+
       # Check if banner or cover is a TMDB reference
       if @content.banner&.starts_with?("tmdb://")
         # Process TMDB reference here
@@ -49,7 +49,7 @@ module Admin
         uploader.download!(banner_url)
         @content.banner = uploader.url
       end
-    
+
       if @content.cover&.starts_with?("tmdb://")
         # Process TMDB reference here for cover image
         tmdb_id = @content.cover.sub("tmdb://", "")
@@ -59,14 +59,25 @@ module Admin
         uploader.download!(cover_url)
         @content.cover = uploader.url
       end
-    
+
       if @content.save
         render json: { message: "Content created successfully", status: :ok }
       else
         render json: { errors: @content.errors.full_messages }, status: :unprocessable_entity
       end
     end
-    
+
+    def show
+      @content = Content.find(params[:id])
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: {
+                   data: @content.as_json,
+                 }
+        end
+      end
+    end
 
     def update
       @content = Content.find(params[:id])

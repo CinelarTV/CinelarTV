@@ -53,6 +53,14 @@ const AdminRoutes = {
                         requireAdmin: true
                     }
                 },
+                {
+                    name: 'admin.content.manager.edit',
+                    path: ':id/edit',
+                    component: () => import('../views/admin/content-manager/edit.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
+                },
             ]
         },
         {

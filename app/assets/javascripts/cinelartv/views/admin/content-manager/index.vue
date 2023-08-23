@@ -65,13 +65,24 @@
   
 <script setup>
 import { ref, getCurrentInstance, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import CreateContentModal from '../../../components/modals/create-content.modal.vue';
 import { PlusIcon } from 'lucide-vue-next';
 const { $http, $t } = getCurrentInstance().appContext.config.globalProperties
+const router = useRouter()
 
 const loading = ref(true)
 const content = ref([])
 const createContentModal = ref(null)
+
+const editContent = (item) => {
+    router.push({
+        name: 'admin.content.manager.edit',
+        params: {
+            id: item.id
+        }
+    })
+}
 
 const createContent = () => {
     createContentModal.value.setIsOpen(true)

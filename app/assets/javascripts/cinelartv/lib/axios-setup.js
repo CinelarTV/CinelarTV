@@ -26,6 +26,7 @@ const http = axios.create({
       return response;  
     }
   }, function (error) {
+    CinelarTV.config.globalProperties.$progress.finish()
     if (error.response.status === 404) {
         //AppRouter.replace('/not-found')
     }
