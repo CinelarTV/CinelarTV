@@ -25,7 +25,7 @@ class Content < ApplicationRecord
 
   def self.banner_content
     # Only can appear in the banner if it has a banner image
-    where.not(banner: nil).order("RANDOM()").first
+    where.not(banner: nil).order("RANDOM()").limit(5)
   end
 
   def self.homepage_data

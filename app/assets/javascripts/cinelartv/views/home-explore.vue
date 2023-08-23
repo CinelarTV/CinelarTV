@@ -1,84 +1,88 @@
 <template>
     <div id="home-explore">
-        <div v-if="!homepage" class="mx-auto mt-4">
-            <c-spinner />
-        </div>
-        <div class="mx-auto mt-4" v-else>
-            {{ homepage }}
-            <div class="swiper-container" v-if="SiteSettings.enable_carousel">
-                <div class="swiper-wrapper" v-if="homepage && homepage.banner_content">
-                    <div v-for="slide in homepage.banner_content" :key="slide.id" class="swiper-slide">
-                        <div class="carousel__slide">
-                            <img :src="slide.banner" :alt="slide.title" class="carousel__image" />
-                            <!-- Image again to make a coloured shadow -->
-                            <img :src="slide.banner" :alt="slide.title" class="carousel__shadow" />
-                            <div class="carousel__overlay">
-                                <h3 class="carousel__title">{{ slide.title }}</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
+      <div v-if="!homepage" class="mx-auto mt-4">
+        <c-spinner />
+      </div>
+      <div class="mx-auto mt-4" v-else>
+        <swiper
+          v-if="SiteSettings.enable_carousel && homepage && homepage.banner_content"
+          :slides-per-view="2"
+          :loop="true"
+          :cards-effect="{ slideShadows: false }"
+          :centered-slides="true"
+          :autoplay="true"
+          :pagination="{ clickable: true }"
+          :coverflow-effect="{ rotate: 0, stretch: 0, depth: 100, modifier: 1, slideShadows: true }"
+          :grab-cursor="true"
+          :auto-height="true"
+          :keyboard="{ enabled: true }"
+          :mousewheel="{ invert: false }"
+          :breakpoints="{
+            640: {
+              slidesPerView: 1,
+              spaceBetween: 0
+            },
+            768: {
+              slidesPerView: 2,
+              spaceBetween: 20
+            },
+            1024: {
+              slidesPerView: 2,
+              spaceBetween: 30
+            }
+          }"
+          class="swiper-container"
+          ref="swiper"
+          @swiper="onSwiper"
+          @slideChange="onSlideChange"
+        >
+          <swiper-slide v-for="slide in homepage.banner_content" :key="slide.id">
+            <div class="carousel__slide">
+              <img :src="slide.banner" :alt="slide.title" class="carousel__image" />
+              <!-- Image again to make a coloured shadow -->
+              <img :src="slide.banner" :alt="slide.title" class="carousel__shadow" />
+              <div class="carousel__overlay">
+                <h3 class="carousel__title">{{ slide.title }}</h3>
+              </div>
             </div>
-        </div>
+          </swiper-slide>
+        </swiper>
+      </div>
     </div>
-</template>
+  </template>
   
-<script setup>
-import 'swiper/swiper-bundle.css';
-import { ref, onMounted, getCurrentInstance } from 'vue';
-import Swiper from 'swiper';
-
-
-import { SiteSettings, homepageData } from '../pre-initializers/essentials-preload';
-
-const { $t, $http } = getCurrentInstance().appContext.config.globalProperties
-const homepage = ref(null)
-
-
-
-let swiper;
-
-onMounted(() => {
-    if (SiteSettings.enable_carousel) {
-        swiper = new Swiper('.swiper-container', {
-            effect: 'coverflow',
-            slidesPerView: 2,
-            autoplay: {
-                delay: 5000,
-            },
-            centeredSlides: true,
-            coverflowEffect: {
-                rotate: 0, // Slide rotate in degrees
-                stretch: 0, // Stretch space between slides (in px)
-                depth: 100, // Depth offset in px (slides translate in Z axis)
-                modifier: 1, // Effect multipler
-
-                slideShadows: true, // Enable slide shadows
-            },
-            loop: true,
-            loopedSlidesLimit: false,
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-        });
-    }
-
-    homepage.value = homepageData || null
-
-
+  <script setup>
+  import 'swiper/swiper-bundle.css';
+  import { ref, onMounted, getCurrentInstance, watch } from 'vue';
+  import { Swiper, SwiperSlide } from 'swiper/vue';
+  import { SiteSettings, homepageData } from '../pre-initializers/essentials-preload';
+  
+  const { $t, $http } = getCurrentInstance().appContext.config.globalProperties;
+  const homepage = ref(null);
+  const descriptionCurrent = ref(null);
+  
+  homepage.value = homepageData || null;
+  
+  onMounted(async () => {
     if (!homepage.value) {
-        $http.get('/explore.json').then(res => {
-            homepage.value = res.data
-            console.log(homepage.value)
-        })
+      try {
+        const response = await $http.get('/explore.json');
+        homepage.value = response.data;
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     }
-
-
-});
-</script>
+  });
+  
+  const onSwiper = (swiper) => {
+    console.log(swiper);
+  };
+  
+  const onSlideChange = () => {
+    console.log('slide change');
+  };
+  
+  </script>
   
 <style scoped>
 .carousel__slide {
