@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMeta } from 'vue-meta'
 import { getCurrentInstance } from 'vue'
