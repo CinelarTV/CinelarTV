@@ -13,18 +13,18 @@
                 <div class="edit-content" :data-content-id="$route.params.id">
 
                     <form @submit="saveContent">
-                        <c-input v-model="content.title" label="Title" @update:modelValue="content.title = $event" />
+                        <c-input v-model="content.title" label="Title" @update:modelValue="editedData.title = $event" />
 
 
-                        <c-select v-model="content.content_type" label="Type" :options="contentTypes" @update:modelValue="content.content_type = $event" />
+                        <c-select v-model="content.content_type" label="Type" :options="contentTypes" @update:modelValue="editedData.content_type = $event" />
 
-                        <c-textarea v-model="content.description" label="Description" @update:modelValue="content.description = $event" />
+                        <c-textarea v-model="content.description" label="Description" @update:modelValue="editedData.description = $event" />
 
-                        <c-image-upload v-model="content.cover" label="Cover" @update:modelValue="content.cover = $event" />
+                        <c-image-upload v-model="content.cover" label="Cover" @update:modelValue="editedData.cover = $event" />
 
-                        <c-image-upload v-model="content.banner" label="Banner" @update:modelValue="content.banner = $event" />
+                        <c-image-upload v-model="content.banner" label="Banner" @update:modelValue="editedData.banner = $event" />
 
-                        <c-input type="number" v-model="content.year" label="Year" @update:modelValue="content.year = $event" />
+                        <c-input type="number" v-model="content.year" label="Year" @update:modelValue="editedData.year = $event" />
 
                         <c-button type="submit" :loading="loadingButton" :icon="CheckIcon">
                             Save
@@ -46,7 +46,10 @@ import { useRoute } from 'vue-router'
     const contentId = route.params.id
     const loading = ref(true)
     const content = ref()
-
+    const contentTypes = ref([
+    { value: 'MOVIE', label: 'Movie' },
+    { value: 'TVSHOW', label: 'Serie' }
+])
     const loadingButton = ref(false)
 
     const fetchContent = async () => {
@@ -60,12 +63,14 @@ import { useRoute } from 'vue-router'
         }
     }
 
+    const editedData = ref({})
+
     const saveContent = async (e) => {
         e.preventDefault()
         loadingButton.value = true
         try {
             const formData = new FormData()
-            Object.entries(content.value).forEach(([key, value]) => {
+            Object.entries(editedData.value).forEach(([key, value]) => {
                 if (['id', 'created_at', 'updated_at'].includes(key)) {
                     return
                 }

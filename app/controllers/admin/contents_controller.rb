@@ -38,27 +38,7 @@ module Admin
 
     def create
       @content = Content.new(content_params)
-
-      # Check if banner or cover is a TMDB reference
-      if @content.banner&.starts_with?("tmdb://")
-        # Process TMDB reference here
-        tmdb_id = @content.banner.sub("tmdb://", "")
-        # Perform logic to download and store the TMDB image locally using BaseUploader
-        banner_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
-        uploader = BaseUploader.new
-        uploader.download!(banner_url)
-        @content.banner = uploader.url
-      end
-
-      if @content.cover&.starts_with?("tmdb://")
-        # Process TMDB reference here for cover image
-        tmdb_id = @content.cover.sub("tmdb://", "")
-        # Perform logic to download and store the TMDB image locally using BaseUploader
-        cover_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
-        uploader = BaseUploader.new
-        uploader.download!(cover_url)
-        @content.cover = uploader.url
-      end
+      handle_uploaded_images
 
       if @content.save
         render json: { message: "Content created successfully", status: :ok }
@@ -81,7 +61,25 @@ module Admin
 
     def update
       @content = Content.find(params[:id])
-      if @content.update(content_params)
+
+      # Await the uploaded images
+      handle_uploaded_images
+
+
+      content_hash = {
+        id: @content.id,
+        title: @content.title,
+        description: @content.description,
+        banner: @content.banner,
+        cover: @content.cover,
+        content_type: @content.content_type,
+        url: @content.url,
+        year: @content.year,
+        created_at: @content.created_at,
+        updated_at: @content.updated_at
+      }
+
+      if @content.update(content_hash)
         render json: { message: "Content updated successfully", status: :ok }
       else
         render json: { error: @content.errors.full_messages.join(", ") }, status: :unprocessable_entity
@@ -105,6 +103,43 @@ module Admin
         end
       end
     end
+
+    def handle_uploaded_images
+      # Process banner image
+      Rails.logger.info("Banner: #{params[:content][:banner]}")
+    
+      if @content.banner&.starts_with?("tmdb://")
+        # Process TMDB reference here
+        tmdb_id = @content.banner.sub("tmdb://", "")
+        banner_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
+        uploader = ContentImageUploader.new
+        uploader.download!(banner_url)
+        @content.banner = uploader.url
+      else
+        # Process uploaded banner image here
+        banner_uploader = ContentImageUploader.new
+        banner_uploader.store!(params[:content][:banner])
+        @content.banner = banner_uploader.url
+        Rails.logger.info("Banner URL: #{banner_uploader.url}")
+      end
+    
+      # Process cover image
+      if @content.cover&.starts_with?("tmdb://")
+        # Process TMDB reference here
+        tmdb_id = @content.cover.sub("tmdb://", "")
+        cover_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
+        uploader = ContentImageUploader.new
+        uploader.download!(cover_url)
+        @content.cover = uploader.url
+      else
+        # Process uploaded cover image here
+        cover_uploader = ContentImageUploader.new
+        cover_uploader.store!(params[:content][:cover])
+        @content.cover = cover_uploader.url
+        Rails.logger.info("Cover URL: #{cover_uploader.url}")
+      end
+    end
+    
 
     private
 
