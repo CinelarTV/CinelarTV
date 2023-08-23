@@ -11,41 +11,81 @@
                         {{ $t("js.admin.content_manager.no_content_description") }}
                     </div>
                     <div class="mt-4">
-                        <c-button @click="createContent" class="bg-blue-500 hover:bg-blue-600">
+                        <c-button @click="createContent" class="bg-blue-500 hover:bg-blue-600 text-white">
                             {{ $t("js.admin.content_manager.create_content") }}
                         </c-button>
                     </div>
                 </div>
             </div>
+            <div v-else>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="mt-4 ml-auto">
+                        <c-button @click="createContent" class="bg-blue-500 hover:bg-blue-600 text-white">
+                            <PlusIcon class="icon" :size="18" />
+                            {{ $t("js.admin.content_manager.create_content") }}
+                        </c-button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto border border-[var(--c-primary-color)]">
+                        <thead>
+                            <tr class="bg-[var(--c-primary-50)]">
+                                <th class="px-4 py-2">{{ $t("js.admin.content_manager.id") }}</th>
+                                <th class="px-4 py-2">{{ $t("js.admin.content_manager.content_title") }}</th>
+                                <th class="px-4 py-2">{{ $t("js.admin.content_manager.content_type") }}</th>
+                                <th class="px-4 py-2">{{ $t("js.admin.content_manager.content_cover") }}</th>
+                                <th class="px-4 py-2">{{ $t("js.admin.content_manager.actions") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in content" :key="item.id" class="border-t border-[var(--c-primary-color)]">
+                                <td class="px-4 py-2">
+                                    {{ item.id.slice(0, 8) }}...
+                                </td>
+                                <td class="px-4 py-2">{{ item.title }}</td>
+                                <td class="px-4 py-2">{{ $t(`js.admin.content_manager.content_types.${item.content_type}`)
+                                }}</td>
+                                <td class="px-4 py-2">
+                                    <img :src="item.cover" class="w-24 rounded-lg" />
+                                </td>
+                                <td class="px-4 py-2">
+                                    <c-button @click="editContent(item)" class="bg-blue-500 hover:bg-blue-600 text-white">
+                                        {{ $t("js.admin.actions.edit") }}
+                                    </c-button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </template>
-        <CreateContentModal ref="createContentModal" />
+        <CreateContentModal ref="createContentModal" @content-created="fetchContent" />
     </div>
 </template>
-
+  
 <script setup>
 import { ref, getCurrentInstance, onMounted } from 'vue'
-import { SiteSettings } from '../../../pre-initializers/essentials-preload'
-import { currentUser } from '../../../pre-initializers/essentials-preload'
 import CreateContentModal from '../../../components/modals/create-content.modal.vue';
-
-const { $t } = getCurrentInstance().appContext.config.globalProperties
+import { PlusIcon } from 'lucide-vue-next';
+const { $http, $t } = getCurrentInstance().appContext.config.globalProperties
 
 const loading = ref(true)
 const content = ref([])
 const createContentModal = ref(null)
+
 const createContent = () => {
     createContentModal.value.setIsOpen(true)
 }
 
-
-const fetchContent = () => {
+const fetchContent = async () => {
     loading.value = true
-    axios.get('/admin/content-manager/all.json').then((response) => {
-        loading.value = false
+    try {
+        const response = await $http.get('/admin/content-manager/all.json')
         content.value = response.data.data
-    }).catch((error) => {
-        console.log(error);
-    });
+    } catch (error) {
+        console.log(error)
+    }
+    loading.value = false
 }
 
 onMounted(() => {
@@ -53,3 +93,4 @@ onMounted(() => {
 })
 
 </script>
+  

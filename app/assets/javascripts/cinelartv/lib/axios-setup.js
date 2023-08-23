@@ -44,4 +44,8 @@ const http = axios.create({
 
 window.axios = http
 
-export default http
+export default {
+    install: (app) => {
+        app.config.globalProperties.$http = http
+    }
+}

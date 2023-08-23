@@ -11,6 +11,7 @@ namespace :admin do
     # Content Management related routes
     get '/content-manager/all', to: 'contents#index'
     get '/contents/recommended-metadata', to: 'contents#find_recommended_metadata'
+    post '/contents', to: 'contents#create'
 
     # User Management related routes
     get '/users', to: 'users#index'

@@ -13,7 +13,23 @@ es:
               too_short: "El nombre es demasiado corto, debe tener al menos %{count} caracteres"
   js:
     admin:
+      actions:
+        add: "Añadir"
+        cancel: "Cancelar"
+        delete: "Eliminar"
+        edit: "Editar"
+        save: "Guardar"
       content_manager:
+        actions: "Acciones"
+        content_cover: "Portada"
+        content_title: "Título"
+        content_type: "Tipo"
+        content_types:
+          MOVIE: "Película"
+          TVSHOW: "Series"
+        create_content: "Añadir contenido"
+        created_at: "Creado el"
+        id: "ID"
         nav:
           all_content: "Todo el contenido"
           categories: "Categorías"
@@ -21,7 +37,7 @@ es:
           movies: "Películas"
           seasons: "Temporadas"
           series: "Series"
-          servers: "Servidores"
+        updated_at: "Actualizado el"
       nav:
         content: "Administrar contenido"
         dashboard: "Panel de control"

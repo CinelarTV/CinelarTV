@@ -19,7 +19,7 @@ class ContentsController < ApplicationController
     
     @contents = Content.search(params[:q] || params[:query])
     render json: {
-        data: @contents.as_json(only: [:id, :title, :description, :image, :type]),
+        data: @contents.as_json(only: [:id, :title, :description, :image, :content_type]),
     }
   end
 end

@@ -37,12 +37,7 @@ const navItems = [
         icon: ShapesIcon,
         title: $t("js.admin.content_manager.nav.categories"),
         to: '/admin/content-manager/categories'
-    },
-    {
-        icon: RouterIcon,
-        title: $t("js.admin.content_manager.nav.servers"),
-        to: '/admin/content-manager/servers'
-    },
+    }
 
 ]
 </script>

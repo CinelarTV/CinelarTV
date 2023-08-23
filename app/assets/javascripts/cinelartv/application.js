@@ -12,7 +12,7 @@ import ColorPicker from './plugins/color-picker'
 import * as ConfirmDialog from 'vuejs-confirm-dialog'
 import { createPinia } from 'pinia'
 import Vue3Progress from "vue3-progress";
-require('./lib/axios-setup')
+import Axios from './lib/axios-setup'
 require('./lib/message-bus')
 
 const CinelarTV = createApp(App)
@@ -31,6 +31,7 @@ let pluginMap = [
     ColorPicker,
     ConfirmDialog,
     pinia,
+    Axios
 ]
 
 CinelarTV.use(Vue3Progress, {

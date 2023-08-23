@@ -18,7 +18,8 @@ module Admin
         api_key = SiteSetting.tmdb_api_key.strip
         # Initialize the TMDB API
         tmdb = Tmdb::Api.key(api_key)
-        # Log the API Key
+
+        Tmdb::Api.language(SiteSetting.default_locale)
 
         Rails.logger.info("Using TMDB API Key: #{api_key}")
 
@@ -37,26 +38,35 @@ module Admin
 
     def create
       @content = Content.new(content_params)
-
+    
       # Check if banner or cover is a TMDB reference
       if @content.banner&.starts_with?("tmdb://")
         # Process TMDB reference here
         tmdb_id = @content.banner.sub("tmdb://", "")
-        # Perform logic to download and store the TMDB image locally in uploads folder
-
-
-
-
-        
-       
+        # Perform logic to download and store the TMDB image locally using BaseUploader
+        banner_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
+        uploader = BaseUploader.new
+        uploader.download!(banner_url)
+        @content.banner = uploader.url
       end
-
+    
+      if @content.cover&.starts_with?("tmdb://")
+        # Process TMDB reference here for cover image
+        tmdb_id = @content.cover.sub("tmdb://", "")
+        # Perform logic to download and store the TMDB image locally using BaseUploader
+        cover_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
+        uploader = BaseUploader.new
+        uploader.download!(cover_url)
+        @content.cover = uploader.url
+      end
+    
       if @content.save
         render json: { message: "Content created successfully", status: :ok }
       else
         render json: { errors: @content.errors.full_messages }, status: :unprocessable_entity
       end
     end
+    
 
     def update
       @content = Content.find(params[:id])
@@ -88,7 +98,7 @@ module Admin
     private
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :type, :url, :year, category_ids: [])
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, category_ids: [])
     end
 
     def set_content

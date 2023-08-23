@@ -13,7 +13,23 @@ en:
               too_short: "Name is too short, it must be at least %{count} characters"
   js:
     admin:
+      actions:
+        add: "Add"
+        cancel: "Cancel"
+        delete: "Delete"
+        edit: "Edit"
+        save: "Save"
       content_manager:
+        actions: "Actions"
+        content_cover: "Cover"
+        content_title: "Title"
+        content_type: "Type"
+        content_types:
+          MOVIE: "Movie"
+          TVSHOW: "Series"
+        create_content: "Add content"
+        created_at: "Created at"
+        id: "ID"
         nav:
           all_content: "All content"
           categories: "Categories"
@@ -21,7 +37,7 @@ en:
           movies: "Movies"
           seasons: "Seasons"
           series: "Series"
-          servers: "Servers"
+        updated_at: "Updated at"
       nav:
         content: "Manage content"
         dashboard: "Dashboard"

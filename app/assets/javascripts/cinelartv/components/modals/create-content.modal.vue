@@ -81,6 +81,10 @@
                                     <SparklesIcon :size="18" class="icon" v-if="!loadingRecommendations" />
                                     Find recommended metadata
                                 </c-button>
+                                <c-button @click="submitCreateContent" :loading="loading">
+                                    <CheckIcon :size="18" class="icon" v-if="!loading" />
+                                    Create content
+                                </c-button>
                             </div>
 
                             <RecommendedMetadataModal ref="metadataModal" :content="recommendedContent" @select-content="recommendedMetadataSelected" />
@@ -95,12 +99,16 @@
 </template>
   
 <script setup>
-import { onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, ref } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import axios from 'axios' // Import axios if not already imported
-import { SparklesIcon } from 'lucide-vue-next';
+import { CheckIcon, SparklesIcon } from 'lucide-vue-next';
 import RecommendedMetadataModal from './recommended-metadata.modal.vue'
 import cImageUpload from '../forms/c-image-upload.vue';
+
+const emit = defineEmits(['content-created'])
+
+const { $http } = getCurrentInstance().appContext.config.globalProperties
 
 const props = defineProps({
     // Define your props here
@@ -162,18 +170,19 @@ const submitCreateContent = (e) => {
 
     // Modify data and endpoint based on your content creation requirements
     const data = {
-        name: contentData.value.name,
+        title: contentData.value.name,
         content_type: contentData.value.content_type,
-        content_description: contentData.value.content_description,
-        content_image: contentData.value.content_image
-
+        description: contentData.value.content_description,
+        cover: contentData.value.content_cover,
+        banner: contentData.value.content_banner
     }
 
     // Modify the API endpoint based on your requirements
-    axios.post('/api/create-content', data)
+    $http.post('/admin/contents.json', data)
         .then((response) => {
             loading.value = false
             setIsOpen(false)
+            emit('content-created', response.data)
             // Handle successful response
         })
         .catch((error) => {

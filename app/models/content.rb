@@ -7,8 +7,8 @@ class Content < ApplicationRecord
     has_many :seasons
   
     validates :title, presence: true
-    validates :type, presence: true
-    validates_inclusion_of :type, in: ["TVSHOW", "MOVIE"]
+    validates :content_type, presence: true
+    validates_inclusion_of :content_type, in: ["TVSHOW", "MOVIE"]
     validates :year, numericality: { only_integer: true }, allow_nil: true
   
     def self.search(title)
