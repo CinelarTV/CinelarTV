@@ -5049,6 +5049,11 @@ vue3-carousel@^0.3.1:
   resolved "https://registry.yarnpkg.com/vue3-carousel/-/vue3-carousel-0.3.1.tgz#d001be7dea416dc2f4e66afc4d56af66696dc117"
   integrity sha512-86vUkNPBzL2PVuR9w6hUsI90ccFjLp+K8cSFpRTISf+SjUQY3fMHc5CFF5MUL62v1xYYm27zEBmQupO9VQx9Kw==
 
+vue3-progress@^0.0.1-beta4:
+  version "0.0.1-beta4"
+  resolved "https://registry.yarnpkg.com/vue3-progress/-/vue3-progress-0.0.1-beta4.tgz#eff5aeb235288b875806412c34ee2412f73dcee4"
+  integrity sha512-AiRlyzRvX0FPFkG8fcrFJ6fPQWt/3PdGy062fbWZB3qjAcU3MHzJPU5BZ5HfrmMHHnhk0u46du/k+KflmDdN9Q==
+
 vue@^3.3.4:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/vue/-/vue-3.3.4.tgz#8ed945d3873667df1d0fcf3b2463ada028f88bd6"

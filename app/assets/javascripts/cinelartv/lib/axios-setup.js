@@ -1,4 +1,5 @@
 import axios from 'axios';
+import CinelarTV from '../application';
 let csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 
@@ -11,7 +12,16 @@ const http = axios.create({
     }
   });
 
+  http.interceptors.request.use(function (config) {
+    CinelarTV.config.globalProperties.$progress.start()
+    return config;
+  }, function (error) {
+    CinelarTV.config.globalProperties.$progress.finish()
+    return Promise.reject(error);
+  });
+
   http.interceptors.response.use(function (response) {
+    CinelarTV.config.globalProperties.$progress.finish()
     if(response.status === 200 || response.status === 422) {
       return response;  
     }

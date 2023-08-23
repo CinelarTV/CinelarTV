@@ -11,6 +11,7 @@ import I18n from './lib/i18n'
 import ColorPicker from './plugins/color-picker'
 import * as ConfirmDialog from 'vuejs-confirm-dialog'
 import { createPinia } from 'pinia'
+import Vue3Progress from "vue3-progress";
 require('./lib/axios-setup')
 require('./lib/message-bus')
 
@@ -29,8 +30,13 @@ let pluginMap = [
     I18n,
     ColorPicker,
     ConfirmDialog,
-    pinia
+    pinia,
 ]
+
+CinelarTV.use(Vue3Progress, {
+    color: 'var(--c-tertiary-color)',
+    height: '4px'
+})
 
 pluginMap.map(plugin => {
     CinelarTV.use(plugin)

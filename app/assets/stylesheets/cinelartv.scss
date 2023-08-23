@@ -31,6 +31,10 @@ img.emoji {
   display: inline;
 }
 
+#c-progress {
+  @apply fixed top-0 left-0 h-1 bg-[var(--c-tertiary-400)]
+}
+
 
 .dialog {
   background-color: var(--dialog-background-color);
