@@ -11,6 +11,7 @@ namespace :admin do
     # Content Management related routes
     get '/content-manager/all', to: 'contents#index'
     get '/content-manager/:id', to: 'contents#show'
+    put '/content-manager/:id', to: 'contents#update'
     get '/contents/recommended-metadata', to: 'contents#find_recommended_metadata'
     post '/contents', to: 'contents#create'
 

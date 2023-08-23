@@ -26,7 +26,7 @@ Rails.application.routes.draw do
 
   get '/user/default-avatars', to: 'profiles#default_avatars'
 
-  get '/contents/search', to: 'contents#search'
+  get '/search', to: 'contents#search'
 
 
   # Dev route to refresh the settings
