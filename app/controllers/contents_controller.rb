@@ -9,17 +9,20 @@ class ContentsController < ApplicationController
     query = params[:q] || params[:query]
     # If the query is empty, return an error
     if query.blank?
-        render json: {
-            error: "Query is required"
-        }, status: :unprocessable_entity
-        return
+      render json: {
+               error: "Query is required",
+             }, status: :unprocessable_entity
+      return
     end
 
-    
-    
     @contents = Content.search(params[:q] || params[:query])
-    render json: {
-        data: @contents.as_json(only: [:id, :title, :description, :image, :content_type]),
-    }
+    respond_to do |format|
+      format.html
+      format.json {
+        render json: {
+                 data: @contents.as_json(only: %i[id title description]),
+               }
+      }
+    end
   end
 end
