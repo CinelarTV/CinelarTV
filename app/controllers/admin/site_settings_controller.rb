@@ -30,25 +30,21 @@ module Admin
       setting_params.keys.each do |key|
         next if setting_params[key].nil?
 
-        if key == "site_logo"
+        if ["site_logo", "site_mobile_logo", "site_favicon"].include?(key)
           logo_uploader = LogoUploader.new
+          if key == "site_favicon"
+            # Read the original image using MiniMagick
+            image = MiniMagick::Image.read(setting_params[key].read)
+            # Resize the image to 32x32 pixels
+            image.resize "32x32"
+            # Replace the original image data with the resized image
+            setting_params[key] = image.to_blob
+            logo_uploader.store!(setting_params[key])
+          end
+          
+
           logo_uploader.store!(setting_params[key])
-
           SiteSetting.send("#{key}=", logo_uploader.url)
-
-
-          elsif key == "site_mobile_logo"
-          logo_uploader = LogoUploader.new
-          logo_uploader.store!(setting_params[key])
-
-          SiteSetting.send("#{key}=", logo_uploader.url)
-
-          elsif key == "site_favicon"
-          logo_uploader = LogoUploader.new
-          logo_uploader.store!(setting_params[key])
-
-          SiteSetting.send("#{key}=", logo_uploader.url)
-
         else
           # Si no, actualizar el valor de la configuración
           setting = SiteSetting.new(var: key)
@@ -64,7 +60,7 @@ module Admin
       else
         setting_params.keys.each do |key|
           # Si el campo es el de la imagen del sitio, ya lo actualizamos, por lo que no necesitamos hacer nada aquí
-          next if key == "site_logo"
+          next if ["site_logo", "site_mobile_logo", "site_favicon"].include?(key)
           puts "Setting #{key} to #{setting_params[key]}"
           @new_value = setting_params[key]
 

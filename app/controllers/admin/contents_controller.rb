@@ -14,7 +14,7 @@ module Admin
           return
         end
 
-       # Get the TMDB API Key from the Site Settings
+        # Get the TMDB API Key from the Site Settings
         api_key = SiteSetting.tmdb_api_key.strip
         # Initialize the TMDB API
         tmdb = Tmdb::Api.key(api_key)
@@ -37,6 +37,20 @@ module Admin
 
     def create
       @content = Content.new(content_params)
+
+      # Check if banner or cover is a TMDB reference
+      if @content.banner&.starts_with?("tmdb://")
+        # Process TMDB reference here
+        tmdb_id = @content.banner.sub("tmdb://", "")
+        # Perform logic to download and store the TMDB image locally in uploads folder
+
+
+
+
+        
+       
+      end
+
       if @content.save
         render json: { message: "Content created successfully", status: :ok }
       else
