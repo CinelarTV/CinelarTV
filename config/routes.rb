@@ -12,6 +12,8 @@ Rails.application.routes.draw do
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
+  get "explore" => "home#homepage", as: :explore
+
   get '/user/profiles', to: 'session#profiles'
   # Routes that don't need a controller, can fallback to the application controller
   get 'profiles/select', to: 'application#index'

@@ -21,7 +21,8 @@ export const showPreloaderError = () => {
   let preloadedData = {
     currentUser: preloaded.currentUser,
     SiteSettings: preloaded.SiteSettings,
-    isMobile: preloaded.isMobile
+    isMobile: preloaded.isMobile,
+    homepageData: preloaded.homepageData || null,
   };
   
   
@@ -31,7 +32,7 @@ export const showPreloaderError = () => {
     }
   }
   
-  export const { SiteSettings, currentUser, isMobile } = preloadedData;
+  export const { SiteSettings, currentUser, isMobile, homepageData } = preloadedData;
 
   
   export const Language = {

@@ -1,15 +1,19 @@
 <template>
     <div id="home-explore">
-        <div class="mx-auto mt-4">
+        <div v-if="!homepage" class="mx-auto mt-4">
+            <c-spinner />
+        </div>
+        <div class="mx-auto mt-4" v-else>
+            {{ homepage }}
             <div class="swiper-container" v-if="SiteSettings.enable_carousel">
-                <div class="swiper-wrapper">
-                    <div v-for="(slide, index) in demoCarousel" :key="index" class="swiper-slide">
+                <div class="swiper-wrapper" v-if="homepage && homepage.banner_content">
+                    <div v-for="slide in homepage.banner_content" :key="slide.id" class="swiper-slide">
                         <div class="carousel__slide">
-                            <img :src="slide.image" :alt="slide.name" class="carousel__image" />
+                            <img :src="slide.banner" :alt="slide.title" class="carousel__image" />
                             <!-- Image again to make a coloured shadow -->
-                            <img :src="slide.image" :alt="slide.name" class="carousel__shadow" />
+                            <img :src="slide.banner" :alt="slide.title" class="carousel__shadow" />
                             <div class="carousel__overlay">
-                                <h3 class="carousel__title">{{ slide.name }}</h3>
+                                <h3 class="carousel__title">{{ slide.title }}</h3>
                             </div>
                         </div>
                     </div>
@@ -23,30 +27,16 @@
   
 <script setup>
 import 'swiper/swiper-bundle.css';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, getCurrentInstance } from 'vue';
 import Swiper from 'swiper';
 
-import { SiteSettings } from '../pre-initializers/essentials-preload';
 
-const demoCarousel = ref([
-    {
-        name: 'Avengers: Endgame',
-        image: 'https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg',
-    },
-    {
-        name: 'Bob Esponja: Al Rescate',
-        image: 'https://www.themoviedb.org/t/p/original/o6eVlCjvxLn3Fzyr9gsYKAQNNxl.jpg',
-    },
-    {
-        name: 'Club 57',
-        image: 'https://www.themoviedb.org/t/p/original/4nTaEWva71Wcpdt1G19EEug9JqT.jpg'
-    },
-    {
-        name: 'El Rey León',
-        image: 'https://www.themoviedb.org/t/p/w500_and_h282_face/1TUg5pO1VZ4B0Q1amk3OlXvlpXV.jpg'
-    }
-    // Add more slides here
-])
+import { SiteSettings, homepageData } from '../pre-initializers/essentials-preload';
+
+const { $t, $http } = getCurrentInstance().appContext.config.globalProperties
+const homepage = ref(null)
+
+
 
 let swiper;
 
@@ -75,6 +65,17 @@ onMounted(() => {
             },
         });
     }
+
+    homepage.value = homepageData || null
+
+
+    if (!homepage.value) {
+        $http.get('/explore.json').then(res => {
+            homepage.value = res.data
+            console.log(homepage.value)
+        })
+    }
+
 
 });
 </script>
