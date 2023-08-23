@@ -65,21 +65,14 @@ module Admin
       # Await the uploaded images
       handle_uploaded_images
 
+      # Series can't have an url
+      if @content.content_type == 'TVSHOW' && @content.url?
+        @content.url = nil
+      end
 
-      content_hash = {
-        id: @content.id,
-        title: @content.title,
-        description: @content.description,
-        banner: @content.banner,
-        cover: @content.cover,
-        content_type: @content.content_type,
-        url: @content.url,
-        year: @content.year,
-        created_at: @content.created_at,
-        updated_at: @content.updated_at
-      }
 
-      if @content.update(content_hash)
+     
+      if @content.save
         render json: { message: "Content updated successfully", status: :ok }
       else
         render json: { error: @content.errors.full_messages.join(", ") }, status: :unprocessable_entity
