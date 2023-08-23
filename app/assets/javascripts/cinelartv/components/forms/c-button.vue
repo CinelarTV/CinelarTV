@@ -7,6 +7,7 @@
             <LoaderIcon :size="18" class="icon loading-request" />
         </span>
 
+        <component :is="icon" v-if="!loading" class="icon" :size="18" />
         <slot  />
     </button>
 </template>
@@ -18,7 +19,11 @@ import { defineProps, defineEmits } from 'vue'
 const props = defineProps({
     onClick: Function,
     type: String, // 'danger' or null
-    loading: Boolean, // true or false
+    loading: Boolean, // true or false,
+    icon: {
+        type: String,
+        default: ''
+    }
 })
 
 const emit = defineEmits(['click'])
