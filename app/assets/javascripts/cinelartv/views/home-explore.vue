@@ -16,6 +16,10 @@
                                                 {{ item.title }}
                                             </h2>
 
+                                            <p class="text-sm py-2">
+                                                {{ item.description }}
+                                            </p>
+
                                             <div class="standard-hero-card__actions">
                                                 <c-button @click="playContent(item.id)">
                                                     <PlayCircleIcon class="icon" :size="18" />
