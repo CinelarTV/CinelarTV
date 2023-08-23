@@ -15,8 +15,8 @@
   
   <script setup>
 import { useMeta } from 'vue-meta'
-import { ref, getCurrentInstance } from 'vue'
-import { SiteSettings } from '../../pre-initializers/essentials-preload'
+import { ref, getCurrentInstance, inject } from 'vue'
+const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 
 

@@ -33,11 +33,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import { useMeta } from 'vue-meta'
 import { useRoute, useRouter } from 'vue-router'
 import { getCurrentInstance } from 'vue'
-import { SiteSettings } from '../../pre-initializers/essentials-preload'
 import { ClapperboardIcon, TvIcon } from 'lucide-vue-next'
 import { ShapesIcon } from 'lucide-vue-next'
 import { RouterIcon } from 'lucide-vue-next'
@@ -45,6 +44,7 @@ import { UserIcon } from 'lucide-vue-next'
 import { Trash2Icon } from 'lucide-vue-next'
 import { PencilIcon } from 'lucide-vue-next'
 
+const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 
 const users = ref([])

@@ -23,6 +23,10 @@ const Components = [
         name: 'c-image-upload',
         component: require('../components/forms/c-image-upload.vue').default
     },
+    {
+        name: 'plugin-outlet',
+        component: require('../components/plugin-outlet.vue').default
+    },
 ]
 
 export default {

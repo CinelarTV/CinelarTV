@@ -55,12 +55,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { SiteSettings, currentUser } from '../../pre-initializers/essentials-preload';
+import { onMounted, ref, inject } from 'vue'
 import { PlusCircleIcon } from 'lucide-vue-next'
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue'
 import { PencilIcon, Trash2Icon } from 'lucide-vue-next';
 import { Howl, Howler } from 'howler';
+
+const currentUser = inject('currentUser')
+const SiteSettings = inject('SiteSettings')
 
 const createProfileModal = ref(null)
 const editMode = ref(false)

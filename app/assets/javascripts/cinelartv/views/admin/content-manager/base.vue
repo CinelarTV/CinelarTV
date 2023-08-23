@@ -21,10 +21,11 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMeta } from 'vue-meta'
 import { getCurrentInstance } from 'vue'
-import { SiteSettings } from '../../../pre-initializers/essentials-preload'
 import { ClapperboardIcon, TvIcon } from 'lucide-vue-next'
 import { ShapesIcon } from 'lucide-vue-next'
 import { RouterIcon } from 'lucide-vue-next'
+
+const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 
 const navItems = [

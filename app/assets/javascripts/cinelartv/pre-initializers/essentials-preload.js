@@ -29,6 +29,10 @@ export const showPreloaderError = () => {
   export default {
     install: (app) => {
       Object.assign(app.config.globalProperties, preloadedData);
+      app.provide("currentUser", preloadedData.currentUser);
+      app.provide("SiteSettings", preloadedData.SiteSettings);
+      app.provide("isMobile", preloadedData.isMobile);
+      app.provide("homepageData", preloadedData.homepageData);
     }
   }
   

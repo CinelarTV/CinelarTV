@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp } from 'vue/dist/vue.esm-bundler'
 import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
 import AppRouter from './routes/router-map';
@@ -13,10 +13,13 @@ import * as ConfirmDialog from 'vuejs-confirm-dialog'
 import { createPinia } from 'pinia'
 import Vue3Progress from "vue3-progress";
 import Axios from './lib/axios-setup'
+import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
 
 const CinelarTV = createApp(App)
 const pinia = createPinia()
+
+CinelarTV.addComponent = addCompiledComponent
 
 
 

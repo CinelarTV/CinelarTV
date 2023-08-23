@@ -26,9 +26,10 @@
 </template>
   
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import LoginModal from '../components/modals/login.modal.vue'
-import { SiteSettings, currentUser } from '../pre-initializers/essentials-preload';
+const SiteSettings = inject('SiteSettings')
+const currentUser = inject('currentUser')
 import UserMenu from '../components/user-menu.vue'
 import {
     CompassIcon as ExploreIcon,

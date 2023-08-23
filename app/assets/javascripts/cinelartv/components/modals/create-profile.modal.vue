@@ -64,11 +64,13 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { SiteSettings, currentUser } from '../../pre-initializers/essentials-preload';
 import { Unlock, LoaderIcon } from 'lucide-vue-next'
 import { PlusIcon } from 'lucide-vue-next';
+
+const SiteSettings = inject('SiteSettings')
+const currentUser = inject('currentUser')
 
 const props = defineProps({
     avatarList: {

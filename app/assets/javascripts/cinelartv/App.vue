@@ -2,6 +2,7 @@
     <div id="mountpoint">
         <vue3-progress id="c-progress" />
         <SiteHeader v-if="$route.meta.showHeader !== false" />
+        <plugin-outlet name="below-site-header" />
         <main>
             <SiteBanner />
             <router-view />

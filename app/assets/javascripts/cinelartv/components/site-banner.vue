@@ -10,9 +10,8 @@
   
 <script setup>
 import { ref, getCurrentInstance, inject } from 'vue'
-import { SiteSettings } from '../../pre-initializers/essentials-preload'
-import { currentUser } from '../../pre-initializers/essentials-preload'
-
+const SiteSettings = inject('SiteSettings')
+const currentUser = inject('currentUser')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 const banners = ref([
     {
