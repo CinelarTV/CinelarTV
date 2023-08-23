@@ -29,7 +29,7 @@
       reader.onload = () => {
         previewImage.value = reader.result
         modelValue.value = ''
-        emit('update:modelValue', '')
+        emit('update:modelValue', file)
       }
       reader.readAsDataURL(file)
     } else {
@@ -54,7 +54,7 @@
   }
   
   watch(
-    () => model.value,
+    () => modelValue.value,
     (value) => {
       if (value) {
         previewImage.value = null

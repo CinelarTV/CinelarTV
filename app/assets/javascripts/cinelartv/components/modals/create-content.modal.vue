@@ -52,7 +52,7 @@
                                         Image
                                     </label>
                                     <div class="mt-1">
-                                        <c-image-upload v-model="contentData.content_image" v-if="!contentData.content_banner.startsWith('tmdb://')"
+                                        <c-image-upload v-model="contentData.content_cover" @update:model-value="value => contentData.content_cover = value"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
 
 
@@ -62,7 +62,7 @@
                                         Banner
                                     </label>
                                     <div class="mt-1">
-                                        <c-image-upload v-if="!contentData.content_banner.startsWith('tmdb://')" v-model="contentData.content_banner" @update:model-value="value => contentData.content_banner = value"
+                                        <c-image-upload v-model="contentData.content_banner" @update:model-value="value => contentData.content_banner = value"
                                             
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
 
@@ -127,7 +127,7 @@ const contentData = ref({
     content_type: '',
     content_description: '',
     content_cover: '',
-    content_banner: ''
+    content_banner: '' 
 })
 const recommendedContent = ref(null)
 const metadataModal = ref()
@@ -168,6 +168,8 @@ const submitCreateContent = (e) => {
     loading.value = true
     errors.value = null
 
+    const formData = new FormData()
+
     // Modify data and endpoint based on your content creation requirements
     const data = {
         title: contentData.value.name,
@@ -177,8 +179,12 @@ const submitCreateContent = (e) => {
         banner: contentData.value.content_banner
     }
 
+    for (e in data) {
+        formData.append(`content[${e}]`, data[e])
+    }
+
     // Modify the API endpoint based on your requirements
-    $http.post('/admin/contents.json', data)
+    $http.post('/admin/contents.json', formData)
         .then((response) => {
             loading.value = false
             setIsOpen(false)
