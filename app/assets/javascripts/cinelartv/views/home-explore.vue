@@ -165,7 +165,7 @@
 
 .swiper-slide-prev,
 .swiper-slide-next {
-    opacity: 0.5 !important;
+    opacity: 0.5;
     scale: 0.8;
     z-index: 2;
 }
