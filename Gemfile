@@ -99,3 +99,5 @@ gem "carrierwave-bombshelter", "~> 0.2.2"
 gem 'aws-sdk-s3', '~> 1'
 
 gem "carrierwave-aws", "~> 1.6"
+
+gem "erb-formatter", "~> 0.4.3"
