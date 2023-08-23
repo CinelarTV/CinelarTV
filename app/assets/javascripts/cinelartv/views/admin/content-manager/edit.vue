@@ -26,7 +26,7 @@
 
                         <c-input type="number" v-model="content.year" label="Year" @update:modelValue="content.year = $event" />
 
-                        <c-button type="submit" :loading="loadingButton">
+                        <c-button type="submit" :loading="loadingButton" :icon="CheckIcon">
                             Save
                         </c-button>
                     </form>
@@ -38,7 +38,8 @@
 </template>
 
 <script setup>
-    import { onMounted, ref } from 'vue';
+    import { CheckIcon } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router'
     const route = useRoute()
 
