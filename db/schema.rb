@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_21_124837) do
+ActiveRecord::Schema[7.0].define(version: 2023_08_23_231553) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -43,6 +43,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_21_124837) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["season_id"], name: "index_episodes_on_season_id"
+  end
+
+  create_table "likes", force: :cascade do |t|
+    t.uuid "profile_id"
+    t.uuid "content_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_likes_on_content_id"
+    t.index ["profile_id"], name: "index_likes_on_profile_id"
   end
 
   create_table "preferences", force: :cascade do |t|
@@ -117,6 +126,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_21_124837) do
   end
 
   add_foreign_key "episodes", "seasons"
+  add_foreign_key "likes", "contents"
+  add_foreign_key "likes", "profiles"
   add_foreign_key "preferences", "profiles"
   add_foreign_key "profiles", "users"
   add_foreign_key "seasons", "contents"

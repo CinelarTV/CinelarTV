@@ -25,4 +25,31 @@ class ContentsController < ApplicationController
       }
     end
   end
+
+  def show
+    @content = Content.find_by(id: params[:id])
+
+    if @content
+      @is_liked = current_profile&.liked_contents&.include?(@content)
+      @seasons = @content.seasons if @content.content_type == "TVSHOW"
+
+      respond_to do |format|
+        format.html
+        format.json {
+          render json: {
+            content: @content.as_json(
+              only: %i[id title description year content_type],
+            ),
+            liked: @is_liked,
+            seasons: @seasons,  # Include the seasons data here if it's a TVSHOW
+          }
+        }
+      end
+    else
+      respond_to do |format|
+        format.html
+        format.json { head :not_found }
+      end
+    end
+  end
 end

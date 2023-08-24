@@ -28,6 +28,12 @@ Rails.application.routes.draw do
 
   get '/search', to: 'contents#search'
 
+  post '/contents/:id/like', to: 'likes#like'
+  post '/contents/:id/unlike', to: 'likes#unlike'
+
+
+  get '/contents/:id', to: 'contents#show'
+  get '/t/:id', to: redirect('/contents/%{id}')
 
   # Dev route to refresh the settings
   if Rails.env.development?

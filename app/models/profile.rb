@@ -3,6 +3,7 @@
 class Profile < ApplicationRecord
   belongs_to :user
   has_many :preferences, dependent: :destroy # Si se elimina un perfil, se eliminan sus preferencias
+  has_and_belongs_to_many :liked_contents, class_name: 'Content', join_table: 'likes'
   
 
   validate :validate_profile_count, on: :create

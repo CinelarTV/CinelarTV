@@ -4,6 +4,12 @@ class ApplicationController < ActionController::Base
 
   before_action :reload_storage_config
 
+  before_action do
+    if current_user && current_user.is_admin?
+      Rack::MiniProfiler.authorize_request
+    end
+  end
+
 
     # Crea un before_action, si el usuario está logueado, pero no tiene un perfil seleccionado, lo redirige a la página de selección de perfil.
     #before_action :check_profile_if_signed_in

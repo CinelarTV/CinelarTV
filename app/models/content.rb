@@ -6,6 +6,8 @@ class Content < ApplicationRecord
   has_many :categories, through: :content_categories
   has_many :seasons
 
+  has_and_belongs_to_many :liking_profiles, class_name: 'Profile', join_table: 'likes'
+
   validates :title, presence: true
   validates :content_type, presence: true
   validates_inclusion_of :content_type, in: ["TVSHOW", "MOVIE"]
