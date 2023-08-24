@@ -67,7 +67,7 @@ import { ArrowRightLeftIcon } from 'lucide-vue-next';
 import SignupModal from './modals/signup.modal.vue';
 
 const currentUser = inject('currentUser')
-const SiteSettingg = inject('SiteSetting')
+const SiteSetting = inject('SiteSetting')
 
 const isMainProfile = ref(false)
 
