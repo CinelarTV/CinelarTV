@@ -203,6 +203,12 @@ customization:
     refresh: true
     default: rgba(255, 255, 255, 0.2)
     type: color
+  custom_css:
+    client: true
+    refresh: true
+    default: ""
+    type: 'code'
+  
 developer:
   enable_js_error_reporting:
     client: true
