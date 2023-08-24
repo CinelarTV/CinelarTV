@@ -180,9 +180,6 @@ const handleScroll = () => {
   }
 };
 
-setInterval(() => {
-    scrollToNextSlide();
-}, 6000);
 
 onMounted(async () => {
     if (!homepage.value) {
