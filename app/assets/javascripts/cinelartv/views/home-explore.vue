@@ -6,7 +6,7 @@
         <div class="mx-auto mt-4" v-else>
             <section id="home-carousel">
                 <div class="carousel-root">
-                    <ul class="carousel-ul">
+                    <ul class="carousel-ul" ref="carouselContainer">
                         <li v-for="item in homepage.banner_content" :key="item.id">
                             <article class="standard-hero-card">
                                 <div class="standard-hero-card__image">
@@ -62,7 +62,6 @@
             </section>
         </div>
     </div>
-    
 </template>
 
   
@@ -77,8 +76,49 @@ const homepageData = inject('homepageData');
 const { $t, $http } = getCurrentInstance().appContext.config.globalProperties;
 const homepage = ref(null);
 const descriptionCurrent = ref(null);
+const carouselContainer = ref(null);
+const bannerCurrentIndex = ref(0); // Define bannerCurrentIndex here
+
 
 homepage.value = homepageData || null;
+
+const scrollToNextSlide = () => {
+    const container = carouselContainer.value;
+    if (container) {
+        const slideWidth = container.offsetWidth;
+        const scrollOffset = slideWidth * (bannerCurrentIndex.value + 1);
+
+        container.scrollTo({
+            left: scrollOffset,
+            behavior: 'smooth', // Use smooth scrolling animation
+        });
+
+        // Update bannerCurrentIndex to loop back to the first slide if at the last slide
+        bannerCurrentIndex.value = (bannerCurrentIndex.value + 1) % homepage.value.banner_content.length;
+    }
+};
+
+const scrollToPreviousSlide = () => {
+    const container = carouselContainer.value;
+    if (container) {
+        const slideWidth = container.offsetWidth;
+        const scrollOffset = slideWidth * (bannerCurrentIndex.value - 1);
+
+        container.scrollTo({
+            left: scrollOffset,
+            behavior: 'smooth', // Use smooth scrolling animation
+        });
+
+        // Update bannerCurrentIndex to loop back to the last slide if at the first slide
+        const lastIndex = homepage.value.banner_content.length - 1;
+        bannerCurrentIndex.value = (bannerCurrentIndex.value - 1 + lastIndex) % homepage.value.banner_content.length;
+    }
+};
+
+
+setInterval(() => {
+    scrollToNextSlide();
+}, 6000);
 
 onMounted(async () => {
     if (!homepage.value) {
