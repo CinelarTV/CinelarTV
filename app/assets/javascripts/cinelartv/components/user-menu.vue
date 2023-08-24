@@ -57,16 +57,16 @@
   
   
 <script setup>
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import LoginModal from './modals/login.modal.vue'
-import { currentUser } from '../pre-initializers/essentials-preload';
 import { UserIcon, LogOut, CreditCardIcon, HelpCircleIcon } from 'lucide-vue-next'
 import { WrenchIcon } from 'lucide-vue-next';
 import { ClapperboardIcon } from 'lucide-vue-next';
 import { ArrowRightLeftIcon } from 'lucide-vue-next';
 import SignupModal from './modals/signup.modal.vue';
 
+const currentUser = inject('currentUser')
 const isMainProfile = ref(false)
 
 isMainProfile.value = currentUser?.current_profile?.id === currentUser?.profiles[0]?.id
