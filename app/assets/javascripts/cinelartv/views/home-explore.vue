@@ -164,6 +164,8 @@ const scrollToSlide = (index) => {
         // Update bannerCurrentIndex to loop back to the last slide if at the first slide
         const lastIndex = homepage.value.banner_content.length - 1;
         bannerCurrentIndex.value = index;
+        stopAutoScroll();
+        startAutoScroll(); // Restart auto scroll after manually scrolling
     }
 };
 
