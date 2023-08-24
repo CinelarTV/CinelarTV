@@ -35,6 +35,9 @@
     z-index: 1;
 }
 
+#home-carousel {
+    @apply relative;
+}
 
 .carousel-root {
     display: grid;
@@ -169,6 +172,36 @@
     opacity: 1;
     transition: opacity 0.3s ease;
     z-index: 10;
+}
+
+.carousel-indicators {
+    left: 0;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    @apply bottom-5;
+
+}
+
+.carousel-indicators>li {
+    background: hsla(0, 0%, 100%, .3);
+    margin-right: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 8px;
+    list-style: none;
+    width: 8px;
+
+}
+
+.carousel-indicators>li.active {
+    background: white;
+}
+
+.carousel-indicators>li::marker {
+    content: '';
 }
 
 /* Estilos específicos para pantallas más pequeñas (móviles) */

@@ -38,7 +38,12 @@
                             </article>
                         </li>
                     </ul>
+
                 </div>
+                <ul class="carousel-indicators">
+                    <li v-for="(item, index) in homepage.banner_content" :key="item.id"
+                        :class="{ active: index === bannerCurrentIndex }" @click="scrollToSlide(index)"></li>
+                </ul>
             </section>
 
             <section id="main-content">
@@ -115,6 +120,22 @@ const scrollToPreviousSlide = () => {
     }
 };
 
+const scrollToSlide = (index) => {
+    const container = carouselContainer.value;
+    if (container) {
+        const slideWidth = container.offsetWidth;
+        const scrollOffset = slideWidth * index;
+
+        container.scrollTo({
+            left: scrollOffset,
+            behavior: 'smooth', // Use smooth scrolling animation
+        });
+
+        // Update bannerCurrentIndex to loop back to the last slide if at the first slide
+        const lastIndex = homepage.value.banner_content.length - 1;
+        bannerCurrentIndex.value = index;
+    }
+};
 
 setInterval(() => {
     scrollToNextSlide();
