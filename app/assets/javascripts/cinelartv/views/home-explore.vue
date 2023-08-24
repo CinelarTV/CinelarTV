@@ -6,7 +6,7 @@
         <div class="mx-auto mt-4" v-else>
             <section id="home-carousel">
                 <div class="carousel-root">
-                    <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll">
+                    <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll" @mouseenter="stopAutoScroll" @mouseleave="startAutoScroll">
                         <li v-for="item in homepage.banner_content" :key="item.id">
                             <article class="standard-hero-card">
                                 <div class="standard-hero-card__image">
@@ -30,6 +30,8 @@
                                                     <PlusIcon class="icon" :size="18" />
                                                     Mi Colección
                                                 </c-button>
+
+                                                <c-icon-button :icon="InfoIcon" @click="showInfo(item.id)" />
                                             </div>
                                         </section>
                                     </div>
@@ -72,8 +74,10 @@
   
 <script setup>
 import { PlusIcon } from 'lucide-vue-next';
+import { InfoIcon } from 'lucide-vue-next';
 import { PlayCircleIcon } from 'lucide-vue-next';
 import { ref, onMounted, getCurrentInstance, inject } from 'vue';
+import { useRouter } from 'vue-router';
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
@@ -83,9 +87,35 @@ const homepage = ref(null);
 const descriptionCurrent = ref(null);
 const carouselContainer = ref(null);
 const bannerCurrentIndex = ref(0); // Define bannerCurrentIndex here
+const intervalId = ref(null);
+const router = useRouter();
 
 
 homepage.value = homepageData || null;
+
+const showInfo = (id) => {
+    //navigate to content page with transition
+    router.push({
+        name: 'content.show',
+        params: {
+            id: id,
+        },
+        meta: {
+            transition: 'slide-left',
+        },
+    });
+};
+
+const startAutoScroll = () => {
+    intervalId.value = setInterval(() => {
+        scrollToNextSlide();
+    }, 6000);
+};
+
+const stopAutoScroll = () => {
+    clearInterval(intervalId.value);
+    intervalId.value = null;
+};
 
 const scrollToNextSlide = () => {
     const container = carouselContainer.value;
@@ -161,5 +191,7 @@ onMounted(async () => {
             console.error('Error loading data:', error);
         }
     }
+
+    startAutoScroll();
 });
 </script>

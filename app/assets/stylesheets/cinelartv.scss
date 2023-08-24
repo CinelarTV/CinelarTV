@@ -70,6 +70,14 @@ img.emoji {
   }
 }
 
+.c-button.btn-icon {
+  @apply rounded-full h-8 w-8 p-2;
+
+  & .icon {
+    @apply m-0
+  }
+}
+
 .wrap {
   max-width: 1110px;
   @apply mx-auto;

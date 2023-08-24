@@ -16,6 +16,12 @@
     scroll-snap-type: x proximity;
 }
 
+.content-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .recyclerview-card-article {
     --dv-packshot-width: calc((var(--dv-screen-width) - var(--dv-carousel-column-margin)*2 - var(--dv-carousel-column-gap)*var(--dv-card-gap-number))/var(--dv-card-number)*1);
     display: flex;

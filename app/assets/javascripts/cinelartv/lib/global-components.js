@@ -27,6 +27,10 @@ const Components = [
         name: 'plugin-outlet',
         component: require('../components/plugin-outlet.vue').default
     },
+    {
+        name: 'c-icon-button',
+        component: require('../components/forms/c-icon-button.vue').default
+    },
 ]
 
 export default {
