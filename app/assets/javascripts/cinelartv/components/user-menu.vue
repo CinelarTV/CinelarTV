@@ -37,8 +37,6 @@
                     </button>
                     </MenuItem>
                 </div>
-
-                <!-- ... -->
             </MenuItems>
         </transition>
     </Menu>
