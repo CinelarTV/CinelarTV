@@ -6,7 +6,7 @@
         <div class="mx-auto mt-4" v-else>
             <section id="home-carousel">
                 <div class="carousel-root">
-                    <ul class="carousel-ul" ref="carouselContainer">
+                    <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll">
                         <li v-for="item in homepage.banner_content" :key="item.id">
                             <article class="standard-hero-card">
                                 <div class="standard-hero-card__image">
@@ -135,6 +135,17 @@ const scrollToSlide = (index) => {
         const lastIndex = homepage.value.banner_content.length - 1;
         bannerCurrentIndex.value = index;
     }
+};
+
+const handleScroll = () => {
+  const container = carouselContainer.value;
+  if (container) {
+    const slideWidth = container.offsetWidth;
+    const scrollOffset = container.scrollLeft;
+
+    // Update bannerCurrentIndex based on the scroll position
+    bannerCurrentIndex.value = Math.round(scrollOffset / slideWidth);
+  }
 };
 
 setInterval(() => {
