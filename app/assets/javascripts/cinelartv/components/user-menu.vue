@@ -43,7 +43,7 @@
         </transition>
     </Menu>
     <div class="flex items-center space-x-2" v-else>
-        <button @click="openSignupModal" class="button" v-if="SiteSetting.allow_registration">
+        <button @click="openSignupModal" class="button" v-if="SiteSettings.allow_registration">
             <SignupModal ref="signupModal" />
             Sign up
         </button>
@@ -67,7 +67,7 @@ import { ArrowRightLeftIcon } from 'lucide-vue-next';
 import SignupModal from './modals/signup.modal.vue';
 
 const currentUser = inject('currentUser')
-const SiteSetting = inject('SiteSetting')
+const SiteSettings = inject('SiteSettings')
 
 const isMainProfile = ref(false)
 
