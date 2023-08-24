@@ -109,7 +109,7 @@ const showInfo = (id) => {
 const startAutoScroll = () => {
     intervalId.value = setInterval(() => {
         scrollToNextSlide();
-    }, 6000);
+    }, 8000);
 };
 
 const stopAutoScroll = () => {
