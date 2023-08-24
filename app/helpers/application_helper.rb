@@ -39,7 +39,7 @@ module ApplicationHelper
 
     # If path is /, we are on the homepage, so we can preload content
     if request.path == "/"
-      @preloaded_json[:homepageData] = Content.homepage_data
+      @preloaded_json[:homepageData] = homepage_data
     end
 
     @preloaded_json.to_json.html_safe

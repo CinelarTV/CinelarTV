@@ -32,16 +32,6 @@ class Content < ApplicationRecord
 
 
 
-  def self.homepage_data
-    @homepage_data = {
-      banner_content: banner_content,
-      content: {
-        added_recently: Content.where("created_at > ?", 1.week.ago).limit(15),
-      }
-    }
-  
-    @homepage_data
-  end
   
 
   def add_season(season)
