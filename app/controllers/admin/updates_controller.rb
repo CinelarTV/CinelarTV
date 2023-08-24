@@ -31,6 +31,20 @@ class Admin::UpdatesController < Admin::BaseController
     end
   end
 
+  def restart_server
+    if !SiteSetting.enable_web_updater
+      render json: {
+                errors: [ 
+                  "Web updater disabled",
+                ],
+                error_type: "web_update_disabled",
+              }, status: 403
+    else
+      CinelarTV::Updater.restart_server
+      head :ok
+    end
+  end
+
   def check_progress
     progress, output = CinelarTV::Updater.run_update
     render json: { progress:, output: }

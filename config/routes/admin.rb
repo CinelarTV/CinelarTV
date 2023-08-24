@@ -6,6 +6,7 @@ namespace :admin do
     get "updates" => "updates#index"
     post "upgrade" => "updates#run_update"
     get "updates/progress" => "updates#check_progress"
+    post "restart" => "updates#restart_server"
 
 
     # Content Management related routes

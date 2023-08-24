@@ -36,6 +36,20 @@ module CinelarTV
       publish("percent", val)
     end
 
+    def self.restart_server
+      pid = Process.pid
+
+      log("")
+      log("********************************************************")
+      log("***  CinelarTV Restart - This may take a few minutes  ***")
+      log("********************************************************")
+      log("")
+      log("=> Puma PID: #{pid}")
+      log("")
+      FileUtils.touch(Rails.root.join("tmp/restart.txt"))
+      system("kill -USR2 #{pid}")
+    end
+
     def self.run_update
       pid = Process.pid
 

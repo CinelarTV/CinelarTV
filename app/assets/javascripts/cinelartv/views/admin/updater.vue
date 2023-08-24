@@ -29,6 +29,10 @@
                     {{ updating ? "Updating..." : "Update now" }}
                 </button>
 
+                <c-button class="bg-red-500" @click="restartServer">
+                    Restart server
+                </c-button>
+
 
                 <section id="update-failed" class="mx-2 bg-red-500 px-4 py-2" v-if="updateStatus === 'failed'">
 
@@ -106,6 +110,13 @@ const runUpdate = () => {
             if (response.data.error_type === "no_updates_available") {
                 updating.value = false
             }
+        })
+}
+
+const restartServer = () => {
+    axios.post('/admin/restart.json')
+        .then(response => {
+            console.log(response)
         })
 }
 
