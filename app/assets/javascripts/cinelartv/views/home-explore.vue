@@ -87,7 +87,7 @@ const homepage = ref(null);
 const descriptionCurrent = ref(null);
 const carouselContainer = ref(null);
 const bannerCurrentIndex = ref(0); // Define bannerCurrentIndex here
-const intervalId = ref(null);
+let intervalId = null;
 const router = useRouter();
 
 
@@ -107,14 +107,14 @@ const showInfo = (id) => {
 };
 
 const startAutoScroll = () => {
-    intervalId.value = setInterval(() => {
+    intervalId = setInterval(() => {
         scrollToNextSlide();
     }, 8000);
 };
 
 const stopAutoScroll = () => {
-    clearInterval(intervalId.value);
-    intervalId.value = null;
+    clearInterval(intervalId);
+    intervalId = null;
 };
 
 const scrollToNextSlide = () => {
