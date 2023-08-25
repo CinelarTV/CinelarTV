@@ -142,7 +142,7 @@ const selectProfile = (profile) => {
         }).catch((error) => {
             console.log(error);
         });
-    }, 3000);
+    }, 1500);
 
 }
 
