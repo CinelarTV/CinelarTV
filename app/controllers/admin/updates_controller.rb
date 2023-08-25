@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Admin::UpdatesController < Admin::BaseController
+  before_action :check_web_updater_enabled
+
   def index
     respond_to do |format|
       format.html
@@ -11,14 +13,7 @@ class Admin::UpdatesController < Admin::BaseController
   end
 
   def run_update
-    if !SiteSetting.enable_web_updater
-      render json: {
-               errors: [
-                 "Web updater disabled",
-               ],
-               error_type: "web_update_disabled",
-             }, status: 403
-    elsif !CinelarTV::Updater.updates_available?
+    if !CinelarTV::Updater.updates_available?
       render json: {
                errors: [
                  "No updates available",
@@ -29,17 +24,8 @@ class Admin::UpdatesController < Admin::BaseController
       CinelarTV::Updater.run_update
       head :ok
     end
-  end
 
-  def restart_server
-    if !SiteSetting.enable_web_updater
-      render json: {
-                errors: [ 
-                  "Web updater disabled",
-                ],
-                error_type: "web_update_disabled",
-              }, status: 403
-    else
+    def restart_server
       CinelarTV::Updater.restart_server
       head :ok
     end
@@ -51,6 +37,26 @@ class Admin::UpdatesController < Admin::BaseController
   end
 
   private
+
+  def check_web_updater_enabled
+    if !SiteSetting.enable_web_updater
+      respond_to do |format|
+        format.html do
+          flash[:error] = I18n.t("admin.updates.web_updater_disabled")
+          redirect_to '/admin'
+        end
+        format.json do
+          render json: {
+                   errors: [
+                     I18n.t("admin.updates.web_updater_disabled"),
+                   ],
+                   error_type: "web_updater_disabled",
+                 },
+                 status: 403
+        end
+      end
+    end
+  end
 
   def updates_response
     {

@@ -14,7 +14,8 @@
                 <section id="web-updater-landing" class="text-center">
                     <span class="bg-blue-100 rounded-full px-2 py-1 text-blue-700 text-sm font-medium
                                                     ">Experimental</span>
-                    <h2 class="text-xl font-medium text-[var(--c-secondary-600)] mt-2">{{ $t('js.admin.updater.ready_title') }}
+                    <h2 class="text-xl font-medium text-[var(--c-secondary-600)] mt-2">{{ $t('js.admin.updater.ready_title')
+                    }}
 
                     </h2>
                     <p class="max-w-2xl text-center mx-auto mt-2">
@@ -23,11 +24,11 @@
 
                 </section>
 
-                <button @click="runUpdate" :disabled="updating"
+                <c-button @click="runUpdate" :disabled="updating"
                     class="button dark mx-auto px-4 py-2 mt-4 flex justify-center"
                     :class="[updating ? '!bg-gray-700' : '']">
                     {{ updating ? "Updating..." : "Update now" }}
-                </button>
+                </c-button>
 
                 <c-button class="bg-red-500" @click="restartServer">
                     Restart server
@@ -62,6 +63,8 @@
 
 import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
+import { useMeta } from 'vue-meta'
+
 
 var updating = ref(false)
 var loading = ref(true)
@@ -70,6 +73,10 @@ var outputMessage = ref([])
 var currentLine = ref('')
 var updateProgress = ref(0)
 var updateStatus = ref(null)
+
+useMeta({
+    title: 'Update Manager'
+})
 
 const handleFailed = () => {
     let expandableLogs = getElementById("expandable-logs")
@@ -83,6 +90,9 @@ onMounted(() => {
         .then(response => {
             loading.value = false
             updateResponse.value = response.data
+        }).catch(error => {
+            loading.value = false
+            console.log(error)
         })
 
     MessageBus.subscribe("/admin/upgrade", (data) => {

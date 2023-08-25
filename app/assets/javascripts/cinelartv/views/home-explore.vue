@@ -78,6 +78,7 @@ import { InfoIcon } from 'lucide-vue-next';
 import { PlayCircleIcon } from 'lucide-vue-next';
 import { ref, onMounted, getCurrentInstance, inject } from 'vue';
 import { useRouter } from 'vue-router';
+import { useHead } from 'unhead';
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
@@ -89,6 +90,16 @@ const carouselContainer = ref(null);
 const bannerCurrentIndex = ref(0); // Define bannerCurrentIndex here
 let intervalId = null;
 const router = useRouter();
+
+useHead({
+    title: 'Explorar',
+    meta: [
+        {
+            name: 'description',
+            content: SiteSettings.value?.site?.description,
+        },
+    ],
+});
 
 
 homepage.value = homepageData || null;

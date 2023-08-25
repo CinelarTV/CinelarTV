@@ -12,12 +12,13 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useHead } from 'unhead'
 
 const $route = useRoute()
 const router = useRouter()
 
 const loading = ref(true)
-const contentData = ref(null)
+const contentData = ref({})
 
 
 const getContent = async () => {
@@ -27,7 +28,7 @@ const getContent = async () => {
         loading.value = false
     } catch (error) {
         console.log(error)
-        if(error.response.status === 404) {
+        if (error.response.status === 404) {
             // Replace without changing path
             router.replace({
                 name: 'application.not-found',
@@ -39,7 +40,16 @@ const getContent = async () => {
 
 }
 
-onMounted(() => {
-    getContent()
+onMounted(async () => {
+    await getContent()
+    useHead({
+    title: contentData.value?.content?.title,
+    meta: [
+        {
+            name: 'description',
+            content: contentData.value?.content?.description
+        }
+    ]
+})
 })
 </script>

@@ -2,9 +2,9 @@ import { createApp } from 'vue/dist/vue.esm-bundler'
 import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
 import AppRouter from './routes/router-map';
-import { createMetaManager } from 'vue-meta'
+import { createHead  } from 'unhead'
 import twemoji from './plugins/twemoji'
-const metaManager = createMetaManager()
+const metaManager = createHead()
 import Logster from './lib/logster'
 import globalComponents from './lib/global-components';
 import I18n from './lib/i18n'

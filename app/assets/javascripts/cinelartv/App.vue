@@ -15,5 +15,22 @@
 </template>
 
 <script setup>
+import { inject } from 'vue';
 import SiteHeader from './components/site-header.vue'
+import { useHead } from 'unhead'
+import { useRoute } from 'vue-router';
+const route = useRoute();
+
+const SiteSettings = inject('SiteSettings');
+
+useHead({
+    title: SiteSettings.site_name,
+    titleTemplate: `%s | ${SiteSettings.site_name}`,
+    meta: [
+        {
+            name: 'description',
+            content: SiteSettings.value?.site?.description
+        }
+    ]
+})
 </script>
