@@ -1,0 +1,42 @@
+<div id="home-explore">
+  <% if !homepage_data.nil? %>
+    <section id="home-carousel">
+      <div class="carousel-root">
+        <ul class="carousel-ul" ref="carouselContainer">
+          <% homepage_data[:banner_content].each_with_index do |item, index| %>
+            <li class="standard-hero-card">
+              <div class="standard-hero-card__image">
+                <div class="carousel-overlay">
+                  <section class="carousel-banner-info">
+                    <h2 class="text-2xl">
+                      <%= item[:title] %>
+                    </h2>
+
+                    <p class="text-sm py-2">
+                      <%= item[:description] %>
+                    </p>
+
+                    <div class="standard-hero-card__actions">
+                      <%= link_to 'Reproducir ahora', 'item[:id]', class: 'c-button' %>
+                      <%= link_to 'Mi Colección', 'add_to_collection_path(item[:id])', class: 'c-button' %>
+                      <%= link_to '', 'show_info_path(item[:id])', class: 'c-icon-button', data: { icon: 'InfoIcon' } %>
+                    </div>
+                  </section>
+                </div>
+                <%= image_tag item[:banner], alt: 'Banner Image' %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      <!-- Rest of the carousel section... -->
+    </section>
+
+    <section id="main-content">
+      <!-- Rest of the main content section... -->
+    </section>
+  <% else %>
+    <div class="mx-auto mt-4">
+    </div>
+  <% end %>
+</div>
