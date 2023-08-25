@@ -41,4 +41,8 @@ const navItems = [
     }
 
 ]
+
+useHead({
+    title: $t("js.admin.content_manager.title")
+})
 </script>
