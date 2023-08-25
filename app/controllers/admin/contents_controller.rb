@@ -104,7 +104,7 @@ module Admin
       if @content.banner&.starts_with?("tmdb://")
         # Process TMDB reference here
         tmdb_id = @content.banner.sub("tmdb://", "")
-        banner_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
+        banner_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
         uploader = ContentImageUploader.new
         uploader.download!(banner_url)
         @content.banner = uploader.url
@@ -120,7 +120,7 @@ module Admin
       if @content.cover&.starts_with?("tmdb://")
         # Process TMDB reference here
         tmdb_id = @content.cover.sub("tmdb://", "")
-        cover_url = "https://image.tmdb.org/t/p/w780/#{tmdb_id}"
+        cover_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
         uploader = ContentImageUploader.new
         uploader.download!(cover_url)
         @content.cover = uploader.url
