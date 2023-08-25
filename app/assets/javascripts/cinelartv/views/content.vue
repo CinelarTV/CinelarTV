@@ -5,6 +5,10 @@
     <div v-else>
         <div class="content-overview" :data-content-id="$route.params.id">
 
+            <h2 class="text-2xl font-bold mb-4">
+                {{ contentData.content.title }}
+            </h2>
+
         </div>
     </div>
 </template>
