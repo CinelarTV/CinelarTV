@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import { useMeta } from 'vue-meta'
+import { useHead } from 'unhead'
 import { useRoute, useRouter } from 'vue-router'
 import { getCurrentInstance } from 'vue'
 import { ClapperboardIcon, TvIcon } from 'lucide-vue-next'
@@ -70,7 +70,7 @@ onMounted(() => {
     getUsers()
 })
 
-useMeta({
+useHead({
     title: $t('js.admin.users.title')
 })
 

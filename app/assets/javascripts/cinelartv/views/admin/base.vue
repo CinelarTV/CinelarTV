@@ -14,7 +14,7 @@
   </template>
   
   <script setup>
-import { useMeta } from 'vue-meta'
+import { useHead } from 'unhead'
 import { ref, getCurrentInstance, inject } from 'vue'
 const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
@@ -44,7 +44,7 @@ const adminLinks = [
   }
 ].filter(link => link.enabled !== false)
 
-useMeta({
+useHead({
   title: 'Admin'
 })
 </script>

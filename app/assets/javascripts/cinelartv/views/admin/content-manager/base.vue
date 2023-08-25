@@ -19,7 +19,7 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMeta } from 'vue-meta'
+import { useHead } from 'unhead'
 import { getCurrentInstance } from 'vue'
 import { ClapperboardIcon, TvIcon } from 'lucide-vue-next'
 import { ShapesIcon } from 'lucide-vue-next'

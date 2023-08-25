@@ -63,7 +63,7 @@
 
 import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
-import { useMeta } from 'vue-meta'
+import { useHead } from 'unhead';
 
 
 var updating = ref(false)
@@ -74,7 +74,7 @@ var currentLine = ref('')
 var updateProgress = ref(0)
 var updateStatus = ref(null)
 
-useMeta({
+useHead({
     title: 'Update Manager'
 })
 
