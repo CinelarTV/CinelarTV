@@ -16,21 +16,31 @@
                         <c-input v-model="content.title" label="Title" @update:modelValue="editedData.title = $event" />
 
 
-                        <c-select v-model="content.content_type" label="Type" :options="contentTypes" @update:modelValue="editedData.content_type = $event" />
+                        <c-select v-model="content.content_type" label="Type" :options="contentTypes"
+                            @update:modelValue="editedData.content_type = $event" />
 
-                        <c-textarea v-model="content.description" label="Description" @update:modelValue="editedData.description = $event" />
+                        <c-textarea v-model="content.description" label="Description"
+                            @update:modelValue="editedData.description = $event" />
 
-                        <c-image-upload v-model="content.cover" label="Cover" @update:modelValue="editedData.cover = $event" />
+                        <c-image-upload v-model="content.cover" label="Cover"
+                            @update:modelValue="editedData.cover = $event" />
 
-                        <c-image-upload v-model="content.banner" label="Banner" @update:modelValue="editedData.banner = $event" />
+                        <c-image-upload v-model="content.banner" label="Banner"
+                            @update:modelValue="editedData.banner = $event" />
 
-                        <c-input type="number" v-model="content.year" label="Year" @update:modelValue="editedData.year = $event" />
+                        <c-input type="number" v-model="content.year" label="Year"
+                            @update:modelValue="editedData.year = $event" />
 
                         <c-button type="submit" :loading="loadingButton" :icon="CheckIcon">
                             Save
                         </c-button>
+
+
                     </form>
 
+                    <c-button class="bg-red-500" @click="deleteContent" :icon="Trash2Icon">
+                        Delete
+                    </c-button>
                 </div>
             </div>
         </div>
@@ -38,60 +48,72 @@
 </template>
 
 <script setup>
-    import { CheckIcon } from 'lucide-vue-next';
+import { Trash2Icon } from 'lucide-vue-next';
+import { CheckIcon } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router'
-    const route = useRoute()
-
-    const contentId = route.params.id
-    const loading = ref(true)
-    const content = ref()
-    const contentTypes = ref([
+import { useRoute, useRouter } from 'vue-router'
+const route = useRoute()
+const router = useRouter()
+const contentId = route.params.id
+const loading = ref(true)
+const content = ref()
+const contentTypes = ref([
     { value: 'MOVIE', label: 'Movie' },
     { value: 'TVSHOW', label: 'Serie' }
 ])
-    const loadingButton = ref(false)
+const loadingButton = ref(false)
 
-    const fetchContent = async () => {
-        try {
-            const response = await axios.get(`/admin/content-manager/${contentId}.json`)
-            content.value = response.data.data
-        } catch (error) {
-            console.log(error)
-        } finally {
-            loading.value = false
-        }
+const fetchContent = async () => {
+    try {
+        const response = await axios.get(`/admin/content-manager/${contentId}.json`)
+        content.value = response.data.data
+    } catch (error) {
+        console.log(error)
+    } finally {
+        loading.value = false
     }
+}
 
-    const editedData = ref({})
+const editedData = ref({})
 
-    const saveContent = async (e) => {
-        e.preventDefault()
-        loadingButton.value = true
-        try {
-            const formData = new FormData()
-            Object.entries(editedData.value).forEach(([key, value]) => {
-                if (['id', 'created_at', 'updated_at'].includes(key)) {
-                    return
-                }
-                formData.append(`content[${key}]`, value)
-            })
+const saveContent = async (e) => {
+    e.preventDefault()
+    loadingButton.value = true
+    try {
+        const formData = new FormData()
+        Object.entries(editedData.value).forEach(([key, value]) => {
+            if (['id', 'created_at', 'updated_at'].includes(key)) {
+                return
+            }
+            formData.append(`content[${key}]`, value)
+        })
 
-            const response = await axios.put(`/admin/content-manager/${contentId}.json`, formData)
+        const response = await axios.put(`/admin/content-manager/${contentId}.json`, formData)
 
-            await fetchContent()
-        } catch (error) {
-            console.log(error)
+        await fetchContent()
+    } catch (error) {
+        console.log(error)
 
-        } finally {
-            loadingButton.value = false
-        }
+    } finally {
+        loadingButton.value = false
     }
+}
+
+const deleteContent = async () => {
+    try {
+        const response = await axios.delete(`/admin/content-manager/${contentId}.json`)
+        router.push({
+            name: 'admin.content.manager.all'
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 
 
-    onMounted(() => {
-        fetchContent()
-    })
+onMounted(() => {
+    fetchContent()
+})
 
 </script>

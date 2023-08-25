@@ -15,6 +15,7 @@ namespace :admin do
     put '/content-manager/:id', to: 'contents#update'
     get '/contents/recommended-metadata', to: 'contents#find_recommended_metadata'
     post '/contents', to: 'contents#create'
+    delete '/content-manager/:id', to: 'contents#destroy'
 
     # User Management related routes
     get '/users', to: 'users#index'
