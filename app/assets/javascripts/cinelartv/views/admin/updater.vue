@@ -78,6 +78,15 @@ useHead({
     title: 'Update Manager'
 })
 
+// Try to prevent the user from leaving the page while updating, maybe show an alert
+window.onbeforeunload = function() {
+    if (updating.value) {
+        return "CinelarTV is updating, we recommend you to wait until the update is finished."
+    }
+}
+
+
+
 const handleFailed = () => {
     let expandableLogs = getElementById("expandable-logs")
     MessageBus.unsubscribe('/admin/upgrade')
