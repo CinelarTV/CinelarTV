@@ -31,10 +31,30 @@ body.wizard #wizard-main {
     width: 100%;
 }
 
+.wizard-container__step-header {
+    text-align: center;
+    margin-bottom: 3em;
+}
+
+.wizard-container__step-header--emoji img {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 1em;
+}
+
 .wizard-container__step-counter {
     text-align: center;
     font-weight: 700;
     color: var(--primary-medium);
+}
+
+.wizard-container__step-title {
+    @apply text-2xl font-bold
+}
+
+.wizard-container__step-description {
+    @apply text-lg;
+    flex: 1 0 40%;
 }
 
 .wizard-container__step-text {

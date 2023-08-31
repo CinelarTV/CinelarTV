@@ -12,15 +12,27 @@
 
             <div class="wizard-container">
                 <div class="wizard-container__step-contents">
-                    <h1 v-emoji>
-                        {{ currentStep }}
-                    </h1>
-                    <h1>
-                        {{ i18n.t(`js.wizard.${currentStep.id}.title`) }}
-                    </h1>
+
+
+
+                    <div class="wizard-container__step-header">
+                        <div class="wizard-container__step-header--emoji">
+                            <h1 v-html="emojiParse(currentStep.emoji)">
+                            </h1>
+                        </div>
+                        <h1 class="wizard-container__step-title" v-emoji
+                            v-html="i18n.t(`js.wizard.${currentStep.id}.title`)">
+                        </h1>
+
+                        <p class="wizard-container__step-description" v-emoji
+                            v-html="i18n.t(`js.wizard.${currentStep.id}.description`)">
+                        </p>
+
+
+
+                    </div>
 
                     <div v-for="step in wizard.steps" :key="step.id" :class="{ hidden: currentStep.id !== step.id }">
-                        <h2>{{ step.id }}</h2>
                         <div v-for="field in step.fields" :key="field.id">
                             <label>{{ field.id }}</label>
                             <component :is="getFieldComponent(field)" v-model="field.value" />
@@ -50,6 +62,8 @@ import axios from 'axios';
 import { ref, onMounted, watch, computed, inject, getCurrentInstance } from 'vue';
 import CInput from './forms/c-input.vue';
 import { useRoute, useRouter } from 'vue-router';
+import twemoji from 'twemoji'
+
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
@@ -62,6 +76,23 @@ const { $http } = getCurrentInstance().appContext.config.globalProperties;
 const id = ref(route.params.step);
 const wizard = ref(null);
 const currentStepIndex = ref(0);
+
+// V-Emoji isn't reactive, so we need to use a function to get the parsed emoji
+
+const emojiParse = (emoji) => {
+    if (!emoji) return ''; // Return if no emoji is provided
+    return twemoji.parse(emoji, {
+        folder: 'svg',
+        ext: '.svg',
+    });
+};
+
+
+
+const renderEmoji = (emoji) => {
+    // Process and return the HTML representation of the emoji
+    return yourEmojiToHtmlFunction(emoji);
+};
 
 const fetchData = async () => {
     const response = await axios.get(`/wizard/steps/${id.value}.json`);

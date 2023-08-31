@@ -116,6 +116,9 @@ es:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"
     wizard:
+      introduction:
+        description: "\U0001f389 ¡Bienvenido a CinelarTV! \U0001f389 <br><br>Antes de empezar, necesitamos configurar algunas cosas. No te preocupes, es muy sencillo y solo tendrás que hacerlo una vez."
+        title: "Introducción"
       site_info:
         description: "Esta información se utilizará para configurar su sitio"
         fields:
@@ -129,6 +132,7 @@ es:
             description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
             title: "Nombre del sitio"
         title: "Información del sitio"
+      step: "Intervalo"
   wizard:
     site_info:
       description: "Esta información se utilizará para configurar su sitio"
