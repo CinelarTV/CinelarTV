@@ -120,10 +120,10 @@ const menuItems = ref([
         visible: true
     },
     {
-        text: 'Mis Suscripciones',
+        text: 'Administrar suscripción',
         icon: CreditCardIcon,
-        href: '/subscriptions',
-        visible: isMainProfile.value
+        href: '/subscription',
+        visible: isMainProfile.value && SiteSettings.enable_subscription
     },
     {
         text: 'Administrar contenido',

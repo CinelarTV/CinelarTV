@@ -1,17 +1,18 @@
 <template>
-    <div class="panel">
-      <c-spinner v-if="!dashboardData" />
-      <div v-else id="admin-dashboard" class="pt-2">
-        <section id="updates-available" class="inline-flex px-4 py-2 w-full bg-emerald-500 text-white mb-8" v-if="dashboardData.version_check.updates_available">
-          <UploadCloud />
-          <span class="text-base px-4">
-            Hay actualizaciones disponibles
-          </span>
-        </section>
-        <h2 class="text-2xl font-medium mx-auto text-center">
-          Dashboard
-        </h2>
-        <section class="version-checks pt-6">
+  <div class="panel">
+    <c-spinner v-if="!dashboardData" />
+    <div v-else id="admin-dashboard" class="pt-2">
+      <section id="updates-available" class="inline-flex px-4 py-2 w-full bg-emerald-500 text-white mb-8"
+        v-if="dashboardData.version_check.updates_available">
+        <UploadCloud />
+        <span class="text-base px-4">
+          Hay actualizaciones disponibles
+        </span>
+      </section>
+      <h2 class="text-2xl font-medium mx-auto text-center">
+        Dashboard
+      </h2>
+      <section class="version-checks pt-6">
         <div class="section-title">
           <h2>Version</h2>
         </div>
@@ -49,46 +50,48 @@
           </div>
         </div>
       </section>
-      </div>
-  
     </div>
-  </template>
+
+  </div>
+</template>
   
-  <script>
-  import { UploadCloud } from 'lucide-vue-next'
-  import axios from 'axios'
-  
-  export default {
-    name: 'AdminDashboard',
-    metaInfo: {
-      title: 'Admin'
-    },
-    data() {
-      return {
-        dashboardData: null
-      }
-    },
-    computed: {
-      commitUrl() {
-        return `https://github.com/CinelarTV/CinelarTV-AIO/commits/${this.dashboardData.version_check.installed_sha}`
-      },
-      formattedSha() {
-        return this.dashboardData.version_check.installed_sha.substr(0, 10)
-      }
-    },
-    methods: {
-      async fetchDashboard() {
-        try {
-          const response = await axios.get('/admin/dashboard.json')
-          this.dashboardData = response.data
-        } catch (error) {
-          console.log(error)
-          this.error = true
-        }
-      }
-    },
-    mounted() {
-      this.fetchDashboard()
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { UploadCloud } from 'lucide-vue-next'
+import axios from 'axios'
+import { useHead } from 'unhead'
+
+useHead({
+  title: 'Dashboard',
+  meta: [
+    {
+      name: 'description',
+      content: 'Dashboard'
     }
+  ]
+})
+
+const dashboardData = ref(null)
+
+const commitUrl = computed(() => {
+  return `https://github.com/CinelarTV/CinelarTV-AIO/commits/${dashboardData.value.version_check.installed_sha}`
+})
+
+const formattedSha = computed(() => {
+  return dashboardData.value.version_check.installed_sha.substr(0, 10)
+})
+
+const fetchDashboard = async () => {
+  try {
+    const response = await axios.get('/admin/dashboard.json')
+    dashboardData.value = response.data
+  } catch (error) {
+    console.log(error)
+    this.error = true
   }
-  </script>
+}
+
+onMounted(() => {
+  fetchDashboard()
+})
+</script>

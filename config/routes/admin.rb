@@ -19,6 +19,4 @@ namespace :admin do
 
     # User Management related routes
     get '/users', to: 'users#index'
-  
-    
   end

@@ -16,8 +16,7 @@ class SiteSetting < RailsSettings::Base
                     exposed_to_client: options["client"] || false,
                     readonly: options["readonly"] || false,
                     allowed_values: options["allowed_values"] || nil,
-                    # Hidden can depend on other settings, so we need to evaluate it at runtime, for example if SiteSetting.enable_sso is false, we want to hide the sso_url setting, but if it's true, we want to show it
-                    hidden: hide_setting?(options) || false
+                    hidden: options["hidden"] || false
             end
           end
         end

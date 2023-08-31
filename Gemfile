@@ -101,3 +101,5 @@ gem 'aws-sdk-s3', '~> 1'
 gem "carrierwave-aws", "~> 1.6"
 
 gem "erb-formatter", "~> 0.4.3"
+
+gem "active_model_serializers", "~> 0.8.3"

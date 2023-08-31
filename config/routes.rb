@@ -46,6 +46,12 @@ Rails.application.routes.draw do
     mount Logster::Web => "/logs"
   end
 
+  # Wizard
+
+  get "wizard" => "wizard#index"
+  get "wizard/steps/:id" => "wizard#index"
+  put "wizard/steps/:id" => "steps#update"
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 

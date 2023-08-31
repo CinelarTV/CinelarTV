@@ -16,12 +16,13 @@
                             <div class="image-container justify-center flex pb-4">
                                 <img :src="SiteSettings.site_logo" class="modal-site-logo" />
                             </div>
-                            <DialogTitle as="h3" class="text-lg font-medium text-center leading-6 text-[var(--c-primary-800)]" v-emoji>
+                            <DialogTitle as="h3"
+                                class="text-lg font-medium text-center leading-6 text-[var(--c-primary-800)]" v-emoji>
                                 Welcome back to {{ SiteSettings.site_name }} 👋!
                             </DialogTitle>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-500 mb-4">
-                                    
+
                                 </p>
 
                                 <form id="login-form" @submit="console.log(e)" type="POST">
@@ -90,7 +91,7 @@ export default {
         return {
             email: null,
             password: null,
-            remember_me: null,
+            remember_me: true,
             loading: false
         }
     },
@@ -101,7 +102,8 @@ export default {
             axios.post('/users/sign_in.json', {
                 user: {
                     email: this.email,
-                    password: this.password
+                    password: this.password,
+                    remember_me: true
                 }
             })
                 .then(res => {

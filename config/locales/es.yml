@@ -115,3 +115,31 @@ es:
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"
+    wizard:
+      site_info:
+        description: "Esta información se utilizará para configurar su sitio"
+        fields:
+          default_locale:
+            description: "El idioma predeterminado de tu sitio"
+            title: "Idioma predeterminado"
+          site_description:
+            description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+            title: "Descripción del sitio"
+          site_name:
+            description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+            title: "Nombre del sitio"
+        title: "Información del sitio"
+  wizard:
+    site_info:
+      description: "Esta información se utilizará para configurar su sitio"
+      fields:
+        default_locale:
+          description: "El idioma predeterminado de tu sitio"
+          title: "Idioma predeterminado"
+        site_description:
+          description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+          title: "Descripción del sitio"
+        site_name:
+          description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+          title: "Nombre del sitio"
+      title: "Información del sitio"

@@ -30,5 +30,6 @@ module CinelarTV
     end
 
     require Rails.root.join("lib/cinelar_tv")
+    require Rails.root.join("lib/wizard")
   end
 end

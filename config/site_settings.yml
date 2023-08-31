@@ -55,6 +55,13 @@ general:
     refresh: true
     readonly: true,
     hidden: true
+  license_key:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
+    hidden: true # It's setted on the wizard
 content:
   tmdb_api_key:
     client: false
@@ -62,7 +69,22 @@ content:
     default: ""
     type: 'string'
     secret: true
-  
+
+monetization:
+  enable_subscription:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
+
+  lemon_api_key:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
+
+
 storage:
   allow_video_direct_link:
     client: true

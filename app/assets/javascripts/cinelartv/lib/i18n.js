@@ -16,5 +16,6 @@ export default {
     // Provide a global method to translate strings
     install: (app) => {
         app.config.globalProperties.$t = I18n.t.bind(I18n)
+        app.provide('I18n', I18n)
     }
 }

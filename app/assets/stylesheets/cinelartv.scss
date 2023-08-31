@@ -4,6 +4,7 @@
 
 @import "admin.scss";
 @import "components/_header.scss";
+@import "wizard.scss";
 @import "errors.scss";
 @import "profiles.scss";
 @import "components/_forms.scss";
@@ -23,6 +24,10 @@ html, body {
 
 #cinelartv, #mountpoint, #profile-selector {
   @apply h-full
+}
+
+main {
+  @apply relative
 }
 
 
