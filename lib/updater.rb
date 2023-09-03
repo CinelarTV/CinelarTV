@@ -4,8 +4,6 @@ require "io/wait"
 
 module CinelarTV
   module Updater
-    $user_id = nil
-
     def self.remote_version
       `git ls-remote --heads origin main`.strip.split.first
     end
@@ -29,8 +27,11 @@ module CinelarTV
     end
 
     def self.publish(type, value)
+      #Get the user_id from rack env (Devise current_user is not available in lib/)
+      @user_id = req.env["rack.session"]["warden.user.user.key"][0][0] if req.env["rack.session"]["warden.user.user.key"].present?
       MessageBus.publish("/admin/upgrade",
-                         { type:, value: })
+                         { type:, value: },
+                         user_ids: [@user_id])
     end
 
     def self.percent(val)
@@ -51,8 +52,7 @@ module CinelarTV
       system("kill -USR2 #{pid}")
     end
 
-    def self.run_update(current_user = nil)
-      $user_id = current_user.id if current_user
+    def self.run_update
       pid = Process.pid
 
       CinelarTV.maintenance_enabled = true
