@@ -21,7 +21,7 @@ class Admin::UpdatesController < Admin::BaseController
                error_type: "no_updates_available",
              }
     else
-      CinelarTV::Updater.run_update(current_user)
+      CinelarTV::Updater.run_update
       head :ok
     end
 
@@ -32,7 +32,7 @@ class Admin::UpdatesController < Admin::BaseController
   end
 
   def check_progress
-    progress, output = CinelarTV::Updater.run_update(current_user)
+    progress, output = CinelarTV::Updater.run_update
     render json: { progress:, output: }
   end
 
