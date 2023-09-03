@@ -108,3 +108,6 @@ gem "active_model_serializers", "~> 0.8.3"
 
 gem 'wdm', '>= 0.1.0' if Gem.win_platform?
 gem "httparty", "~> 0.21.0"
+
+gem 'sidekiq' # To run background jobs
+

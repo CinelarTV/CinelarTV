@@ -27,6 +27,7 @@ module CinelarTV
     end
 
     def self.publish(type, value)
+      @user_id ||= current_user.id if current_user
       MessageBus.publish("/admin/upgrade",
                          { type:, value: },
                          user_ids: [@user_id])
@@ -57,7 +58,7 @@ module CinelarTV
 
       # Stash all local changes before upgrading to avoid conflicts (Except on development)
       if Rails.env.production?
-        log("Stashing local changes...") 
+        log("Stashing local changes...")
         run("git reset --hard")
       end
 
@@ -107,8 +108,6 @@ module CinelarTV
       log("************** Disabling Maintenance Mode ***************")
 
       percent(100)
-
-      
 
       log("DONE")
       log("")

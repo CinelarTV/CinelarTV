@@ -26,6 +26,8 @@ module CinelarTV
     config.autoload_paths << "#{root}/lib"
 
     require 'cinelar_tv'
+
+    config.active_job.queue_adapter = :sidekiq
     
   end
 end

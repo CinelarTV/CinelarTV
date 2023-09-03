@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "sidekiq/web"
+
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -44,6 +46,7 @@ Rails.application.routes.draw do
 
   authenticated :user, ->(u) { u.has_role?(:admin) } do
     mount Logster::Web => "/logs"
+    mount Sidekiq::Web => '/sidekiq'
   end
 
   # Wizard
