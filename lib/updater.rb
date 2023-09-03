@@ -87,6 +87,10 @@ module CinelarTV
       run("git pull")
       percent(25)
 
+      # Install gems
+
+      run("bundle config set --local without 'development test'")
+
       run("bundle install")
 
       percent(30)
