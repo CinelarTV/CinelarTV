@@ -4,6 +4,8 @@ require "io/wait"
 
 module CinelarTV
   module Updater
+    $user_id = nil
+
     def self.remote_version
       `git ls-remote --heads origin main`.strip.split.first
     end
@@ -23,18 +25,17 @@ module CinelarTV
     end
 
     def self.log(message)
-      publish "log", message + "\n"
+      publish "log", message + "\n", $user_id
     end
 
     def self.publish(type, value)
-      @user_id ||= current_user.id if current_user
       MessageBus.publish("/admin/upgrade",
                          { type:, value: },
-                         user_ids: [@user_id])
+                         user_ids: [$user_id])
     end
 
     def self.percent(val)
-      publish("percent", val)
+      publish("percent", val, $user_id)
     end
 
     def self.restart_server
@@ -51,7 +52,8 @@ module CinelarTV
       system("kill -USR2 #{pid}")
     end
 
-    def self.run_update
+    def self.run_update(current_user = nil)
+      $user_id = current_user.id if current_user
       pid = Process.pid
 
       CinelarTV.maintenance_enabled = true
@@ -121,13 +123,13 @@ module CinelarTV
       log("")
       log("")
       log("***  Restarting Puma  ***")
-      publish("status", "complete")
+      publish("status", "complete", current_user.id)
       CinelarTV.maintenance_enabled = false
 
       FileUtils.touch(Rails.root.join("tmp/restart.txt"))
       system("kill -USR2 #{pid}")
     rescue StandardError => e
-      publish("status", "failed")
+      publish("status", "failed", current_user.id)
       CinelarTV.maintenance_enabled = false
 
       [

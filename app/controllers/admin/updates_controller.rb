@@ -21,7 +21,7 @@ class Admin::UpdatesController < Admin::BaseController
                error_type: "no_updates_available",
              }
     else
-      CinelarTV::Updater.run_update
+      CinelarTV::Updater.run_update(current_user)
       head :ok
     end
 
@@ -32,7 +32,7 @@ class Admin::UpdatesController < Admin::BaseController
   end
 
   def check_progress
-    progress, output = CinelarTV::Updater.run_update
+    progress, output = CinelarTV::Updater.run_update(current_user)
     render json: { progress:, output: }
   end
 
@@ -43,7 +43,7 @@ class Admin::UpdatesController < Admin::BaseController
       respond_to do |format|
         format.html do
           flash[:error] = I18n.t("admin.updates.web_updater_disabled")
-          redirect_to '/admin'
+          redirect_to "/admin"
         end
         format.json do
           render json: {
