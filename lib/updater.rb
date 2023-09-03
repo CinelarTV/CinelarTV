@@ -30,8 +30,7 @@ module CinelarTV
 
     def self.publish(type, value)
       MessageBus.publish("/admin/upgrade",
-                         { type:, value: },
-                         user_ids: [$user_id])
+                         { type:, value: })
     end
 
     def self.percent(val)
