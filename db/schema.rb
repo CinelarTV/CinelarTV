@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_08_23_231553) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_03_073955) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -82,6 +82,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_08_23_231553) do
     t.index ["name", "resource_type", "resource_id"], name: "index_roles_on_name_and_resource_type_and_resource_id"
     t.index ["name"], name: "index_roles_on_name"
     t.index ["resource_type", "resource_id"], name: "index_roles_on_resource"
+  end
+
+  create_table "scheduler_stats", id: :serial, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "hostname", null: false
+    t.integer "pid", null: false
+    t.integer "duration_ms"
+    t.integer "live_slots_start"
+    t.integer "live_slots_finish"
+    t.datetime "started_at", precision: nil, null: false
+    t.boolean "success"
+    t.text "error"
   end
 
   create_table "seasons", force: :cascade do |t|
