@@ -25,7 +25,7 @@ module CinelarTV
     end
 
     def self.log(message)
-      publish "log", message + "\n", $user_id
+      publish "log", message + "\n"
     end
 
     def self.publish(type, value)
