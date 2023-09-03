@@ -6,7 +6,8 @@
         <div class="mx-auto mt-4" v-else>
             <section id="home-carousel">
                 <div class="carousel-root">
-                    <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll" @mouseenter="stopAutoScroll" @mouseleave="startAutoScroll">
+                    <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll" @mouseenter="stopAutoScroll"
+                        @mouseleave="startAutoScroll">
                         <li v-for="item in homepage.banner_content" :key="item.id">
                             <article class="standard-hero-card">
                                 <div class="standard-hero-card__image">
@@ -32,6 +33,10 @@
                                                 </c-button>
 
                                                 <c-icon-button :icon="InfoIcon" @click="showInfo(item.id)" />
+
+                                                <c-icon-button :icon="ThumbsUpIcon"
+                                                    :class="item.liked ? '!text-blue-500' : ''"
+                                                    @click="toggleLike(item.id, true)" />
                                             </div>
                                         </section>
                                     </div>
@@ -75,10 +80,11 @@
 <script setup>
 import { PlusIcon } from 'lucide-vue-next';
 import { InfoIcon } from 'lucide-vue-next';
-import { PlayCircleIcon } from 'lucide-vue-next';
+import { PlayCircleIcon, ThumbsUpIcon } from 'lucide-vue-next';
 import { ref, onMounted, getCurrentInstance, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHead } from 'unhead';
+import { toast } from 'vue3-toastify';
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
@@ -116,6 +122,37 @@ const showInfo = (id) => {
         },
     });
 };
+
+const toggleLike = async (id, fromBanner = false) => {
+  if (currentUser) {
+    let content;
+    const targetArray = fromBanner ? homepage.value.banner_content : homepage.value.content;
+    
+    content = targetArray.find((item) => item.id === id);
+
+    if (content) {
+      try {
+        if (content.liked) {
+          await $http.post(`/contents/${id}/unlike.json`);
+          toast.success($t('js.homepage.removed_from_favorites'));
+        } else {
+          await $http.post(`/contents/${id}/like.json`);
+          toast.success($t('js.homepage.added_to_favorites'));
+        }
+        content.liked = !content.liked; // Toggle the liked state after the request is successful
+      } catch (error) {
+        console.error(error); // Log the error for debugging
+        toast.error($t('js.homepage.like_error'));
+      }
+    } else {
+      console.error(`Content with id ${id} not found`);
+    }
+  } else {
+    toast.error($t('js.homepage.login_required'));
+  }
+};
+
+
 
 const startAutoScroll = () => {
     intervalId = setInterval(() => {
@@ -181,14 +218,14 @@ const scrollToSlide = (index) => {
 };
 
 const handleScroll = () => {
-  const container = carouselContainer.value;
-  if (container) {
-    const slideWidth = container.offsetWidth;
-    const scrollOffset = container.scrollLeft;
+    const container = carouselContainer.value;
+    if (container) {
+        const slideWidth = container.offsetWidth;
+        const scrollOffset = container.scrollLeft;
 
-    // Update bannerCurrentIndex based on the scroll position
-    bannerCurrentIndex.value = Math.round(scrollOffset / slideWidth);
-  }
+        // Update bannerCurrentIndex based on the scroll position
+        bannerCurrentIndex.value = Math.round(scrollOffset / slideWidth);
+    }
 };
 
 
