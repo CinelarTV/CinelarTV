@@ -9,9 +9,17 @@ class ContentsController < ApplicationController
     query = params[:q] || params[:query]
     # If the query is empty, return an error
     if query.blank?
-      render json: {
-               error: "Query is required",
-             }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html
+        format.json {
+          render json: {
+            errors: [
+              "Query is required",
+            ],
+            error_type: "query_required",
+          }
+        }
+      end
       return
     end
 
