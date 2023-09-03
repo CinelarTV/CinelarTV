@@ -64,7 +64,6 @@
 import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
 import { useHead } from 'unhead';
-import axios from 'axios';
 
 
 var updating = ref(false)
