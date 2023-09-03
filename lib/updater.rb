@@ -123,13 +123,13 @@ module CinelarTV
       log("")
       log("")
       log("***  Restarting Puma  ***")
-      publish("status", "complete", current_user.id)
+      publish("status", "complete")
       CinelarTV.maintenance_enabled = false
 
       FileUtils.touch(Rails.root.join("tmp/restart.txt"))
       system("kill -USR2 #{pid}")
     rescue StandardError => e
-      publish("status", "failed", current_user.id)
+      publish("status", "failed")
       CinelarTV.maintenance_enabled = false
 
       [
