@@ -64,6 +64,7 @@
 import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
 import { useHead } from 'unhead';
+import { toast } from 'vue3-toastify';
 
 
 var updating = ref(false)
@@ -128,6 +129,7 @@ const runUpdate = () => {
         .then(response => {
             if (response.data.error_type === "no_updates_available") {
                 updating.value = false
+                toast.info("No updates available")
             }
         })
 }
