@@ -35,7 +35,7 @@ module CinelarTV
     end
 
     def self.percent(val)
-      publish("percent", val, $user_id)
+      publish("percent", val)
     end
 
     def self.restart_server
