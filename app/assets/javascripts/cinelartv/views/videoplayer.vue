@@ -56,6 +56,7 @@
     transition: opacity 0.3s ease-in-out;
     opacity: 1;
   }
+  
     .overlay-content {
     text-align: center;
     color: white;
