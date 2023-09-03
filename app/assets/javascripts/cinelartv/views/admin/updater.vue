@@ -30,7 +30,7 @@
                     {{ updating ? "Updating..." : "Update now" }}
                 </c-button>
 
-                <c-button class="bg-red-500" @click="restartServer">
+                <c-button class="!bg-red-500" @click="restartServer">
                     Restart server
                 </c-button>
 
