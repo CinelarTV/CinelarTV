@@ -13,6 +13,8 @@ Rails.application.reloader.to_prepare do
   
       Logster.config.use_full_hostname = true
       Logster.config.enable_js_error_reporting = SiteSetting.enable_js_error_reporting
+      Logster.config.application_version = CinelarTV.git_version
+      Logster.config.web_title = "🍿 Log Viewer - CinelarTV AIO"
   
       Logster.config.project_directories = [
           {

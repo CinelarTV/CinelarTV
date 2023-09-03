@@ -5,14 +5,33 @@ module Admin
     def index
       data = {}
       @problems = []
-      unless !SiteSetting.license_key
+      if !SiteSetting.license_key.present?
         @problems << {
           content: "Your CinelarTV instance is not activated. Your customers will not be able to use the site until you activate it.",
-          icon: "exclamation-triangle",
+          type: "critical",
+          icon: "key",
         }
+
+        if !SiteSetting.wizard_completed
+          @problems << {
+            content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
+            type: "warning",
+            icon: "magic",
+          }
+        end
       end
 
       data[:problems] = @problems
+      data[:version_check] = {
+        installed_version: CinelarTV::Application::Version::FULL,
+        installed_sha: CinelarTV.git_version,
+        git_branch: CinelarTV.git_branch,
+        last_commit_date: CinelarTV.last_commit_date,
+        updates_available: CinelarTV::Updater.updates_available?,
+        remote_version: CinelarTV::Updater.remote_version,
+        versions_diff: CinelarTV::Updater.versions_diff,
+        last_commit_message: CinelarTV::Updater.last_commit_message,
+      }
 
       respond_to do |format|
         format.html

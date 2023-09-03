@@ -9,6 +9,15 @@
           Hay actualizaciones disponibles
         </span>
       </section>
+      <section id="problems" class="flex flex-col px-4 py-2 w-full mb-8"
+        v-if="dashboardData.problems.length > 0">
+        <template v-for="problem in dashboardData.problems">
+          <div class="flex my-2 text-white p-4" :class="getClassByType(problem.type)">
+            <span class="text-base px-4" v-html="problem.content">
+            </span>
+          </div>
+        </template>
+      </section>
       <h2 class="text-2xl font-medium mx-auto text-center">
         Dashboard
       </h2>
@@ -80,6 +89,19 @@ const commitUrl = computed(() => {
 const formattedSha = computed(() => {
   return dashboardData.value.version_check.installed_sha.substr(0, 10)
 })
+
+const getClassByType = (type) => {
+  switch (type) {
+    case 'critical':
+      return 'bg-red-500'
+    case 'warning':
+      return 'bg-yellow-500'
+    case 'info':
+      return 'bg-blue-500'
+    default:
+      return 'bg-gray-500'
+  }
+}
 
 const fetchDashboard = async () => {
   try {

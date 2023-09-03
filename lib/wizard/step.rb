@@ -22,6 +22,7 @@ class Wizard
       end
   
       def on_update(&block)
+        # The updater is a block that receives a StepUpdater instance
         @updater = block
       end
     end

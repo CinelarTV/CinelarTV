@@ -23,13 +23,9 @@ module CinelarTV
 
     lib_dir = Rails.root.join('lib')
 
-    config.eager_load_paths << lib_dir.join('lib')
+    config.autoload_paths << "#{root}/lib"
 
-    Dir["#{lib_dir.to_s}/*.rb"].each do |f_full_path|
-        config.eager_load_paths << f_full_path
-    end
-
-    require Rails.root.join("lib/cinelar_tv")
-    require Rails.root.join("lib/wizard")
+    require 'cinelar_tv'
+    
   end
 end

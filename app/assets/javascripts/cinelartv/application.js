@@ -10,11 +10,14 @@ import globalComponents from './lib/global-components';
 import I18n from './lib/i18n'
 import ColorPicker from './plugins/color-picker'
 import * as ConfirmDialog from 'vuejs-confirm-dialog'
+import Vue3Toasity from 'vue3-toastify';
 import { createPinia } from 'pinia'
 import Vue3Progress from "vue3-progress";
 import Axios from './lib/axios-setup'
 import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
+import 'vue3-toastify/dist/index.css';
+
 
 const CinelarTV = createApp(App)
 const pinia = createPinia()
@@ -40,6 +43,11 @@ let pluginMap = [
 CinelarTV.use(Vue3Progress, {
     color: 'var(--c-tertiary-color)',
     height: '4px'
+})
+
+CinelarTV.use(Vue3Toasity, {
+    duration: 5000,
+    position: 'bottom-center',
 })
 
 pluginMap.map(plugin => {

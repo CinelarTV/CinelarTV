@@ -12,6 +12,7 @@ let WizardRoute = {
             name: 'wizard.step',
             path: 'steps/:step',
             component: () => import(/* webpackChunkName: "wizard-step" */ '../components/wizard-step.vue'),
+            props: true,
             meta: {
                 requireAdmin: true,
                 showHeader: false

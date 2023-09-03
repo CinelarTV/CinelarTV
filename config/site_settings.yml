@@ -55,13 +55,6 @@ general:
     refresh: true
     readonly: true,
     hidden: true
-  license_key:
-    client: false
-    refresh: true
-    default: ""
-    type: 'string'
-    secret: true
-    hidden: true # It's setted on the wizard
 content:
   tmdb_api_key:
     client: false
@@ -253,3 +246,18 @@ experimental:
     refresh: true
     default: ""
     type: 'list'
+
+internal:
+  license_key:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
+    hidden: true # It's setted on the wizard
+  wizard_completed:
+    client: true # Frontend can read it because it's used to show the wizard or banner
+    refresh: true
+    default: false
+    type: 'boolean'
+    hidden: true # Internal use only

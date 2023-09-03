@@ -9,6 +9,8 @@ module Admin
           site_settings = SiteSetting.defined_fields
 
           response = site_settings.each_with_object([]) do |setting, memo|
+            # Exclude internal settings scope
+            next if setting[:scope] == :internal
             memo << {
               key: setting[:key],
               category: setting[:scope],

@@ -1,155 +1,147 @@
 <template>
-    <div class="wizard-container__step">
-        <div v-if="wizard">
-            <div class="wizard-container__step-counter">
-                <span class="wizard-container__step-text">
-                    {{ i18n.t('js.wizard.step') }}
-                </span>
-                <span class="wizard-container__step-count">
-                    {{ currentStepIndex + 1 }} / {{ wizard.steps.length }}
-                </span>
+  <div class="wizard-container__step">
+    <div v-if="currentStep">
+      <div class="wizard-container__step-counter">
+        <span class="wizard-container__step-text">
+          {{ i18n.t('js.wizard.step') }}
+        </span>
+        <span class="wizard-container__step-count">
+          {{ currentStepIndex + 1 }} / {{ props.wizardData.steps.length }}
+        </span>
+      </div>
+
+      <div class="wizard-container">
+        <div class="wizard-container__step-contents">
+
+          <div class="wizard-container__step-header">
+            <div class="wizard-container__step-header--emoji">
+              <h1 v-html="emojiParse(currentStep.emoji)"></h1>
             </div>
+            <h1 class="wizard-container__step-title" v-emoji v-html="i18n.t(`js.wizard.${currentStep.id}.title`)"></h1>
+            <p class="wizard-container__step-description" v-emoji
+              v-html="i18n.t(`js.wizard.${currentStep.id}.description`)"></p>
+          </div>
 
-            <div class="wizard-container">
-                <div class="wizard-container__step-contents">
-
-
-
-                    <div class="wizard-container__step-header">
-                        <div class="wizard-container__step-header--emoji">
-                            <h1 v-html="emojiParse(currentStep.emoji)">
-                            </h1>
-                        </div>
-                        <h1 class="wizard-container__step-title" v-emoji
-                            v-html="i18n.t(`js.wizard.${currentStep.id}.title`)">
-                        </h1>
-
-                        <p class="wizard-container__step-description" v-emoji
-                            v-html="i18n.t(`js.wizard.${currentStep.id}.description`)">
-                        </p>
-
-
-
-                    </div>
-
-                    <div v-for="step in wizard.steps" :key="step.id" :class="{ hidden: currentStep.id !== step.id }">
-                        <div v-for="field in step.fields" :key="field.id">
-                            <label>{{ field.id }}</label>
-                            <component :is="getFieldComponent(field)" v-model="field.value" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="wizard-container__step-footer">
-                    <div class="wizard-container__buttons">
-                        <button @click="goToNextStep" class="bg-blue-500 text-white px-4 py-2 rounded">Next</button>
-
-                    </div>
-                </div>
-
-
-
+          <div v-for="step in props.wizardData.steps" :key="step.id" :class="{ hidden: currentStep.id !== step.id }">
+            <div v-for="field in step.fields" :key="field.id">
+              <label>{{ field.id }}</label>
+              <component :is="getFieldComponent(field)" v-model="field.value" />
             </div>
+          </div>
         </div>
-        <div v-else>
-            <p>Loading...</p>
+
+        <div class="wizard-container__step-footer">
+          <div class="wizard-container__buttons">
+            <c-button @click="goToNextStep" class="bg-blue-500 text-white px-4 py-2 rounded">
+              Next
+            </c-button>
+
+
+            <c-button v-if="currentStep.id === 'ready'" @click="exitFromWizard"
+              class="bg-blue-500 text-white px-4 py-2 rounded">
+              Exit
+            </c-button>
+          </div>
         </div>
+      </div>
     </div>
+    <div v-else>
+      <p>Loading...</p>
+    </div>
+  </div>
 </template>
   
 <script setup>
-import axios from 'axios';
-import { ref, onMounted, watch, computed, inject, getCurrentInstance } from 'vue';
+import {
+  ref,
+  onMounted,
+  watch,
+  getCurrentInstance,
+  defineProps,
+  inject,
+} from 'vue';
 import CInput from './forms/c-input.vue';
-import { useRoute, useRouter } from 'vue-router';
-import twemoji from 'twemoji'
+import { useRouter } from 'vue-router';
+import twemoji from 'twemoji';
+import { toast } from 'vue3-toastify';
 
 
-const SiteSettings = inject('SiteSettings');
-const currentUser = inject('currentUser');
-const i18n = inject('I18n');
+const emit = defineEmits(['update:step']);
 
-const route = useRoute();
-const router = useRouter();
 const { $http } = getCurrentInstance().appContext.config.globalProperties;
 
-const id = ref(route.params.step);
-const wizard = ref(null);
-const currentStepIndex = ref(0);
+const props = defineProps(['step', 'wizardData', 'currentStep']);
 
-// V-Emoji isn't reactive, so we need to use a function to get the parsed emoji
+const router = useRouter();
+const i18n = inject('I18n');
+
+const currentStepIndex = ref(props.currentStep.index);
+const currentStep = ref(props.currentStep);
 
 const emojiParse = (emoji) => {
-    if (!emoji) return ''; // Return if no emoji is provided
-    return twemoji.parse(emoji, {
-        folder: 'svg',
-        ext: '.svg',
-    });
-};
-
-
-
-const renderEmoji = (emoji) => {
-    // Process and return the HTML representation of the emoji
-    return yourEmojiToHtmlFunction(emoji);
-};
-
-const fetchData = async () => {
-    const response = await axios.get(`/wizard/steps/${id.value}.json`);
-    wizard.value = response.data.wizard;
-};
-
-const currentStep = ref(null);
-
-
-const goToNextStep = () => {
-    // Guardar los cambios antes de avanzar
-    saveChanges(currentStep.value.fields);
-
-    if (currentStepIndex.value < wizard.value.steps.length - 1) {
-        currentStepIndex.value++;
-    }
+  if (!emoji) return '';
+  return twemoji.parse(emoji, {
+    folder: 'svg',
+    ext: '.svg',
+  });
 };
 
 const getFieldComponent = (field) => {
-    // Devuelve el nombre del componente basado en el tipo de campo
-    switch (field.type) {
-        case 'text':
-            return CInput;
-        case 'image':
-            return 'ImageFieldComponent';
-        // Agregar más casos según los tipos de campos que tengas
-        default:
-            return 'DefaultFieldComponent';
-    }
+  switch (field.type) {
+    case 'text':
+      return CInput;
+    case 'image':
+      return 'ImageFieldComponent';
+    default:
+      return 'DefaultFieldComponent';
+  }
+};
+
+const exitFromWizard = async () => {
+  await saveChanges(props.currentStep.fields); // Send a request to check wizard_completed as true
+  location.href = '/'; // We need to do a full reload to avoid problems with the Vue Router and new SiteSettings
 };
 
 const saveChanges = async (fields) => {
-    // Guardar los cambios en el servidor
-    await $http.put(`/wizard/steps/${id.value}.json`, { fields });
+  try {
+    const data = new FormData();
+
+    fields.forEach((field) => {
+      data.append(`fields[${field.id}]`, field.value);
+    });
+
+    if(props.currentStep.id === 'introduction' || props.currentStep.id === 'ready') {
+      data.append('fields[step]', 'ok'); // Introduction don't have a field, so we need to add a field to save the step successfully
+    }
+
+    const response = await $http.put(`/wizard/steps/${props.currentStep.id}.json`, data);
+
     console.log('Guardando cambios', { fields });
+  } catch (error) {
+    let message = 'Error al guardar los cambios';
+    console.log(error.errors);
+    if (error.errors) {
+      message = error.errors.map((e) => e.description).join(', ');
+    }
+    toast.error(message);
+  }
 };
 
-onMounted(async () => {
-    await fetchData();
-});
+const goToNextStep = async () => {
+  try {
+    await saveChanges(props.currentStep.fields);
 
-
-watch([() => wizard.value, currentStepIndex], () => {
-    console.log('Wizard:', wizard.value);
-    console.log('Current Step Index:', currentStepIndex.value);
-    if (wizard.value) {
-        const updatedStep = wizard.value.steps[currentStepIndex.value];
-        currentStep.value = Object.assign({}, updatedStep); // Create a new object to trigger reactivity
-        console.log('Updated currentStep:', currentStep.value);
-        // Set the route param to the current step id
-        router.push({ params: { step: currentStep.value.id } });
-        // Update current step
-    } else {
-        currentStep.value = null;
-        console.log('Updated currentStep to null');
+    if (currentStepIndex.value < props.wizardData.steps.length - 1) {
+      currentStepIndex.value++;
     }
-});
+    // Emit event to parent component, to next step
+    emit('update:step', props.wizardData.steps[currentStepIndex.value]);
+    currentStep.value = props.wizardData.steps[currentStepIndex.value];
+  } catch (error) {
+    toast.error('Error al guardar los cambios');
+  }
+}
+
 
 </script>
   
