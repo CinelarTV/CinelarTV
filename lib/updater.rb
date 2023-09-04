@@ -6,8 +6,6 @@ require "io/wait"
 
 module CinelarTV
   module Updater
-    include Warden::Manager
-
     @progress = 0
     @output = ""
 
@@ -35,10 +33,10 @@ module CinelarTV
     end
 
     def self.publish(type, value)
-      #Get the user_id from the warden
-      @current_user = warden.user.id if warden.user
 
-      @user_id = @current_user.id
+      # Get all user ids that have the admin role
+      @user_id = User.with_role(:admin).pluck(:id)
+
       MessageBus.publish("/admin/upgrade",
                          { type:, value: },
                          user_ids: [@user_id])
