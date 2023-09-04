@@ -1,82 +1,122 @@
 <template>
-    <div class="video-player-container">
-      <video-player :src="videoSrc" poster="/your-path/poster.jpg" :loop="true" :volume="0.6" :fluid="true">
-        <template v-slot="{ player, state }">
-          <div class="custom-player-overlay" v-if="state.playing || state.paused"> <!-- Update condition here -->
-            <!-- Netflix-style overlay content -->
-            <div class="overlay-content">
-              <h2>{{ videoTitle }}</h2>
-              <p>{{ videoDescription }}</p>
-            </div>
-  
-            <!-- Custom player controls -->
-            <div class="custom-player-controls">
-              <button @click="state.playing ? player.pause() : player.play()">
-                {{ state.playing ? 'Pause' : 'Play' }}
-              </button>
-              <button @click="player.muted(!state.muted)">
-                {{ state.muted ? 'UnMute' : 'Mute' }}
-              </button>
-              <!-- more custom controls elements ... -->
-            </div>
-          </div>
-        </template>
-      </video-player>
-    </div>
-  </template>
-  
-  <script setup>
-  import { onMounted } from 'vue';
-  import { VideoPlayer } from '@videojs-player/vue';
-  import 'video.js/dist/video-js.css';
-  
-  const videoSrc = 'https://video-r2.nickelodeonplus.online/20230427230610_10x207/20230427230610_10x207.m3u8';
-  const videoTitle = 'Video Title';
-  const videoDescription = 'Video Description';
-  
-  </script>
-  
-  
-  <style scoped>
-  .video-player-container {
-    position: relative;
+  <div class="video-player-container">
+    <video ref="myVideoPlayer" class="fluid-video" controls>
+      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+    </video>
+
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import fluidPlayer from 'fluid-player';
+
+const myVideoPlayer = ref(null);
+const showOverlay = ref(true);
+const isPlaying = ref(false);
+const isMuted = ref(false);
+const videoTitle = 'Video Title';
+const videoDescription = 'Video Description';
+
+onMounted(() => {
+  document.body.classList.add('video-player');
+  const options = {
+    "layoutControls": {
+      "controlBar": { "autoHideTimeout": 3, "animated": true, "autoHide": true },
+      "title": 'www.nickelodeonplus.online',
+      "htmlOnPauseBlock": { "html": null, "height": "", "width": null }, "autoPlay": false, "mute": false, "allowTheatre": false, "playPauseAnimation": true, "playbackRateEnabled": false, "allowDownload": false, "playButtonShowing": true, "fillToContainer": false, "posterImage": ""
+    }, "vastOptions": { "adList": [], "adCTAText": false, "adCTATextPosition": "" }
   }
-  
-  .custom-player-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-    transition: opacity 0.3s ease-in-out;
-    opacity: 1;
+
+  fluidPlayer(myVideoPlayer.value, options);
+
+  myVideoPlayer.value.addEventListener('play', () => {
+    isPlaying.value = true;
+  });
+
+  myVideoPlayer.value.addEventListener('pause', () => {
+    isPlaying.value = false;
+  });
+});
+
+const togglePlayPause = () => {
+  if (myVideoPlayer.value) {
+    if (isPlaying.value) {
+      myVideoPlayer.value.pause();
+    } else {
+      myVideoPlayer.value.play();
+    }
+    isPlaying.value = !isPlaying.value;
   }
-  
-    .overlay-content {
-    text-align: center;
-    color: white;
-    padding: 20px;
+};
+
+const toggleMute = () => {
+  if (myVideoPlayer.value) {
+    myVideoPlayer.value.muted = !myVideoPlayer.value.muted;
+    isMuted.value = myVideoPlayer.value.muted;
   }
-  
-  .custom-player-controls {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  
-  .custom-player-controls button {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-  }
-  
-  </style>
-  
+};
+
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+});
+
+
+</script>
+
+<style scoped>
+@import "fluid-player/src/css/fluidplayer.css";
+
+.video-player-container {
+  position: relative;
+}
+
+.fluid-video {
+  width: 100%;
+  height: 100%;
+}
+
+
+.custom-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  opacity: 0.9;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.overlay-content {
+  text-align: center;
+  color: white;
+  padding: 20px;
+}
+
+.custom-controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.custom-controls button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.custom-controls button:focus {
+  outline: none;
+}
+
+.video-player-container {
+  height: 100%;
+}</style>

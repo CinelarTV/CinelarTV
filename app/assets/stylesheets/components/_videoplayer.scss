@@ -1,0 +1,29 @@
+body.video-player {
+    height: 100%;
+
+    & div.profiler-results.profiler-top {
+        display: none!important;
+    }
+}
+
+body.video-player main {
+    height: 100%;
+}
+
+
+.fluid_video_wrapper.fluid_player_layout_default .fluid_controls_container .fluid_controls_progress_container .fluid_controls_buffered {
+    height: 7px;
+    border-radius: 2px 0 0 2px;
+}
+
+.fluid_controls_currentprogress {
+    background-color: var(--c-fluid-progress-color, --c-tertiary-400)!important;
+}
+
+.fluid_video_wrapper.fluid_player_layout_default .fluid_controls_container .fluid_controls_progress_container .fluid_controls_progress .fluid_controls_currentpos {
+    width: 13px;
+    height: 13px;
+    position: absolute;
+    top: -4px;
+    border-radius: 6px;
+}

@@ -16,7 +16,7 @@
     "compression-webpack-plugin": "9",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
-    "fluid-player": "3.0.0",
+    "fluid-player": "^3.23.0",
     "high-console": "^0.4.2",
     "howler": "^2.2.3",
     "i18n-js": "3.9.2",
