@@ -4,7 +4,7 @@
             <c-spinner />
         </div>
         <div class="mx-auto mt-4" v-else>
-            <section id="home-carousel">
+            <section id="home-carousel" v-if="SiteSettings.enable_carousel">
                 <div class="carousel-root">
                     <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll" @mouseenter="stopAutoScroll"
                         @mouseleave="startAutoScroll">
@@ -241,6 +241,8 @@ onMounted(async () => {
         homepageData.value = null; // Clear after load preloaded data
     }
 
-    startAutoScroll();
+    if(SiteSettings.enable_carousel) {
+        startAutoScroll();
+    }
 });
 </script>
