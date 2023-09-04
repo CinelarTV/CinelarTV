@@ -28,7 +28,7 @@ module CinelarTV
     end
 
     def self.log(message)
-      @output << message + "\n"
+      output = output + message + "\n"
       publish "log", message + "\n"
     end
 
@@ -69,13 +69,23 @@ module CinelarTV
       @progress
     end
 
+    def self.progress=(value)
+      @progress = value
+    end
+
     def self.output
       @output
     end
 
+    def self.output=(value)
+      @output = value
+    end
+
     def self.run_update
       pid = Process.pid
+      output = ""
 
+      # Enable maintenance mode
       CinelarTV.maintenance_enabled = true
 
       # Create a pid file so we can check if an update is running
