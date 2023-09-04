@@ -28,7 +28,9 @@ module CinelarTV
 
     def self.publish(type, value)
       #Get the user_id from rack env (Devise current_user is not available in lib/)
-      @user_id = Rack::Request.new(ActionController::Base.env).session["warden.user.user.key"]&.first&.first
+      request = Rack::Request.new
+      @current_user = request.env["warden"].user
+      @user_id = @current_user.id
       MessageBus.publish("/admin/upgrade",
                          { type:, value: },
                          user_ids: [@user_id])
