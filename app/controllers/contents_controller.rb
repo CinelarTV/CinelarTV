@@ -45,9 +45,8 @@ class ContentsController < ApplicationController
         format.html
         format.json {
           render json: {
-            content: @content.as_json(
-              only: %i[id title description year content_type],
-            ),
+            # exclude created_at and updated_at
+            content: @content.as_json(except: %i[created_at updated_at]),
             liked: @is_liked,
             seasons: @seasons,  # Include the seasons data here if it's a TVSHOW
           }

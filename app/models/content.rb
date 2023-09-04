@@ -6,7 +6,7 @@ class Content < ApplicationRecord
   has_many :categories, through: :content_categories
   has_many :seasons
 
-  has_and_belongs_to_many :liking_profiles, class_name: 'Profile', join_table: 'likes'
+  has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"
 
   validates :title, presence: true
   validates :content_type, presence: true
@@ -29,10 +29,6 @@ class Content < ApplicationRecord
     # Only can appear in the banner if it has a banner image
     where.not(banner: nil).order("RANDOM()").limit(5)
   end
-
-
-
-  
 
   def add_season(season)
     seasons << season
