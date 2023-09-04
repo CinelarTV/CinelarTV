@@ -108,7 +108,7 @@ useHead({
 });
 
 
-homepage.value = homepageData || null;
+homepage.value = homepageData.value || null;
 
 const showInfo = (id) => {
     //navigate to content page with transition
@@ -237,6 +237,8 @@ onMounted(async () => {
         } catch (error) {
             console.error('Error loading data:', error);
         }
+    } else {
+        homepageData.value = null; // Clear after load preloaded data
     }
 
     startAutoScroll();

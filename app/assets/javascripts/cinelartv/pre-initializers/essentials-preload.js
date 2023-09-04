@@ -1,3 +1,4 @@
+import { ref } from "vue";
 export const showPreloaderError = () => {
     document.getElementById("c-splash").remove()
     const errorDiv = document.createElement("div");
@@ -22,8 +23,15 @@ export const showPreloaderError = () => {
     currentUser: preloaded.currentUser,
     SiteSettings: preloaded.SiteSettings,
     isMobile: preloaded.isMobile,
-    homepageData: preloaded.homepageData || null,
   };
+
+  const homepageData = ref(null) // We need to use ref here because we need to be able to change the value of this variable later
+
+  if (preloaded.homepageData) {
+    homepageData.value = preloaded.homepageData
+  }
+
+    
   
   
   export default {
@@ -32,11 +40,11 @@ export const showPreloaderError = () => {
       app.provide("currentUser", preloadedData.currentUser);
       app.provide("SiteSettings", preloadedData.SiteSettings);
       app.provide("isMobile", preloadedData.isMobile);
-      app.provide("homepageData", preloadedData.homepageData);
+      app.provide("homepageData", homepageData);
     }
   }
   
-  export const { SiteSettings, currentUser, isMobile, homepageData } = preloadedData;
+  export const { SiteSettings, currentUser, isMobile } = preloadedData;
 
   
   export const Language = {
