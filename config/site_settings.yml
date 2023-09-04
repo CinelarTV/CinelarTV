@@ -56,6 +56,11 @@ general:
     readonly: true,
     hidden: true
 content:
+  enable_metadata_recommendation:
+    client: true
+    refresh: true
+    default: true
+    type: 'boolean'
   tmdb_api_key:
     client: false
     refresh: true

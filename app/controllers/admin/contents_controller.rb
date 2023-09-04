@@ -59,19 +59,41 @@ module Admin
       end
     end
 
+    def analytics
+      @content = Content.find(params[:id])
+
+      # Content doesn't have analytics, so we need to find manually
+
+      # Like count
+      @like_count = @content.liking_profiles.count
+
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: {
+                   data: {
+                     content: @content.as_json.merge({
+                       like_count: @like_count,
+                     }),
+                   },
+                 }
+        end
+      end
+    end
+
     def update
       @content = Content.find(params[:id])
 
       # Await the uploaded images
       handle_uploaded_images
 
+      @content.assign_attributes(content_params)
+
       # Series can't have an url
-      if @content.content_type == 'TVSHOW' && @content.url?
+      if @content.content_type == "TVSHOW" && @content.url?
         @content.url = nil
       end
 
-
-     
       if @content.save
         render json: { message: "Content updated successfully", status: :ok }
       else
@@ -100,7 +122,7 @@ module Admin
     def handle_uploaded_images
       # Process banner image
       Rails.logger.info("Banner: #{params[:content][:banner]}")
-    
+
       if @content.banner&.starts_with?("tmdb://")
         # Process TMDB reference here
         tmdb_id = @content.banner.sub("tmdb://", "")
@@ -115,7 +137,7 @@ module Admin
         @content.banner = banner_uploader.url
         Rails.logger.info("Banner URL: #{banner_uploader.url}")
       end
-    
+
       # Process cover image
       if @content.cover&.starts_with?("tmdb://")
         # Process TMDB reference here
@@ -132,7 +154,6 @@ module Admin
         Rails.logger.info("Cover URL: #{cover_uploader.url}")
       end
     end
-    
 
     private
 

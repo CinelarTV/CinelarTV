@@ -185,6 +185,15 @@
     padding: 10px;
 }
 
+.panel-body .edit-content {
+    @apply flex flex-col;
+    @apply max-w-2xl justify-center mx-auto my-8
+}
+
+
+
+
+
 @media screen and (max-width: 600px) {
     .admin-container {
         padding: .5em .5em 5%;

@@ -65,7 +65,6 @@
   const getContent = async () => {
     try {
       const { data } = await axios.get(`/contents/${$route.params.id}.json`)
-      data['trailer'] = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' // For testing purposes
       contentData.value = data
       loading.value = false
       // Verificar si hay tráiler después de cargar el contenido

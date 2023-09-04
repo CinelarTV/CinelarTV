@@ -77,7 +77,7 @@
                             </form>
 
                             <div class="flex mt-2 justify-center space-x-4">
-                                <c-button v-if="contentData.name.length >= 3" @click="findRecommendedMetadata" :loading="loadingRecommendations">
+                                <c-button v-if="contentData.name.length >= 3 && SiteSettings.enable_metadata_recommendation" @click="findRecommendedMetadata" :loading="loadingRecommendations">
                                     <SparklesIcon :size="18" class="icon" v-if="!loadingRecommendations" />
                                     Find recommended metadata
                                 </c-button>
@@ -99,12 +99,14 @@
 </template>
   
 <script setup>
-import { getCurrentInstance, onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import axios from 'axios' // Import axios if not already imported
 import { CheckIcon, SparklesIcon } from 'lucide-vue-next';
 import RecommendedMetadataModal from './recommended-metadata.modal.vue'
 import cImageUpload from '../forms/c-image-upload.vue';
+
+const SiteSettings = inject('SiteSettings');
 
 const emit = defineEmits(['content-created'])
 

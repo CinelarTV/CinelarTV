@@ -1,7 +1,7 @@
 <template>
   <div class="video-player-container">
     <video ref="myVideoPlayer" class="fluid-video" controls>
-      <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
+      <source src="https://ia801502.us.archive.org/31/items/KM-UCMK-V720/Kallys%20Mashup%20UCMK%20V2.mp4" type="video/mp4" />
     </video>
 
   </div>
@@ -17,14 +17,14 @@ const isPlaying = ref(false);
 const isMuted = ref(false);
 const videoTitle = 'Video Title';
 const videoDescription = 'Video Description';
+const lastDataSent = ref(null);
 
 onMounted(() => {
   document.body.classList.add('video-player');
   const options = {
     "layoutControls": {
       "controlBar": { "autoHideTimeout": 3, "animated": true, "autoHide": true },
-      "title": 'www.nickelodeonplus.online',
-      "htmlOnPauseBlock": { "html": null, "height": "", "width": null }, "autoPlay": false, "mute": false, "allowTheatre": false, "playPauseAnimation": true, "playbackRateEnabled": false, "allowDownload": false, "playButtonShowing": true, "fillToContainer": false, "posterImage": ""
+      "htmlOnPauseBlock": { "html": null, "height": "", "width": null }, "autoPlay": true, "mute": false, "allowTheatre": false, "playPauseAnimation": true, "playbackRateEnabled": false, "allowDownload": false, "playButtonShowing": true, "fillToContainer": false, "posterImage": ""
     }, "vastOptions": { "adList": [], "adCTAText": false, "adCTATextPosition": "" }
   }
 
@@ -36,6 +36,14 @@ onMounted(() => {
 
   myVideoPlayer.value.addEventListener('pause', () => {
     isPlaying.value = false;
+  });
+
+  // On position change, send time to server (Every 5 seconds to avoid overloading the server)
+  myVideoPlayer.value.addEventListener('timeupdate', () => {
+    if (Date.now() - lastDataSent.value > 5000) {
+      lastDataSent.value = Date.now();
+      console.log('[Continnum] Sending current position to server...', myVideoPlayer.value.currentTime, ' / ', myVideoPlayer.value.duration);
+    }
   });
 });
 
