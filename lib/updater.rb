@@ -4,6 +4,7 @@ require "io/wait"
 
 module CinelarTV
   module Updater
+    include Warden::Manager
     def self.remote_version
       `git ls-remote --heads origin main`.strip.split.first
     end
@@ -27,9 +28,9 @@ module CinelarTV
     end
 
     def self.publish(type, value)
-      #Get the user_id from rack env (Devise current_user is not available in lib/)
-      request = Rack::Request.new(env)
-      @current_user = request.env["warden"].user
+      #Get the user_id from the warden
+      @current_user = warden.user.id if warden.user
+
       @user_id = @current_user.id
       MessageBus.publish("/admin/upgrade",
                          { type:, value: },
