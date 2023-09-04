@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # lib/update.rb
 
 require "io/wait"

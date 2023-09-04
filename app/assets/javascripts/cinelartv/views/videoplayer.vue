@@ -1,6 +1,6 @@
 <template>
   <div class="video-player-container">
-    <video ref="myVideoPlayer" class="fluid-video" controls>
+    <video ref="myVideoPlayer" class="fluid-video" controls muted>
       <source src="https://ia801502.us.archive.org/31/items/KM-UCMK-V720/Kallys%20Mashup%20UCMK%20V2.mp4" type="video/mp4" />
     </video>
 
@@ -45,6 +45,10 @@ onMounted(() => {
       console.log('[Continnum] Sending current position to server...', myVideoPlayer.value.currentTime, ' / ', myVideoPlayer.value.duration);
     }
   });
+
+  // Remove muted attribute on load
+  myVideoPlayer.value.removeAttribute('muted');
+  myVideoPlayer.value.muted = false;
 });
 
 const togglePlayPause = () => {
