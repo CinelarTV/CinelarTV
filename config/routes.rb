@@ -60,6 +60,8 @@ Rails.application.routes.draw do
   get "finish-installation/create-account" => "finish_installation#create_account"
   post "finish-installation/create-account" => "finish_installation#create_account"
 
+  get "capybara" => "application#capybara_spin"
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 end

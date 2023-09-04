@@ -21,6 +21,21 @@ class ApplicationController < ActionController::Base
     redirect_to app_path
   end
 
+  def capybara_spin
+    ## Fullscreen video https://www.youtube.com/embed/k-BBfhWLfAQ?si=hA_9OFUrrZba97CQ
+    render html: '
+    <title>CinelarTV</title>
+    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/k-BBfhWLfAQ?autoplay=1&controls=0&showinfo=0&autohide=1&loop=1" frameborder="0" allowfullscreen></iframe>
+    <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    </style>
+    '.html_safe
+  end
+
   def current_profile
     return @current_profile if defined?(@current_profile)
 
