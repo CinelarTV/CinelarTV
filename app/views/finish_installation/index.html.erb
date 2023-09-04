@@ -1,0 +1,39 @@
+<div id="wizard-main">
+  <div class="wizard-container__step">
+    <div class="wizard-container">
+      <div class="wizard-container__step-contents">
+        <div class="wizard-container__step-header">
+          <div class="wizard-container__step-header--emoji flex justify-center">
+            <img class="!h-16 !w-16" src="/assets/images/tada.svg">
+          </div>
+          <div class="wizard-container__step-header--title">
+            <h1>
+                Congratulations! You have successfully installed CinelarTV!
+            </h1>
+
+            <% if SiteSetting.developer_emails.blank? %>
+              <p class="text-red-500">
+                <strong>
+                  <i class="fa fa-exclamation-triangle"></i>
+                  <span class="ml-2">You need to set at least one developer email to continue.</span>
+                </strong>
+              </p>
+            <% else %>
+              <p>
+                <span class="ml-2">You can now create your first account.</span>
+              </p>
+
+              <a href="/finish-installation/create-account" class="c-button">
+                Create account
+                </a>
+            <% end %>
+
+            
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

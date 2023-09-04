@@ -110,11 +110,15 @@ const saveChanges = async (fields) => {
       data.append(`fields[${field.id}]`, field.value);
     });
 
-    if(props.currentStep.id === 'introduction' || props.currentStep.id === 'ready') {
+    if (props.currentStep.id === 'introduction' || props.currentStep.id === 'ready') {
       data.append('fields[step]', 'ok'); // Introduction don't have a field, so we need to add a field to save the step successfully
     }
 
     const response = await $http.put(`/wizard/steps/${props.currentStep.id}.json`, data);
+
+    if (response.status === 422) {
+      throw new Error(response.data);
+    }
 
     console.log('Guardando cambios', { fields });
   } catch (error) {
@@ -123,7 +127,7 @@ const saveChanges = async (fields) => {
     if (error.errors) {
       message = error.errors.map((e) => e.description).join(', ');
     }
-    toast.error(message);
+    throw new Error(message); // Lanza una excepción para manejarla en goToNextStep
   }
 };
 
@@ -138,9 +142,10 @@ const goToNextStep = async () => {
     emit('update:step', props.wizardData.steps[currentStepIndex.value]);
     currentStep.value = props.wizardData.steps[currentStepIndex.value];
   } catch (error) {
-    toast.error('Error al guardar los cambios');
+    toast.error(error.message); // Muestra el mensaje de error específico
   }
-}
+};
+
 
 
 </script>

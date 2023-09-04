@@ -35,7 +35,9 @@ const fetchWizard = async () => {
   try {
     const response = await axios.get(`/wizard.json`)
     wizard.value = response.data.wizard
-    currentStep.value = wizard.value.steps.find(s => s.id === step || 0)
+    let stepToFind = wizard.value.steps.find(s => s.id === step || 0) || wizard.value.steps[0]
+    currentStep.value = stepToFind
+
 
     // Redirect to first step if no step is provided
     if (!step) {

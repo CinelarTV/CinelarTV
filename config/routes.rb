@@ -54,6 +54,12 @@ Rails.application.routes.draw do
   get "wizard/steps/:id" => "wizard#index"
   put "wizard/steps/:id" => "steps#update"
 
+  # Finish Installation
+
+  get "finish-installation" => "finish_installation#index"
+  get "finish-installation/create-account" => "finish_installation#create_account"
+  post "finish-installation/create-account" => "finish_installation#create_account"
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 end

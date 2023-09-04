@@ -28,7 +28,9 @@ class SiteSetting < RailsSettings::Base
                 default: -> { default_waiting_on_first_user_value },
                 type: :boolean
 
-          
+          field :developer_emails,
+                default: ENV["CINELAR_DEVELOPER_EMAILS"], # This is a comma-separated list of emails
+                type: :string
         end
       end
     end

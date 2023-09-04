@@ -1,0 +1,2 @@
+module FinishInstallationHelper
+end

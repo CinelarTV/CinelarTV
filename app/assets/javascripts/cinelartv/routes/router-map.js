@@ -49,8 +49,8 @@ AppRouter.beforeEach((to, from, next) => {
         return;
     }
 
-    // Redirigir a 'profile.select' si el usuario no tiene perfil
-    if (currentUser && !currentUser.current_profile) {
+    // Redirigir a 'profile.select' si el usuario no tiene perfil, a menos que la ruta sea wizard
+    if (currentUser && !currentUser.current_profile && to.name !== 'application.wizard' && to.name !== 'wizard.step') {
         next({
             name: 'profile.select',
             replace: true

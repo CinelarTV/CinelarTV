@@ -1,0 +1,50 @@
+<div id="wizard-main">
+  <div class="wizard-container__step">
+    <div class="wizard-container">
+      <div class="wizard-container__step-contents">
+        <div class="wizard-container__step-header">
+          <div class="wizard-container__step-header--emoji flex justify-center">
+            <img class="!h-16 !w-16" src="/assets/images/tada.svg">
+          </div>
+          <div class="wizard-container__step-header--title">
+            <h1>
+                Let's create your first account!
+            </h1>
+
+            <form action="/finish-installation/create-account" method="post">
+                <div class="mb-4">
+                  <label for="username" class="block text-gray-700">Username</label>
+                  <input type="text" id="username" name="username" class="c-input" required>
+                </div>
+
+                <div class="mb-4">
+  <label for="email" class="block text-gray-700">Email</label>
+  <select id="email" name="email" class="c-input" required>
+    <% SiteSetting.developer_emails.split(",").each do |email| %>
+      <option value="<%= email %>"><%= email %></option>
+    <% end %>
+  </select>
+</div>
+
+
+                <!-- Campo de contraseña -->
+                <div class="mb-4">
+                  <label for="password" class="block text-gray-700">Password</label>
+                  <input type="password" id="password" name="password" class="c-input" required>
+                </div>
+
+                <!-- Otros campos de formulario según tus necesidades -->
+
+                <!-- Botón de registro -->
+                  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+
+                <button type="submit" class="c-button">Create account</button>
+              </form>
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
