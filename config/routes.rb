@@ -36,6 +36,10 @@ Rails.application.routes.draw do
   get "/contents/:id", to: "contents#show"
   get "/t/:id", to: redirect("/contents/%{id}")
 
+  # Player routes
+  get "/watch/:id", to: "player#watch"
+  put "/watch/:id/progress", to: "player#update_current_progress"
+
   # Dev route to refresh the settings
   if Rails.env.development?
     get "/r", to: "application#refresh_settings"

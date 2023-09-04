@@ -19,6 +19,8 @@ const videoTitle = 'Video Title';
 const videoDescription = 'Video Description';
 const lastDataSent = ref(null);
 
+let videoId = '4448b99b-f45f-488a-ad30-927414844ab7' // For testing purposes
+
 onMounted(() => {
   document.body.classList.add('video-player');
   const options = {
@@ -39,10 +41,11 @@ onMounted(() => {
   });
 
   // On position change, send time to server (Every 5 seconds to avoid overloading the server)
-  myVideoPlayer.value.addEventListener('timeupdate', () => {
+  myVideoPlayer.value.addEventListener('timeupdate', async () => {
     if (Date.now() - lastDataSent.value > 5000) {
       lastDataSent.value = Date.now();
       console.log('[Continnum] Sending current position to server...', myVideoPlayer.value.currentTime, ' / ', myVideoPlayer.value.duration);
+      await sendCurrentPosition();
     }
   });
 
@@ -66,6 +69,17 @@ const toggleMute = () => {
   if (myVideoPlayer.value) {
     myVideoPlayer.value.muted = !myVideoPlayer.value.muted;
     isMuted.value = myVideoPlayer.value.muted;
+  }
+};
+
+const sendCurrentPosition = async () => {
+  try {
+    await axios.put(`/watch/${videoId}/progress.json`, {
+      progress: myVideoPlayer.value.currentTime,
+      duration: myVideoPlayer.value.duration
+    });
+  } catch (error) {
+    console.error(error);
   }
 };
 

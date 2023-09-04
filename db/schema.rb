@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_04_014218) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_04_233750) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -34,6 +34,22 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_014218) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "trailer_url"
+  end
+
+  create_table "continue_watchings", force: :cascade do |t|
+    t.uuid "profile_id", null: false
+    t.uuid "content_id", null: false
+    t.uuid "episode_id"
+    t.decimal "progress", default: "0.0", null: false
+    t.decimal "duration", default: "0.0", null: false
+    t.datetime "last_watched_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.boolean "finished", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_continue_watchings_on_content_id"
+    t.index ["episode_id"], name: "index_continue_watchings_on_episode_id"
+    t.index ["profile_id", "content_id", "episode_id"], name: "unique_continue_watchings_index", unique: true
+    t.index ["profile_id"], name: "index_continue_watchings_on_profile_id"
   end
 
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -138,6 +154,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_014218) do
     t.index ["user_id"], name: "index_users_roles_on_user_id"
   end
 
+  add_foreign_key "continue_watchings", "contents"
+  add_foreign_key "continue_watchings", "episodes"
+  add_foreign_key "continue_watchings", "profiles"
   add_foreign_key "episodes", "seasons"
   add_foreign_key "likes", "contents"
   add_foreign_key "likes", "profiles"
