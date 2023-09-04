@@ -7,6 +7,10 @@ require "io/wait"
 module CinelarTV
   module Updater
     include Warden::Manager
+
+    @progress = 0
+    @output = ""
+
     def self.remote_version
       `git ls-remote --heads origin main`.strip.split.first
     end
@@ -26,6 +30,7 @@ module CinelarTV
     end
 
     def self.log(message)
+      @output << message + "\n"
       publish "log", message + "\n"
     end
 
@@ -40,6 +45,7 @@ module CinelarTV
     end
 
     def self.percent(val)
+      @progress = val
       publish("percent", val)
     end
 
@@ -57,10 +63,27 @@ module CinelarTV
       system("kill -USR2 #{pid}")
     end
 
+    def self.update_running?
+      File.exist?(Rails.root.join("tmp/upgrade.pid"))
+    end
+
+    def self.progress
+      @progress
+    end
+
+    def self.output
+      @output
+    end
+
     def self.run_update
       pid = Process.pid
 
       CinelarTV.maintenance_enabled = true
+
+      # Create a pid file so we can check if an update is running
+      File.open(Rails.root.join("tmp/upgrade.pid"), "w") do |f|
+        f.write(pid)
+      end
 
       # Stash all local changes before upgrading to avoid conflicts (Except on development)
       if Rails.env.production?
@@ -128,6 +151,9 @@ module CinelarTV
       log("")
       log("***  Restarting Puma  ***")
       publish("status", "complete")
+
+      # Remove the pid file
+      File.delete(Rails.root.join("tmp/upgrade.pid"))
       CinelarTV.maintenance_enabled = false
 
       FileUtils.touch(Rails.root.join("tmp/restart.txt"))
