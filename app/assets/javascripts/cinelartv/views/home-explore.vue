@@ -130,6 +130,17 @@ const showInfo = (id) => {
     });
 };
 
+const playContent = (id) => {
+    router.push(`/watch/${id}`, {
+        params: {
+            id: id,
+        },
+        meta: {
+            transition: 'slide-left',
+        },
+    });
+};
+
 const toggleLike = async (id, fromBanner = false) => {
     if (currentUser) {
         let content;
