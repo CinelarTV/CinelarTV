@@ -25,7 +25,8 @@
                                         Name
                                     </label>
                                     <div class="mt-1">
-                                        <c-input :modelValue="contentData.name" @update:modelValue="value => contentData.name = value"
+                                        <c-input :modelValue="contentData.name"
+                                            @update:modelValue="value => contentData.name = value"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                             placeholder="Avengers: Endgame" />
                                     </div>
@@ -34,8 +35,8 @@
                                         Type
                                     </label>
                                     <div class="mt-1">
-                                        <c-select :options="contentTypes" 
-                                            :modelValue="contentData.content_type" @update:modelValue="value => contentData.content_type = value"
+                                        <c-select :options="contentTypes" :modelValue="contentData.content_type"
+                                            @update:modelValue="value => contentData.content_type = value"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     </div>
 
@@ -43,7 +44,8 @@
                                         Description
                                     </label>
                                     <div class="mt-1">
-                                        <c-textarea :modelValue="contentData.content_description" @update:modelValue="value => contentData.content_description = value"
+                                        <c-textarea :modelValue="contentData.content_description"
+                                            @update:modelValue="value => contentData.content_description = value"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
 
                                     </div>
@@ -52,7 +54,8 @@
                                         Image
                                     </label>
                                     <div class="mt-1">
-                                        <c-image-upload v-model="contentData.content_cover" @update:model-value="value => contentData.content_cover = value"
+                                        <c-image-upload v-model="contentData.content_cover"
+                                            @update:model-value="value => contentData.content_cover = value"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
 
 
@@ -62,11 +65,11 @@
                                         Banner
                                     </label>
                                     <div class="mt-1">
-                                        <c-image-upload v-model="contentData.content_banner" @update:model-value="value => contentData.content_banner = value"
-                                            
+                                        <c-image-upload v-model="contentData.content_banner"
+                                            @update:model-value="value => contentData.content_banner = value"
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
 
-                                        
+
 
 
                                     </div>
@@ -77,7 +80,8 @@
                             </form>
 
                             <div class="flex mt-2 justify-center space-x-4">
-                                <c-button v-if="contentData.name.length >= 3 && SiteSettings.enable_metadata_recommendation" @click="findRecommendedMetadata" :loading="loadingRecommendations">
+                                <c-button v-if="contentData.name.length >= 3 && SiteSettings.enable_metadata_recommendation"
+                                    @click="findRecommendedMetadata" :loading="loadingRecommendations">
                                     <SparklesIcon :size="18" class="icon" v-if="!loadingRecommendations" />
                                     Find recommended metadata
                                 </c-button>
@@ -87,7 +91,8 @@
                                 </c-button>
                             </div>
 
-                            <RecommendedMetadataModal ref="metadataModal" :content="recommendedContent" @select-content="recommendedMetadataSelected" />
+                            <RecommendedMetadataModal ref="metadataModal" :content="recommendedContent"
+                                @select-content="recommendedMetadataSelected" />
 
 
                         </DialogPanel>
@@ -129,7 +134,7 @@ const contentData = ref({
     content_type: '',
     content_description: '',
     content_cover: '',
-    content_banner: '' 
+    content_banner: '',
 })
 const recommendedContent = ref(null)
 const metadataModal = ref()

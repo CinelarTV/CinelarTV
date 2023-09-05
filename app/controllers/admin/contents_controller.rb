@@ -49,11 +49,14 @@ module Admin
 
     def show
       @content = Content.find(params[:id])
+      @seasons = @content.seasons if @content.content_type == "TVSHOW"
       respond_to do |format|
         format.html
         format.json do
           render json: {
-                   data: @content.as_json,
+                   data: @content.as_json.merge({
+                     seasons: @seasons&.map { |s| { id: s.id, title: s.title, description: s.description } },
+                   }),
                  }
         end
       end
@@ -78,6 +81,17 @@ module Admin
                    },
                  }
         end
+      end
+    end
+
+    def create_season
+      @content = Content.find(params[:content_id])
+      @season = @content.seasons.new(season_params)
+
+      if @season.save
+        render json: { season: @season }, status: :created
+      else
+        render json: { errors: @season.errors.full_messages }, status: :unprocessable_entity
       end
     end
 
@@ -159,6 +173,10 @@ module Admin
 
     def content_params
       params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, category_ids: [])
+    end
+
+    def season_params
+      params.require(:season).permit(:title, :description)
     end
 
     def set_content

@@ -13,6 +13,9 @@ class Content < ApplicationRecord
   validates_inclusion_of :content_type, in: ["TVSHOW", "MOVIE"]
   validates :year, numericality: { only_integer: true }, allow_nil: true
 
+  # On destroy, delete the associated seasons
+  before_destroy :delete_seasons
+
   def self.search(title)
     where("LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)", "%#{title}%", "%#{title}%")
   end
@@ -32,5 +35,9 @@ class Content < ApplicationRecord
 
   def add_season(season)
     seasons << season
+  end
+
+  def delete_seasons
+    seasons.destroy_all
   end
 end

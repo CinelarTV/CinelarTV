@@ -6,7 +6,6 @@ class Season < ApplicationRecord
   has_many :episodes
 
   validates :title, presence: true
-  validates :description, presence: true
 
   before_destroy :delete_episodes
 
