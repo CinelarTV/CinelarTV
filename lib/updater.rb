@@ -28,7 +28,7 @@ module CinelarTV
     end
 
     def self.log(message)
-      output = output + message + "\n"
+      output << message + "\n"
       publish "log", message + "\n"
     end
 
