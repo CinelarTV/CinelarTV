@@ -5,10 +5,12 @@ Rails.application.config do |config|
 
   MessageBus.user_id_lookup do |env|
     req = Rack::Request.new(env)
+    puts "req.session: #{req.session}"
+
     if req.session && req.session["warden.user.user.key"] && req.session["warden.user.user.key"][0][0]
       user = User.find(req.session["warden.user.user.key"][0][0])
       user.id
-      Rails.logger.info "MessageBus.user_id_lookup: #{user.id}"
+      puts "user.id: #{user.id}"
     end
   end
 end
