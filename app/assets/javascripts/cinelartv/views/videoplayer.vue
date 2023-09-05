@@ -1,7 +1,8 @@
 <template>
   <div class="video-player-container">
     <video ref="myVideoPlayer" class="fluid-video" controls muted>
-      <source src="https://ia801502.us.archive.org/31/items/KM-UCMK-V720/Kallys%20Mashup%20UCMK%20V2.mp4" type="video/mp4" />
+      <source src="https://ia801502.us.archive.org/31/items/KM-UCMK-V720/Kallys%20Mashup%20UCMK%20V2.mp4"
+        type="video/mp4" />
     </video>
 
   </div>
@@ -25,9 +26,13 @@ onMounted(() => {
   document.body.classList.add('video-player');
   const options = {
     "layoutControls": {
+      miniPlayer: {
+        enabled: false
+      },
       "controlBar": { "autoHideTimeout": 3, "animated": true, "autoHide": true },
       "htmlOnPauseBlock": { "html": null, "height": "", "width": null }, "autoPlay": true, "mute": false, "allowTheatre": false, "playPauseAnimation": true, "playbackRateEnabled": false, "allowDownload": false, "playButtonShowing": true, "fillToContainer": false, "posterImage": ""
-    }, "vastOptions": { "adList": [], "adCTAText": false, "adCTATextPosition": "" }
+    }, "vastOptions": { "adList": [], "adCTAText": false, "adCTATextPosition": "" },
+
   }
 
   fluidPlayer(myVideoPlayer.value, options);
@@ -44,8 +49,9 @@ onMounted(() => {
   myVideoPlayer.value.addEventListener('timeupdate', async () => {
     if (Date.now() - lastDataSent.value > 5000) {
       lastDataSent.value = Date.now();
-      console.log('[Continnum] Sending current position to server...', myVideoPlayer.value.currentTime, ' / ', myVideoPlayer.value.duration);
-      await sendCurrentPosition();
+      if (myVideoPlayer.value.currentTime > 1) { // Don't send data if the video is just starting
+        await sendCurrentPosition();
+      }
     }
   });
 
@@ -78,6 +84,7 @@ const sendCurrentPosition = async () => {
       progress: myVideoPlayer.value.currentTime,
       duration: myVideoPlayer.value.duration
     });
+    console.log('[Continnum] Current position sent to server (Progress: ' + myVideoPlayer.value.currentTime + ' / ' + myVideoPlayer.value.duration + ')')
   } catch (error) {
     console.error(error);
   }
@@ -143,6 +150,4 @@ document.addEventListener('contextmenu', (e) => {
   outline: none;
 }
 
-.video-player-container {
-  height: 100%;
-}</style>
+</style>

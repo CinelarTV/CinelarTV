@@ -216,7 +216,7 @@ customization:
   tertiary_color:
     client: true
     refresh: true
-    default: "#181818FF"
+    default: "#0084F0FF"
     type: color
   quaternary_color:
     client: true

@@ -10,6 +10,14 @@ body.video-player main {
     height: 100%;
 }
 
+body.video-player #c-progress {
+    display: none!important;
+}
+
+.fluid_video_wrapper {
+    height: 100%!important;
+    width: 100%!important;
+}
 
 .fluid_video_wrapper.fluid_player_layout_default .fluid_controls_container .fluid_controls_progress_container .fluid_controls_buffered {
     height: 7px;

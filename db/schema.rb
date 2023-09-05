@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_04_233750) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_05_003336) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -40,8 +40,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_04_233750) do
     t.uuid "profile_id", null: false
     t.uuid "content_id", null: false
     t.uuid "episode_id"
-    t.decimal "progress", default: "0.0", null: false
-    t.decimal "duration", default: "0.0", null: false
+    t.float "progress", default: 0.0, null: false
+    t.float "duration", default: 0.0, null: false
     t.datetime "last_watched_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.boolean "finished", default: false, null: false
     t.datetime "created_at", null: false

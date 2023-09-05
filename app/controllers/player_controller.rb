@@ -17,23 +17,35 @@ class PlayerController < ApplicationController
       when "MOVIE"
         # No se requiere ningún procesamiento adicional para películas.
       end
-    end
 
-    respond_to do |format|
-      format.html
-      format.json do
-        if @content
-          data = {
-            content: @content.as_json(except: %i[created_at updated_at]),
-            episode: @episode&.as_json(except: %i[created_at updated_at]),
-            season: @season&.as_json(except: %i[created_at updated_at]),
-          }
-          render json: { data: data }
-        else
-          render json: {
-                   errors: ["Content not found"],
-                   error_type: "content_not_found",
-                 }
+      profile = Profile.find_by(id: session[:current_profile_id])
+
+      # Si profile existe, encuentra o crea un registro ContinueWatching
+      if profile && @content
+        continue_watching = ContinueWatching.find_or_create_by(
+          profile_id: profile.id,
+          content_id: @content.id,
+          episode_id: @episode&.id,
+        )
+      end
+
+      respond_to do |format|
+        format.html
+        format.json do
+          if @content
+            data = {
+              content: @content.as_json(except: %i[created_at updated_at]),
+              episode: @episode&.as_json(except: %i[created_at updated_at]),
+              season: @season&.as_json(except: %i[created_at updated_at]),
+              continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id id]),
+            }
+            render json: { data: data }
+          else
+            render json: {
+                     errors: ["Content not found"],
+                     error_type: "content_not_found",
+                   }
+          end
         end
       end
     end
@@ -42,13 +54,6 @@ class PlayerController < ApplicationController
   def update_current_progress
     profile_id = Profile.find_by(id: session[:current_profile_id])&.id
     @content = Content.find_by(id: params[:id])
-
-    Rails.logger.info "Profile ID: #{profile_id}"
-    Rails.logger.info "Content ID: #{params[:id]}"
-    Rails.logger.info "Episode ID: #{params[:episode_id]}" if params[:episode_id]
-    Rails.logger.info "Progress: #{params[:progress]}"
-    Rails.logger.info "Duration: #{params[:duration]}"
-    Rails.logger.info "Content Type: #{@content&.content_type}"
 
     if @content
       if @content.content_type == "TVSHOW"
