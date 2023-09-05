@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# frozen_string_literal: false
 
 # lib/update.rb
 
@@ -28,7 +28,7 @@ module CinelarTV
     end
 
     def self.log(message)
-      output << message + "\n"
+      @output << message + "\n"
       publish "log", message + "\n"
     end
 
@@ -74,11 +74,7 @@ module CinelarTV
     end
 
     def self.output
-      @output
-    end
-
-    def self.output=(value)
-      @output = value
+      @output.join("")
     end
 
     def self.run_update
