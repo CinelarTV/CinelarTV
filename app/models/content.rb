@@ -8,6 +8,9 @@ class Content < ApplicationRecord
 
   has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"
 
+  include SimpleRecommender::Recommendable
+  similar_by :liking_profiles
+
   validates :title, presence: true
   validates :content_type, presence: true
   validates_inclusion_of :content_type, in: ["TVSHOW", "MOVIE"]

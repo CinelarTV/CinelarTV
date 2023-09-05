@@ -54,14 +54,14 @@
             </section>
 
             <section id="main-content">
-                <template v-for="(contentArray, categoryName) in homepage.content">
+                <template v-for="category in homepage.content">
                     <h3 class="text-2xl font-bold mb-4">
-                        {{ categoryName }}
+                        {{ category.title }}
                     </h3>
 
-                    <div class="recyclerview">
+                    <div class="recyclerview" v-if="category.content">
                         <ul>
-                            <li v-for="data in contentArray" :key="data.id" class="content-item">
+                            <li v-for="data in category.content" :key="data.id" class="content-item">
                                 <article class="recyclerview-card-article">
                                     <div class="content-card">
                                         <img :src="data.banner" alt="Cover Image" />

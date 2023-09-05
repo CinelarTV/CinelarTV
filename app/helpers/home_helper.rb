@@ -4,7 +4,22 @@ module HomeHelper
   def homepage_data
     liked_contents_ids = current_profile&.liked_contents&.pluck(:id)
 
-    added_recently = Content.where("created_at > ?", 3.week.ago).limit(15).map do |content| # El contenido con menos de 3 semanas de antiguedad se considera reciente
+    random_liked = Content.where(id: liked_contents_ids).order("RANDOM()").limit(1).first
+    recommended_based_on_liked = nil
+    Rails.logger.info("random_liked: #{random_liked}")
+    if random_liked.present?
+      recommended_based_on_liked = random_liked.similar_items&.map do |content|
+        {
+          id: content.id,
+          title: content.title,
+          description: content.description,
+          banner: content.banner,
+          liked: liked_contents_ids&.include?(content.id),
+        }
+      end
+    end
+
+    added_recently = Content.where("created_at > ?", 3.week.ago).limit(15).map do |content|
       {
         id: content.id,
         title: content.title,
@@ -24,10 +39,24 @@ module HomeHelper
           liked: liked_contents_ids&.include?(content.id),
         }
       end,
-      content: {
-        added_recently: added_recently,
-      },
+      recommended_based_on_liked: recommended_based_on_liked.present? ? random_liked.title : nil,
+      content: [
+        {
+          title: "Agregados recientemente",
+          content: added_recently,
+        },
+      ],
     }
+
+    if recommended_based_on_liked.present? && !recommended_based_on_liked.empty?
+      @homepage_data[:content].insert(
+        0,
+        {
+          title: "Porque te gustó #{random_liked.title}",
+          content: recommended_based_on_liked,
+        }
+      )
+    end
 
     @homepage_data
   end
