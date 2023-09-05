@@ -149,5 +149,4 @@ document.addEventListener('contextmenu', (e) => {
 .custom-controls button:focus {
   outline: none;
 }
-
 </style>
