@@ -55,7 +55,7 @@
 
             <section id="main-content">
                 <template v-for="category in homepage.content">
-                    <h3 class="text-2xl font-bold mb-4">
+                    <h3 class="text-2xl font-bold mt-8 mb-2 ml-6">
                         {{ category.title }}
                     </h3>
 
@@ -63,9 +63,16 @@
                         <ul>
                             <li v-for="data in category.content" :key="data.id" class="content-item">
                                 <article class="recyclerview-card-article">
-                                    <div class="content-card">
-                                        <img :src="data.banner" alt="Cover Image" />
-                                    </div>
+                                    <section class="recyclerview-card-article__section">
+                                        <div class="recyclerview-card-article__element">
+                                            <RouterLink :to="`/contents/${data.id}`">
+                                                <div class="recyclerview-card-article__image" style="aspect-ratio:16/9">
+                                                    <img :src="data.banner" alt="Cover Image" />
+                                                </div>
+                                            </RouterLink>
+                                        </div>
+
+                                    </section>
                                 </article>
                             </li>
                         </ul>
@@ -124,32 +131,32 @@ const showInfo = (id) => {
 };
 
 const toggleLike = async (id, fromBanner = false) => {
-  if (currentUser) {
-    let content;
-    const targetArray = fromBanner ? homepage.value.banner_content : homepage.value.content;
-    
-    content = targetArray.find((item) => item.id === id);
+    if (currentUser) {
+        let content;
+        const targetArray = fromBanner ? homepage.value.banner_content : homepage.value.content;
 
-    if (content) {
-      try {
-        if (content.liked) {
-          await $http.post(`/contents/${id}/unlike.json`);
-          toast.success($t('js.homepage.removed_from_favorites'));
+        content = targetArray.find((item) => item.id === id);
+
+        if (content) {
+            try {
+                if (content.liked) {
+                    await $http.post(`/contents/${id}/unlike.json`);
+                    toast.success($t('js.homepage.removed_from_favorites'));
+                } else {
+                    await $http.post(`/contents/${id}/like.json`);
+                    toast.success($t('js.homepage.added_to_favorites'));
+                }
+                content.liked = !content.liked; // Toggle the liked state after the request is successful
+            } catch (error) {
+                console.error(error); // Log the error for debugging
+                toast.error($t('js.homepage.like_error'));
+            }
         } else {
-          await $http.post(`/contents/${id}/like.json`);
-          toast.success($t('js.homepage.added_to_favorites'));
+            console.error(`Content with id ${id} not found`);
         }
-        content.liked = !content.liked; // Toggle the liked state after the request is successful
-      } catch (error) {
-        console.error(error); // Log the error for debugging
-        toast.error($t('js.homepage.like_error'));
-      }
     } else {
-      console.error(`Content with id ${id} not found`);
+        toast.error($t('js.homepage.login_required'));
     }
-  } else {
-    toast.error($t('js.homepage.login_required'));
-  }
 };
 
 
@@ -241,7 +248,7 @@ onMounted(async () => {
         homepageData.value = null; // Clear after load preloaded data
     }
 
-    if(SiteSettings.enable_carousel) {
+    if (SiteSettings.enable_carousel) {
         startAutoScroll();
     }
 });

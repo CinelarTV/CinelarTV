@@ -39,7 +39,6 @@ module HomeHelper
           liked: liked_contents_ids&.include?(content.id),
         }
       end,
-      recommended_based_on_liked: recommended_based_on_liked.present? ? random_liked.title : nil,
       content: [
         {
           title: "Agregados recientemente",
@@ -53,7 +52,7 @@ module HomeHelper
         0,
         {
           title: "Porque te gustó #{random_liked.title}",
-          content: recommended_based_on_liked,
+          content: recommended_based_on_liked.shuffle,
         }
       )
     end

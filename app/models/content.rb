@@ -16,8 +16,9 @@ class Content < ApplicationRecord
   validates_inclusion_of :content_type, in: ["TVSHOW", "MOVIE"]
   validates :year, numericality: { only_integer: true }, allow_nil: true
 
-  # On destroy, delete the associated seasons
+  # On destroy, delete the associated and continue watching
   before_destroy :delete_seasons
+  before_destroy :delete_associated_continue_watching
 
   def self.search(title)
     where("LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)", "%#{title}%", "%#{title}%")
@@ -42,5 +43,9 @@ class Content < ApplicationRecord
 
   def delete_seasons
     seasons.destroy_all
+  end
+
+  def delete_associated_continue_watching
+    ContinueWatching.where(content_id: id).destroy_all
   end
 end
