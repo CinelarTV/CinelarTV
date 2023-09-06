@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_05_174333) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_06_014033) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -35,6 +35,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_05_174333) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "trailer_url"
+    t.boolean "available"
   end
 
   create_table "continue_watchings", force: :cascade do |t|
