@@ -8,6 +8,8 @@ const ICON_MAP = [
     "loader",
     "playCircle",
     "plus",
+    "info",
+    "thumbsUp",
 ];
 
 
