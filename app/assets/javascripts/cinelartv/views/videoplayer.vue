@@ -1,10 +1,14 @@
 <template>
-  <div class="video-player-container">
-    <video ref="myVideoPlayer" class="fluid-video" controls muted v-if="data">
-      <source :src="data.content.url"
-        type="video/mp4" />
+  <div class="video-player-container" @click="toggleOverlay" @mousemove="toggleOverlay" v-if="data">
+    <video ref="ctvPlayer" class="ctv-player" controls muted>
+      <source :src="data.content.url" type="video/mp4" />
     </video>
 
+    <div class="custom-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen">
+      <p>Contenido del overlay personalizado</p>
+      <button @click="togglePlayPause">Reproducir/Pausar</button>
+      <button @click="toggleMute">Activar/Silenciar</button>
+    </div>
   </div>
 </template>
 
@@ -13,7 +17,7 @@ import { ref, onMounted } from 'vue';
 import fluidPlayer from 'fluid-player';
 import { useRoute } from 'vue-router';
 
-const myVideoPlayer = ref(null);
+const ctvPlayer = ref(null);
 const showOverlay = ref(true);
 const isPlaying = ref(false);
 const isMuted = ref(false);
@@ -24,17 +28,14 @@ const route = useRoute();
 const videoId = route.params.id;
 const episodeId = route.query.episodeId;
 const data = ref(null);
-
+const autoHideOverlay = ref()
+const fluidplayer = ref(null)
 
 const fetchData = async () => {
   try {
     const response = await axios.get(`/watch/${videoId}.json`);
     console.log(response.data);
     data.value = response.data.data;
-    const { progress, duration } = response.data.data.continue_watching;
-    if (progress > 0) {
-      myVideoPlayer.value.currentTime = progress;
-    }
   } catch (error) {
     console.error(error);
   }
@@ -43,6 +44,12 @@ const fetchData = async () => {
 onMounted(async () => {
   document.body.classList.add('video-player');
   await fetchData();
+
+  const { progress, duration } = data.value.continue_watching;
+  console.log('Progress:', progress);
+  if (progress > 0) {
+    ctvPlayer.value.currentTime = progress;
+  }
 
   const options = {
     "layoutControls": {
@@ -55,58 +62,63 @@ onMounted(async () => {
 
   }
 
-  fluidPlayer(myVideoPlayer.value, options);
+  fluidplayer.value = fluidPlayer(ctvPlayer.value, options);
 
 
-  myVideoPlayer.value.addEventListener('play', () => {
+  ctvPlayer.value.addEventListener('play', () => {
     isPlaying.value = true;
   });
 
-  myVideoPlayer.value.addEventListener('pause', () => {
+  ctvPlayer.value.addEventListener('pause', () => {
     isPlaying.value = false;
   });
 
   // On position change, send time to server (Every 5 seconds to avoid overloading the server)
-  myVideoPlayer.value.addEventListener('timeupdate', async () => {
+  ctvPlayer.value.addEventListener('timeupdate', async () => {
     if (Date.now() - lastDataSent.value > 5000) {
       lastDataSent.value = Date.now();
-      if (myVideoPlayer.value.currentTime > 1) { // Don't send data if the video is just starting
+      if (ctvPlayer.value.currentTime > 1) { // Don't send data if the video is just starting
         await sendCurrentPosition();
       }
     }
   });
 
   // Remove muted attribute on load
-  myVideoPlayer.value.removeAttribute('muted');
-  myVideoPlayer.value.muted = false;
+  ctvPlayer.value.removeAttribute('muted');
+  ctvPlayer.value.muted = false;
+
+  toggleOverlay(); // Hide overlay on load
 });
 
-const togglePlayPause = () => {
-  if (myVideoPlayer.value) {
-    if (isPlaying.value) {
-      myVideoPlayer.value.pause();
-    } else {
-      myVideoPlayer.value.play();
-    }
-    isPlaying.value = !isPlaying.value;
+const toggleOverlay = () => {
+  if (!showOverlay.value) {
+    // Mostrar overlay y configurar el temporizador para ocultarlo después de 3 segundos
+    showOverlay.value = true;
+    autoHideOverlay.value = setTimeout(() => {
+      showOverlay.value = false;
+    }, 3000);
+  } else {
+    // Si ya está visible, simplemente reiniciar el temporizador
+    clearTimeout(autoHideOverlay.value);
+    autoHideOverlay.value = setTimeout(() => {
+      showOverlay.value = false;
+    }, 3000);
   }
 };
 
-const toggleMute = () => {
-  if (myVideoPlayer.value) {
-    myVideoPlayer.value.muted = !myVideoPlayer.value.muted;
-    isMuted.value = myVideoPlayer.value.muted;
-  }
-};
+
+
+
+
 
 const sendCurrentPosition = async () => {
   try {
     await axios.put(`/watch/${videoId}/progress.json`, {
-      progress: myVideoPlayer.value.currentTime,
-      duration: myVideoPlayer.value.duration,
+      progress: ctvPlayer.value.currentTime,
+      duration: ctvPlayer.value.duration,
       episodeId: episodeId
     });
-    console.log('[Continnum] Current position sent to server (Progress: ' + myVideoPlayer.value.currentTime + ' / ' + myVideoPlayer.value.duration + ')')
+    console.log('[Continnum] Current position sent to server (Progress: ' + ctvPlayer.value.currentTime + ' / ' + ctvPlayer.value.duration + ')')
   } catch (error) {
     console.error(error);
   }
@@ -116,22 +128,35 @@ document.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 });
 
+const toggleFullscreen = () => {
+  // We need to fullscreen all the document, not just the video element (Because of the custom overlay)
+  document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+};
 
+
+const togglePlayPause = () => {
+  if (ctvPlayer.value) {
+    if (isPlaying.value) {
+      ctvPlayer.value.pause();
+    } else {
+      ctvPlayer.value.play();
+    }
+    isPlaying.value = !isPlaying.value;
+  }
+};
+
+const toggleMute = () => {
+  if (ctvPlayer.value) {
+    ctvPlayer.value.muted = !ctvPlayer.value.muted;
+    isMuted.value = ctvPlayer.value.muted;
+  }
+};
+
+// ... (código existente)
 </script>
 
-<style scoped>
-@import "fluid-player/src/css/fluidplayer.css";
-
-.video-player-container {
-  position: relative;
-}
-
-.fluid-video {
-  width: 100%;
-  height: 100%;
-}
-
-
+<style>
+/* Estilos para el overlay personalizado */
 .custom-overlay {
   position: absolute;
   top: 0;
@@ -140,35 +165,45 @@ document.addEventListener('contextmenu', (e) => {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  opacity: 0.9;
-  transition: opacity 0.3s ease-in-out;
-}
-
-.overlay-content {
-  text-align: center;
   color: white;
-  padding: 20px;
+  opacity: 1;
+  /* Inicialmente visible */
+  transition: opacity 0.3s ease;
+  /* Efecto de desvanecimiento */
 }
 
-.custom-controls {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.custom-controls button {
-  background-color: transparent;
-  border: none;
-  color: white;
+.custom-overlay p {
   font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.custom-overlay button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
   cursor: pointer;
 }
 
-.custom-controls button:focus {
-  outline: none;
+.custom-overlay button:hover {
+  background-color: #0056b3;
+}
+
+.overlay--hidden {
+  opacity: 0;
+}
+
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
 }
 </style>

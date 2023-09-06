@@ -10,6 +10,13 @@ body.video-player main {
     height: 100%;
 }
 
+.video-player-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
 body.video-player #c-progress {
     display: none!important;
 }
