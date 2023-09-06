@@ -17,6 +17,8 @@ body.content-route {
   background-position: center center;
   background-size: cover;
   background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.5s;
 
   &::after {
     content: "";
@@ -27,6 +29,10 @@ body.content-route {
     height: 650px;
     background: linear-gradient(54deg,rgba(18,18,18,.8) 15%,transparent 60%),linear-gradient(333deg,rgba(18,18,18,.8) 10%,transparent 60%),linear-gradient(180deg,rgba(18,18,18,0) 20%,#121212);
   }
+}
+
+.content-overview .banner-wrapper.banner-loaded {
+  opacity: 1;
 }
 
 
