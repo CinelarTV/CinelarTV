@@ -1,0 +1,5 @@
+<meta property="og:title" content="<%= defined?(@title) ? "#{@title} | #{SiteSetting.site_name}" : SiteSetting.site_name %>" />
+<% unless SiteSetting.site_description.blank? %>
+  <meta property="og:description" content="<%= defined?(@description) ? @description : '' %>" />
+<% end %>
+<meta property="og:image" content="<%= defined?(@banner) ? @banner : '' %>" />

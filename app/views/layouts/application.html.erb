@@ -28,6 +28,7 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%= render partial: "partials/opengraph" %>
   </head>
   <body class="app-body<% if device == "mobile" %> is-mobile<% end %>">
     <cinelar-assets>
