@@ -5,6 +5,13 @@
     </video>
 
     <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen">
+      <section class="back-button">
+        <router-link :to="`/contents/${data.content.id}`">
+          <c-button class="bg-red-500" icon="chevron-left">
+            {{ $t('js.video_player.back') }}
+          </c-button>
+        </router-link>        
+      </section>
       <section class="video-info">
         <h1 class="video-title">
           {{ data.content.title }}
@@ -263,6 +270,12 @@ const formatTime = (time) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
 }
 
 .video-progress-bar {

@@ -10,6 +10,7 @@ const ICON_MAP = [
     "plus",
     "info",
     "thumbsUp",
+    "chevronLeft",
 ];
 
 
