@@ -26,8 +26,7 @@
                                                     Reproducir ahora
                                                 </c-button>
 
-                                                <c-button @click="addToCollection(item.id)">
-                                                    <PlusIcon class="icon" :size="18" />
+                                                <c-button @click="addToCollection(item.id)" icon="plus">
                                                     Mi Colección
                                                 </c-button>
 

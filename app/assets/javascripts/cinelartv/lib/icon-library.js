@@ -7,7 +7,7 @@ const ICON_MAP = [
     "wrench",
     "loader",
     "playCircle",
-
+    "plus",
 ];
 
 
