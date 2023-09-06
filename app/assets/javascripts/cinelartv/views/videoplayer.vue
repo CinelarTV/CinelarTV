@@ -28,11 +28,18 @@
       </section>
 
       <section class="video-progress">
-        <input type="range" class="video-progress-bar" min="0" max="100" step="0.01" :value="currentPlayback.currentTime / 100" 
-        @input="seekTo($event.target.value * 100)"
-        />
-        <div class="progress-popup" v-if="showPopup">{{ currentPlayback.currentTime }}</div>
-        <div class="buffer-progress" :style="{ width: currentPlayback.buffer + '%' }"></div>
+
+        <input type="range" class="video-progress-bar" min="0" max="100" step="0.01"
+          :value="currentPlayback.currentTime / 100" @input="seekTo($event.target.value * 100)" />
+        <div class="progress-info">
+          <span class="video-time">
+            {{ formatTime(currentPlayback.currentTime) }}
+            <span class="remaining-time" v-if="currentPlayback.duration">
+              / {{ formatTime(currentPlayback.duration) }}
+            </span>
+          </span>
+        </div>
+
       </section>
     </div>
   </div>
@@ -193,6 +200,16 @@ const toggleMute = () => {
   }
 };
 
+const formatTime = (time) => {
+  const hours = Math.floor(time / 3600);
+  const minutes = Math.floor((time - (hours * 3600)) / 60);
+  const seconds = Math.floor(time - (hours * 3600) - (minutes * 60));
+
+  const formattedTime = `${hours > 0 ? hours + ':' : ''}${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+  return formattedTime;
+};
+
+
 // ... (código existente)
 </script>
 
@@ -226,24 +243,10 @@ const toggleMute = () => {
 .ctv-overlay .video-info .video-title {
   font-size: 24px;
   margin-bottom: 10px;
+  font-weight: 600;
 }
 
-.custom-overlay p {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
 
-.custom-overlay button {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-}
-
-.custom-overlay button:hover {
-  background-color: #0056b3;
-}
 
 .overlay--hidden {
   opacity: 0;
@@ -256,13 +259,30 @@ const toggleMute = () => {
   bottom: 32px;
   padding-left: 50px;
   padding-right: 50px;
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .video-progress-bar {
   width: 100%;
-  height: 10px;
+  height: 3px;
   background-color: #333;
+  cursor: pointer;
+}
+
+.progress-info {
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+}
+
+.remaining-time {
+  opacity: 0.5;
+  font-weight: 600;
 }
 
 .progress-popup {
