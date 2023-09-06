@@ -32,8 +32,7 @@ module CinelarTV
       @admin_profile_ids = User.with_role(:admin).joins(:profiles).pluck("profiles.id").uniq
 
       MessageBus.publish("/admin/upgrade",
-                         { type:, value: },
-                         user_ids: [@admin_profile_ids])
+                         { type:, value: })
     end
 
     def self.percent(val)
