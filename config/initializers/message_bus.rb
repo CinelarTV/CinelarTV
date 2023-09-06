@@ -2,7 +2,7 @@
 
 # config/initializers/message_bus.rb
 
-MessageBus.configure(backend: :memory)
+# MessageBus.configure(backend: :memory)
 
 MessageBus.user_id_lookup do |env|
   # Get current profile from the session
