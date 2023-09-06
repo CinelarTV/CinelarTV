@@ -35,7 +35,6 @@
                             Save
                         </c-button>
 
-
                     </form>
 
                     <c-button class="bg-red-500" @click="deleteContent" :icon="Trash2Icon">
