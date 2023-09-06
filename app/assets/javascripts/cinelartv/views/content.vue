@@ -18,7 +18,7 @@
             <p>{{ contentData.content.description }}</p>
           </div>
           <div class="content-actions" v-if="contentData.content.available">
-            <c-button :icon="PlayCircleIcon" class="bg-blue-500 hover:bg-blue-600 text-white" @click="playContent">
+            <c-button icon="play-circle" class="bg-blue-500 hover:bg-blue-600 text-white" @click="playContent">
               Reproducir
             </c-button>
           </div>
@@ -73,6 +73,15 @@ const getContent = async () => {
 onBeforeUnmount(() => {
   document.body.classList.remove('content-route')
 })
+
+const playContent = () => {
+  if(contentData.value.content.content_type === 'MOVIE') {
+    router.push(`/watch/${contentData.value.content.id}`)
+  } else {
+    router.push(`/watch/${contentData.value.content.id}?episodeId=${contentData.value.content.seasons[0].episodes[0].id}`)
+  }
+}
+    
 
 const preloadTrailer = async (trailerSrc) => {
   // Pre-cargar el tráiler para mejorar la experiencia del usuario
