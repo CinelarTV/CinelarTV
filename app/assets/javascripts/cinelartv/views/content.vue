@@ -6,43 +6,24 @@
       </div>
       <div v-else>
         <div class="content-overview" :data-content-id="contentData.content.id">
-          <!-- Banner con overlay de info o tráiler -->
-          <div class="banner-container">
-            <img
-              class="banner-image"
-              :src="contentData.content.banner"
-              alt="Banner del contenido"
-              v-if="!showTrailer"
-            />
-            <video
-              ref="trailerVideo"
-              class="banner-image"
-              v-else
-              controls
-              autoplay
-            >
-              <source :src="contentData.trailer" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <div class="banner-overlay">
-              <!-- Contenido del overlay, como título y descripción -->
-              <h2 class="text-2xl font-bold mb-4">{{ contentData.content.title }}</h2>
+          <div class="banner-wrapper" :style="`background-image: url('${contentData.content.banner}')`">
+            
+          </div>
+
+          <div class="content-details">
+            <div class="content-title">
+              <h1>{{ contentData.content.title }}</h1>
+            </div>
+            <div class="content-description">
               <p>{{ contentData.content.description }}</p>
             </div>
+            <div class="content-actions">
+              <c-button :icon="PlayCircleIcon" class="bg-blue-500 hover:bg-blue-600 text-white" @click="playContent">
+                Reproducir
+              </c-button>
+            </div>
           </div>
-  
-          <!-- Muestra el selector de temporadas si el contenido es de tipo TVSHOW -->
-          <div v-if="contentData.content.content_type === 'TVSHOW'">
-            <h3 class="text-xl font-bold mt-4">Temporadas</h3>
-            <ul>
-              <li v-for="season in contentData.seasons" :key="season.id">
-                <router-link :to="`/content/${contentData.content.id}/season/${season.id}`">
-                  Temporada {{ season.number }}
-                </router-link>
-              </li>
-            </ul>
-          </div>
-  
+         
           <!-- Agrega más detalles del contenido aquí -->
         </div>
       </div>
@@ -50,8 +31,9 @@
   </template>
   
   <script setup>
-  import { onMounted, ref, watch } from 'vue'
+  import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { PlayCircleIcon } from 'lucide-vue-next'
   import { useHead } from 'unhead'
   import axios from 'axios'
   
@@ -61,6 +43,8 @@
   const loading = ref(true)
   const contentData = ref(null)
   const showTrailer = ref(false)
+
+  document.body.classList.add('content-route')
   
   const getContent = async () => {
     try {
@@ -80,6 +64,10 @@
       }
     }
   }
+
+  onBeforeUnmount(() => {
+    document.body.classList.remove('content-route')
+  })
   
   const preloadTrailer = async (trailerSrc) => {
   // Pre-cargar el tráiler para mejorar la experiencia del usuario
