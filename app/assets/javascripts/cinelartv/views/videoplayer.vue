@@ -4,11 +4,40 @@
       <source :src="data.content.url" type="video/mp4" />
     </video>
 
-    <div class="custom-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen">
-      <p>Contenido del overlay personalizado</p>
-      <button @click="togglePlayPause">Reproducir/Pausar</button>
-      <button @click="toggleMute">Activar/Silenciar</button>
+    <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen">
+      <section class="video-info">
+        <h1 class="video-title">
+          {{ data.content.title }}
+          <span class="video-episode" v-if="data.content.episode_number">
+            {{ $t('js.video_player.episode') }} {{ data.content.episode_number }}
+          </span>
+        </h1>
+        <p class="video-description">{{ videoDescription }}</p>
+      </section>
+      <section class="video-controls">
+        <button class="video-control" @click="togglePlayPause">
+          play
+        </button>
+        <button class="video-control" @click="toggleMute">
+          <i class="fas fa-volume-up" v-if="!isMuted"></i>
+          <i class="fas fa-volume-mute" v-else></i>
+        </button>
+        <button class="video-control" @click="toggleFullscreen">
+          <i class="fas fa-expand"></i>
+        </button>
+      </section>
+
+      <section class="video-progress">
+        <input type="range" class="video-progress-bar" min="0" max="100" step="0.01" :value="currentPlayback.currentTime / 100" 
+        @input="seekTo($event.target.value * 100)"
+        />
+        <div class="progress-popup" v-if="showPopup">{{ currentPlayback.currentTime }}</div>
+        <div class="buffer-progress" :style="{ width: currentPlayback.buffer + '%' }"></div>
+      </section>
     </div>
+  </div>
+  <div v-else>
+    <c-spinner />
   </div>
 </template>
 
@@ -21,8 +50,6 @@ const ctvPlayer = ref(null);
 const showOverlay = ref(true);
 const isPlaying = ref(false);
 const isMuted = ref(false);
-const videoTitle = 'Video Title';
-const videoDescription = 'Video Description';
 const lastDataSent = ref(null);
 const route = useRoute();
 const videoId = route.params.id;
@@ -30,6 +57,10 @@ const episodeId = route.query.episodeId;
 const data = ref(null);
 const autoHideOverlay = ref()
 const fluidplayer = ref(null)
+const currentPlayback = ref({
+  currentTime: 0,
+  duration: 0
+})
 
 const fetchData = async () => {
   try {
@@ -75,6 +106,8 @@ onMounted(async () => {
 
   // On position change, send time to server (Every 5 seconds to avoid overloading the server)
   ctvPlayer.value.addEventListener('timeupdate', async () => {
+    currentPlayback.value.currentTime = ctvPlayer.value.currentTime
+    currentPlayback.value.duration = ctvPlayer.value.duration
     if (Date.now() - lastDataSent.value > 5000) {
       lastDataSent.value = Date.now();
       if (ctvPlayer.value.currentTime > 1) { // Don't send data if the video is just starting
@@ -89,6 +122,14 @@ onMounted(async () => {
 
   toggleOverlay(); // Hide overlay on load
 });
+
+const seekTo = (time) => {
+  ctvPlayer.value.currentTime = time;
+  currentPlayback.value.currentTime = time
+  if (ctvPlayer.value.paused) {
+    ctvPlayer.value.play();
+  }
+};
 
 const toggleOverlay = () => {
   if (!showOverlay.value) {
@@ -157,7 +198,7 @@ const toggleMute = () => {
 
 <style>
 /* Estilos para el overlay personalizado */
-.custom-overlay {
+.ctv-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -173,6 +214,18 @@ const toggleMute = () => {
   /* Inicialmente visible */
   transition: opacity 0.3s ease;
   /* Efecto de desvanecimiento */
+}
+
+.ctv-overlay .video-info {
+  position: absolute;
+  padding: 20px;
+  margin: 0 auto;
+  top: 0;
+}
+
+.ctv-overlay .video-info .video-title {
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
 .custom-overlay p {
@@ -194,6 +247,50 @@ const toggleMute = () => {
 
 .overlay--hidden {
   opacity: 0;
+}
+
+.video-progress {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 32px;
+  padding-left: 50px;
+  padding-right: 50px;
+  
+}
+
+.video-progress-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #333;
+}
+
+.progress-popup {
+  position: absolute;
+  top: -30px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.buffer-progress {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Mostrar el popup al pasar el mouse sobre la barra de progreso */
+.video-progress:hover .progress-popup {
+  opacity: 1;
 }
 
 
