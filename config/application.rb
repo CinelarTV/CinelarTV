@@ -21,13 +21,14 @@ module CinelarTV
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    lib_dir = Rails.root.join('lib')
+    lib_dir = Rails.root.join("lib")
 
     config.autoload_paths << "#{root}/lib"
 
-    require 'cinelar_tv'
+    require "cinelar_tv"
 
     config.active_job.queue_adapter = :sidekiq
-    
+
+    config.middleware.insert_after Warden::Manager, MessageBus::Rack::Middleware
   end
 end

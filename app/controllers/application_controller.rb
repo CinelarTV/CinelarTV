@@ -22,18 +22,32 @@ class ApplicationController < ActionController::Base
   end
 
   def capybara_spin
+    # Log current session from request env
+    @userid = current_user.id.to_s
+    Rails.logger.info("Capybara spin for user #{@userid}")
+    Rails.logger.info("Request env: #{request.env["__mb"]}")
+    MessageBus.publish("/capybara", "spin", user_ids: [1])
     ## Fullscreen video https://www.youtube.com/embed/k-BBfhWLfAQ?si=hA_9OFUrrZba97CQ
-    render html: '
-    <title>CinelarTV</title>
-    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/k-BBfhWLfAQ?autoplay=1&controls=0&showinfo=0&autohide=1&loop=1" frameborder="0" allowfullscreen></iframe>
-    <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-    </style>
-    '.html_safe
+    respond_to do |format|
+      format.html {
+        render html: '
+        <title>CinelarTV</title>
+        <iframe width="100%" height="100%" src="https://www.youtube.com/embed/k-BBfhWLfAQ?autoplay=1&controls=0&showinfo=0&autohide=1&loop=1" frameborder="0" allowfullscreen></iframe>
+        <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+        }
+        </style>
+        '.html_safe
+      }
+      format.json {
+        render json: {
+          message: "Capybara 🦦",
+        }
+      }
+    end
   end
 
   def current_profile
