@@ -1,5 +1,5 @@
 <template>
-  <div class="video-player-container" @click="toggleOverlay" @mousemove="toggleOverlay" v-if="data">
+  <div class="video-player-container" @mousemove="toggleOverlay" v-if="data">
     <video ref="ctvPlayer" class="ctv-player" controls muted>
       <source :src="data.content.url" type="video/mp4" />
     </video>
@@ -22,16 +22,9 @@
         <p class="video-description">{{ videoDescription }}</p>
       </section>
       <section class="video-controls">
-        <button class="video-control" @click="togglePlayPause">
-          play
-        </button>
-        <button class="video-control" @click="toggleMute">
-          <i class="fas fa-volume-up" v-if="!isMuted"></i>
-          <i class="fas fa-volume-mute" v-else></i>
-        </button>
-        <button class="video-control" @click="toggleFullscreen">
-          <i class="fas fa-expand"></i>
-        </button>
+        <c-icon-button class="video-control" icon="rotate-ccw" @click="seekTo(currentPlayback.currentTime - 10)" />
+        <c-icon-button class="video-control" :icon="isPlaying ? 'pause' : 'play'" @click="togglePlayPause" />
+        <c-icon-button class="video-control" icon="rotate-cw" @click="seekTo(currentPlayback.currentTime + 10)" />
       </section>
 
       <section class="video-progress">
@@ -145,7 +138,7 @@ const seekTo = (time) => {
   }
 };
 
-const toggleOverlay = () => {
+const toggleOverlay = (click = false) => {
   if (!showOverlay.value) {
     // Mostrar overlay y configurar el temporizador para ocultarlo después de 3 segundos
     showOverlay.value = true;
@@ -217,123 +210,4 @@ const formatTime = (time) => {
 };
 
 
-// ... (código existente)
 </script>
-
-<style>
-/* Estilos para el overlay personalizado */
-.ctv-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  opacity: 1;
-  /* Inicialmente visible */
-  transition: opacity 0.3s ease;
-  /* Efecto de desvanecimiento */
-}
-
-.ctv-overlay .video-info {
-  position: absolute;
-  padding: 20px;
-  margin: 0 auto;
-  top: 0;
-}
-
-.ctv-overlay .video-info .video-title {
-  font-size: 24px;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-
-
-.overlay--hidden {
-  opacity: 0;
-}
-
-.video-progress {
-  width: 100%;
-  text-align: center;
-  position: absolute;
-  bottom: 32px;
-  padding-left: 50px;
-  padding-right: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
-
-.video-progress-bar {
-  width: 100%;
-  height: 3px;
-  background-color: #333;
-  cursor: pointer;
-}
-
-.progress-info {
-  margin-top: 10px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: left;
-}
-
-.remaining-time {
-  opacity: 0.5;
-  font-weight: 600;
-}
-
-.progress-popup {
-  position: absolute;
-  top: -30px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 14px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.buffer-progress {
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.3);
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-/* Mostrar el popup al pasar el mouse sobre la barra de progreso */
-.video-progress:hover .progress-popup {
-  opacity: 1;
-}
-
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-</style>

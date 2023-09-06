@@ -11,6 +11,17 @@ const ICON_MAP = [
     "info",
     "thumbsUp",
     "chevronLeft",
+    "play",
+    "chevronRight",
+    "chevronDown",
+    "chevronUp",
+    "search",
+    "x",
+    "check",
+    "checkCircle",
+    "pause",
+    "rotateCw",
+    "rotateCcw",
 ];
 
 
