@@ -37,6 +37,10 @@
                                 @update:modelValue="value => editedData.video_link = value" />
                         </template>
 
+                        <input type="checkbox" class="ml-auto" :checked="content.available"
+                            @change="e => editedData.available = e.target.checked" />
+
+
 
                         <c-button type="submit" :loading="loadingButton" :icon="SaveIcon">
                             Save

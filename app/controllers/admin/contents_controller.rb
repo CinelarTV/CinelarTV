@@ -172,7 +172,7 @@ module Admin
     private
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, category_ids: [])
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, :available, category_ids: [])
     end
 
     def season_params
