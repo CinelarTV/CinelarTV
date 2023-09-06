@@ -95,10 +95,11 @@ li.content-item {
     @apply transition-all;
     transition-duration: 0.2s;
     transition-delay: 0.3s;
+    position: relative;
 }
 
 .recyclerview-card-article__element:hover {
-    scale: 1.25;
+    scale: 1.05;
 }
 
 .recyclerview-card-article__image img {
@@ -107,6 +108,77 @@ li.content-item {
     border-bottom-right-radius: var(--border-radius);
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
+}
+
+.recyclerview-card-article__progress {
+    padding: 8px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+
+}
+
+.recyclerview-card-article__overlay {
+    background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    --border-radius: 8px;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+}
+
+.recyclerview-card-article__overlay.with-progress {
+    .recyclerview-card-article__title {
+        bottom: 24px;
+    }
+}
+
+
+
+.recyclerview-card-article__title {
+    color: var(--c-body-text-color, #fff);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0 8px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    bottom: 8px;
+    position: absolute;
+}
+
+.recyclerview-card-article__progress__bar {
+    --border-radius: 8px;
+    background-color: #33373d;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    height: 6px;
+    width: 100%;
+}
+
+.recyclerview-card-article__progress__bar__progress {
+    --border-radius: 8px;
+    background-color: var(--c-tertiary-200, rgb(0, 140, 255));
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    height: 6px;
 }
 
 @media (min-width: 55em) and (max-width: 90em) {

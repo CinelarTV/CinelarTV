@@ -69,6 +69,21 @@
                                                 <div class="recyclerview-card-article__image" style="aspect-ratio:16/9">
                                                     <img :src="data.banner" alt="Cover Image" />
                                                 </div>
+                                                <div class="recyclerview-card-article__overlay" :class="data.duration &&  data.progress ? 'with-progress' : ''">
+                                                    <div class="recyclerview-card-article__title">
+                                                        {{ data.title }}
+                                                    </div>
+                                                    <div class="recyclerview-card-article__progress"
+                                                    v-if="data.progress && data.duration">
+                                                    <div class="recyclerview-card-article__progress__bar">
+                                                        <div class="recyclerview-card-article__progress__bar__progress"
+                                                            :style="`width: ${(data.progress / data.duration) * 100}%`">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                </div>
+
+                                                
                                             </RouterLink>
                                         </div>
 
@@ -103,6 +118,13 @@ const carouselContainer = ref(null);
 const bannerCurrentIndex = ref(0); // Define bannerCurrentIndex here
 let intervalId = null;
 const router = useRouter();
+
+const capybaraCount = ref(0);
+MessageBus.subscribe('/capybara', (data) => {
+    capybaraCount.value++;
+    console.log('Capybara count:', capybaraCount.value);
+    console.log('Capybara data:', data);
+});
 
 useHead({
     title: 'Explorar',

@@ -31,6 +31,10 @@ main {
   @apply relative
 }
 
+#home-explore #main-content {
+  @apply pb-8
+}
+
 
 img.emoji {
   width: 20px;

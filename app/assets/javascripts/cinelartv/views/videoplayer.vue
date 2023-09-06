@@ -11,6 +11,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import fluidPlayer from 'fluid-player';
+import { useRoute } from 'vue-router';
 
 const myVideoPlayer = ref(null);
 const showOverlay = ref(true);
@@ -19,10 +20,24 @@ const isMuted = ref(false);
 const videoTitle = 'Video Title';
 const videoDescription = 'Video Description';
 const lastDataSent = ref(null);
+const route = useRoute();
+const videoId = route.params.id;
+const episodeId = route.query.episodeId;
 
-let videoId = '4448b99b-f45f-488a-ad30-927414844ab7' // For testing purposes
+const fetchData = async () => {
+  try {
+    const response = await axios.get(`/watch/${videoId}.json`);
+    console.log(response.data);
+    const { progress, duration } = response.data.data.continue_watching;
+    if (progress > 0) {
+      myVideoPlayer.value.currentTime = progress;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-onMounted(() => {
+onMounted(async () => {
   document.body.classList.add('video-player');
   const options = {
     "layoutControls": {
@@ -36,6 +51,8 @@ onMounted(() => {
   }
 
   fluidPlayer(myVideoPlayer.value, options);
+
+  await fetchData();
 
   myVideoPlayer.value.addEventListener('play', () => {
     isPlaying.value = true;
@@ -82,7 +99,8 @@ const sendCurrentPosition = async () => {
   try {
     await axios.put(`/watch/${videoId}/progress.json`, {
       progress: myVideoPlayer.value.currentTime,
-      duration: myVideoPlayer.value.duration
+      duration: myVideoPlayer.value.duration,
+      episodeId: episodeId
     });
     console.log('[Continnum] Current position sent to server (Progress: ' + myVideoPlayer.value.currentTime + ' / ' + myVideoPlayer.value.duration + ')')
   } catch (error) {
@@ -149,5 +167,4 @@ document.addEventListener('contextmenu', (e) => {
 .custom-controls button:focus {
   outline: none;
 }
-
 </style>
