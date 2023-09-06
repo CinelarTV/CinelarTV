@@ -31,8 +31,7 @@ module CinelarTV
     def self.publish(type, value)
       @user_id = User.with_role(:admin).pluck(:id)
       MessageBus.publish("/admin/upgrade",
-                         { type:, value: },
-                         user_ids: [@user_id])
+                         { type:, value: })
     end
 
     def self.percent(val)
