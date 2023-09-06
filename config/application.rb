@@ -28,7 +28,5 @@ module CinelarTV
     require "cinelar_tv"
 
     config.active_job.queue_adapter = :sidekiq
-
-    config.middleware.insert_after Warden::Manager, MessageBus::Rack::Middleware
   end
 end

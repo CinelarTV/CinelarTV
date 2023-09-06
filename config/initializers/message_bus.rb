@@ -2,33 +2,15 @@
 
 # config/initializers/message_bus.rb
 
-Rails.application.config do |config|
-  MessageBus.configure(backend: :memory)
+MessageBus.configure(backend: :memory)
 
-  def setup_message_bus_env(env)
-    return if env["__mb"]
-
-    user = nil
-
-    begin
-      request = Rack::Request.new(env)
-
-      user = User.find(request.env["warden"].user.id) if request.env["warden"].user
-    rescue => e
-      Rails.logger.error("Failed to setup message bus env: #{e}")
-    end
-
-    user_id = user && user.id
-
-    hash = {
-      user_id: user_id,
-    }
-
-    env["__mb"] = hash
-  end
-
-  MessageBus.user_id_lookup do |env|
-    setup_message_bus_env(env)
-    env["__mb"][:user_id]
+MessageBus.user_id_lookup do |env|
+  # Get current profile from the session
+  request = Rack::Request.new(env)
+  Rails.logger.info("MessageBus user_id_lookup: #{request.session[:current_profile_id]}")
+  if request.session[:current_profile_id].present?
+    request.session[:current_profile_id]
+  else
+    -1
   end
 end

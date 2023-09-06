@@ -22,11 +22,6 @@ class ApplicationController < ActionController::Base
   end
 
   def capybara_spin
-    # Log current session from request env
-    @userid = current_user.id.to_s
-    Rails.logger.info("Capybara spin for user #{@userid}")
-    Rails.logger.info("Request env: #{request.env["__mb"]}")
-    MessageBus.publish("/capybara", "spin", user_ids: [1])
     ## Fullscreen video https://www.youtube.com/embed/k-BBfhWLfAQ?si=hA_9OFUrrZba97CQ
     respond_to do |format|
       format.html {
