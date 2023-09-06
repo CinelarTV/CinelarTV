@@ -228,6 +228,11 @@ customization:
     refresh: true
     default: ""
     type: 'code'
+  additional_icons:
+    client: true
+    refresh: true
+    default: ""
+    type: 'list'
   
 developer:
   enable_js_error_reporting:

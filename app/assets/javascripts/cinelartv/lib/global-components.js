@@ -37,7 +37,6 @@ export default {
     install: (app) => {
         Components.forEach(component => {
             app.component(component.name, component.component)
-            console.log(`DEBUG: Loaded component ${component.name}`)
         })
 
     }

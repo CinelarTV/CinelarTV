@@ -50,6 +50,17 @@ main {
   border-radius: 4px;
 }
 
+.svg-icon {
+  height: 1em;
+  width: 1em;
+  line-height: 1;
+  display: inline-flex;
+  position: relative;
+  fill: currentColor;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
 
 
 
@@ -93,9 +104,16 @@ img.emoji {
   }
 
   & .icon {
-    @apply mr-2
+    @apply mr-2;
   }
+
 }
+
+.c-button svg.icon {
+      @apply h-5 w-5
+    }
+  
+
 
 .c-button.btn-icon {
   @apply rounded-full h-8 w-8 p-2;

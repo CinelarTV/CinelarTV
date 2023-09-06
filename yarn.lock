@@ -3640,6 +3640,11 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
+lucide-static@^0.275.0:
+  version "0.275.0"
+  resolved "https://registry.yarnpkg.com/lucide-static/-/lucide-static-0.275.0.tgz#dbbfef2a86dc3678c2b3c2020890221f832b16dd"
+  integrity sha512-x6dB8tw4KJi46W1tCdLrl4umPXdMMfQeWe+XDrqTzsEVAMHkkmDcbEFaZmH/CiAdTAAsCd7wqTmR0nvX2s4G9Q==
+
 lucide-vue-next@^0.268.0:
   version "0.268.0"
   resolved "https://registry.yarnpkg.com/lucide-vue-next/-/lucide-vue-next-0.268.0.tgz#149c603fada4290eeff2b0afa475190ec5e746d2"

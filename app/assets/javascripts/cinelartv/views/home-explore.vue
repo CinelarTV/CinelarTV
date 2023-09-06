@@ -22,8 +22,7 @@
                                             </p>
 
                                             <div class="standard-hero-card__actions">
-                                                <c-button @click="playContent(item.id)">
-                                                    <PlayCircleIcon class="icon" :size="18" />
+                                                <c-button @click="playContent(item.id)" icon="play-circle">
                                                     Reproducir ahora
                                                 </c-button>
 

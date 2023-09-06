@@ -7,8 +7,10 @@
             <LoaderIcon :size="18" class="icon loading-request" />
         </span>
 
-        <component :is="icon" v-if="!loading" class="icon" :size="18" />
-        <slot  />
+        <svg class="icon svg-icon" size="18" v-if="icon && !loading">
+            <use :xlink:href="`#${icon}`" />
+        </svg>
+        <slot />
     </button>
 </template>
   

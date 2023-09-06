@@ -17,6 +17,7 @@ import Axios from './lib/axios-setup'
 import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
 import 'vue3-toastify/dist/index.css';
+import iconLibrary from './lib/icon-library';
 
 
 const CinelarTV = createApp(App)
@@ -37,7 +38,8 @@ let pluginMap = [
     ColorPicker,
     ConfirmDialog,
     pinia,
-    Axios
+    Axios,
+    iconLibrary
 ]
 
 CinelarTV.use(Vue3Progress, {
