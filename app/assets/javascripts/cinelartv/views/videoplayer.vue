@@ -55,7 +55,7 @@ import { useRoute } from 'vue-router';
 
 const ctvPlayer = ref(null);
 const showOverlay = ref(true);
-const isPlaying = ref(false);
+const isPlaying = ref();
 const isMuted = ref(false);
 const lastDataSent = ref(null);
 const route = useRoute();

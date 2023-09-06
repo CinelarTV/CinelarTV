@@ -115,6 +115,8 @@ en:
       updater:
         ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
         ready_title: "¿Ready for update?"
+    video_player:
+      back: "Back"
     wizard:
       introduction:
         description: "\U0001f389 Welcome to CinelarTV! \U0001f389<br><br>Before you start, we need to configure some things. Don't worry, it's very simple and you'll only have to do it once."
