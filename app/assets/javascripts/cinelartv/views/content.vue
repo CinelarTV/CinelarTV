@@ -17,10 +17,15 @@
             <div class="content-description">
               <p>{{ contentData.content.description }}</p>
             </div>
-            <div class="content-actions">
+            <div class="content-actions" v-if="contentData.content.available">
               <c-button :icon="PlayCircleIcon" class="bg-blue-500 hover:bg-blue-600 text-white" @click="playContent">
                 Reproducir
               </c-button>
+            </div>
+            <div class="content-actions" v-else>
+              <p>
+                <span class="text-red-500">Este contenido no está disponible en este momento.</span>
+              </p>
             </div>
           </div>
          
