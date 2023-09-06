@@ -2,6 +2,8 @@
 
 module Admin
   class DashboardController < Admin::BaseController
+    include Admin::DashboardHelper
+
     def index
       data = {}
       @problems = []
@@ -32,6 +34,8 @@ module Admin
         versions_diff: CinelarTV::Updater.versions_diff,
         last_commit_message: CinelarTV::Updater.last_commit_message,
       }
+
+      data[:statistics] = statistics
 
       respond_to do |format|
         format.html

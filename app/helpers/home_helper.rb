@@ -19,7 +19,7 @@ module HomeHelper
       end
     end
 
-    added_recently = Content.where("created_at > ?", 3.week.ago).limit(15).map do |content|
+    added_recently = Content.where(available: true).where("created_at > ?", 3.week.ago).limit(15).map do |content|
       {
         id: content.id,
         title: content.title,
@@ -30,7 +30,7 @@ module HomeHelper
     end
 
     @homepage_data = {
-      banner_content: Content.where.not(banner: nil).order("RANDOM()").limit(10).map do |content|
+      banner_content: Content.where(available: true).where.not(banner: nil).order("RANDOM()").limit(10).map do |content|
         {
           id: content.id,
           title: content.title,
@@ -42,7 +42,7 @@ module HomeHelper
       content: [
         {
           title: "Agregados recientemente",
-          content: added_recently,
+          content: added_recently.reverse,
         },
       ],
     }
@@ -78,13 +78,15 @@ module HomeHelper
         }
       end
 
-      @homepage_data[:content].insert(
-        0,
-        {
-          title: "Continuar viendo",
-          content: continue_watching,
-        }
-      )
+      if continue_watching.present? && !continue_watching.empty?
+        @homepage_data[:content].insert(
+          0,
+          {
+            title: "Continuar viendo",
+            content: continue_watching,
+          }
+        )
+      end
     end
 
     @homepage_data
