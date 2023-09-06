@@ -158,8 +158,7 @@ const toggleEditMode = () => {
 const fetchAvatars = () => {
     axios.get('/user/default-avatars.json')
         .then((response) => {
-            console.log(response)
-            avatarList.value = response.data
+            avatarList.value = response.data.profiles
         })
         .catch((error) => {
             console.log(error)
