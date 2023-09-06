@@ -3,7 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="generator" content="CinelarTV <%= CinelarTV::Application::Version::FULL %> - https://github.com/CinelarTV/CinelarTV-AIO version <%= CinelarTV.git_version %>">
+    <meta
+      name="generator"
+      content="CinelarTV <%= CinelarTV::Application::Version::FULL %> - https://github.com/CinelarTV/CinelarTV-AIO version <%= CinelarTV.git_version %>"
+    >
     <%= tag.meta name: "theme-color", content: SiteSetting.header_background_color %>
     <%= tag.meta name: "msapplication-navbutton-color",
              content: SiteSetting.header_background_color %>
@@ -20,7 +23,7 @@
     <% if Rails.env.development? && params[:c] == "true" %>
       <% console %>
     <% end %>
-    <title><%= content_for?(:title) ? yield(:title) : SiteSetting.site_name %></title>
+    <title><% if defined? @title %><%= @title %> | <%= SiteSetting.site_name %><% else %><%= SiteSetting.site_name %><% end %></title>
     <link rel="icon" type="image/png" href="<%= SiteSetting.site_favicon %>">
     <link rel="manifest" href="/manifest.webmanifest">
     <%= csrf_meta_tags %>
