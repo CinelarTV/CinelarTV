@@ -1,7 +1,7 @@
 <template>
   <div class="video-player-container">
-    <video ref="myVideoPlayer" class="fluid-video" controls muted>
-      <source src="https://ia801502.us.archive.org/31/items/KM-UCMK-V720/Kallys%20Mashup%20UCMK%20V2.mp4"
+    <video ref="myVideoPlayer" class="fluid-video" controls muted v-if="data">
+      <source :src="data.content.url"
         type="video/mp4" />
     </video>
 
@@ -23,11 +23,14 @@ const lastDataSent = ref(null);
 const route = useRoute();
 const videoId = route.params.id;
 const episodeId = route.query.episodeId;
+const data = ref(null);
+
 
 const fetchData = async () => {
   try {
     const response = await axios.get(`/watch/${videoId}.json`);
     console.log(response.data);
+    data.value = response.data.data;
     const { progress, duration } = response.data.data.continue_watching;
     if (progress > 0) {
       myVideoPlayer.value.currentTime = progress;
@@ -39,6 +42,8 @@ const fetchData = async () => {
 
 onMounted(async () => {
   document.body.classList.add('video-player');
+  await fetchData();
+
   const options = {
     "layoutControls": {
       miniPlayer: {
@@ -52,7 +57,6 @@ onMounted(async () => {
 
   fluidPlayer(myVideoPlayer.value, options);
 
-  await fetchData();
 
   myVideoPlayer.value.addEventListener('play', () => {
     isPlaying.value = true;

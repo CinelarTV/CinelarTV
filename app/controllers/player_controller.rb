@@ -3,6 +3,7 @@
 class PlayerController < ApplicationController
   before_action :authenticate_user!
   before_action :find_content, only: :watch
+  before_action :check_content_availability, only: :watch
 
   def watch
     if @content
@@ -124,5 +125,29 @@ class PlayerController < ApplicationController
 
   def find_content
     @content = Content.find_by(id: params[:id])
+  end
+
+  def check_content_availability
+    available = true
+    if @content.content_type == "MOVIE"
+      available = @content.available && !@content.url.blank?
+    else
+      available = @content.available
+    end
+
+    if !available
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: {
+                   errors: [
+                     "El contenido no está disponible para su reproducción.",
+                   ],
+                   error_type: "content_not_available",
+                 },
+                 status: :unprocessable_entity
+        end
+      end
+    end
   end
 end

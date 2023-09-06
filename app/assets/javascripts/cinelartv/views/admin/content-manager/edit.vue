@@ -33,8 +33,8 @@
                             @update:modelValue="value => editedData.year = value" />
 
                         <template v-if="content.content_type === 'MOVIE' && SiteSettings.allow_video_direct_link">
-                            <c-input placeholder="Paste Video Link" :value="content.video_link"
-                                @update:modelValue="value => editedData.video_link = value" />
+                            <c-input placeholder="Paste Video Link" :value="content.url"
+                                @update:modelValue="value => editedData.url = value" />
                         </template>
 
                         <input type="checkbox" class="ml-auto" :checked="content.available"
