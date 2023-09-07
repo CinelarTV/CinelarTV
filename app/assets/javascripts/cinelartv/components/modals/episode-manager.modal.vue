@@ -12,7 +12,7 @@
                         enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
-                            class="dialog create-season w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all">
+                            class="dialog episode-manager w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all">
                             <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]" v-emoji>
                                 Manage Episodes 🌟
                             </DialogTitle>
@@ -26,7 +26,15 @@
                             </div>
 
                             <div v-else>
-                                {{ episodeList }}
+                                <draggable tag="div" v-model="episodeList" class="episode-manager-list" handle=".handle" :group="episodeGroup"
+                                ghost-class="opacity-50">
+                                <template #item="{element, index}">
+                                    <div class="episode-container">
+                                        <img :src="element.thumbnail" class="episode-thumbnail" />
+                                    </div>
+                                </template>
+                            </draggable>
+
 
                                 <div class="flex">
                                     <c-button class="ml-auto" @click="setIsOpen(false)" icon="x">
@@ -63,12 +71,12 @@ const props = defineProps({
 })
 
 
-const setIsOpen = (value) => {
+const setIsOpen = async (value) => {
     isOpen.value = value
     if (isOpen.value) {
         episodeList.value = []
         loadingEpisodeList.value = true
-        getEpisodeList()
+        await getEpisodeList()
     }
 }
 
@@ -97,17 +105,17 @@ const addEpisode = () => {
     // Ejemplo: newEpisode.value = { title: '', ...otros campos };
 };
 
-const getEpisodeList = () => {
-    axios.get(`/admin/content-manager/${props.content.id}/seasons/${seasonId.value}/episodes.json`)
-        .then((response) => {
-            loadingEpisodeList.value = false
-            episodeList.value = response.data.data
-        })
-        .catch((error) => {
-            loadingEpisodeList.value = false
-            // Muestra un mensaje de error
-            // Ejemplo: toast.error(error.response.data.message);
-        });
+const getEpisodeList = async () => {
+    try {
+        const response = await axios.get(`/admin/content-manager/${props.content.id}/seasons/${seasonId.value}/episodes.json`);
+        loadingEpisodeList.value = false;
+        episodeList.value = response.data.data.episodes;
+    } catch (error) {
+        loadingEpisodeList.value = false;
+        // Manejar el error aquí, por ejemplo:
+        // toast.error(error.response.data.message);
+    }
 };
+
 
 </script>

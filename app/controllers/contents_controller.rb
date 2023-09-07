@@ -58,6 +58,7 @@ class ContentsController < ApplicationController
               id: e.id,
               title: e.title,
               description: e.description,
+              thumbnail: e.thumbnail || @content.banner,
               position: e.position,
             }
           end,
