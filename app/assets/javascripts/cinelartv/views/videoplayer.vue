@@ -17,7 +17,6 @@
             {{ $t('js.video_player.episode') }} {{ data.content.episode_number }}
           </span>
         </h1>
-        <p class="video-description">{{ videoDescription }}</p>
       </section>
       <section class="video-controls">
         <c-icon-button class="video-control" icon="rotate-ccw" @click="seekBy(-10)" />
