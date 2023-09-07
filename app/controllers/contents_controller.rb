@@ -39,17 +39,26 @@ class ContentsController < ApplicationController
 
     if @content
       @is_liked = current_profile&.liked_contents&.include?(@content)
-      @seasons = @content.seasons if @content.content_type == "TVSHOW"
+      @seasons = @content.seasons.order(position: :asc)
+
+      @data = {
+        content: @content.as_json(except: %i[created_at updated_at]),
+        liked: @is_liked,
+      }
+
+      @data[:content][:seasons] = @seasons.map do |s|
+        {
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          position: s.position,
+        }
+      end if @seasons.present?
 
       respond_to do |format|
         format.html
         format.json {
-          render json: {
-            # exclude created_at and updated_at
-            content: @content.as_json(except: %i[created_at updated_at]),
-            liked: @is_liked,
-            seasons: @seasons,  # Include the seasons data here if it's a TVSHOW
-          }
+          render json: @data
         }
       end
     else
