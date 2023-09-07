@@ -99,7 +99,9 @@ const getContent = async () => {
   try {
     const { data } = await axios.get(`/contents/${$route.params.id}.json`)
     contentData.value = data
-    activeSeason.value = data.content.seasons[0]?.id
+    if(data.content.content_type === 'TVSHOW') {
+      activeSeason.value = data.content.seasons[0]?.id
+    }
     loading.value = false
     // Verificar si hay tráiler después de cargar el contenido
     if (contentData.value.trailer) {
