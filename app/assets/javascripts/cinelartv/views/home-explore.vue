@@ -172,21 +172,21 @@ const toggleLike = async (id, fromBanner = false) => {
             try {
                 if (content.liked) {
                     await $http.post(`/contents/${id}/unlike.json`);
-                    toast.success($t('js.homepage.removed_from_favorites'));
+                    toast.success($t('js.user.removed_from_favorites'));
                 } else {
                     await $http.post(`/contents/${id}/like.json`);
-                    toast.success($t('js.homepage.added_to_favorites'));
+                    toast.success($t('js.user.added_to_favorites'));
                 }
                 content.liked = !content.liked; // Toggle the liked state after the request is successful
             } catch (error) {
                 console.error(error); // Log the error for debugging
-                toast.error($t('js.homepage.like_error'));
+                toast.error($t('js.user.like_error'));
             }
         } else {
             console.error(`Content with id ${id} not found`);
         }
     } else {
-        toast.error($t('js.homepage.login_required'));
+        toast.error($t('js.user.login_required'));
     }
 };
 

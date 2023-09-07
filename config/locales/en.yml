@@ -12,6 +12,10 @@ en:
               blank: "Name cannot be blank"
               too_short: "Name is too short, it must be at least %{count} characters"
   js:
+    user:
+      added_to_favorites: "Added to favorites"
+      already_in_favorites: "Already in favorites"
+      removed_from_favorites: "Removed from favorites"      
     admin:
       actions:
         add: "Add"

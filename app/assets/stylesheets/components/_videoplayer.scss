@@ -78,6 +78,7 @@ body.video-player #c-progress {
 
 .overlay--hidden {
     opacity: 0;
+    cursor: none;
 }
 
 .video-progress {
@@ -112,12 +113,19 @@ body.video-player #c-progress {
     display: flex;
     align-items: center;
     justify-content: left;
+
+    .video-time {
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 10px;
+    }
+
+    .remaining-time {
+        opacity: 0.5;
+    }
 }
 
-.remaining-time {
-    opacity: 0.5;
-    font-weight: 600;
-}
+
 
 .progress-popup {
     position: absolute;
