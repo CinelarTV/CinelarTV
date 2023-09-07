@@ -206,7 +206,7 @@ const sendCurrentPosition = async () => {
     await axios.put(`/watch/${videoId}/progress.json`, {
       progress: ctvPlayer.value.currentTime,
       duration: ctvPlayer.value.duration,
-      episodeId: episodeId
+      episode_id: episodeId
     });
   } catch (error) {
     console.error(error);
