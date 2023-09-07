@@ -128,26 +128,33 @@ class PlayerController < ApplicationController
   end
 
   def check_content_availability
-    available = true
-    if @content.content_type == "MOVIE"
-      available = @content.available && !@content.url.blank?
-    else
-      available = @content.available
-    end
+    begin
+      available = true
+      if !@content || @content.blank?
+        available = false
+      elsif @content.content_type == "MOVIE"
+        available = @content.available && (!@content.url.blank? || @content.url == "null")
+      else
+        available = @content.available
+      end
 
-    if !available
-      respond_to do |format|
-        format.html
-        format.json do
-          render json: {
-                   errors: [
-                     "El contenido no está disponible para su reproducción.",
-                   ],
-                   error_type: "content_not_available",
-                 },
-                 status: :unprocessable_entity
+      if !available
+        respond_to do |format|
+          format.html
+          format.json do
+            render json: {
+                     errors: [
+                       "El contenido no está disponible para su reproducción.",
+                     ],
+                     error_type: "content_not_available",
+                   },
+                   status: :unprocessable_entity
+          end
         end
       end
+    rescue StandardError => e
+      # Aquí puedes manejar la excepción, registrarla o responder de acuerdo a tus necesidades.
+      render json: { error: e.message }, status: :unprocessable_entity
     end
   end
 end

@@ -7,7 +7,13 @@ let VideoPlayerRoute =
         transition: 'slide-fade',
         requiresAuth: true,
         showHeader: false
-    }
+    },
+    children: [
+        {
+            name: 'videoplayer.show',
+            path: ':episodeId'
+        }
+    ]
     
 }
 

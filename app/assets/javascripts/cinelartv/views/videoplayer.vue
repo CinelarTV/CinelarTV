@@ -6,7 +6,7 @@
 
     <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen()">
       <section class="back-button">
-        <router-link :to="`/contents/${data.content.id}`" @click="toggleFullscreen(true); ctvPlayer.value.pause()">
+        <router-link :to="`/contents/${data.content.id}`">
           <c-button icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
         </router-link>
       </section>
@@ -46,9 +46,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeMount, onBeforeUnmount } from 'vue';
 import fluidPlayer from 'fluid-player';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { toast } from 'vue3-toastify';
 
 const ctvPlayer = ref(null);
 const showOverlay = ref(true);
@@ -56,8 +57,9 @@ const isPlaying = ref(false);
 const isMuted = ref(false);
 const lastDataSent = ref(null);
 const route = useRoute();
+const router = useRouter();
 const videoId = route.params.id;
-const episodeId = route.query.episodeId;
+const episodeId = route.params.episodeId;
 const data = ref(null);
 const autoHideOverlay = ref();
 const fluidplayer = ref(null);
@@ -72,12 +74,18 @@ const fetchData = async () => {
     data.value = response.data.data;
   } catch (error) {
     console.error(error);
+    toast.error('Error al cargar el video.');
   }
 };
 
 onMounted(async () => {
   document.body.classList.add('video-player');
   await fetchData();
+
+  if(data.value.content.content_type === 'MOVIE' && route.params.episodeId) {
+    router.replace(`/watch/${videoId}`) // Remove episodeId from URL if it's a movie
+  }
+    
 
   const { progress, duration } = data.value.continue_watching;
   if (progress > 0) {
@@ -109,11 +117,6 @@ onMounted(async () => {
       fillToContainer: false,
       posterImage: ''
     },
-    vastOptions: {
-      adList: [],
-      adCTAText: false,
-      adCTATextPosition: ''
-    }
   };
 
   fluidplayer.value = fluidPlayer(ctvPlayer.value, options);
@@ -127,8 +130,8 @@ onMounted(async () => {
   });
 
   ctvPlayer.value.addEventListener('timeupdate', async () => {
-    currentPlayback.value.currentTime = ctvPlayer.value.currentTime;
-    currentPlayback.value.duration = ctvPlayer.value.duration;
+    currentPlayback.value.currentTime = ctvPlayer.value?.currentTime;
+    currentPlayback.value.duration = ctvPlayer.value?.duration;
     if (Date.now() - lastDataSent.value > 5000) {
       lastDataSent.value = Date.now();
       if (ctvPlayer.value.currentTime > 1) {
@@ -145,8 +148,15 @@ onMounted(async () => {
     //console.log('canplay');
   });
 
+  ctvPlayer.value.addEventListener('error', (e) => {
+    console.error('Error:', e);
+    alert('Error al reproducir el video.');
+  });
+
   ctvPlayer.value.removeAttribute('muted');
   ctvPlayer.value.muted = false;
+
+
 
   toggleOverlay();
 });
@@ -203,13 +213,19 @@ document.addEventListener('contextmenu', (e) => {
 
 const toggleFullscreen = (exit = false) => {
   if (document.fullscreenElement) {
-    document.exitFullscreen();
+    document.exitFullscreen().catch((error) => {
+      // Do nothing
+    });
   } else {
-    document.documentElement.requestFullscreen();
+    document.documentElement.requestFullscreen().catch((error) => {
+      // Do nothing
+    });
   }
 
   if (exit) {
-    document.exitFullscreen();
+    document.exitFullscreen().catch((error) => {
+      // Do nothing
+    });
   }
 };
 
@@ -220,4 +236,20 @@ const formatTime = (time) => {
   const formattedTime = `${hours > 0 ? hours + ':' : ''}${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
   return formattedTime;
 };
+
+onBeforeUnmount(async () => {
+  data.value = null;
+  // Remove event listeners
+  ctvPlayer.value.removeEventListener('timeupdate', () => {});
+
+
+  document.body.classList.remove('video-player')
+  ctvPlayer.value.pause();
+  ctvPlayer.value = null;
+  fluidplayer.value.destroy();
+  document.exitFullscreen().catch((error) => {
+    // Do nothing
+  });
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+});
 </script>
