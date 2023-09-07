@@ -15,7 +15,7 @@
           {{ data.content.title }}
         </h1>
         <span class="video-episode" v-if="data.episode">
-          {{ data.episode.title }}
+          {{ data.season.title }} - {{ data.episode.title }}
         </span>
       </section>
       <section class="video-controls">
