@@ -1,7 +1,7 @@
 <template>
   <div class="video-player-container" @mousemove="toggleOverlay" v-if="data">
     <video ref="ctvPlayer" class="ctv-player" controls muted>
-      <source :src="data.content.url" type="video/mp4" />
+      <source :src="videoSource" type="video/mp4" />
     </video>
 
     <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen()">
@@ -13,10 +13,10 @@
       <section class="video-info">
         <h1 class="video-title">
           {{ data.content.title }}
-          <span class="video-episode" v-if="data.content.episode_number">
-            {{ $t('js.video_player.episode') }} {{ data.content.episode_number }}
-          </span>
         </h1>
+        <span class="video-episode" v-if="data.episode">
+          {{ data.episode.title }}
+        </span>
       </section>
       <section class="video-controls">
         <c-icon-button class="video-control" icon="rotate-ccw" @click="seekBy(-10)" />
@@ -24,18 +24,13 @@
         <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
       </section>
       <section class="video-progress">
-        <input
-          type="range"
-          class="video-progress-bar"
-          min="0"
-          max="100"
-          step="0.01"
+        <input type="range" class="video-progress-bar" min="0" max="100" step="0.01"
           :value="(currentPlayback.currentTime / currentPlayback.duration) * 100"
-          @input="seekTo(currentPlayback.duration * ($event.target.value / 100))"
-        />
+          @input="seekTo(currentPlayback.duration * ($event.target.value / 100))" />
         <div class="progress-info">
           <span class="video-time">
-            {{ formatTime(currentPlayback.currentTime) }} <span class="remaining-time">/ {{ formatTime(currentPlayback.duration) }}</span></span>
+            {{ formatTime(currentPlayback.currentTime) }} <span class="remaining-time">/ {{
+              formatTime(currentPlayback.duration) }}</span></span>
         </div>
       </section>
     </div>
@@ -63,6 +58,7 @@ const episodeId = route.params.episodeId;
 const data = ref(null);
 const autoHideOverlay = ref();
 const fluidplayer = ref(null);
+const videoSource = ref('');
 const currentPlayback = ref({
   currentTime: 0,
   duration: 0
@@ -72,6 +68,11 @@ const fetchData = async () => {
   try {
     const response = await axios.get(`/watch/${videoId}.json`);
     data.value = response.data.data;
+    if(data.value.content.content_type === 'MOVIE') {
+      videoSource.value = data.value.content.url;
+    } else {
+      videoSource.value = data.value.episode.url;
+    }
   } catch (error) {
     console.error(error);
     toast.error('Error al cargar el video.');
@@ -82,10 +83,10 @@ onMounted(async () => {
   document.body.classList.add('video-player');
   await fetchData();
 
-  if(data.value.content.content_type === 'MOVIE' && route.params.episodeId) {
+  if (data.value.content.content_type === 'MOVIE' && route.params.episodeId) {
     router.replace(`/watch/${videoId}`) // Remove episodeId from URL if it's a movie
   }
-    
+
 
   const { progress, duration } = data.value.continue_watching;
   if (progress > 0) {
@@ -245,7 +246,7 @@ const formatTime = (time) => {
 onBeforeUnmount(async () => {
   data.value = null;
   // Remove event listeners
-  ctvPlayer.value.removeEventListener('timeupdate', () => {});
+  ctvPlayer.value.removeEventListener('timeupdate', () => { });
 
 
   document.body.classList.remove('video-player')

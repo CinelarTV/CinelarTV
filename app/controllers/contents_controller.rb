@@ -47,11 +47,21 @@ class ContentsController < ApplicationController
       }
 
       @data[:content][:seasons] = @seasons.map do |s|
+        @episode_list = s.episodes.order(position: :asc)
         {
           id: s.id,
           title: s.title,
           description: s.description,
           position: s.position,
+          episodes: @episode_list.map do |e|
+            {
+              id: e.id,
+              title: e.title,
+              description: e.description,
+              position: e.position,
+            }
+          end,
+
         }
       end if @seasons.present?
 

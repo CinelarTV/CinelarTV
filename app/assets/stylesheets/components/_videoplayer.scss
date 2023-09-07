@@ -70,8 +70,18 @@ body.video-player #c-progress {
 
 .ctv-overlay .video-info .video-title {
     font-size: 24px;
-    margin-bottom: 10px;
     font-weight: 600;
+}
+
+.ctv-overlay .video-info {
+    @apply text-center;
+
+    .video-episode {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        opacity: 0.8
+    }
 }
 
 

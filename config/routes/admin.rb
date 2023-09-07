@@ -18,6 +18,9 @@ namespace :admin do
   delete "/content-manager/:id", to: "contents#destroy"
   post "/content-manager/:content_id/seasons", to: "contents#create_season"
   put "/content-manager/:id/reorder-seasons", to: "contents#reorder_seasons"
+  get "/content-manager/:id/seasons/:season_id/episodes", to: "contents#episode_list"
+  post "/content-manager/:id/seasons/:season_id/episodes", to: "contents#create_episode"
+  put "/content-manager/:id/seasons/:season_id/reorder-episodes", to: "contents#reorder_episodes"
 
   # User Management related routes
   get "/users", to: "users#index"

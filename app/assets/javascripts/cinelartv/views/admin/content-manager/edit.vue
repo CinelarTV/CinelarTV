@@ -79,7 +79,7 @@
                                         <EditIcon class="icon" :size="18" />
                                         Edit
                                     </c-button>
-                                    <c-button @click="editSeasonEpisodes(element)">
+                                    <c-button @click="editSeasonEpisodes(element.id)">
                                         <EditIcon class="icon" :size="18" />
                                         Manage Episodes
                                     </c-button>
@@ -101,7 +101,7 @@
         </div>
         <add-season-modal v-if="content.content_type === 'TVSHOW'" :content="content" ref="addSeasonModalRef"
             @season-created="fetchContent" />
-        <EpisodeManagerModal v-if="content.content_type === 'TVSHOW'" :content="content" ref="episodeManagerModalRef" />
+        <EpisodeManagerModal v-if="content.content_type === 'TVSHOW'" :content="content" ref="episodeManagerModalRef" :seasonId="selectedSeason" />
     </div>
 </template>
   
@@ -130,6 +130,7 @@ const contentTypes = ref([
     { value: 'TVSHOW', label: 'Serie' }
 ]);
 const loadingButton = ref(false);
+const selectedSeason = ref('');
 
 const fetchContent = async () => {
     try {
@@ -209,7 +210,8 @@ const addSeason = () => {
     addSeasonModalRef.value.setIsOpen(true);
 };
 
-const editSeasonEpisodes = () => {
+const editSeasonEpisodes = (id) => {
+    episodeManagerModalRef.value.setSeasonId(id);
     episodeManagerModalRef.value.setIsOpen(true);
 };
 

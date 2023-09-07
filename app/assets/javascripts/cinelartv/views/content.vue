@@ -27,10 +27,53 @@
               <span class="text-red-500">Este contenido no está disponible en este momento.</span>
             </p>
           </div>
+          <div v-if="contentData.content.content_type === 'TVSHOW'">
+            <div class="relative mt-16">
+              <div class="panel-header flex flex-col">
+                <div class="w-full flex justify-center space-x-2">
+                  <template v-for="season in contentData.content.seasons" :key="season.id">
+                    <c-button @click="toggleSeason(season.id)">
+                      {{ season.title }}
+                    </c-button>
+                  </template>
+                </div>
+
+
+
+                <div class="panel-body">
+                  <div class="episodes-list">
+                    <template v-for="season in contentData.content.seasons" :key="season.id">
+                      <div class="season-episodes" v-if="season.id === activeSeason">
+                        <template v-if="season.episodes.length === 0">
+                          <p class="text-center">No hay episodios disponibles.</p>
+                        </template>
+                        <template v-else v-for="episode in season.episodes" :key="episode.id">
+                          <div class="episode-container">
+                            <div class="episode-header">
+                              <h3 class="episode-title">
+                                {{ episode.title }}
+                              </h3>
+                            </div>
+                            <div class="episode-actions">
+                              <c-button @click="playEpisode(episode.id)">
+                                <PlayCircleIcon class="icon" :size="18" />
+                                Reproducir
+                              </c-button>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <!-- Agrega más detalles del contenido aquí -->
       </div>
+
     </div>
   </div>
 </template>
@@ -48,6 +91,7 @@ const router = useRouter()
 const loading = ref(true)
 const contentData = ref(null)
 const showTrailer = ref(false)
+const activeSeason = ref(null)
 
 document.body.classList.add('content-route')
 
@@ -55,6 +99,7 @@ const getContent = async () => {
   try {
     const { data } = await axios.get(`/contents/${$route.params.id}.json`)
     contentData.value = data
+    activeSeason.value = data.content.seasons[0]?.id
     loading.value = false
     // Verificar si hay tráiler después de cargar el contenido
     if (contentData.value.trailer) {
@@ -70,18 +115,30 @@ const getContent = async () => {
   }
 }
 
+const toggleSeason = (seasonId) => {
+  if (activeSeason.value === seasonId) {
+    return
+  } else {
+    activeSeason.value = seasonId
+  }
+}
+
 onBeforeUnmount(() => {
   document.body.classList.remove('content-route')
 })
 
 const playContent = () => {
-  if(contentData.value.content.content_type === 'MOVIE') {
+  if (contentData.value.content.content_type === 'MOVIE') {
     router.push(`/watch/${contentData.value.content.id}`)
   } else {
-    router.push(`/watch/${contentData.value.content.id}?episodeId=${contentData.value.content.seasons[0].episodes[0].id}`)
+    router.push(`/watch/${contentData.value.content.id}/${contentData.value.content.seasons[0].episodes[0].id}`)
   }
 }
-    
+
+const playEpisode = (episodeId) => {
+  router.push(`/watch/${contentData.value.content.id}/${episodeId}`)
+}
+
 
 const preloadTrailer = async (trailerSrc) => {
   // Pre-cargar el tráiler para mejorar la experiencia del usuario

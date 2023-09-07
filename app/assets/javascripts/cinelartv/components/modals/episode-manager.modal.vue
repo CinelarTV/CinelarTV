@@ -18,35 +18,26 @@
                             </DialogTitle>
 
 
-                            <div class="mt-4">
-                                <!-- Lista de episodios o formulario de edición -->
-                                <!-- Aquí puedes mostrar la lista de episodios existentes o un formulario para editar episodios -->
-                                <!-- Puedes utilizar v-for para iterar sobre la lista de episodios -->
-                                <!-- Ejemplo: -->
-                                <!-- <div v-for="episode in episodes" :key="episode.id">
-               ... Mostrar detalles del episodio (título, descripción, etc.)
-               ... Agregar botones para editar o eliminar episodio
-             </div> -->
+                            <div class="mt-4" v-if="loadingEpisodeList">
+                                <div class="flex justify-center">
+                                    <c-spinner />
+                                </div>
 
-                                <!-- Formulario para agregar un nuevo episodio -->
-                                <form @submit="addEpisode">
-                                    <!-- Campos para ingresar detalles del episodio (título, descripción, etc.) -->
-                                    <!-- Ejemplo: -->
-                                    <!-- <div class="mb-4">
-                 <label for="title" class="block text-sm font-medium">Title</label>
-                 <input v-model="newEpisode.title" type="text" id="title" name="title" />
-             </div>
-             ... Agregar más campos para otros detalles del episodio ... -->
-
-                                    <!-- Botón para agregar el episodio -->
-                                    <div class="text-center">
-                                        <button type="submit"
-                                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                                            Add Episode
-                                        </button>
-                                    </div>
-                                </form>
                             </div>
+
+                            <div v-else>
+                                {{ episodeList }}
+
+                                <div class="flex">
+                                    <c-button class="ml-auto" @click="setIsOpen(false)" icon="x">
+                                        Close
+                                    </c-button>
+                                    <c-button class="ml-2" @click="addEpisode()" icon="plus">
+                                        Add
+                                    </c-button>
+                                </div>
+                            </div>
+
                         </DialogPanel>
                     </TransitionChild>
                 </div>
@@ -58,22 +49,36 @@
   
 <script setup>
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { ref, defineProps, defineEmits } from 'vue';
+import axios from 'axios';
+import { ref, defineProps, defineEmits, onMounted } from 'vue';
+import draggable from 'vuedraggable'
 
 const isOpen = ref(false)
-const loading = ref(true)
+const loadingEpisodeList = ref(true)
+const episodeList = ref([])
+const seasonId = ref(null)
 
 const props = defineProps({
-    content: Object, // Propiedad para recibir información del contenido relacionado
+    content: Object
 })
 
 
 const setIsOpen = (value) => {
     isOpen.value = value
+    if (isOpen.value) {
+        episodeList.value = []
+        loadingEpisodeList.value = true
+        getEpisodeList()
+    }
+}
+
+const setSeasonId = (value) => {
+    seasonId.value = value
 }
 
 defineExpose({
-    setIsOpen
+    setIsOpen,
+    setSeasonId
 })
 
 
@@ -91,4 +96,18 @@ const addEpisode = () => {
     // Después de agregar el episodio, puedes limpiar los campos de entrada, si es necesario
     // Ejemplo: newEpisode.value = { title: '', ...otros campos };
 };
+
+const getEpisodeList = () => {
+    axios.get(`/admin/content-manager/${props.content.id}/seasons/${seasonId.value}/episodes.json`)
+        .then((response) => {
+            loadingEpisodeList.value = false
+            episodeList.value = response.data.data
+        })
+        .catch((error) => {
+            loadingEpisodeList.value = false
+            // Muestra un mensaje de error
+            // Ejemplo: toast.error(error.response.data.message);
+        });
+};
+
 </script>

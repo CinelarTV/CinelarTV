@@ -96,6 +96,57 @@ module Admin
       end
     end
 
+    def create_episode
+      @season = Season.find(params[:season_id])
+      @episode = @season.episodes.new(episode_params)
+
+      if @episode.save
+        render json: { episode: @episode }, status: :created
+      else
+        render json: { errors: @episode.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    def episode_list
+      # Find season based on the season_id (And check if it belongs to the content)
+      @season = Season.find(params[:season_id])
+      @content = @season.content
+
+      if @content
+        @episodes = @season.episodes.order(position: :asc)
+
+        respond_to do |format|
+          format.html
+          format.json do
+            render json: {
+                     data: {
+                       episodes: @episodes.map { |e|
+                         { id: e.id, title: e.title, description: e.description, position: e.position }
+                       },
+                     },
+                   }
+          end
+        end
+      else
+        respond_to do |format|
+          format.html
+          format.json { head :not_found }
+        end
+      end
+    end
+
+    def reorder_episodes
+      @season = Season.find(params[:id])
+      episode_order = params[:episode_order]
+
+      if episode_order.present?
+        episode_order.each_with_index do |episode_id, index|
+          episode = @season.episodes.find(episode_id)
+          episode.update(position: index)
+        end
+      end
+    end
+
     def reorder_seasons
       @content = Content.find(params[:id])
       season_order = params[:season_order]
@@ -192,6 +243,10 @@ module Admin
 
     def season_params
       params.require(:season).permit(:title, :description)
+    end
+
+    def episode_params
+      params.require(:episode).permit(:title, :description, :url, :duration, :position)
     end
 
     def set_content
