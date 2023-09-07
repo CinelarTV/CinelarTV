@@ -65,7 +65,7 @@
                     </div>
 
                     <draggable tag="div" v-model="content.seasons" class="season-list" :group="seasonGroup" handle=".handle"
-                        @start="reorderingSeasons = true" @end="reorderingSeasons = false">
+                        ghost-class="opacity-50" @start="reorderingSeasons = true" @end="reorderingSeasons = false">
                         <template #item="{ element, index }">
                             <div class="season-container">
                                 <c-icon-button class="handle" icon="grip-vertical" />
