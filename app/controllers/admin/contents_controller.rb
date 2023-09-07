@@ -49,15 +49,16 @@ module Admin
 
     def show
       @content = Content.find(params[:id])
-      @seasons = @content.seasons if @content.content_type == "TVSHOW"
+      @seasons = @content.seasons.order(position: :asc)
+
       respond_to do |format|
         format.html
         format.json do
           render json: {
-                   data: @content.as_json.merge({
-                     seasons: @seasons&.map { |s| { id: s.id, title: s.title, description: s.description } },
-                   }),
-                 }
+            data: @content.as_json.merge({
+              seasons: @seasons.map { |s| { id: s.id, title: s.title, description: s.description, position: s.position } },
+            }),
+          }
         end
       end
     end
@@ -93,6 +94,20 @@ module Admin
       else
         render json: { errors: @season.errors.full_messages }, status: :unprocessable_entity
       end
+    end
+
+    def reorder_seasons
+      @content = Content.find(params[:id])
+      season_order = params[:season_order]
+
+      if season_order.present?
+        season_order.each_with_index do |season_id, index|
+          season = @content.seasons.find(season_id)
+          season.update(position: index)
+        end
+      end
+
+      render json: { message: "Temporadas reordenadas con éxito", status: :ok }
     end
 
     def update

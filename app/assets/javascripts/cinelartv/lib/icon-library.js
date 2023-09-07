@@ -22,6 +22,7 @@ const ICON_MAP = [
     "pause",
     "rotateCw",
     "rotateCcw",
+    "gripVertical",
 ];
 
 

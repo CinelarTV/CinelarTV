@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_06_121904) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_07_131506) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -121,6 +121,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_06_121904) do
     t.uuid "content_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "position"
     t.index ["content_id"], name: "index_seasons_on_content_id"
   end
 

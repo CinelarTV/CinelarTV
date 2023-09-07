@@ -36,10 +36,11 @@ class PlayerController < ApplicationController
           if @content
             data = {
               content: @content.as_json(except: %i[created_at updated_at]),
-              episode: @episode&.as_json(except: %i[created_at updated_at]),
-              season: @season&.as_json(except: %i[created_at updated_at]),
               continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id id]),
             }
+
+            data[:episode] = @episode.as_json(except: %i[created_at updated_at]) if @episode
+            data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
             render json: { data: data }
           else
             render json: {
@@ -85,7 +86,7 @@ class PlayerController < ApplicationController
           continue_watching.save
 
           # Puedes responder con un mensaje de éxito
-          render json: { message: "Progreso actualizado exitosamente." }
+          render json: :ok
         else
           # Maneja el caso en el que no se encuentra el episodio
           render json: { message: "Episodio no encontrado." }, status: :not_found
@@ -109,8 +110,7 @@ class PlayerController < ApplicationController
           last_watched_at: Time.now,
         )
 
-        # Puedes responder con un mensaje de éxito
-        render json: { message: "Progreso actualizado exitosamente." }
+        render json: :ok
       else
         # Maneja el caso en el que el tipo de contenido no es válido
         render json: { message: "Tipo de contenido no válido." }, status: :unprocessable_entity

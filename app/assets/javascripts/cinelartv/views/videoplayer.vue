@@ -140,6 +140,11 @@ onMounted(async () => {
     }
   });
 
+
+  ctvPlayer.value.addEventListener('waiting', () => {
+    console.log('waiting');
+  });
+
   ctvPlayer.value.addEventListener('loadstart', () => {
     //console.log('loadstart');
   });

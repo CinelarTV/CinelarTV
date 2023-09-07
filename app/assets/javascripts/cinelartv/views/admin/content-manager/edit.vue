@@ -64,47 +64,56 @@
                         </c-button>
                     </div>
 
-                    <div v-for="season in content.seasons" :key="season.id">
-                        <div class="season-header flex items-center">
-                            <h3 class="text-lg font-semibold">{{ season.title }}</h3>
-                            <c-button @click="editSeason(season)">
-                                <EditIcon class="icon" :size="18" />
-                                Edit
-                            </c-button>
-                            <c-button @click="editSeasonEpisodes(season)">
-                                <EditIcon class="icon" :size="18" />
-                                Manage Episodes
-                            </c-button>
-                            <c-button class="ml-2" @click="deleteSeason(season)">
-                                <Trash2Icon class="icon" :size="18" />
-                                Delete
-                            </c-button>
-                        </div>
-                        <ul>
-                            <li v-for="episode in season.episodes" :key="episode.id">
-                                {{ episode.title }}
-                            </li>
-                        </ul>
-                    </div>
+                    <draggable tag="div" v-model="content.seasons" class="season-list" :group="seasonGroup" handle=".handle"
+                        @start="reorderingSeasons = true" @end="reorderingSeasons = false">
+                        <template #item="{ element, index }">
+                            <div class="season-container">
+                                <c-icon-button class="handle" icon="grip-vertical" />
+                                <div class="season-header">
+                                    <h3 class="season-title">
+                                        {{ element.title }}
+                                    </h3>
+                                </div>
+                                <div class="season-actions">
+                                    <c-button @click="editSeason(element)">
+                                        <EditIcon class="icon" :size="18" />
+                                        Edit
+                                    </c-button>
+                                    <c-button @click="editSeasonEpisodes(element)">
+                                        <EditIcon class="icon" :size="18" />
+                                        Manage Episodes
+                                    </c-button>
+                                    <c-button class="ml-2" @click="deleteSeason(element)">
+                                        <Trash2Icon class="icon" :size="18" />
+                                        Delete
+                                    </c-button>
+
+
+                                </div>
+
+                            </div>
+                        </template>
+
+                    </draggable>
                 </div>
 
             </div>
         </div>
         <add-season-modal v-if="content.content_type === 'TVSHOW'" :content="content" ref="addSeasonModalRef"
             @season-created="fetchContent" />
-        <EpisodeManagerModal v-if="content.content_type === 'TVSHOW'" :content="content"
-            ref="episodeManagerModalRef" />
+        <EpisodeManagerModal v-if="content.content_type === 'TVSHOW'" :content="content" ref="episodeManagerModalRef" />
     </div>
 </template>
   
 <script setup>
 import { Trash2Icon } from 'lucide-vue-next';
 import { SaveIcon, PlusIcon } from 'lucide-vue-next';
-import { onMounted, ref, inject } from 'vue';
+import { onMounted, ref, inject, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
 import EpisodeManagerModal from '../../../components/modals/episode-manager.modal.vue';
+import draggable from 'vuedraggable';
 
 const SiteSettings = inject('SiteSettings');
 
@@ -115,6 +124,7 @@ const loading = ref(true);
 const content = ref({});
 const addSeasonModalRef = ref();
 const episodeManagerModalRef = ref();
+const reorderingSeasons = ref(false);
 const contentTypes = ref([
     { value: 'MOVIE', label: 'Movie' },
     { value: 'TVSHOW', label: 'Serie' }
@@ -134,6 +144,25 @@ const fetchContent = async () => {
 };
 
 const editedData = ref({});
+
+watch(reorderingSeasons, async (value) => {
+    if (value === false) {
+        await saveSeasonsOrder();
+    }
+});
+
+const saveSeasonsOrder = async () => {
+    try {
+        const response = await axios.put(`/admin/content-manager/${contentId}/reorder-seasons.json`, {
+            season_order: content.value.seasons.map((season) => season.id)
+        });
+        toast.success('Orden de temporadas guardado con éxito.');
+        await fetchContent();
+    } catch (error) {
+        console.log(error);
+        toast.error('Error al guardar el orden de temporadas: ' + error.error);
+    }
+};
 
 const saveContent = async (e) => {
     e.preventDefault();
