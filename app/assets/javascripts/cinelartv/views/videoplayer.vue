@@ -69,7 +69,6 @@ const currentPlayback = ref({
 const fetchData = async () => {
   try {
     const response = await axios.get(`/watch/${videoId}.json`);
-    console.log(response.data);
     data.value = response.data.data;
   } catch (error) {
     console.error(error);
@@ -81,7 +80,6 @@ onMounted(async () => {
   await fetchData();
 
   const { progress, duration } = data.value.continue_watching;
-  console.log('Progress:', progress);
   if (progress > 0) {
     ctvPlayer.value.currentTime = progress;
   }
@@ -194,7 +192,6 @@ const sendCurrentPosition = async () => {
       duration: ctvPlayer.value.duration,
       episodeId: episodeId
     });
-    console.log('[Continnum] Current position sent to server (Progress: ' + ctvPlayer.value.currentTime + ' / ' + ctvPlayer.value.duration + ')')
   } catch (error) {
     console.error(error);
   }
