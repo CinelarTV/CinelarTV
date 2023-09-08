@@ -60,6 +60,7 @@ import { PlusCircleIcon } from 'lucide-vue-next'
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue'
 import { PencilIcon, Trash2Icon } from 'lucide-vue-next';
 import { Howl, Howler } from 'howler';
+import { ajax } from '../../lib/axios-setup';
 
 const currentUser = inject('currentUser')
 const SiteSettings = inject('SiteSettings')
@@ -84,7 +85,7 @@ const handleKeyDown = (e) => {
 const deleteProfile = (profile) => {
     if (!confirm(`¿Estás seguro de que quieres eliminar el perfil ${profile.name}?`)) return;
 
-    axios.delete(`/user/profiles/${profile.id}`).then((response) => {
+    ajax.delete(`/user/profiles/${profile.id}`).then((response) => {
         console.log(response);
         window.location.reload();
     }).catch((error) => {
@@ -93,7 +94,7 @@ const deleteProfile = (profile) => {
 }
 
 const userLogout = () => {
-    axios.delete('/users/sign_out.json').then((response) => {
+    ajax.delete('/users/sign_out.json').then((response) => {
         window.location.href = '/';
     }).catch((error) => {
         console.log(error);
@@ -130,8 +131,7 @@ const selectProfile = (profile) => {
     profileSelected.value = profile;
     loadingProfile.value = true;
     setTimeout(() => {
-        // Just to add a little delay to the loading screen
-        axios.post('/user/select-profile.json', {
+        ajax.post('/user/select-profile.json', {
             user: {
                 selected_profile_id: profile.id
             }
@@ -156,7 +156,7 @@ const toggleEditMode = () => {
 }
 
 const fetchAvatars = () => {
-    axios.get('/user/default-avatars.json')
+    ajax.get('/user/default-avatars.json')
         .then((response) => {
             avatarList.value = response.data.profiles
         })

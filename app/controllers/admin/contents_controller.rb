@@ -47,6 +47,20 @@ module Admin
       end
     end
 
+    def random_contents
+      # Obtener los contenidos que estén disponibles y que tenga trailer_url
+      @contents = Content.where(available: true).where.not(trailer_url: nil).order("RANDOM()").limit(10)
+
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: {
+                   data: @contents.as_json,
+                 }
+        end
+      end
+    end
+
     def show
       @content = Content.find(params[:id])
       @seasons = @content.seasons.order(position: :asc)

@@ -68,6 +68,7 @@ import { onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { Unlock, LoaderIcon } from 'lucide-vue-next'
 import { PlusIcon } from 'lucide-vue-next';
+import { ajax } from '../../lib/axios-setup';
 
 const SiteSettings = inject('SiteSettings')
 const currentUser = inject('currentUser')
@@ -104,7 +105,7 @@ const submitCreateProfile = (e) => {
         avatar_id: selectedAvatar.value
     }
 
-    axios.post('/user/create-profile.json', data)
+    ajax.post('/user/create-profile.json', data)
         .then((response) => {
             loading.value = false
             setIsOpen(false)

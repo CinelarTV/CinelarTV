@@ -3,6 +3,7 @@ Logster gem, so they are accessible from "/logs" */
 
 import AppRouter from "../routes/router-map";
 import { SiteSettings } from "../pre-initializers/essentials-preload";
+import { ajax } from "./axios-setup";
 
 var lastReport = null;
 
@@ -47,7 +48,7 @@ export const reportError = (err, severity) => {
     }
 
     if(process.env.NODE_ENV !== 'development') {
-        axios.post("/logs/report_js_error",
+        ajax.post("/logs/report_js_error",
             reportData
         );
     }

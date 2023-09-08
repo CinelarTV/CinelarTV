@@ -57,9 +57,9 @@
   
 <script setup>
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import axios from 'axios';
 import { ref, defineProps, defineEmits, onMounted } from 'vue';
 import draggable from 'vuedraggable'
+import { ajax } from '../../lib/axios-setup';
 
 const isOpen = ref(false)
 const loadingEpisodeList = ref(true)
@@ -107,7 +107,7 @@ const addEpisode = () => {
 
 const getEpisodeList = async () => {
     try {
-        const response = await axios.get(`/admin/content-manager/${props.content.id}/seasons/${seasonId.value}/episodes.json`);
+        const response = await ajax.get(`/admin/content-manager/${props.content.id}/seasons/${seasonId.value}/episodes.json`);
         loadingEpisodeList.value = false;
         episodeList.value = response.data.data.episodes;
     } catch (error) {

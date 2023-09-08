@@ -83,7 +83,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PlayCircleIcon } from 'lucide-vue-next'
 import { useHead } from 'unhead'
-import axios from 'axios'
+import { ajax } from '../lib/axios-setup'
 
 const $route = useRoute()
 const router = useRouter()
@@ -95,7 +95,7 @@ const activeSeason = ref(null)
 
 const getContent = async () => {
   try {
-    const { data } = await axios.get(`/contents/${$route.params.id}.json`)
+    const { data } = await ajax.get(`/contents/${$route.params.id}.json`)
     contentData.value = data
     if(data.content.content_type === 'TVSHOW') {
       if(data.content.seasons?.length > 0) {

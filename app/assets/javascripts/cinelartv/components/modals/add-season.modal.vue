@@ -51,15 +51,13 @@
 <script setup>
 import { getCurrentInstance, onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import axios from 'axios' // Import axios if not already imported
 import { CheckIcon } from 'lucide-vue-next';
 import { toast } from 'vue3-toastify';
+import { ajax } from '../../lib/axios-setup';
 
 const SiteSettings = inject('SiteSettings');
 
 const emit = defineEmits(['season-created'])
-
-const { $http } = getCurrentInstance().appContext.config.globalProperties
 
 const props = defineProps({
     content: Object, // Propiedad para recibir información del contenido relacionado
@@ -104,7 +102,7 @@ const submitCreateSeason = (e) => {
     console.log(props.content)
 
 
-    $http.post(`/admin/content-manager/${props.content.id}/seasons`, data)
+    ajax.post(`/admin/content-manager/${props.content.id}/seasons`, data)
         .then(response => {
             toast.success('Season created successfully')
             emit('season-created', response)

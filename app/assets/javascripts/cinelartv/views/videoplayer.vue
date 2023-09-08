@@ -45,6 +45,7 @@ import { ref, onMounted, onBeforeMount, onBeforeUnmount } from 'vue';
 import fluidPlayer from 'fluid-player';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
+import { ajax } from '../lib/axios-setup';
 
 const ctvPlayer = ref(null);
 const showOverlay = ref(true);
@@ -66,9 +67,9 @@ const currentPlayback = ref({
 
 const fetchData = async () => {
   try {
-    const response = await axios.get(`/watch/${videoId}.json`);
+    const response = await ajax.get(`/watch/${videoId}.json`);
     data.value = response.data.data;
-    if(data.value.content.content_type === 'MOVIE') {
+    if (data.value.content.content_type === 'MOVIE') {
       videoSource.value = data.value.content.url;
     } else {
       videoSource.value = data.value.episode.url;
@@ -203,7 +204,7 @@ const toggleOverlay = (click = false) => {
 
 const sendCurrentPosition = async () => {
   try {
-    await axios.put(`/watch/${videoId}/progress.json`, {
+    await ajax.put(`/watch/${videoId}/progress.json`, {
       progress: ctvPlayer.value.currentTime,
       duration: ctvPlayer.value.duration,
       episode_id: episodeId

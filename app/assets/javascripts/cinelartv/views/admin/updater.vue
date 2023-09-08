@@ -65,6 +65,7 @@ import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
+import { ajax } from '../../lib/axios-setup';
 
 
 var updating = ref(false)
@@ -96,7 +97,7 @@ const handleFailed = () => {
 }
 
 onMounted(() => {
-    axios.get('/admin/updates.json')
+    ajax.get('/admin/updates.json')
         .then(response => {
             loading.value = false
             updateResponse.value = response.data
@@ -125,7 +126,7 @@ onMounted(() => {
 
 const runUpdate = () => {
     updating.value = true
-    axios.post('/admin/upgrade.json')
+    ajax.post('/admin/upgrade.json')
         .then(response => {
             if (response.data.error_type === "no_updates_available") {
                 updating.value = false
@@ -135,7 +136,7 @@ const runUpdate = () => {
 }
 
 const restartServer = () => {
-    axios.post('/admin/restart.json')
+    ajax.post('/admin/restart.json')
         .then(response => {
             console.log(response)
         })

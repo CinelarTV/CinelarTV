@@ -64,11 +64,11 @@ import CInput from './forms/c-input.vue';
 import { useRouter } from 'vue-router';
 import twemoji from 'twemoji';
 import { toast } from 'vue3-toastify';
+import { ajax } from '../lib/axios-setup';
 
 
 const emit = defineEmits(['update:step']);
 
-const { $http } = getCurrentInstance().appContext.config.globalProperties;
 
 const props = defineProps(['step', 'wizardData', 'currentStep']);
 
@@ -114,7 +114,7 @@ const saveChanges = async (fields) => {
       data.append('fields[step]', 'ok'); // Introduction don't have a field, so we need to add a field to save the step successfully
     }
 
-    const response = await $http.put(`/wizard/steps/${props.currentStep.id}.json`, data);
+    const response = await ajax.put(`/wizard/steps/${props.currentStep.id}.json`, data);
 
     if (response.status === 422) {
       throw new Error(response.data);

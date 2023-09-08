@@ -11,9 +11,9 @@
 
 
 import { onMounted, computed } from 'vue'
-import axios from 'axios'
 import SiteSettingsIndex from './index.vue'
 import { ref } from 'vue'
+import { ajax } from '../../../lib/axios-setup';
 
 const categories = ref(null)
 const currentCategory = ref(null)
@@ -47,7 +47,7 @@ const onCurrentCategoryChange = (value) => {
 
 
 onMounted(() => {
-    axios.get('/admin/site_settings.json').then((r) => {
+    ajax.get('/admin/site_settings.json').then((r) => {
         settingsData.value = r.data.site_settings
         filteredSettings.value = r.data.site_settings
         categories.value = getCategories()

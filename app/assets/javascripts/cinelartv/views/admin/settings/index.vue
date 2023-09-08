@@ -138,7 +138,7 @@ function updateSettings(e) {
         }
 
         btnLoading.value = true
-        axios.post('/admin/site_settings.json', formData)
+        ajax.post('/admin/site_settings.json', formData)
             .then((response) => {
                 btnLoading.value = false
                 try {

@@ -114,6 +114,7 @@ import { toast } from 'vue3-toastify';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
 import EpisodeManagerModal from '../../../components/modals/episode-manager.modal.vue';
 import draggable from 'vuedraggable';
+import { ajax } from '../../../lib/axios-setup';
 
 const SiteSettings = inject('SiteSettings');
 
@@ -134,7 +135,7 @@ const selectedSeason = ref('');
 
 const fetchContent = async () => {
     try {
-        const response = await axios.get(`/admin/content-manager/${contentId}.json`);
+        const response = await ajax.get(`/admin/content-manager/${contentId}.json`);
         content.value = response.data.data;
         editedData.value = { ...content.value };
     } catch (error) {
@@ -154,7 +155,7 @@ watch(reorderingSeasons, async (value) => {
 
 const saveSeasonsOrder = async () => {
     try {
-        const response = await axios.put(`/admin/content-manager/${contentId}/reorder-seasons.json`, {
+        const response = await ajax.put(`/admin/content-manager/${contentId}/reorder-seasons.json`, {
             season_order: content.value.seasons.map((season) => season.id)
         });
         toast.success('Orden de temporadas guardado con éxito.');
@@ -183,7 +184,7 @@ const saveContent = async (e) => {
             return;
         }
 
-        const response = await axios.put(`/admin/content-manager/${contentId}.json`, formData);
+        const response = await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
         toast.success('Contenido guardado con éxito.');
 
         await fetchContent();
@@ -197,7 +198,7 @@ const saveContent = async (e) => {
 
 const deleteContent = async () => {
     try {
-        const response = await axios.delete(`/admin/content-manager/${contentId}.json`);
+        const response = await ajax.delete(`/admin/content-manager/${contentId}.json`);
         router.push({
             name: 'admin.content.manager.all'
         });

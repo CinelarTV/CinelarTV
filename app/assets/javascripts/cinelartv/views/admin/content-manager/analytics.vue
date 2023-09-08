@@ -51,6 +51,7 @@ import { Trash2Icon } from 'lucide-vue-next';
 import { CheckIcon } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
+import { ajax } from '../../../lib/axios-setup';
 const route = useRoute()
 const router = useRouter()
 const contentId = route.params.id
@@ -64,7 +65,7 @@ const loadingButton = ref(false)
 
 const fetchContent = async () => {
     try {
-        const response = await axios.get(`/admin/content-manager/${contentId}/analytics.json`)
+        const response = await ajax.get(`/admin/content-manager/${contentId}/analytics.json`)
         content.value = response.data.data
     } catch (error) {
         console.log(error)

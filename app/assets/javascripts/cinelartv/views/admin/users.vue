@@ -37,12 +37,7 @@ import { ref, onMounted, inject } from 'vue'
 import { useHead } from 'unhead'
 import { useRoute, useRouter } from 'vue-router'
 import { getCurrentInstance } from 'vue'
-import { ClapperboardIcon, TvIcon } from 'lucide-vue-next'
-import { ShapesIcon } from 'lucide-vue-next'
-import { RouterIcon } from 'lucide-vue-next'
-import { UserIcon } from 'lucide-vue-next'
-import { Trash2Icon } from 'lucide-vue-next'
-import { PencilIcon } from 'lucide-vue-next'
+import { ajax } from '../../lib/axios-setup'
 
 const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
@@ -51,7 +46,7 @@ const users = ref([])
 const router = useRouter()
 
 const getUsers = () => {
-    axios.get('/admin/users.json').then((response) => {
+    ajax.get('/admin/users.json').then((response) => {
         users.value = response.data.data
     }).catch((error) => {
         console.log(error);
@@ -59,7 +54,7 @@ const getUsers = () => {
 }
 
 const deleteUser = (id) => {
-    axios.delete('/admin/users/' + id).then((response) => {
+    ajax.delete('/admin/users/' + id).then((response) => {
         getUsers()
     }).catch((error) => {
         console.log(error);

@@ -73,6 +73,7 @@ import {
     DialogDescription,
 } from '@headlessui/vue'
 import { Unlock, Fingerprint, LoaderIcon } from 'lucide-vue-next'
+import { ajax } from '../../lib/axios-setup';
 
 const isOpen = ref(false)
 
@@ -99,7 +100,7 @@ export default {
         submitLogin(e) {
             e.preventDefault()
             this.loading = true
-            axios.post('/users/sign_in.json', {
+            ajax.post('/users/sign_in.json', {
                 user: {
                     email: this.email,
                     password: this.password,

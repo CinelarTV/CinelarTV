@@ -64,7 +64,7 @@
   import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
   import LoginModal from './modals/login.modal.vue'
   import SignupModal from './modals/signup.modal.vue'
-  import axios from 'axios'
+import { ajax } from '../lib/axios-setup';
   
   const currentUser = inject('currentUser')
   const SiteSettings = inject('SiteSettings')
@@ -89,7 +89,7 @@
       text: 'Cambiar Perfil',
       icon: 'arrow-right-left',
       onClick: () => {
-        axios.post('/user/deassign-profile.json', {
+        ajax.post('/user/deassign-profile.json', {
           user: {
             selected_profile_id: null,
           },
@@ -147,7 +147,7 @@
   }
   
   const userLogout = () => {
-    axios.delete('/users/sign_out.json')
+    ajax.delete('/users/sign_out.json')
       .then(() => {
         window.location.href = '/'
       })

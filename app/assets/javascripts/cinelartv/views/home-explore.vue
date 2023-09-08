@@ -98,18 +98,16 @@
 
   
 <script setup>
-import { PlusIcon } from 'lucide-vue-next';
-import { InfoIcon } from 'lucide-vue-next';
-import { PlayCircleIcon, ThumbsUpIcon } from 'lucide-vue-next';
 import { ref, onMounted, getCurrentInstance, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
+import { ajax } from '../lib/axios-setup';
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
 const homepageData = inject('homepageData');
-const { $t, $http } = getCurrentInstance().appContext.config.globalProperties;
+const { $t } = getCurrentInstance().appContext.config.globalProperties;
 const homepage = ref(null);
 const descriptionCurrent = ref(null);
 const carouselContainer = ref(null);
@@ -117,12 +115,6 @@ const bannerCurrentIndex = ref(0); // Define bannerCurrentIndex here
 let intervalId = null;
 const router = useRouter();
 
-const capybaraCount = ref(0);
-MessageBus.subscribe('/capybara', (data) => {
-    capybaraCount.value++;
-    console.log('Capybara count:', capybaraCount.value);
-    console.log('Capybara data:', data);
-});
 
 useHead({
     title: 'Explorar',
@@ -171,10 +163,10 @@ const toggleLike = async (id, fromBanner = false) => {
         if (content) {
             try {
                 if (content.liked) {
-                    await $http.post(`/contents/${id}/unlike.json`);
+                    await ajax.post(`/contents/${id}/unlike.json`);
                     toast.success($t('js.user.removed_from_favorites'));
                 } else {
-                    await $http.post(`/contents/${id}/like.json`);
+                    await ajax.post(`/contents/${id}/like.json`);
                     toast.success($t('js.user.added_to_favorites'));
                 }
                 content.liked = !content.liked; // Toggle the liked state after the request is successful
@@ -270,7 +262,7 @@ const handleScroll = () => {
 onMounted(async () => {
     if (!homepage.value) {
         try {
-            const response = await $http.get('/explore.json');
+            const response = await ajax.get('/explore.json');
             homepage.value = response.data;
         } catch (error) {
             console.error('Error loading data:', error);

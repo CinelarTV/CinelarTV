@@ -68,7 +68,8 @@ import { ref, getCurrentInstance, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import CreateContentModal from '../../../components/modals/create-content.modal.vue';
 import { PlusIcon } from 'lucide-vue-next';
-const { $http, $t } = getCurrentInstance().appContext.config.globalProperties
+import { ajax } from '../../../lib/axios-setup';
+const { $t } = getCurrentInstance().appContext.config.globalProperties
 const router = useRouter()
 
 const loading = ref(true)
@@ -91,7 +92,7 @@ const createContent = () => {
 const fetchContent = async () => {
     loading.value = true
     try {
-        const response = await $http.get('/admin/content-manager/all.json')
+        const response = await ajax.get('/admin/content-manager/all.json')
         content.value = response.data.data
     } catch (error) {
         console.log(error)

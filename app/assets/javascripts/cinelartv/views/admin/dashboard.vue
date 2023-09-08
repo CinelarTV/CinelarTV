@@ -67,8 +67,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { UploadCloud } from 'lucide-vue-next'
-import axios from 'axios'
 import { useHead } from 'unhead'
+import { ajax } from '../../lib/axios-setup';
 
 useHead({
   title: 'Dashboard',
@@ -105,7 +105,7 @@ const getClassByType = (type) => {
 
 const fetchDashboard = async () => {
   try {
-    const response = await axios.get('/admin/dashboard.json')
+    const response = await ajax.get('/admin/dashboard.json')
     dashboardData.value = response.data
   } catch (error) {
     console.log(error)

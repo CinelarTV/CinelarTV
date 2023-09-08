@@ -106,16 +106,14 @@
 <script setup>
 import { getCurrentInstance, onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import axios from 'axios' // Import axios if not already imported
 import { CheckIcon, SparklesIcon } from 'lucide-vue-next';
 import RecommendedMetadataModal from './recommended-metadata.modal.vue'
 import cImageUpload from '../forms/c-image-upload.vue';
+import { ajax } from '../../lib/axios-setup';
 
 const SiteSettings = inject('SiteSettings');
 
 const emit = defineEmits(['content-created'])
-
-const { $http } = getCurrentInstance().appContext.config.globalProperties
 
 const props = defineProps({
     // Define your props here
@@ -190,8 +188,7 @@ const submitCreateContent = (e) => {
         formData.append(`content[${e}]`, data[e])
     }
 
-    // Modify the API endpoint based on your requirements
-    $http.post('/admin/contents.json', formData)
+    ajax.post('/admin/contents.json', formData)
         .then((response) => {
             loading.value = false
             setIsOpen(false)
@@ -207,7 +204,7 @@ const submitCreateContent = (e) => {
 const findRecommendedMetadata = () => {
     loadingRecommendations.value = true
     // Modify the API endpoint based on your requirements
-    axios.get(`/admin/contents/recommended-metadata.json?title=${contentData.value.name}`)
+    ajax.get(`/admin/contents/recommended-metadata.json?title=${contentData.value.name}`)
         .then((response) => {
             console.log(response.data)
             recommendedContent.value = response.data

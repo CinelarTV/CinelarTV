@@ -1,52 +1,70 @@
 import axios from 'axios';
 import CinelarTV from '../application';
-let csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+const getCsrfToken = () => {
+    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+}
 
-const http = axios.create({
+export const ajax = axios.create({
     timeout: 30000,
     headers: {
         common: {
-            "X-CSRF-TOKEN": csrf
+            "X-CSRF-TOKEN": getCsrfToken()
         }
     }
-  });
+});
 
-  http.interceptors.request.use(function (config) {
-    CinelarTV.config.globalProperties.$progress.start()
+ajax.interceptors.request.use(function (config) {
+    CinelarTV.config.globalProperties.$progress.start();
     return config;
-  }, function (error) {
-    CinelarTV.config.globalProperties.$progress.finish()
+}, function (error) {
+    CinelarTV.config.globalProperties.$progress.finish();
     return Promise.reject(error);
-  });
+});
 
-  http.interceptors.response.use(function (response) {
-    CinelarTV.config.globalProperties.$progress.finish()
-    if(response.status === 200 || response.status === 422) {
-      return response;  
+ajax.interceptors.response.use(function (response) {
+    CinelarTV.config.globalProperties.$progress.finish();
+    if (response.status === 200 || response.status === 422) {
+        return response;
     }
-  }, function (error) {
-    CinelarTV.config.globalProperties.$progress.finish()
+}, function (error) {
+    CinelarTV.config.globalProperties.$progress.finish();
     if (error.response.status === 404) {
-        //AppRouter.replace('/not-found')
+        // AppRouter.replace('/not-found');
     }
 
     if (error.response.status === 500 || error.response.code === 502) {
         if (process.env.NODE_ENV !== 'development') {
-          //AppRouter.replace('/exception')
+            // AppRouter.replace('/exception');
         }
     }
-    if(error.response.status === 422) {
-      return Promise.reject(error.response.data);
+
+    if (error.response.status === 422) {
+        return Promise.reject(error.response.data);
     }
+
     return Promise.reject(error);
-  });
+});
 
+// Función para renovar el token CSRF periódicamente
+const renewCsrfToken = () => {
+  const interval = setInterval(async () => {
+      try {
+          const response = await axios.get('/session/csrf');
+          const newCsrfToken = response.data.csrf;
+          ajax.defaults.headers.common["X-CSRF-TOKEN"] = newCsrfToken;
+      } catch (error) {
+          console.error("[Ajax] Error on renewing CSRF token", error);
+      }
+  }, 60 * 60 * 1000); 
+}
 
-window.axios = http
+renewCsrfToken();
+
+window.ajax = ajax;
 
 export default {
     install: (app) => {
-        app.config.globalProperties.$http = http
+        app.config.globalProperties.$http = ajax;
     }
-}
+};
