@@ -58,36 +58,8 @@
 
                     <div class="recyclerview" v-if="category.content">
                         <ul>
-                            <li v-for="data in category.content" :key="data.id" class="content-item">
-                                <article class="recyclerview-card-article">
-                                    <section class="recyclerview-card-article__section">
-                                        <div class="recyclerview-card-article__element">
-                                            <RouterLink :to="`/contents/${data.id}`">
-                                                <div class="recyclerview-card-article__image" style="aspect-ratio:16/9">
-                                                    <img :src="data.banner" alt="Cover Image" />
-                                                </div>
-                                                <div class="recyclerview-card-article__overlay"
-                                                    :class="data.duration && data.progress ? 'with-progress' : ''">
-                                                    <div class="recyclerview-card-article__title">
-                                                        {{ data.title }}
-                                                    </div>
-                                                    <div class="recyclerview-card-article__progress"
-                                                        v-if="data.progress && data.duration">
-                                                        <div class="recyclerview-card-article__progress__bar">
-                                                            <div class="recyclerview-card-article__progress__bar__progress"
-                                                                :style="`width: ${(data.progress / data.duration) * 100}%`">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-
-                                            </RouterLink>
-                                        </div>
-
-                                    </section>
-                                </article>
-                            </li>
+                            <ContentCard :data="data" v-for="data in category.content" :key="data.id"
+                                class="content-item" />
                         </ul>
                     </div>
                 </template>
@@ -103,6 +75,7 @@ import { useRouter } from 'vue-router';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
 import { ajax } from '../lib/axios-setup';
+import ContentCard from '../components/content-card.vue';
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
