@@ -217,7 +217,7 @@ module Admin
       # Process banner image
       Rails.logger.info("Banner: #{params[:content][:banner]}")
 
-      if params[:content][:banner].present? # Check if banner is provided
+      if params[:content][:banner].present? || !params[:content][:banner].nil? || !params[:content][:banner].blank?
         if @content.banner&.starts_with?("tmdb://")
           # Process TMDB reference here
           tmdb_id = @content.banner.sub("tmdb://", "")
@@ -235,7 +235,7 @@ module Admin
       end
 
       # Process cover image
-      if params[:content][:cover].present? # Check if cover is provided
+      if params[:content][:cover].present? || !params[:content][:cover].nil? || !params[:content][:cover].blank?
         if @content.cover&.starts_with?("tmdb://")
           # Process TMDB reference here
           tmdb_id = @content.cover.sub("tmdb://", "")
