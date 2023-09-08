@@ -137,7 +137,8 @@ const fetchContent = async () => {
     try {
         const response = await ajax.get(`/admin/content-manager/${contentId}.json`);
         content.value = response.data.data;
-        editedData.value = { ...content.value };
+        // Exclude banner and cover from editedData
+        editedData.value = Object.fromEntries(Object.entries(content.value).filter(([key, value]) => !['banner', 'cover'].includes(key)));
     } catch (error) {
         console.log(error);
     } finally {
