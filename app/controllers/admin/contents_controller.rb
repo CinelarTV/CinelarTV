@@ -253,6 +253,8 @@ module Admin
           Rails.logger.info("Cover URL: #{cover_uploader.url}")
         end
       end
+
+      @content.save
     end
 
     private
