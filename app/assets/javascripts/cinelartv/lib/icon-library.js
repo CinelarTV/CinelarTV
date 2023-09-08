@@ -19,6 +19,7 @@ const ICON_MAP = [
     "logOut",
     "pause",
     "play",
+    "frown",
     "playCircle",
     "plus",
     "rotateCcw",

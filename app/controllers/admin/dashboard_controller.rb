@@ -10,7 +10,7 @@ module Admin
       @problems << {
         content: "Your CinelarTV instance is not activated. Your customers will not be able to use the site until you activate it.",
         type: "critical",
-        icon: "key",
+        icon: "frown",
       } unless CinelarTV.valid_license?
 
       @problems << {
