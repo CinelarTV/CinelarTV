@@ -117,7 +117,7 @@
     },
     {
       text: 'Configuración',
-      icon: 'wrench',
+      icon: 'settings',
       href: '/account/preferences',
       visible: isMainProfile.value,
     },

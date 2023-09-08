@@ -24,6 +24,7 @@ const ICON_MAP = [
     "rotateCcw",
     "rotateCw",
     "search",
+    "settings",
     "thumbsUp",
     "user",
     "wrench",
