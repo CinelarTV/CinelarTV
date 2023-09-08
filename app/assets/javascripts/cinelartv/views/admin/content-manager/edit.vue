@@ -23,7 +23,7 @@
                         <c-textarea placeholder="Description" :modelValue="content.description"
                             @update:modelValue="value => editedData.description = value" />
 
-                        <c-image-upload placeholder="Cover" :modelValue="content.cover"
+                        <c-image-upload placeholder="Cover" :value="content.cover"
                             @update:modelValue="value => editedData.cover = value" />
 
                         <c-image-upload placeholder="Banner" :value="content.banner"
