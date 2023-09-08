@@ -93,8 +93,6 @@ const contentData = ref(null)
 const showTrailer = ref(false)
 const activeSeason = ref(null)
 
-document.body.classList.add('content-route')
-
 const getContent = async () => {
   try {
     const { data } = await axios.get(`/contents/${$route.params.id}.json`)
@@ -165,6 +163,8 @@ const preloadTrailer = async (trailerSrc) => {
 
 onMounted(async () => {
   await getContent()
+  document.body.classList.add('content-route')
+
 
   const bannerWrapper = document.querySelector('.banner-wrapper')
   const image = new Image()
