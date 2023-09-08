@@ -2,4 +2,4 @@
 <% unless SiteSetting.site_description.blank? %>
   <meta property="og:description" content="<%= defined?(@description) ? @description : '' %>" />
 <% end %>
-<meta property="og:image" content="<%= defined?(@banner) ? @banner : '' %>" />
+<meta property="og:image" content="<%= defined?(@banner) ? @banner : SiteSetting.site_mobile_logo %>" />
