@@ -31,6 +31,10 @@ const Components = [
         name: 'c-icon-button',
         component: require('../components/forms/c-icon-button.vue').default
     },
+    {
+        name: 'c-icon',
+        component: require('../components/c-icon.vue').default
+    }
 ]
 
 export default {
