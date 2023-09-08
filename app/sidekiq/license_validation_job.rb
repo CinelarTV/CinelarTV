@@ -1,9 +1,9 @@
 # frozen_string_literal: true
+
+require "sidekiq-scheduler"
+
 class LicenseValidationJob
   include Sidekiq::Job
-  extend MiniScheduler::Schedule
-
-  every 1.minute
 
   def perform()
     validate_license(SiteSetting.license_key)
@@ -13,6 +13,10 @@ class LicenseValidationJob
 
   def validate_license(license_key)
     validate_url = "https://api.lemonsqueezy.com/v1/licenses/validate"
+
+    if license_key.blank? || license_key == "YOUR_LICENSE_KEY"
+      raise "License key is blank or not set. Please set your license key in the CinelarTV Wizard."
+    end
 
     response = HTTParty.post(validate_url, {
       body: { license_key: license_key }.to_json,
@@ -24,18 +28,22 @@ class LicenseValidationJob
       if data["valid"]
         # License is valid, you can process the response or update your database accordingly
         Rails.logger.info("License #{license_key} is valid.")
+        CinelarTV.set_valid_license(true)
         # Additional processing, e.g., update the license status in your database
       else
         # License is not valid, handle the error accordingly
         Rails.logger.error("License #{license_key} is not valid. Error: #{data["error"]}")
+        CinelarTV.set_valid_license(false)
         # Additional error handling, e.g., deactivate the license in your database
       end
     else
       # Handle API request error
-      Rails.logger.error("Error while validating license #{license_key}. HTTP Code: #{response.code}")
+      Rails.logger.error("Error while validating license #{license_key}. HTTP Code: #{response.code}. Error: #{response.body}")
+      CinelarTV.set_valid_license(false)
     end
   rescue StandardError => e
     # Handle other exceptions
     Rails.logger.error("Error while validating license #{license_key}: #{e.message}")
+    CinelarTV.set_valid_license(false)
   end
 end

@@ -6,24 +6,24 @@ require "updater"
 module CinelarTV
   def self.git_version
     @git_version ||= begin
-      git_cmd = "git rev-parse HEAD"
-      try_git(git_cmd, CinelarTV::Application::Version::FULL)
-    end
+        git_cmd = "git rev-parse HEAD"
+        try_git(git_cmd, CinelarTV::Application::Version::FULL)
+      end
   end
 
   def self.git_branch
     @git_branch ||= begin
-      git_cmd = "git rev-parse --abbrev-ref HEAD"
-      try_git(git_cmd, "unknown")
-    end
+        git_cmd = "git rev-parse --abbrev-ref HEAD"
+        try_git(git_cmd, "unknown")
+      end
   end
 
   def self.last_commit_date
     @last_commit_date ||= begin
-      git_cmd = 'git log -1 --format="%ct"'
-      seconds = try_git(git_cmd, nil)
-      seconds.nil? ? nil : DateTime.strptime(seconds, "%s")
-    end
+        git_cmd = 'git log -1 --format="%ct"'
+        seconds = try_git(git_cmd, nil)
+        seconds.nil? ? nil : DateTime.strptime(seconds, "%s")
+      end
   end
 
   def self.try_git(git_cmd, default_value)
@@ -41,12 +41,14 @@ module CinelarTV
 
   def self.full_version
     @full_version ||= begin
-      git_cmd = 'git describe --dirty --match "v[0-9]*" 2> /dev/null'
-      try_git(git_cmd, "unknown")
-    end
+        git_cmd = 'git describe --dirty --match "v[0-9]*" 2> /dev/null'
+        try_git(git_cmd, "unknown")
+      end
   end
 
   @@maintenance_enabled = false
+
+  @@valid_license = nil
 
   def self.maintenance_enabled
     @@maintenance_enabled
@@ -54,5 +56,21 @@ module CinelarTV
 
   def self.maintenance_enabled=(value)
     @@maintenance_enabled = value
+  end
+
+  def self.valid_license?
+    if @@valid_license.nil?
+      Rails.logger.info("License validation job not yet run. Running now...")
+      LicenseValidationJob.new.perform
+      # Return the value from the last validation
+      @@valid_license
+    end
+
+    @@valid_license
+  end
+
+  def self.set_valid_license(value)
+    # Boolean value
+    @@valid_license = value
   end
 end

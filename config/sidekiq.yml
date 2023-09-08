@@ -1,0 +1,8 @@
+:scheduler:
+  :schedule:
+    # Run every 15 minutes
+    verify_instance_license:
+      every: '15m'
+      class: LicenseValidationJob
+      queue: 'default'
+      description: 'Verify if the license for this CinelarTV instance is valid'

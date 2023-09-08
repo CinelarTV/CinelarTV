@@ -67,7 +67,6 @@ group :test do
   gem "webdrivers"
 end
 
-
 gem "shakapacker", "= 7.0"
 
 gem "rails-settings-cached", "~> 2.9"
@@ -81,7 +80,7 @@ gem "rolify", "~> 6.0"
 gem "message_bus"
 
 # For multi-lingual app
-gem "i18n-js", "~> 3"  
+gem "i18n-js", "~> 3"
 
 gem "rack-mini-profiler", "~> 2.0"
 
@@ -96,7 +95,7 @@ gem "carrierwave", "~> 3.0"
 
 gem "carrierwave-bombshelter", "~> 0.2.2"
 
-gem 'aws-sdk-s3', '~> 1'
+gem "aws-sdk-s3", "~> 1"
 
 gem "carrierwave-aws", "~> 1.6"
 
@@ -104,8 +103,9 @@ gem "erb-formatter", "~> 0.4.3"
 
 gem "active_model_serializers", "~> 0.8.3"
 
-gem 'wdm', '>= 0.1.0' if Gem.win_platform?
+gem "wdm", ">= 0.1.0" if Gem.win_platform?
 gem "httparty", "~> 0.21.0"
 
-gem 'sidekiq' # To run background jobs
-gem 'mini_scheduler' # To schedule background jobs
+gem "sidekiq" # To run background jobs
+#gem 'mini_scheduler' # To schedule background jobs
+gem "sidekiq-scheduler"

@@ -12,6 +12,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from 'unhead'
+import { ajax } from '../lib/axios-setup';
 const route = useRoute()
 const router = useRouter()
 
@@ -33,7 +34,7 @@ useHead({
 
 const fetchWizard = async () => {
   try {
-    const response = await axios.get(`/wizard.json`)
+    const response = await ajax.get(`/wizard.json`)
     wizard.value = response.data.wizard
     let stepToFind = wizard.value.steps.find(s => s.id === step || 0) || wizard.value.steps[0]
     currentStep.value = stepToFind
