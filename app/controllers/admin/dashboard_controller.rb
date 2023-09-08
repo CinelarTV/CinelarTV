@@ -7,21 +7,23 @@ module Admin
     def index
       data = {}
       @problems = []
-      if !SiteSetting.license_key.present?
-        @problems << {
-          content: "Your CinelarTV instance is not activated. Your customers will not be able to use the site until you activate it.",
-          type: "critical",
-          icon: "key",
-        }
+      @problems << {
+        content: "Your CinelarTV instance is not activated. Your customers will not be able to use the site until you activate it.",
+        type: "critical",
+        icon: "key",
+      } unless CinelarTV.valid_license?
 
-        if !SiteSetting.wizard_completed
-          @problems << {
-            content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
-            type: "warning",
-            icon: "magic",
-          }
-        end
-      end
+      @problems << {
+        content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
+        type: "info",
+        icon: "sparkles",
+      } unless SiteSetting.wizard_completed
+
+      @problems << {
+        content: "This is a test problem.",
+        type: "warning",
+        icon: "sparkles",
+      }
 
       data[:problems] = @problems
       data[:version_check] = {

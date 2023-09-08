@@ -9,10 +9,13 @@
           Hay actualizaciones disponibles
         </span>
       </section>
-      <section id="problems" class="flex flex-col px-4 py-2 w-full mb-8"
+      <section id="problems" class="flex flex-col py-2 w-full mb-8"
         v-if="dashboardData.problems.length > 0">
         <template v-for="problem in dashboardData.problems">
-          <div class="flex my-2 text-white p-4" :class="getClassByType(problem.type)">
+          <div class="flex my-2 text-white p-4 items-center" :class="getClassByType(problem.type)">
+            <div class="flex-shrink-0">
+              <c-icon :icon="problem.icon" :size="24" />
+            </div>
             <span class="text-base px-4" v-html="problem.content">
             </span>
           </div>
