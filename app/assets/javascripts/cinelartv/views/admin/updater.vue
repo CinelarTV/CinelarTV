@@ -60,7 +60,6 @@
 </template>
 
 <script setup>
-
 import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
 import { useHead } from 'unhead';
