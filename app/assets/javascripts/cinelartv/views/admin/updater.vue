@@ -139,6 +139,7 @@ const runUpdate = () => {
         })
 }
 
+
 const restartServer = () => {
     ajax.post('/admin/restart.json')
         .then(response => {
