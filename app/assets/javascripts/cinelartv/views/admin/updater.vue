@@ -81,7 +81,7 @@ useHead({
 })
 
 // Try to prevent the user from leaving the page while updating, maybe show an alert
-window.onbeforeunload = function() {
+window.onbeforeunload = function () {
     if (updating.value) {
         return "CinelarTV is updating, we recommend you to wait until the update is finished."
     }
@@ -119,6 +119,10 @@ onMounted(() => {
             console.log(data.value)
             if (data.value == "failed") {
                 handleFailed()
+            }
+            if (data.value == "complete") {
+                updating.value = false
+                toast.success("Update complete")
             }
         }
     });
