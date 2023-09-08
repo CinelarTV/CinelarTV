@@ -1,29 +1,36 @@
 import * as icons from "lucide-static";
 import { SiteSettings } from "../pre-initializers/essentials-preload"; // Inject is not available before App initialization, so we need to import it here
-
 const ICON_MAP = [
     "activity",
     "airplay",
-    "wrench",
-    "loader",
-    "playCircle",
-    "plus",
-    "info",
-    "thumbsUp",
-    "chevronLeft",
-    "play",
-    "chevronRight",
-    "chevronDown",
-    "chevronUp",
-    "search",
-    "x",
+    "arrowRightLeft",
     "check",
     "checkCircle",
-    "pause",
-    "rotateCw",
-    "rotateCcw",
+    "chevronDown",
+    "chevronLeft",
+    "chevronRight",
+    "chevronUp",
+    "clapperboard",
+    "creditCard",
     "gripVertical",
+    "helpCircle",
+    "info",
+    "loader",
+    "logOut",
+    "pause",
+    "play",
+    "playCircle",
+    "plus",
+    "rotateCcw",
+    "rotateCw",
+    "search",
+    "thumbsUp",
+    "user",
+    "wrench",
+    "x",
 ];
+
+
 
 
 
