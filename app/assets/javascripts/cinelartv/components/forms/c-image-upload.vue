@@ -8,8 +8,6 @@
 import { ref, defineEmits, defineModel, watch, onMounted } from 'vue';
 import Uppy from '@uppy/core';
 import Dashboard from '@uppy/dashboard';
-import '@uppy/core/dist/style.min.css';
-import '@uppy/dashboard/dist/style.min.css';
 
 const emit = defineEmits(['update:modelValue']);
 
@@ -63,6 +61,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '@uppy/core/dist/style.min.css';
+@import '@uppy/dashboard/dist/style.min.css';
 .c-image-upload {
   display: inline-block;
   /* Personaliza los estilos según tus necesidades */
