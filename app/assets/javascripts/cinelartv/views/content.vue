@@ -100,7 +100,7 @@ const getContent = async () => {
     const { data } = await axios.get(`/contents/${$route.params.id}.json`)
     contentData.value = data
     if(data.content.content_type === 'TVSHOW') {
-      if(data.content.seasons.length > 0) {
+      if(data.content.seasons?.length > 0) {
         activeSeason.value = data.content.seasons[0].id
       }
     }
