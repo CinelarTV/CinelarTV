@@ -19,12 +19,6 @@ module Admin
         icon: "sparkles",
       } unless SiteSetting.wizard_completed
 
-      @problems << {
-        content: "This is a test problem.",
-        type: "warning",
-        icon: "sparkles",
-      }
-
       data[:problems] = @problems
       data[:version_check] = {
         installed_version: CinelarTV::Application::Version::FULL,
