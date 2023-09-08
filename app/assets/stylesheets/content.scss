@@ -42,10 +42,10 @@ body.content-route main {
 
 
 .content-overview .content-details {
+  @apply px-12 py-8;
     margin-top: -420px;
     position: relative;
     z-index: 1;
-    padding: 20px 10px 30px;
     overflow: visible;
 
     & .content-title {
@@ -78,6 +78,6 @@ body.content-route main {
 
 @media screen and (min-width: 768px) {
   .content-overview .content-details {
-    padding: 30px 10px 30px;
+    @apply px-8;
   }
 }
