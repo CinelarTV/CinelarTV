@@ -181,7 +181,7 @@ module Admin
       # Await the uploaded images
       handle_uploaded_images
 
-      @content.assign_attributes(content_params.except(:banner, :cover))
+      @content.assign_attributes(content_params.except(:banner, :cover)) # Ignore banner and cover because they are processed above
 
       # Series can't have an url
       if @content.content_type == "TVSHOW" && @content.url?
@@ -217,41 +217,35 @@ module Admin
       # Process banner image
       Rails.logger.info("Banner: #{params[:content][:banner]}")
 
-      banner_file = params[:content][:banner]
-      if banner_file.present?
-        if @content.banner&.starts_with?("tmdb://")
-          # Process TMDB reference here
-          tmdb_id = @content.banner.sub("tmdb://", "")
-          banner_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-          uploader = ContentImageUploader.new
-          uploader.download!(banner_url)
-          @content.banner = uploader.url
-        else
-          # Process uploaded banner image here
-          banner_uploader = ContentImageUploader.new
-          banner_uploader.store!(banner_file)
-          @content.banner = banner_uploader.url
-          Rails.logger.info("Banner URL: #{banner_uploader.url}")
-        end
+      if @content.banner&.starts_with?("tmdb://")
+        # Process TMDB reference here
+        tmdb_id = @content.banner.sub("tmdb://", "")
+        banner_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
+        uploader = ContentImageUploader.new
+        uploader.download!(banner_url)
+        @content.banner = uploader.url
+      else
+        # Process uploaded banner image here
+        banner_uploader = ContentImageUploader.new
+        banner_uploader.store!(params[:content][:banner])
+        @content.banner = banner_uploader.url
+        Rails.logger.info("Banner URL: #{banner_uploader.url}")
       end
 
       # Process cover image
-      cover_file = params[:content][:cover]
-      if cover_file.present?
-        if @content.cover&.starts_with?("tmdb://")
-          # Process TMDB reference here
-          tmdb_id = @content.cover.sub("tmdb://", "")
-          cover_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-          uploader = ContentImageUploader.new
-          uploader.download!(cover_url)
-          @content.cover = uploader.url
-        else
-          # Process uploaded cover image here
-          cover_uploader = ContentImageUploader.new
-          cover_uploader.store!(cover_file)
-          @content.cover = cover_uploader.url
-          Rails.logger.info("Cover URL: #{cover_uploader.url}")
-        end
+      if @content.cover&.starts_with?("tmdb://")
+        # Process TMDB reference here
+        tmdb_id = @content.cover.sub("tmdb://", "")
+        cover_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
+        uploader = ContentImageUploader.new
+        uploader.download!(cover_url)
+        @content.cover = uploader.url
+      else
+        # Process uploaded cover image here
+        cover_uploader = ContentImageUploader.new
+        cover_uploader.store!(params[:content][:cover])
+        @content.cover = cover_uploader.url
+        Rails.logger.info("Cover URL: #{cover_uploader.url}")
       end
 
       @content.save
