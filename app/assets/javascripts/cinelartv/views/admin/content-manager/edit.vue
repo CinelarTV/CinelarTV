@@ -199,6 +199,10 @@ const saveContent = async (e) => {
 
 const deleteContent = async () => {
     try {
+        if(!confirm('¿Estás seguro de que quieres eliminar este contenido?')) {
+            return;
+        }
+
         const response = await ajax.delete(`/admin/content-manager/${contentId}.json`);
         router.push({
             name: 'admin.content.manager.all'
