@@ -5,8 +5,8 @@
                 <h1>Search</h1>
             </div>
             <div class="search-page__header__search">
-                <input type="text" placeholder="Search for a movie, tv show, person..." v-model="searchQuery"
-                    @keyup.enter="search">
+                <c-input type="text" placeholder="Search for a movie, tv show, person..." v-model="searchQuery"
+                    @keyup.enter="search" />
                 <button @click="search">
                     <SearchIcon />
                 </button>
@@ -16,7 +16,10 @@
             <div class="search-page__results__title">
                 <h2>Results</h2>
             </div>
-            <div class="search-page__results__content">
+            <div v-if="searching" class="search-page__results__content__loading">
+                    <c-spinner />
+                </div>
+            <div class="search-page__results__content" v-else>
                 <div class="search-page__results__content__item" v-for="result in results" :key="result.id" v-if="results && results.length > 0">
                     <ContentCard :data="result" />
                 </div>
