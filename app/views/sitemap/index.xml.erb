@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+ xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+        http://www.google.com/schemas/sitemap-image/1.1
+        http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
+    <% @contents.each do |content| %>
+        <url>
+            <% full_host = request.protocol + request.host_with_port %>
+            <% full_host.gsub!(/:80$/, "") if request.port == 80 %>
+            <% full_host.gsub!(/:443$/, "") if request.port == 443 %>
+            <loc><%= full_host %>/contents/<%= content.id %></loc>
+            <loc><%= SiteSetting.base_url.present? ? SiteSetting.base_url : full_host %>/contents/<%= content.id %></loc>
+            <lastmod><%= content.updated_at.strftime("%Y-%m-%d") %></lastmod>
+            <changefreq>daily</changefreq>
+            <priority>0.5</priority>
+            <% if content.banner.present? %>
+                <image:image>
+                    <image:loc><%= content.banner %></image:loc>
+                    <image:title><%= content.title %></image:title>
+                </image:image>
+            <% end %>
+        </url>
+    <% end %>
+</urlset>

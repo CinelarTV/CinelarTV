@@ -69,6 +69,9 @@ Rails.application.routes.draw do
 
   get "capybara" => "application#capybara_spin"
 
+  # Sitemap
+  get "sitemap.xml" => "sitemap#index", format: "xml", as: :sitemap
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 end

@@ -55,6 +55,11 @@ general:
     refresh: true
     readonly: true,
     hidden: true
+  enable_sitemap:
+    client: true
+    refresh: true
+    default: true
+    type: 'boolean'
 content:
   enable_metadata_recommendation:
     client: true
