@@ -65,6 +65,7 @@ import {
     DialogDescription,
 } from '@headlessui/vue'
 import { Unlock, LoaderIcon } from 'lucide-vue-next'
+import { ajax } from '../../lib/axios-setup';
 
 const isOpen = ref(false)
 const username = ref('')
@@ -79,7 +80,7 @@ function setIsOpen(value) {
 function submitRegistration(e) {
     e.preventDefault()
     loading.value = true
-    axios
+    ajax
         .post('/users.json', {
             user: {
                 username: username.value,
