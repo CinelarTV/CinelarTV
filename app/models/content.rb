@@ -21,7 +21,7 @@ class Content < ApplicationRecord
   before_destroy :delete_associated_continue_watching
 
   def self.search(title)
-    where("LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)", "%#{title}%", "%#{title}%")
+    where("available = ? AND (LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?))", true, "%#{title}%", "%#{title}%")
   end
 
   def self.find_by_type(type)
