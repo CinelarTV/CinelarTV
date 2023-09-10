@@ -42,7 +42,7 @@ general:
       - pt
   enable_splash_screen:
     client: true
-    refresh: true
+    refresh: false
     default: true
     type: 'boolean'
   allow_registration:
@@ -57,7 +57,7 @@ general:
     hidden: true
   enable_sitemap:
     client: true
-    refresh: true
+    refresh: false
     default: true
     type: 'boolean'
 content:
@@ -68,7 +68,7 @@ content:
     type: 'boolean'
   tmdb_api_key:
     client: false
-    refresh: true
+    refresh: false
     default: ""
     type: 'string'
     secret: true
@@ -245,6 +245,12 @@ developer:
     refresh: true
     default: true
     type: 'boolean'
+  api_custom_data:
+    client: false
+    refresh: false
+    default: "{}"
+    type: 'json'
+    secret: false
 experimental:
   enable_web_updater:
     client: true
