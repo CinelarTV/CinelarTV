@@ -18,10 +18,24 @@
 
                             <!-- Type 1: Boolean -->
 
-                            <input type="checkbox" v-else-if="setting.type === 'boolean'" class="mt-0 setting-value"
-                                @change="settings[setting.key] = $event.target.checked"
-                                :checked="settingsModel[index].value"
-                                :label="$t(`js.admin.settings.${category}.${setting.key}.description`)" />
+
+
+                            <SwitchGroup v-else-if="setting.type === 'boolean'">
+                                <div class="flex items-center">
+                                    <SwitchLabel class="mr-4">{{ setting.label }}</SwitchLabel>
+                                    <Switch v-model="settings[setting.key]" :class="{
+                                        'bg-blue-600': settings[setting.key],
+                                        'bg-gray-600': !settings[setting.key]
+                                    }"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                        <span :class="{
+                                            'translate-x-6': settings[setting.key],
+                                            'translate-x-1': !settings[setting.key]
+                                        }"
+                                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
+                                    </Switch>
+                                </div>
+                            </SwitchGroup>
 
                             <!-- Type 2: Image -->
 
@@ -111,16 +125,19 @@
 
 
 import { ref, reactive, onMounted, inject, onUpdated } from 'vue'
+import { toast } from 'vue3-toastify'
 import {
     Listbox,
     ListboxButton,
     ListboxOptions,
     ListboxOption,
+    Switch,
+    SwitchGroup,
+    SwitchLabel
 } from '@headlessui/vue'
 import { UploadCloudIcon } from 'lucide-vue-next';
 
 
-const toast = inject('$toast');
 const settings = reactive({})
 const btnLoading = ref(null)
 var settingsModel = ref(null)
@@ -131,43 +148,83 @@ const props = defineProps(['settingsData', 'category'])
 
 function updateSettings(e) {
     e.preventDefault()
-    if (Object.keys(settings).length !== 0) {
-        const formData = new FormData()
-        for (const [key, value] of Object.entries(settings)) {
-            formData.append(`setting[${key}]`, value)
-        }
+    // Check if are a modifed settings (if not, maybe don't have modified settings)
+    let modifedSettings = {}
+    const formData = new FormData()
 
-        btnLoading.value = true
-        ajax.post('/admin/site_settings.json', formData)
-            .then((response) => {
-                btnLoading.value = false
-                try {
-                    toast(
-                        response.data.message, {
-                        class: [
-                            'm-notifier',
-                            'success'
-                        ]
-                    }
-                    )
-                } catch (error) {
-                    //
-                }
-                window.location.reload()
-            })
-            .catch((error) => {
-                error = true
-                btnLoading.value = false
-                toast(
-                    I18n.t('js.core.generic_error')
-                )
-            })
-    } else {
-        toast(
-            I18n.t('js.core.error_not_modified')
-        )
+    for (const key in settings) {
+        if (settings.hasOwnProperty(key)) {
+            const setting = settings[key]
+            if (setting !== settingsModel.value.find((setting) => setting.key === key).value) {
+                modifedSettings[key] = setting
+                formData.append(`setting[${key}]`, setting)
+            }
+        }
     }
+
+    if (Object.keys(modifedSettings).length === 0) {
+        toast(
+            I18n.t('js.admin.settings.no_changes'), {
+            class: [
+                'c-notifier',
+                'warning'
+            ]
+        }
+        )
+        return
+    }
+
+    btnLoading.value = true
+
+    ajax.post('/admin/site_settings.json', formData)
+        .then((response) => {
+            btnLoading.value = false
+            settingsModel.value.forEach((setting) => {
+                if (modifedSettings.hasOwnProperty(setting.key)) {
+                    setting.value = modifedSettings[setting.key]
+                    settings[setting.key] = modifedSettings[setting.key]
+                }
+            })
+            try {
+                toast(
+                    response.data.message, {
+                    class: [
+                        'm-notifier',
+                        'success'
+                    ]
+                }
+                )
+            } catch (error) {
+                //
+            }
+
+            for (const key in modifedSettings) {
+                if (modifedSettings.hasOwnProperty(key)) {
+                    const setting = settingsModel.value.find((setting) => setting.key === key);
+                    if (setting && setting.options && setting.options.refresh) {
+                        window.location.reload()
+                        break
+                    }
+                }
+            }
+
+            // Update the settingsModel and settings ref with the new values
+
+
+
+
+
+        })
+        .catch((error) => {
+            error = true
+            btnLoading.value = false
+            toast(
+                I18n.t('js.core.generic_error')
+            )
+        })
 }
+
+
 
 function uploaderButton(form) {
     document.getElementById(`${form}`).click()
@@ -182,11 +239,19 @@ function handleImageChange(e) {
 onMounted(() => {
     settingsModel.value = props.settingsData
     category.value = props.category
+
+    settingsModel.value.forEach((setting) => {
+        settings[setting.key] = setting.value
+    })
 })
 
 onUpdated(() => {
     settingsModel.value = props.settingsData
     category.value = props.category
+
+    settingsModel.value.forEach((setting) => {
+        settings[setting.key] = setting.value
+    })
 })
 
 </script>

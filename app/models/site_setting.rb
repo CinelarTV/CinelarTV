@@ -14,6 +14,7 @@ class SiteSetting < RailsSettings::Base
                     default: options["default"] || ENV["CINELAR_#{key.upcase}"],
                     type: options["type"],
                     exposed_to_client: options["client"] || false,
+                    refresh: options["refresh"] || false,
                     readonly: options["readonly"] || false,
                     allowed_values: options["allowed_values"] || nil,
                     hidden: options["hidden"] || false
