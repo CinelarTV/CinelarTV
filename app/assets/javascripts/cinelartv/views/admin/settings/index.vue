@@ -70,7 +70,7 @@
                                             @click="uploaderButton(`upload-${setting.key}`)">
                                             <UploadCloudIcon />
                                         </c-button>
-                                        <input :ref="`upload-${setting.key}`" class="d-none" @change="handleImageChange"
+                                        <input :ref="`upload-${setting.key}`" class="hidden" @change="handleImageChange"
                                             :v-model:value="settings[setting.key]" :id="`upload-${setting.key}`" type="file"
                                             accept="image/*" />
                                     </div>

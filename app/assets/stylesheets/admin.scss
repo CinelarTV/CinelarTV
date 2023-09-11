@@ -115,7 +115,7 @@
 
 .setting-title {
     float: left;
-    @apply mr-auto
+    @apply mr-auto text-lg font-semibold pt-4 pb-8 flex flex-wrap w-full md:w-auto
 }
 
 .setting-value {
@@ -132,11 +132,7 @@
 }
 
 .setting-description {
-    display: block;
-    padding-top: 4px;
-    color: #888;
-    font-weight: 400;
-    font-size: var(--font-down-1);
+    @apply text-sm text-gray-400 pt-1 flex-wrap;
 
     & a {
         @apply text-[var(--c-tertiary-400)] hover:text-[var(--c-tertiary-500)]
@@ -147,6 +143,22 @@
 
 .setting-image-uploader {
     display: flex;
+}
+
+body.is-mobile {
+
+    .settings .setting-container .setting-image-uploader {
+        flex-direction: column;
+
+        .uploaded-image-preview {
+            max-width: 320px;
+        }
+    }
+
+    .settings .setting-container {
+        max-width: 320px;
+
+    }
 }
 
 .uploaded-image-preview {
@@ -162,8 +174,7 @@
 
 
 .image-upload-controls {
-    position: relative;
-    display: flex;
+    @apply relative flex;
     padding: 10px;
     float: right;
 }

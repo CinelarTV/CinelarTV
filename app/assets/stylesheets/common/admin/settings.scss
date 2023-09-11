@@ -48,6 +48,10 @@ body.is-mobile {
 
         }
 
+        .main-content {
+            @apply p-0
+        }
+
         .sidebar.visible {
             @apply translate-x-0
         }
