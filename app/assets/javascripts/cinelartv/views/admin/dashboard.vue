@@ -81,8 +81,9 @@
                 Signups last 30 days
               </h2>
             </div>
-            <BarChart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[0])"
-              :options="chartOptions" />
+            <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[0])"
+              :chartOptions="chartOptions" />
+
           </div>
 
           <div class="admin-stats">
@@ -91,8 +92,8 @@
                 Likes last 30 days
               </h2>
             </div>
-            <LineChart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[1])"
-              :options="chartOptions" />
+            <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[1])"
+              :chartOptions="chartOptions" chartType="line" />
           </div>
 
 
@@ -112,7 +113,7 @@ import { UploadCloud } from 'lucide-vue-next'
 import { useHead } from 'unhead'
 import { ajax } from '../../lib/axios-setup';
 import { Chart, registerables } from "chart.js";
-import { BarChart, LineChart } from 'vue-chart-3'
+import adminReportsChart from '../../components/admin/admin-reports-chart.vue'
 Chart.register(...registerables);
 
 const SiteSettings = inject('SiteSettings')
@@ -185,18 +186,17 @@ const chartOptions = {
       }
 
     },
-    x: [
-      {
-        display: true,
-        gridLines: { display: false },
-        type: "time",
-        ticks: {
-          sampleSize: 5,
-          maxRotation: 50,
-          minRotation: 50,
-        },
+    x:
+    {
+      display: true,
+      gridLines: { display: false },
+      ticks: {
+        sampleSize: 5,
+        maxRotation: 50,
+        minRotation: 50,
       },
-    ],
+    },
+
   }
 }
 
