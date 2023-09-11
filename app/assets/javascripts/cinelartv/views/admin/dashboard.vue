@@ -230,6 +230,7 @@ const createChartData = (chart) => {
           colorFromVar('--c-tertiary-300')
         ],
         borderWidth: 1,
+        borderDash: [5, 5],
       },
     ],
   };
@@ -240,7 +241,7 @@ const fetchDashboard = async () => {
   try {
     const response = await ajax.get('/admin/dashboard.json')
     dashboardData.value = response.data
-    await fetchStatistics()
+    fetchStatistics()
   } catch (error) {
     console.log(error)
     this.error = true
