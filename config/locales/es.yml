@@ -70,7 +70,7 @@ es:
             description: "La fuente del encabezado de la aplicación"
             title: "Fuente del Encabezado"
           primary_color:
-            description: ""
+            description: "Color primario de la descripción"
             title: "Color primario"
           tertiary_color:
             description: "Se utiliza para algunos enlaces y pestañas"
@@ -106,6 +106,8 @@ es:
             description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
             title: "Nombre del sitio"
           title: "General"
+        monetization:
+          title: "Monetización"
         save: "Guardar"
         storage:
           allow_video_direct_link:
@@ -115,6 +117,10 @@ es:
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"
+    user:
+      added_to_favorites: "Añadido a favoritos"
+      already_in_favorites: "Ya está en favoritos"
+      removed_from_favorites: "Eliminado de favoritos"
     video_player:
       back: "Volver"
     wizard:

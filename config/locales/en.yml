@@ -12,10 +12,6 @@ en:
               blank: "Name cannot be blank"
               too_short: "Name is too short, it must be at least %{count} characters"
   js:
-    user:
-      added_to_favorites: "Added to favorites"
-      already_in_favorites: "Already in favorites"
-      removed_from_favorites: "Removed from favorites"      
     admin:
       actions:
         add: "Add"
@@ -110,6 +106,8 @@ en:
             description: "The name of your site, as it will appear in the title bar of the browser"
             title: "Site name"
           title: "General"
+        monetization:
+          title: "Monetization"
         save: "Save"
         storage:
           allow_video_direct_link:
@@ -119,6 +117,10 @@ en:
       updater:
         ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
         ready_title: "¿Ready for update?"
+    user:
+      added_to_favorites: "Added to favorites"
+      already_in_favorites: "Already in favorites"
+      removed_from_favorites: "Removed from favorites"
     video_player:
       back: "Back"
     wizard:
