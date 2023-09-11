@@ -4,6 +4,7 @@ const ICON_MAP = [
     "activity",
     "airplay",
     "arrowRightLeft",
+    "arrowRight",
     "check",
     "checkCircle",
     "chevronDown",
