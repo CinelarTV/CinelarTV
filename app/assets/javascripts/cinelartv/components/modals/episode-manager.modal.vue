@@ -12,7 +12,7 @@
                         enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
-                            class="dialog episode-manager w-full max-w-2xl transform overflow-hidden p-4 text-left align-middle shadow-xl transition-all">
+                            class="dialog episode-manager w-full max-w-4xl transform overflow-hidden p-4 text-left align-middle shadow-xl transition-all">
                             <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]" v-emoji>
                                 Manage Episodes 🌟
                             </DialogTitle>
@@ -37,6 +37,9 @@
                                                 <h3 class="episode-title">
                                                     {{ element.title }}
                                                 </h3>
+                                                <p class="episode-description">
+                                                    {{ element.description }}
+                                                </p>
                                             </div>
                                             <div class="episode-actions">
                                                 <c-button @click="editEpisode(element)">

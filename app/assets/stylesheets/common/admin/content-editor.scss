@@ -55,10 +55,14 @@
     }
 
     .episode-header {
-        @apply flex items-center space-x-8;
+        @apply flex flex-col;
 
         .episode-title {
             @apply text-lg font-semibold mx-4
+        }
+
+        .episode-description {
+            @apply text-sm text-gray-400 mx-4
         }
 
     }
