@@ -9,8 +9,7 @@
           Hay actualizaciones disponibles
         </span>
       </section>
-      <section id="problems" class="flex flex-col py-2 w-full mb-8"
-        v-if="dashboardData.problems.length > 0">
+      <section id="problems" class="flex flex-col py-2 w-full mb-8" v-if="dashboardData.problems.length > 0">
         <template v-for="problem in dashboardData.problems">
           <div class="flex my-2 text-white p-4 items-center" :class="getClassByType(problem.type)">
             <div class="flex-shrink-0">
@@ -57,21 +56,67 @@
               <span class="text-gray-500">{{ dashboardData.version_check.versions_diff }} commits behind</span>
             </template>
           </div>
-          <div class="upgrade-header">
-            <router-link to="/admin/updates">Update instance</router-link>
+          <div class="upgrade-header" v-if="SiteSettings.enable_web_updater">
+            <router-link to="/admin/updates">
+              <c-button icon="arrow-right">Upgrade</c-button>
+            </router-link>
           </div>
         </div>
       </section>
+
+
+      <div class="section-title">
+        <h2>Statistics</h2>
+      </div>
+
+      <div class="flex w-full justify-center" v-if="!statisticsData">
+        <c-spinner />
+      </div>
+      <div class="dashboard-stats" v-else>
+
+        <div class="charts">
+          <div class="admin-stats-consolidated">
+            <div class="header">
+              <h2>
+                Signups last 30 days
+              </h2>
+            </div>
+            <BarChart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[0])"
+              :options="chartOptions" />
+          </div>
+
+          <div class="admin-stats">
+            <div class="header">
+              <h2>
+                Likes last 30 days
+              </h2>
+            </div>
+            <LineChart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[1])"
+              :options="chartOptions" />
+          </div>
+
+
+
+        </div>
+
+      </div>
+
     </div>
 
   </div>
 </template>
   
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { UploadCloud } from 'lucide-vue-next'
 import { useHead } from 'unhead'
 import { ajax } from '../../lib/axios-setup';
+import { Chart, registerables } from "chart.js";
+import { BarChart, LineChart } from 'vue-chart-3'
+Chart.register(...registerables);
+
+const SiteSettings = inject('SiteSettings')
+
 
 useHead({
   title: 'Dashboard',
@@ -83,7 +128,27 @@ useHead({
   ]
 })
 
+const colorFromVar = (variable) => {
+  // Get the value of the css variable (:root)
+  // If it's a hex color, return as rgba, otherwise return the variable
+
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim()
+
+  if (value.startsWith('#')) {
+    const hex = value.replace('#', '')
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+
+    return `rgba(${r}, ${g}, ${b}, 1)`
+  } else {
+    return value
+  }
+}
+
+
 const dashboardData = ref(null)
+const statisticsData = ref(null)
 
 const commitUrl = computed(() => {
   return `https://github.com/CinelarTV/CinelarTV-AIO/commits/${dashboardData.value.version_check.installed_sha}`
@@ -92,6 +157,36 @@ const commitUrl = computed(() => {
 const formattedSha = computed(() => {
   return dashboardData.value.version_check.installed_sha.substr(0, 10)
 })
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  layout: {
+    padding: {
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+    },
+  },
+  // tooltip event if the bar is not hovered
+  hover: {
+    mode: 'nearest',
+    intersect: false,
+  },  
+  scales: {
+    y: {
+      // don't use decimals in the y-axis
+      ticks: {
+        precision: 0,
+        sampleSize: 100,
+        maxRotation: 25,
+        minRotation: 25
+      }
+
+    }
+  }
+}
 
 const getClassByType = (type) => {
   switch (type) {
@@ -106,13 +201,46 @@ const getClassByType = (type) => {
   }
 }
 
+const createChartData = (chart) => {
+  const labels = chart.data.map(item => item.x);
+  const data = chart.data.map(item => item.y);
+
+  return {
+    labels,
+    datasets: [
+      {
+        label: chart.title,
+        data,
+        backgroundColor: [
+          colorFromVar('--c-tertiary-400')
+        ],
+        borderColor: [
+          colorFromVar('--c-tertiary-300')
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+};
+
+
 const fetchDashboard = async () => {
   try {
     const response = await ajax.get('/admin/dashboard.json')
     dashboardData.value = response.data
+    await fetchStatistics()
   } catch (error) {
     console.log(error)
     this.error = true
+  }
+}
+
+const fetchStatistics = async () => {
+  try {
+    const response = await ajax.get('/admin/dashboard/statistics.json')
+    statisticsData.value = response.data
+  } catch (error) {
+    console.log(error)
   }
 }
 

@@ -190,6 +190,26 @@
     @apply max-w-2xl justify-center mx-auto my-8
 }
 
+#admin-dashboard .dashboard-stats .charts {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-column-gap: 1em;
+    grid-row-gap: 1em;
+
+    .admin-stats-consolidated {
+        grid-column: span 12;
+    }
+
+    .admin-stats {
+        grid-column: span 4;
+        background-color: var(--c-primary-100);
+
+        .header {
+            @apply flex items-center justify-between
+        }
+    }
+}
+
 
 
 
