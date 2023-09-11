@@ -173,7 +173,7 @@ const chartOptions = {
   hover: {
     mode: 'nearest',
     intersect: false,
-  },  
+  },
   scales: {
     y: {
       // don't use decimals in the y-axis
@@ -184,7 +184,19 @@ const chartOptions = {
         minRotation: 25
       }
 
-    }
+    },
+    x: [
+      {
+        display: true,
+        gridLines: { display: false },
+        type: "time",
+        ticks: {
+          sampleSize: 5,
+          maxRotation: 50,
+          minRotation: 50,
+        },
+      },
+    ],
   }
 }
 
