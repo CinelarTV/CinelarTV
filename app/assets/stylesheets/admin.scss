@@ -239,4 +239,23 @@
         max-width: 320px;
     }
 
+    #admin-dashboard .dashboard-stats .charts {
+        grid-template-columns: repeat(12, 1fr);
+        grid-column-gap: 1em;
+        grid-row-gap: 1em;
+
+        .admin-stats {
+            grid-column: span 12;
+            background-color: var(--c-primary-100);
+
+            .header {
+                @apply flex items-center justify-between
+            }
+
+            .chart-canvas-container {
+                position: relative;
+            }
+        }
+    }
+
 }
