@@ -5,6 +5,7 @@ const ICON_MAP = [
     "airplay",
     "arrowRightLeft",
     "arrowRight",
+    "box",
     "check",
     "checkCircle",
     "chevronDown",
@@ -33,6 +34,11 @@ const ICON_MAP = [
     "user",
     "wrench",
     "x",
+    "hardDrive",
+    "circleDollarSign",
+    "brush",
+    "testTube2",
+    "code2"
 ];
 
 

@@ -114,6 +114,7 @@ es:
             description: "Permite el enlace directo de los vídeos. Esto puede ser un problema si no tienes control sobre el servidor donde se alojan los vídeos, ya que puede provocar un alto consumo de ancho de banda o interrupciones en el servicio"
             title: "Permitir enlace directo de vídeo"
           title: "Almacenamiento"
+        title: "Configuración del sitio"
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"

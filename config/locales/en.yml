@@ -114,6 +114,7 @@ en:
             description: "Allows the direct link of the videos. This can be a problem if you don't have control over the server where the videos are hosted, as it can cause a high consumption of bandwidth or interruptions in the service"
             title: "Allow video direct link"
           title: "Storage"
+        title: "Site settings"
       updater:
         ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
         ready_title: "¿Ready for update?"
