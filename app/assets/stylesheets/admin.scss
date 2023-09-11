@@ -199,7 +199,7 @@
 
     .admin-stats {
         grid-column: span 4;
-        background-color: var(--c-primary-100);
+        background-color: var(--c-primary-50);
 
         .header {
             @apply flex items-center justify-between
@@ -216,7 +216,7 @@
 }
 
 #admin-dashboard .dashboard-stats .charts .admin-stats-consolidated {
-    background-color: var(--c-primary-100);
+    background-color: var(--c-primary-50);
     padding: 1em;
     grid-column: span 12;
 
@@ -246,7 +246,7 @@
 
         .admin-stats {
             grid-column: span 12;
-            background-color: var(--c-primary-100);
+            background-color: var(--c-primary-50);
 
             .header {
                 @apply flex items-center justify-between
