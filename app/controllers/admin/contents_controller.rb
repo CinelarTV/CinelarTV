@@ -150,7 +150,7 @@ module Admin
     end
 
     def reorder_episodes
-      @season = Season.find(params[:id])
+      @season = Season.find(params[:season_id])
       episode_order = params[:episode_order]
 
       if episode_order.present?

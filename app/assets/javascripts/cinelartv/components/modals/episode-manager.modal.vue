@@ -12,7 +12,7 @@
                         enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
-                            class="dialog episode-manager w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all">
+                            class="dialog episode-manager w-full max-w-2xl transform overflow-hidden p-4 text-left align-middle shadow-xl transition-all">
                             <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]" v-emoji>
                                 Manage Episodes 🌟
                             </DialogTitle>
@@ -26,14 +26,31 @@
                             </div>
 
                             <div v-else>
-                                <draggable tag="div" v-model="episodeList" class="episode-manager-list" handle=".handle" :group="episodeGroup"
-                                ghost-class="opacity-50">
-                                <template #item="{element, index}">
-                                    <div class="episode-container">
-                                        <img :src="element.thumbnail" class="episode-thumbnail" />
-                                    </div>
-                                </template>
-                            </draggable>
+                                <draggable tag="div" v-model="episodeList" class="episode-manager-list" handle=".handle"
+                                    :group="episodeGroup" ghost-class="opacity-50" @start="reorderingEpisodes = true"
+                                    @end="reorderingEpisodes = false">
+                                    <template #item="{ element, index }">
+                                        <div class="episode-container">
+                                            <c-icon-button class="handle" icon="grip-vertical" />
+                                            <img :src="element.thumbnail" class="episode-thumbnail" />
+                                            <div class="episode-header">
+                                                <h3 class="episode-title">
+                                                    {{ element.title }}
+                                                </h3>
+                                            </div>
+                                            <div class="episode-actions">
+                                                <c-button @click="editEpisode(element)">
+                                                    <EditIcon class="icon" :size="18" />
+                                                    Edit
+                                                </c-button>
+                                                <c-button class="ml-2" @click="deleteEpisode(element)">
+                                                    <Trash2Icon class="icon" :size="18" />
+                                                    Delete
+                                                </c-button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </draggable>
 
 
                                 <div class="flex">
@@ -57,18 +74,27 @@
   
 <script setup>
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { ref, defineProps, defineEmits, onMounted } from 'vue';
+import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable'
 import { ajax } from '../../lib/axios-setup';
+import { toast } from 'vue3-toastify';
 
 const isOpen = ref(false)
 const loadingEpisodeList = ref(true)
 const episodeList = ref([])
 const seasonId = ref(null)
+const reorderingEpisodes = ref(false)
+
+watch(reorderingEpisodes, async (value) => {
+    if (value === false) {
+        await reorderEpisodes();
+    }
+});
 
 const props = defineProps({
     content: Object
 })
+
 
 
 const setIsOpen = async (value) => {
@@ -94,6 +120,19 @@ const newEpisode = ref({
     // Inicializa los campos del nuevo episodio (título, descripción, etc.)
     // Ejemplo: title: '',
 });
+
+const reorderEpisodes = async () => {
+    try {
+        const response = await ajax.put(`/admin/content-manager/${props.content.id}/seasons/${seasonId.value}/reorder-episodes.json`, {
+            episode_order: episodeList.value.map((episode) => episode.id)
+        });
+        toast.success('Orden de episodios guardado con éxito.');
+        await getEpisodeList();
+    } catch (error) {
+        console.log(error);
+        toast.error('Error al guardar el orden de episodios: ' + error.error);
+    }
+};
 
 
 const addEpisode = () => {
