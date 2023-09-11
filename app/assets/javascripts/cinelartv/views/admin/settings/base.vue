@@ -1,10 +1,42 @@
 <template>
     <div class="panel settings">
+        <div class="panel-header">
+            <div class="panel-title">
+                <h1>{{ $t('js.admin.settings.title') }}</h1>
+            </div>
+        </div>
+        <c-button @click="toggleSidebar" class="sidebar-toggle" v-if="isMobile">
+            Alternar barra lateral
+        </c-button>
+        <div class="flex flex-row">
+            <section class="sidebar" :class="sidebarOpened ? 'visible' : 's-hidden'">
+                <c-button class="sidebar-toggle flex w-full rounded-none" icon="x" @click="toggleSidebar" v-if="isMobile">
+                    Close
+                </c-button>
+                <div class="sidebar-content">
+                    <div class="sidebar-body">
+                        <ul class="nav nav-pills flex-column">
+                            <li class="nav-item" v-for="category in categories" :key="category.name"
+                                :class="{ active: currentCategory === category.name }"
+                                @click="onCurrentCategoryChange(category.name)">
+                                <c-icon :icon="getCategoryIcon(category.name)" class="icon" />
+                                <a class="nav-link">
+                                    {{ $t(`js.admin.settings.${category.name}.title`) }}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            <section class="main-content">
+                <SiteSettingsIndex v-if="currentCategory && filteredSettings" :settingsData="filteredSettings"
+                    :category="currentCategory" @current-category-change="onCurrentCategoryChange" />
+            </section>
+        </div>
 
-        <c-select v-if="categories" :options="categories.map(category => ({ value: category.name, label: $t(`js.admin.settings.${category.name}.title`) }))" :modelValue="currentCategory" @update:modelValue="currentCategory = $event" />
 
-        <SiteSettingsIndex v-if="currentCategory && filteredSettings" :settingsData="filteredSettings" :category="currentCategory" />
-</div>
+
+    </div>
 </template>
 
 <script setup>
@@ -18,6 +50,7 @@ import { ajax } from '../../../lib/axios-setup';
 const categories = ref(null)
 const currentCategory = ref(null)
 const settingsData = ref([])
+const sidebarOpened = ref(false)
 
 var filteredSettings = computed(() => {
     if (!currentCategory.value) {
@@ -25,6 +58,31 @@ var filteredSettings = computed(() => {
     }
     return settingsData.value.filter((setting) => setting.category === currentCategory.value);
 });
+
+const getCategoryIcon = (category) => {
+    switch (category) {
+        case 'general':
+            return 'box';
+        case 'content':
+            return 'clapperboard';
+        case 'monetization':
+            return 'circle-dollar-sign';
+        case 'storage':
+            return 'hard-drive';
+        case 'customization':
+            return 'brush';
+        case 'developer':
+            return 'code2';
+        case 'experimental':
+            return 'test-tube2';
+        default:
+            return 'settings';
+    }
+}
+
+const toggleSidebar = () => {
+    sidebarOpened.value = !sidebarOpened.value
+}
 
 function getCategories() {
     const categories = {};
