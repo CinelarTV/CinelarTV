@@ -6,6 +6,32 @@
                 Administrar suscripción
             </h2>
         </div>
-        
+
+
+        <div>
+            {{ billingData }}
+        </div>
     </div>
 </template>
+
+<script setup>
+import { ref, onMounted, inject } from 'vue';
+import { useHead } from 'unhead';
+import { ajax } from '../../lib/axios-setup';
+
+const billingData = ref(null);
+
+
+const SiteSettings = inject('SiteSettings');
+const i18n = inject('I18n');
+const currentUser = inject('currentUser');
+
+const fetchBillingData = async () => {
+    const { data } = await ajax.get('/user/billing.json');
+    return data.data
+};
+
+onMounted(async () => {
+    billingData.value = await fetchBillingData()
+});
+
