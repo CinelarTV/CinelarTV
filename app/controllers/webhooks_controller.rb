@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class WebhooksController < ApplicationController
+  skip_before_action :verify_authenticity_token, only: [:callback]
   before_action :verify_signature, only: [:callback]
 
   def callback
