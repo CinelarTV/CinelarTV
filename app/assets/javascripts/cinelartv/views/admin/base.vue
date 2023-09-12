@@ -38,6 +38,11 @@ const adminLinks = [
     to: '/admin/settings'
   },
   {
+    title: 'Webhooks',
+    to: '/admin/webhooks/logs',
+    enabled: SiteSettings.enable_subscriptions || false // Webhooks are only available if subscriptions are enabled
+  },
+  {
     title: $t("js.admin.nav.updater"),
     to: '/admin/updates',
     enabled: SiteSettings.enable_web_updater || false

@@ -81,6 +81,20 @@ const AdminRoutes = {
                     }
                 },
             ]
+        },
+        {
+            name: 'admin.webhooks',
+            path: 'webhooks',
+            children: [
+                {
+                    name: 'admin.webhooks.logs',
+                    path: 'logs',
+                    component: () => import('../views/admin/webhooks/logs.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
+                }
+            ]
         }
     ],
     meta: {
