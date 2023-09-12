@@ -72,6 +72,10 @@ Rails.application.routes.draw do
   # Sitemap
   get "sitemap.xml" => "sitemap#index", format: "xml", as: :sitemap
 
+  # Lemon Squeezy Webhooks
+
+  post "lemon/webhooks/callback" => "webhooks#callback"
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 end

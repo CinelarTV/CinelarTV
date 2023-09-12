@@ -87,6 +87,12 @@ monetization:
     type: 'string'
     secret: true
 
+  lemon_webhook_secret:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
 
 storage:
   allow_video_direct_link:

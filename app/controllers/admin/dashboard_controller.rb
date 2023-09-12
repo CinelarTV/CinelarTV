@@ -92,6 +92,16 @@ module Admin
       render json: { site_settings: @settings }
     end
 
+    def webhook_logs
+      @webhook_logs = WebhookLog.order(created_at: :desc).limit(100)
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: { data: @webhook_logs.as_json }
+        end
+      end
+    end
+
     private
 
     def admin?

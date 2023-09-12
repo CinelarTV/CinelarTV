@@ -3,11 +3,14 @@
 namespace :admin do
   get "dashboard" => "dashboard#index"
   get "dashboard/statistics" => "dashboard#reports"
+
   resources :site_settings, only: [:create, :index]
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
   get "updates/progress" => "updates#check_progress"
   post "restart" => "updates#restart_server"
+
+  get "webhooks/logs" => "dashboard#webhook_logs"
 
   # Content Management related routes
   get "/content-manager/all", to: "contents#index"

@@ -53,8 +53,12 @@ module ApplicationHelper
     external_scripts = SiteSetting.external_scripts || ""
     scripts = external_scripts.split("|")
 
+    if SiteSetting.enable_subscription
+      scripts << "https://app.lemonsqueezy.com/js/lemon.js"
+    end
+
     scripts.map do |script|
-      javascript_include_tag(script)
+      javascript_include_tag(script, defer: true)
     end.join.html_safe
   end
 
