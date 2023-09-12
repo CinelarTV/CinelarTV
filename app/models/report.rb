@@ -7,6 +7,7 @@ class Report
 
   include Reports::Likes
   include Reports::Signups
+  include Reports::UserSubscriptions
 
   attr_accessor :type, :data, :start_date, :end_date, :labels, :filters, :available_filters, :icon, :title
 

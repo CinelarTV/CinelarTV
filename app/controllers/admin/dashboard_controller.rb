@@ -47,6 +47,7 @@ module Admin
       report_types = {
         signups: "Signups",
         likes: "Likes",
+        user_subscriptions: "User Subscriptions",
       }
 
       report_types.each do |type, title|

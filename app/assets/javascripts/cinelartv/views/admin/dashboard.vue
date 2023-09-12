@@ -96,6 +96,16 @@
               :chartOptions="chartOptions" chartType="line" />
           </div>
 
+          <div class="admin-stats">
+            <div class="header">
+              <h2>
+                Subscriptions last 30 days
+              </h2>
+            </div>
+            <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[2])"
+              :chartOptions="chartOptions" chartType="line" />
+          </div>
+
 
 
         </div>
