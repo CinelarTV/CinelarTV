@@ -45,6 +45,7 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def get_subscription_details
+    data = nil
     if SiteSetting.lemon_api_key.blank?
       Rails.logger.error("LemonSqueezy API key is not set")
       return nil
@@ -57,8 +58,9 @@ class UserSubscriptionsController < ApplicationController
 
     if response.code == 200
       data = JSON.parse(response.body)
-      data
     end
+
+    data
   rescue StandardError => e
     # Handle other exceptions
     Rails.logger.error("Error while getting subscription details for user #{current_user.id}: #{e.message}")
