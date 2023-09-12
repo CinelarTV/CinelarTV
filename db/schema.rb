@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_07_200838) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_12_012438) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -63,6 +63,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_07_200838) do
     t.datetime "updated_at", null: false
     t.integer "position"
     t.string "thumbnail"
+    t.float "skip_intro_start"
+    t.float "skip_intro_end"
+    t.float "episode_end"
     t.index ["season_id"], name: "index_episodes_on_season_id"
   end
 
@@ -137,6 +140,31 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_07_200838) do
     t.index ["var"], name: "index_settings_on_var", unique: true
   end
 
+  create_table "user_subscriptions", force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.integer "order_id"
+    t.integer "order_item_id"
+    t.integer "product_id"
+    t.integer "variant_id"
+    t.string "product_name"
+    t.string "variant_name"
+    t.string "user_name"
+    t.string "user_email"
+    t.string "status"
+    t.string "status_formatted"
+    t.string "card_brand"
+    t.string "card_last_four"
+    t.boolean "cancelled"
+    t.datetime "trial_ends_at"
+    t.integer "billing_anchor"
+    t.datetime "renews_at"
+    t.datetime "ends_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean "test_mode"
+    t.index ["user_id"], name: "index_user_subscriptions_on_user_id", unique: true
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -146,6 +174,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_07_200838) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "username"
+    t.integer "customer_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
@@ -157,6 +186,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_07_200838) do
     t.index ["role_id"], name: "index_users_roles_on_role_id"
     t.index ["user_id", "role_id"], name: "index_users_roles_on_user_id_and_role_id"
     t.index ["user_id"], name: "index_users_roles_on_user_id"
+  end
+
+  create_table "webhook_logs", force: :cascade do |t|
+    t.string "event_name"
+    t.text "payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "continue_watchings", "contents"
