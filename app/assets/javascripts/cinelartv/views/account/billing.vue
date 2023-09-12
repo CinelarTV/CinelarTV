@@ -35,3 +35,15 @@ onMounted(async () => {
     billingData.value = await fetchBillingData()
 });
 
+
+useHead({
+    title: 'Administrar suscripción',
+    meta: [
+        {
+            name: 'description',
+            content: 'Administrar suscripción',
+        },
+    ],
+});
+
+</script>
