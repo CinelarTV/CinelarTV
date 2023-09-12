@@ -75,6 +75,8 @@ module Admin
           report.data = Report.report_likes(report)
         when :signups
           report.data = Report.report_signups(report)
+        when :user_subscriptions
+          report.data = Report.report_user_subscriptions(report)
         end
 
         @reports << report
