@@ -61,7 +61,9 @@ class WebhooksController < ApplicationController
     when "subscription_updated"
       # Handle subscription updated event
 
-      UserSubscription.find_by(order_id: payload["data"]["attributes"]["order_id"]).update(
+      user_subscription = UserSubscription.find_by(order_id: payload["data"]["attributes"]["order_id"])
+
+      user_subscription.update(
         status: payload["data"]["attributes"]["status"],
         status_formatted: payload["data"]["attributes"]["status_formatted"],
         card_brand: payload["data"]["attributes"]["card_brand"],
