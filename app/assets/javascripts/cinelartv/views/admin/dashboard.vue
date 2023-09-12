@@ -86,25 +86,19 @@
 
           </div>
 
-          <div class="admin-stats">
-            <div class="header">
-              <h2>
-                Likes last 30 days
-              </h2>
+          <template v-for="statistic in statisticsData.statistics.slice(1)">
+            <div class="admin-stats">
+              <div class="header">
+                <h2>
+                  {{ i18n.t(`js.admin.dashboard.statistics.${statistic.type}`) }}
+                </h2>
+              </div>
+              <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statistic)"
+                :chartOptions="chartOptions" />
             </div>
-            <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[1])"
-              :chartOptions="chartOptions" chartType="line" />
-          </div>
-
-          <div class="admin-stats">
-            <div class="header">
-              <h2>
-                Subscriptions last 30 days
-              </h2>
-            </div>
-            <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[2])"
-              :chartOptions="chartOptions" chartType="line" />
-          </div>
+          </template>
+      
+          
 
 
 
@@ -127,6 +121,7 @@ import adminReportsChart from '../../components/admin/admin-reports-chart.vue'
 Chart.register(...registerables);
 
 const SiteSettings = inject('SiteSettings')
+const i18n = inject('I18n');
 
 
 useHead({
