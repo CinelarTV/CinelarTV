@@ -151,14 +151,14 @@ function updateSettings(e) {
 
     console.log(settings)
 
+    // Check if the settings are modified, if yes, add to the formData
 
     for (const key in settings) {
         if (settings.hasOwnProperty(key)) {
-            const setting = settings[key]
-            if (setting !== settingsModel.value.find((setting) => setting.key === key).value) {
-                console.log(setting)
-                modifedSettings[key] = setting
-                formData.append(`setting[${key}]`, setting)
+            const setting = settingsModel.value.find((setting) => setting.key === key);
+            if (setting && setting.value !== settings[key]) {
+                modifedSettings[key] = settings[key]
+                formData.append(`setting[${key}]`, settings[key])
             }
         }
     }
