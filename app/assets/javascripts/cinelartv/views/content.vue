@@ -73,17 +73,20 @@
         </div>
 
       </div>
-
+      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.content.title" />
     </div>
   </div>
 </template>
   
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PlayCircleIcon } from 'lucide-vue-next'
 import { useHead } from 'unhead'
+import requireSignupModal from '../components/modals/require-signup.modal.vue'
 import { ajax } from '../lib/axios-setup'
+
+const currentUser = inject('currentUser')
 
 const $route = useRoute()
 const router = useRouter()
@@ -92,13 +95,14 @@ const loading = ref(true)
 const contentData = ref(null)
 const showTrailer = ref(false)
 const activeSeason = ref(null)
+const requireSignupModalRef = ref(null)
 
 const getContent = async () => {
   try {
     const { data } = await ajax.get(`/contents/${$route.params.id}.json`)
     contentData.value = data
-    if(data.content.content_type === 'TVSHOW') {
-      if(data.content.seasons?.length > 0) {
+    if (data.content.content_type === 'TVSHOW') {
+      if (data.content.seasons?.length > 0) {
         activeSeason.value = data.content.seasons[0].id
       }
     }
@@ -125,11 +129,20 @@ const toggleSeason = (seasonId) => {
   }
 }
 
+const openRequireSignupModal = () => {
+  requireSignupModalRef.value.setIsOpen(true)
+}
+
 onBeforeUnmount(() => {
   document.body.classList.remove('content-route')
 })
 
 const playContent = () => {
+  if (!currentUser) {
+    openRequireSignupModal()
+    return
+  }
+
   if (contentData.value.content.content_type === 'MOVIE') {
     router.push(`/watch/${contentData.value.content.id}`)
   } else {
