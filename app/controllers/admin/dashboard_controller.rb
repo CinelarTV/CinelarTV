@@ -47,8 +47,9 @@ module Admin
       report_types = {
         signups: "Signups",
         likes: "Likes",
-        user_subscriptions: "User Subscriptions",
       }
+
+      report_types[:user_subscriptions] = "User Subscriptions" if SiteSetting.enable_subscription
 
       report_types.each do |type, title|
         report = Report.new(type)
