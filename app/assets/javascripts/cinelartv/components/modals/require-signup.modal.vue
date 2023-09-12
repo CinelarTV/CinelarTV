@@ -16,17 +16,23 @@
                             <div class="image-container justify-center flex pb-4">
                                 <img :src="SiteSettings.site_logo" class="modal-site-logo" />
                             </div>
-                            <DialogTitle as="h3"
-                                class="text-lg font-medium text-center leading-6 text-[var(--c-primary-800)]" v-emoji>
+                            <DialogTitle as="h3" class="text-lg font-medium text-center leading-6" v-emoji>
                                 ¿Que estás esperando? 🍿
                             </DialogTitle>
                             <div class="mt-2">
-                                <p class="text-sm text-gray-500 mb-4" v-emoji>
+                                <p class="text-sm mb-4 text-center" v-emoji>
                                     ¡Disfruta de todo el contenido de {{ SiteSettings.site_name }} creando una cuenta
                                     totalmente gratis!
+                                    <br />
+                                    <br />
+
+                                    <RouterLink :to="{ path: '/login', replace: true }">
+                                        <c-button icon="user" class="bg-blue-500 hover:bg-blue-600 text-white">
+                                            Crear cuenta
+                                        </c-button>
+                                    </RouterLink>
+                                    <br />
                                 </p>
-
-
                             </div>
                         </DialogPanel>
                     </TransitionChild>
@@ -37,7 +43,7 @@
 </template>
   
 <script setup>
-import { ref, defineProps } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 import {
     TransitionRoot,
     TransitionChild,
@@ -46,15 +52,20 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@headlessui/vue'
-import { Unlock, Fingerprint, LoaderIcon } from 'lucide-vue-next'
 import { ajax } from '../../lib/axios-setup';
 
 const isOpen = ref(false)
-
+const emit = defineEmits(['openSignupModal', 'openLoginModal'])
 const props = defineProps(['contentName'])
 
 function setIsOpen(value) {
     isOpen.value = value
+}
+
+
+function signupModal() {
+    emit('openSignupModal')
+    console.log('signupModal')
 }
 
 defineExpose({

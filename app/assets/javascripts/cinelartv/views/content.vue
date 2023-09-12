@@ -73,7 +73,7 @@
         </div>
 
       </div>
-      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.content.title" />
+      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.content.title" @openSignupModal="console.log(0)"/>
     </div>
   </div>
 </template>
@@ -96,6 +96,7 @@ const contentData = ref(null)
 const showTrailer = ref(false)
 const activeSeason = ref(null)
 const requireSignupModalRef = ref(null)
+const loginModalRef = ref(null)
 
 const getContent = async () => {
   try {

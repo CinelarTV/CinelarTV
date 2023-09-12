@@ -68,6 +68,18 @@ AppRouter.beforeEach((to, from, next) => {
         return;
     }
 
+    // Catch login and signup routes (They don't exist in the app, we use modals, so we redirect to home and show the modal)
+
+    if (to.path === '/login' || to.path === '/signup') {
+        next({
+            name: 'home.index',
+            replace: true
+        });
+        return;
+    }
+
+
+
     // Permite la navegación normal
     next();
     CinelarTV.config.globalProperties.$progress.finish()
