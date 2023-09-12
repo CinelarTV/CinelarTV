@@ -31,7 +31,7 @@ module ApplicationHelper
       user_with_profile = user_with_profile.merge(current_profile: @current_profile)
     end
 
-    subscription_data = UserSubscription.find_by(user_id: @current_user.id)
+    subscription_data = UserSubscription.find_by(user_id: @current_user.id) if @current_user
 
     if subscription_data
       user_with_profile = user_with_profile.merge(subscription: subscription_data)
