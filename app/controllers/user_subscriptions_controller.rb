@@ -45,8 +45,15 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def get_subscription_details
-    response = HTTParty.get("https://api.lemonsqueezy.com/v1/subscriptions/#{@subscription.order_id}")
-    # https://api.lemonsqueezy.com/v1/subscriptions/id
+    if SiteSetting.lemon_api_key.blank?
+      Rails.logger.error("LemonSqueezy API key is not set")
+      return nil
+    end
+
+    # Fetch with headers
+    response = HTTParty.get("https://api.lemonsqueezy.com/v1/subscriptions/#{@subscription.order_id}", :headers => {
+                                                                                                         "Authorization" => "Bearer #{SiteSetting.lemon_api_key}",
+                                                                                                       })
 
     if response.code == 200
       data = JSON.parse(response.body)
