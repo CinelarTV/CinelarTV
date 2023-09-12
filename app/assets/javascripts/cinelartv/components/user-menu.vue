@@ -106,7 +106,7 @@ import { ajax } from '../lib/axios-setup';
     {
       text: 'Administrar suscripción',
       icon: 'credit-card',
-      href: '/subscription',
+      href: '/account/billing',
       visible: isMainProfile.value && SiteSettings.enable_subscription,
     },
     {

@@ -76,6 +76,10 @@ Rails.application.routes.draw do
 
   post "lemon/webhooks/callback" => "webhooks#callback"
 
+  # User Subscriptions
+
+  get "account/billing" => "user_subscriptions#index"
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 end
