@@ -16,6 +16,7 @@
             </tbody>
         </table>
     </div>
+
 </template>
   
 <script setup>
@@ -33,3 +34,4 @@ const fetchLogs = async () => {
     logs.value = response.data;
 }
 
+</script>
