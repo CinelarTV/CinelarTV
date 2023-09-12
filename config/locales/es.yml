@@ -38,6 +38,11 @@ es:
           seasons: "Temporadas"
           series: "Series"
         updated_at: "Actualizado el"
+      dashboard:
+        statistics:
+          likes: "Me gusta"
+          signups: "Registros"
+          user_subscriptions: "Suscripciones de usuarios"
       nav:
         content: "Administrar contenido"
         dashboard: "Panel de control"

@@ -38,6 +38,11 @@ en:
           seasons: "Seasons"
           series: "Series"
         updated_at: "Updated at"
+      dashboard:
+        statistics:
+          likes: "Likes"
+          signups: "Signups"
+          user_subscriptions: "User subscriptions"
       nav:
         content: "Manage content"
         dashboard: "Dashboard"
