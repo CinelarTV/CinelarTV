@@ -31,7 +31,7 @@ const logs = ref(null)
 
 const fetchLogs = async () => {
     const response = await ajax.get('/admin/webhooks/logs.json');
-    logs.value = response.data;
+    logs.value = response.data.data;
 }
 
 </script>
