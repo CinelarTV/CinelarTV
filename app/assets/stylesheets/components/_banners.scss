@@ -1,6 +1,6 @@
-body[data-current-path="/profiles/select"] #site-banner,
-body[data-current-path^="/watch/"] #site-banner,
-body[data-current-path^="/content/"] #site-banner {
+body[data-current-path="/profiles/select"] #global-alerts,
+body[data-current-path^="/watch/"] #global-alerts,
+body[data-current-path^="/content/"] #global-alerts {
     display: none;
 }
 
