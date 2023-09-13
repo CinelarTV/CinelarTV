@@ -5,10 +5,13 @@
         </div>
         <div class="mx-auto mt-4" v-else>
             <section id="home-carousel" v-if="SiteSettings.enable_carousel">
-                <div class="carousel-control-arrows">
+                <div class="carousel-control-arrows" v-if="!true">
                     <div class="carousel-arrow carousel-arrow-left" @click="scrollToPreviousSlide"
                         :class="bannerCurrentIndex === 0 ? 'hidden' : ''">
                         <c-icon-button icon="chevron-left" />
+                    </div>
+                    <div class="w-full">
+                        -
                     </div>
                     <div class="carousel-arrow carousel-arrow-right" @click="scrollToNextSlide"
                         :class="bannerCurrentIndex === homepage.banner_content.length - 1 ? 'hidden' : ''">
