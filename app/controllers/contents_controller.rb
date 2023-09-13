@@ -43,7 +43,7 @@ class ContentsController < ApplicationController
       most_recent_watched_episode = ContinueWatching.where(profile: current_profile, content: @content).order(updated_at: :desc).first if current_profile && @content.content_type == "TVSHOW"
 
       @data = {
-        content: @content.as_json(except: %i[created_at updated_at]),
+        content: @content.as_json(except: %i[created_at updated_at url]),
         liked: @is_liked,
       }
 
