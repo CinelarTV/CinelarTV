@@ -148,6 +148,10 @@ const playContent = () => {
   if (contentData.value.content.content_type === 'MOVIE') {
     router.push(`/watch/${contentData.value.content.id}`)
   } else {
+    if (contentData.value.content.most_recent_watched_episode) {
+      router.push(`/watch/${contentData.value.content.id}/${contentData.value.content.most_recent_watched_episode.episode_id}`)
+      return
+    }
     router.push(`/watch/${contentData.value.content.id}/${contentData.value.content.seasons[0].episodes[0].id}`)
   }
 }
