@@ -30,7 +30,7 @@
     <%= csp_meta_tag %>
     <%= render partial: "partials/opengraph" %>
   </head>
-  <body class="app-body<% if device == "mobile" %> is-mobile<% end %>">
+  <body class="app-body<% if device == "mobile" %> is-mobile<% end %>" data-current-path="<%= request.env["PATH_INFO"] %>">
     <cinelar-assets>
       <cinelar-assets-stylesheets>
         <%= render partial: "partials/stylesheet" %>
@@ -48,7 +48,7 @@
         <%= render partial: "common/splash" %>
       <%- end %>
     </div>
-    <noscript data-path="<%= request.env["PATH_INFO"] %>">
+    <noscript>
       <div>
         <!-- Fallback in case of JavaScript disabled / Crawler -->
         <main class="container mx-auto mt-28 px-5 flex">
