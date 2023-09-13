@@ -73,7 +73,8 @@
         </div>
 
       </div>
-      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.content.title" @openSignupModal="console.log(0)"/>
+      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.content.title"
+        @openSignupModal="console.log(0)" />
     </div>
   </div>
 </template>
@@ -152,6 +153,10 @@ const playContent = () => {
 }
 
 const playEpisode = (episodeId) => {
+  if (!currentUser) {
+    openRequireSignupModal()
+    return
+  }
   router.push(`/watch/${contentData.value.content.id}/${episodeId}`)
 }
 
