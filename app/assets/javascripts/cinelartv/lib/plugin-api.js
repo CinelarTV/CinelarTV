@@ -11,8 +11,22 @@ class PluginAPI {
     }
 
     addGlobalBanner(banner) {
-        const { id, content, show } = banner;
-        globalStore.addBanner({ id, content, show });
+        if (!banner.id || !banner.content || !banner.show) {
+            throw "Banner must have an id, content and show properties";
+        }
+
+        // If banner already exists, update it, otherwise add it
+        let existingBanner = globalStore.banners.find(b => b.id === banner.id);
+        if (existingBanner) {
+            existingBanner = banner;
+        }
+        else {
+            globalStore.banners.push(banner);
+        }
+    }
+
+    removeGlobalBanner(id) {
+        globalStore.banners = globalStore.banners.filter(banner => banner.id !== id);
     }
 }
 
