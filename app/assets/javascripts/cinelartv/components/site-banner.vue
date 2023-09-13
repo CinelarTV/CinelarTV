@@ -23,18 +23,6 @@ const banners = computed(() => globalStore.banners)
 onMounted(() => {
     // Add default banners
     banners.value.push({
-        id: 'anon-banner',
-        content: 'You are browsing the site as an anonymous user, register to take full advantage 😁',
-        show: !currentUser
-    })
-
-    banners.value.push({
-        id: 'site-banner',
-        content: SiteSettings.site_banner_content,
-        show: SiteSettings.show_site_banner
-    })
-
-    banners.value.push({
         id: 'site-unconfigured',
         content: `${$t("js.admin.wizard_required")} [${$t("js.admin.wizard_link")}](/wizard)`,
         show: !SiteSettings.wizard_completed && currentUser?.admin
