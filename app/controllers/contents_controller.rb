@@ -40,11 +40,14 @@ class ContentsController < ApplicationController
     if @content
       @is_liked = current_profile&.liked_contents&.include?(@content)
       @seasons = @content.seasons.order(position: :asc)
+      most_recent_watched_episode = ContinueWatching.where(profile: current_profile, content: @content).order(updated_at: :desc).first if current_profile && @content.content_type == "TVSHOW"
 
       @data = {
         content: @content.as_json(except: %i[created_at updated_at]),
         liked: @is_liked,
       }
+
+      @data[:content][:most_recent_watched_episode] = most_recent_watched_episode.as_json(only: %i[episode_id progress duration]) if most_recent_watched_episode.present?
 
       @data[:content][:seasons] = @seasons.map do |s|
         @episode_list = s.episodes.order(position: :asc)
