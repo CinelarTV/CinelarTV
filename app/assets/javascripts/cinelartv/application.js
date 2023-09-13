@@ -2,7 +2,7 @@ import { createApp } from 'vue/dist/vue.esm-bundler'
 import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
 import AppRouter from './routes/router-map';
-import { createHead  } from 'unhead'
+import { createHead } from 'unhead'
 import twemoji from './plugins/twemoji'
 const metaManager = createHead()
 import Logster from './lib/logster'
@@ -18,6 +18,7 @@ import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/icon-library';
+import PluginAPI from './lib/plugin-api';
 
 
 const CinelarTV = createApp(App)
@@ -61,6 +62,8 @@ pluginMap.map(plugin => {
 document.querySelector("noscript")?.remove();
 
 MessageBus.start();
+
+window.PluginAPI = new PluginAPI('1.0.0')
 
 
 export default CinelarTV
