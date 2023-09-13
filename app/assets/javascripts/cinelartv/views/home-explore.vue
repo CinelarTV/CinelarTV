@@ -5,7 +5,18 @@
         </div>
         <div class="mx-auto mt-4" v-else>
             <section id="home-carousel" v-if="SiteSettings.enable_carousel">
+                <div class="carousel-control-arrows">
+                    <div class="carousel-arrow carousel-arrow-left" @click="scrollToPreviousSlide"
+                        :class="bannerCurrentIndex === 0 ? 'hidden' : ''">
+                        <c-icon-button icon="chevron-left" />
+                    </div>
+                    <div class="carousel-arrow carousel-arrow-right" @click="scrollToNextSlide"
+                        :class="bannerCurrentIndex === homepage.banner_content.length - 1 ? 'hidden' : ''">
+                        <c-icon-button icon="chevron-right" />
+                    </div>
+                </div>
                 <div class="carousel-root">
+
                     <ul class="carousel-ul" ref="carouselContainer" @scroll="handleScroll" @mouseenter="stopAutoScroll"
                         @mouseleave="startAutoScroll">
                         <li v-for="item in homepage.banner_content" :key="item.id">
@@ -169,6 +180,7 @@ const stopAutoScroll = () => {
 };
 
 const scrollToNextSlide = () => {
+    stopAutoScroll();
     const container = carouselContainer.value;
     if (container) {
         const slideWidth = container.offsetWidth;
@@ -181,10 +193,12 @@ const scrollToNextSlide = () => {
 
         // Update bannerCurrentIndex to loop back to the first slide if at the last slide
         bannerCurrentIndex.value = (bannerCurrentIndex.value + 1) % homepage.value.banner_content.length;
+        startAutoScroll(); // Restart auto scroll after manually scrolling
     }
 };
 
 const scrollToPreviousSlide = () => {
+    stopAutoScroll()
     const container = carouselContainer.value;
     if (container) {
         const slideWidth = container.offsetWidth;
@@ -198,10 +212,12 @@ const scrollToPreviousSlide = () => {
         // Update bannerCurrentIndex to loop back to the last slide if at the first slide
         const lastIndex = homepage.value.banner_content.length - 1;
         bannerCurrentIndex.value = (bannerCurrentIndex.value - 1 + lastIndex) % homepage.value.banner_content.length;
+        startAutoScroll(); // Restart auto scroll after manually scrolling
     }
 };
 
 const scrollToSlide = (index) => {
+    stopAutoScroll();
     const container = carouselContainer.value;
     if (container) {
         const slideWidth = container.offsetWidth;
@@ -215,7 +231,6 @@ const scrollToSlide = (index) => {
         // Update bannerCurrentIndex to loop back to the last slide if at the first slide
         const lastIndex = homepage.value.banner_content.length - 1;
         bannerCurrentIndex.value = index;
-        stopAutoScroll();
         startAutoScroll(); // Restart auto scroll after manually scrolling
     }
 };
