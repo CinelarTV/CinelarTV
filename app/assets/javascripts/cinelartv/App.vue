@@ -18,6 +18,7 @@ import { inject } from 'vue';
 import SiteHeader from './components/site-header.vue'
 import { useHead } from 'unhead'
 import { useRoute } from 'vue-router';
+import SiteBanner from './components/site-banner.vue';
 const route = useRoute();
 
 const SiteSettings = inject('SiteSettings');

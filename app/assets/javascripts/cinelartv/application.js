@@ -18,7 +18,6 @@ import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/icon-library';
-import PluginAPI from './lib/plugin-api';
 
 
 const CinelarTV = createApp(App)
@@ -62,8 +61,5 @@ pluginMap.map(plugin => {
 document.querySelector("noscript")?.remove();
 
 MessageBus.start();
-
-window.PluginAPI = new PluginAPI('1.0.0')
-
 
 export default CinelarTV

@@ -1,34 +1,46 @@
 <template>
-    <div id="global-alerts">
+    <div id="global-alerts" v-if="banners.length > 0">
         <template v-for="banner in banners" :key="banner.id">
             <div :id="banner.id" :class="`mx-auto global-notice ${banner.id}`" v-if="banner.show">
-                <span v-md.html.breaks.linkify v-emoji v-html="banner.content" />
+                <span v-html="banner.content" />
             </div>
         </template>
     </div>
 </template>
   
 <script setup>
-import { ref, getCurrentInstance, inject } from 'vue'
+import { ref, getCurrentInstance, inject, onMounted, computed } from 'vue'
+import { useGlobalStore } from '../store/global'
+
+const globalStore = useGlobalStore()
+
 const SiteSettings = inject('SiteSettings')
 const currentUser = inject('currentUser')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
-const banners = ref([
-    {
+
+const banners = computed(() => globalStore.banners)
+
+onMounted(() => {
+    // Add default banners
+    banners.value.push({
         id: 'anon-banner',
         content: 'You are browsing the site as an anonymous user, register to take full advantage 😁',
-        show: !currentUser && SiteSettings.public_site
-    },
-    {
+        show: !currentUser
+    })
+
+    banners.value.push({
         id: 'site-banner',
         content: SiteSettings.site_banner_content,
         show: SiteSettings.show_site_banner
-    },
-    {
+    })
+
+    banners.value.push({
         id: 'site-unconfigured',
         content: `${$t("js.admin.wizard_required")} [${$t("js.admin.wizard_link")}](/wizard)`,
-        show: !SiteSettings.wizard_completed && !SiteSettings.bypass_wizard_check && currentUser && currentUser.admin
-    }
-])
+        show: !SiteSettings.wizard_completed && currentUser?.admin
+    })
+})
+
+
 
 </script>
