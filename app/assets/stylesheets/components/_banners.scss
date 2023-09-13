@@ -1,6 +1,6 @@
 body[data-current-path="/profiles/select"] #global-alerts,
 body[data-current-path^="/watch/"] #global-alerts,
-body[data-current-path^="/content/"] #global-alerts {
+body[data-current-path^="/contents/"] #global-alerts {
     display: none;
 }
 
