@@ -80,6 +80,8 @@ Rails.application.routes.draw do
 
   get "account/billing" => "user_subscriptions#index"
 
+  get "/404-content" => "exceptions#not_found_body"
+
   # Catch all route, to render the app (vue-router will take care of the routing)
   get "*path", to: "application#index"
 end
