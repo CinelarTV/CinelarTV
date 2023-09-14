@@ -21,7 +21,9 @@ import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(modul
 
     try {
         // Load custom JavaScript after CinelarTV is mounted
-        loadScript(null, SiteSettings.custom_js);
+        if (SiteSettings.custom_js && SiteSettings.custom_js.length > 0) {
+            loadScript(null, SiteSettings.custom_js);
+        }
     } catch (error) {
 
     }
