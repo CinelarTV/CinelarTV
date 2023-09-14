@@ -67,13 +67,26 @@ const currentPlayback = ref({
 
 const fetchData = async () => {
   try {
-    const response = await ajax.get(`/watch/${videoId}.json`);
+    let url = ''
+    if (episodeId) {
+      url = `/watch/${videoId}/${episodeId}.json`;
+    } else {
+      url = `/watch/${videoId}.json`;
+    }
+    const response = await ajax.get(url);
     data.value = response.data.data;
     if (data.value.content.content_type === 'MOVIE') {
       videoSource.value = data.value.content.url;
     } else {
+      if (data.value.content.content_type === 'TV_SHOW' && !(route.params.episodeId || data.value.episode.id)) {
+        let episodeId = data.value.continue_watching.episode_id || data.value.episode.id;
+        router.replace(`/watch/${videoId}/${episodeId}`) // Add episodeId to URL if it's a tv show
+      }
       videoSource.value = data.value.episode.url;
     }
+
+
+
   } catch (error) {
     console.error(error);
     toast.error('Error al cargar el video.');
@@ -87,7 +100,6 @@ onMounted(async () => {
   if (data.value.content.content_type === 'MOVIE' && route.params.episodeId) {
     router.replace(`/watch/${videoId}`) // Remove episodeId from URL if it's a movie
   }
-
 
   const { progress, duration } = data.value.continue_watching;
   if (progress > 0) {
