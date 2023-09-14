@@ -6,7 +6,7 @@
                     <span v-html="banner.custom_html" />
                 </div>
             </template>
-            <div :id="banner.id" :class="`mx-auto global-notice ${banner.id}`" v-if="banner.show">
+            <div :id="banner.id" :class="`mx-auto global-notice ${banner.id}`" v-if="banner.show && !banner.custom_html">
                 <span v-html="banner.content" />
             </div>
         </template>
