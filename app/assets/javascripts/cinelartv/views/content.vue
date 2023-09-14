@@ -19,7 +19,15 @@
           </div>
           <div class="content-actions" v-if="contentData.content.available">
             <c-button icon="play-circle" class="bg-blue-500 hover:bg-blue-600 text-white" @click="playContent">
-              Reproducir
+              <template v-if="contentData.content.continue_watching">
+                Continuar viendo
+              </template>
+              <template v-else-if="contentData.content.most_recent_watched_episode">
+                Continuar viendo
+              </template>
+              <template v-else>
+                Reproducir
+              </template>
             </c-button>
           </div>
           <div class="content-actions" v-else>
