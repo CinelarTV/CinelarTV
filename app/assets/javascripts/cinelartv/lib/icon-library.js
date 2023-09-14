@@ -1,5 +1,6 @@
 import * as icons from "lucide-static";
 import { SiteSettings } from "../pre-initializers/essentials-preload"; // Inject is not available before App initialization, so we need to import it here
+import { useIconsStore } from "../store/icons";
 const ICON_MAP = [
     "activity",
     "airplay",
@@ -51,13 +52,19 @@ const toLowerCamelCase = (str) => {
     });
 };
 
-const generateSpriteSheet = () => {
+export const generateSpriteSheet = () => {
     let iconCount = 0;
+    const iconsStore = useIconsStore(); // Obtiene el store de íconos
+
     if (SiteSettings?.additional_icons) {
         SiteSettings.additional_icons.split('|').forEach((icon) => {
             ICON_MAP.push(icon);
         });
     }
+
+    iconsStore.icons.forEach((icon) => {
+        ICON_MAP.push(icon);
+    });
 
     const svgSymbols = ICON_MAP.map((icon) => {
         const lowerCamelCaseIcon = toLowerCamelCase(icon);
@@ -69,12 +76,13 @@ const generateSpriteSheet = () => {
             return "";
         }
         iconCount++;
+
         return `<symbol id="${dashCaseIcon}" viewBox="0 0 24 24">${symbol}</symbol>`;
     });
 
     const svgSpriteContent = `<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">${svgSymbols.join("")}</svg>`;
 
-    // Inyecta el contenido en la etiqueta con id "cinelar-icon-sheet"
+    // Inyecta el contenido en la etiqueta con id "cinelar-icon-sheet" (Primero la crea si no existe)
 
     const iconSheet = document.getElementById("cinelar-icon-sheet");
     if (iconSheet) {

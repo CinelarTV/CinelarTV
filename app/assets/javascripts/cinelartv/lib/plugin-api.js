@@ -4,8 +4,10 @@
 
 import { ref } from "vue";
 import { useGlobalStore } from "../store/global";
+import { useIconsStore } from "../store/icons";
 import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
 const globalStore = useGlobalStore();
+const iconsStore = useIconsStore();
 
 class PluginAPI {
     constructor(version) {
@@ -68,6 +70,38 @@ class PluginAPI {
         // Replace the symbol with the new icon
         iconSymbol.innerHTML = svgIcon;
     }
+
+    addIcon(iconName, svgIcon = null) {
+        if (!svgIcon) {
+            // If no SVG icon is provided, we are trying to add an icon from the icon library
+            iconsStore.addIcon(iconName);
+            return;
+        }
+
+        let iconSheet = document.getElementById('cinelar-icon-sheet');
+        if (!iconSheet) {
+            throw "CinelarTV icon sheet not found";
+        }
+
+        let svgSheet = iconSheet.querySelector('svg');
+        if (!svgSheet) {
+            throw "CinelarTV icon sheet not found";
+        }
+
+        // Create the symbol
+        let symbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
+        symbol.id = iconName;
+        symbol.innerHTML = svgIcon;
+
+        // Add the symbol to the sheet
+
+        svgSheet.appendChild(symbol);
+
+
+    }
+
+
+
 
 }
 
