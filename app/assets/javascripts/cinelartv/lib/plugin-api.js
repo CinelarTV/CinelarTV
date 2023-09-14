@@ -49,6 +49,26 @@ class PluginAPI {
         return ref(value);
     }
 
+    replaceIcon(iconName, svgIcon) {
+        let iconSheet = document.getElementById('cinelar-icon-sheet');
+        if (!iconSheet) {
+            throw "CinelarTV icon sheet not found";
+        }
+
+        let svgSheet = iconSheet.querySelector('svg');
+        if (!svgSheet) {
+            throw "CinelarTV icon sheet not found";
+        }
+
+        let iconSymbol = svgSheet.querySelector(`symbol#${iconName}`);
+        if (!iconSymbol) {
+            throw `CinelarTV icon ${iconName} not found`;
+        }
+
+        // Replace the symbol with the new icon
+        iconSymbol.innerHTML = svgIcon;
+    }
+
 }
 
 export default PluginAPI;
