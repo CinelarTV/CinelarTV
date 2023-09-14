@@ -11,6 +11,7 @@ class PlayerController < ApplicationController
       when "TVSHOW"
         if params[:episode_id]
           @episode = Episode.find_by(id: params[:episode_id])
+          @season = @content.seasons.find_by(id: @episode&.season_id)
         else
           @season = @content.seasons.first
           @episode = @season.episodes.first if @season
