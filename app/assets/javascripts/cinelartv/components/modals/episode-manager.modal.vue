@@ -60,7 +60,7 @@
                                     <c-button class="ml-auto" @click="setIsOpen(false)" icon="x">
                                         Close
                                     </c-button>
-                                    <c-button class="ml-2" @click="addEpisode()" icon="plus">
+                                    <c-button class="ml-2" @click="createEpisode" icon="plus">
                                         Add
                                     </c-button>
                                 </div>
@@ -70,6 +70,7 @@
                     </TransitionChild>
                 </div>
             </div>
+        <create-episode-modal ref="episodeModalRef" :season-id="seasonId" @episode-created="getEpisodeList()" :content-id="props.content.id" />
         </Dialog>
     </TransitionRoot>
 </template>
@@ -81,12 +82,14 @@ import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
 import draggable from 'vuedraggable'
 import { ajax } from '../../lib/axios-setup';
 import { toast } from 'vue3-toastify';
+import createEpisodeModal from './create-episode.modal.vue';
 
 const isOpen = ref(false)
 const loadingEpisodeList = ref(true)
 const episodeList = ref([])
 const seasonId = ref(null)
 const reorderingEpisodes = ref(false)
+const episodeModalRef = ref()
 
 watch(reorderingEpisodes, async (value) => {
     if (value === false) {
@@ -119,10 +122,9 @@ defineExpose({
 })
 
 
-const newEpisode = ref({
-    // Inicializa los campos del nuevo episodio (título, descripción, etc.)
-    // Ejemplo: title: '',
-});
+const createEpisode = () => {
+    episodeModalRef.value.setIsOpen(true)
+}
 
 const reorderEpisodes = async () => {
     try {
@@ -138,14 +140,6 @@ const reorderEpisodes = async () => {
 };
 
 
-const addEpisode = () => {
-    // Método para agregar un nuevo episodio
-    // Puedes enviar una solicitud al servidor para guardar el nuevo episodio
-    // Ejemplo: axios.post("/api/episodes", newEpisode.value)
-    // Luego, actualiza la lista de episodios o realiza otras acciones necesarias
-    // Después de agregar el episodio, puedes limpiar los campos de entrada, si es necesario
-    // Ejemplo: newEpisode.value = { title: '', ...otros campos };
-};
 
 const getEpisodeList = async () => {
     try {
