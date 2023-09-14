@@ -3,6 +3,7 @@
 // Path: app/assets/javascripts/cinelartv/lib/plugin-api.js
 
 import { useGlobalStore } from "../store/global";
+import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
 const globalStore = useGlobalStore();
 
 class PluginAPI {
@@ -33,6 +34,14 @@ class PluginAPI {
 
     removeGlobalBanner(id) {
         globalStore.banners = globalStore.banners.filter(banner => banner.id !== id);
+    }
+
+    getCurrentUser() {
+        return currentUser;
+    }
+
+    getSiteSettings() {
+        return SiteSettings;
     }
 }
 
