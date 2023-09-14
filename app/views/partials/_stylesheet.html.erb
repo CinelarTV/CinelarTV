@@ -11,12 +11,17 @@
         --c-tertiary-color: <%= SiteSetting.tertiary_color %>;
         --c-quaternary-color: <%= SiteSetting.quaternary_color %>;
 
-        <%= generate_color_variants(SiteSetting.primary_color, 'primary') %>
-        <%= generate_color_variants(SiteSetting.secondary_color, 'secondary') %>
-        <%= generate_color_variants(SiteSetting.tertiary_color, 'tertiary') %>
-        <%= generate_color_variants(SiteSetting.quaternary_color, 'quaternary') %>
+        <%= generate_color_variants(SiteSetting.primary_color, "primary") %>
+        <%= generate_color_variants(SiteSetting.secondary_color, "secondary") %>
+        <%= generate_color_variants(SiteSetting.tertiary_color, "tertiary") %>
+        <%= generate_color_variants(SiteSetting.quaternary_color, "quaternary") %>
 
       
 
     }
 </style>
+<% if !SiteSetting.custom_css.blank? %>
+<style id="app-theming-custom">
+    <%= SiteSetting.custom_css %>
+</style>
+<% end %>

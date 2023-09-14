@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="center">
-            <form @submit.prevent="updateSettings">
+            <form @submit.prevent="updateSettings" v-if="settings">
                 <div class="setting-container" v-for="(setting, index) in settingsModel" :key="setting.key">
                     <span class="setting-title">
                         {{ $t(`js.admin.settings.${category}.${setting.key}.title`) }}
@@ -96,6 +96,16 @@
                                 @input="console.log($event.target.value); settings[setting.key] = $event.target.value" />
                         </template>
 
+                        <template v-if="setting.type === 'code'" class="flex">
+                            <vue-monaco-editor theme="vs-dark" @update:value="value => updateValue(setting.key, value)" :value="setting.value" :language="getLanguageByKey(setting.key)">
+                                <template #loading>
+                                    <c-spinner />
+                                </template>
+                            </vue-monaco-editor>
+
+
+                        </template>
+
 
 
                         <span class="setting-description"
@@ -112,16 +122,8 @@
 </template>
   
 <script setup>
-
-
-
-
-
-
-
-
-import { ref, reactive, onMounted, inject, onUpdated } from 'vue'
-import { toast } from 'vue3-toastify'
+import { ref, onMounted, onUpdated } from 'vue';
+import { toast } from 'vue3-toastify';
 import CColorPicker from '../../../components/forms/c-color-picker.vue';
 import {
     Listbox,
@@ -131,128 +133,105 @@ import {
     Switch,
     SwitchGroup,
     SwitchLabel
-} from '@headlessui/vue'
+} from '@headlessui/vue';
 import { UploadCloudIcon } from 'lucide-vue-next';
 
+const settings = ref({});
+const btnLoading = ref(null);
+var settingsModel = ref(null);
+var category = ref(null);
+const props = defineProps(['settingsData', 'category']);
 
-const settings = reactive({})
-const btnLoading = ref(null)
-var settingsModel = ref(null)
-var category = ref(null)
-const props = defineProps(['settingsData', 'category'])
+const updateValue = (key, value) => {
+    settings.value[key] = value;
+};
 
-
+const getLanguageByKey = (key) => {
+    switch (key) {
+        case 'custom_css':
+            return 'css';
+        case 'custom_js':
+            return 'javascript';
+        case 'custom_html':
+            return 'html';
+        default:
+            return 'plaintext';
+    }
+};
 
 function updateSettings(e) {
-    e.preventDefault()
-    // Check if are a modifed settings (if not, maybe don't have modified settings)
-    let modifedSettings = {}
-    const formData = new FormData()
+    e.preventDefault();
+    const modifiedSettings = {};
 
-    console.log(settings)
-
-    // Check if the settings are modified, if yes, add to the formData
-
-    for (const key in settings) {
-        if (settings.hasOwnProperty(key)) {
-            const setting = settingsModel.value.find((setting) => setting.key === key);
-            if (setting && setting.value !== settings[key]) {
-                modifedSettings[key] = settings[key]
-                formData.append(`setting[${key}]`, settings[key])
-            }
+    const formData = new FormData();
+    for (const key in settings.value) {
+        const setting = settingsModel.value.find((s) => s.key === key);
+        if (setting && setting.value !== settings.value[key]) {
+            modifiedSettings[key] = settings.value[key];
+            formData.append(`setting[${key}]`, settings.value[key]);
         }
     }
 
-    if (Object.keys(modifedSettings).length === 0) {
-        toast(
-            I18n.t('js.admin.settings.no_changes'), {
-            class: [
-                'c-notifier',
-                'warning'
-            ]
-        }
-        )
-        return
+    if (Object.keys(modifiedSettings).length === 0) {
+        toast(I18n.t('js.admin.settings.no_changes'), {
+            class: ['c-notifier', 'warning']
+        });
+        return;
     }
 
-    btnLoading.value = true
+    btnLoading.value = true;
 
-    ajax.post('/admin/site_settings.json', formData)
+    ajax
+        .post('/admin/site_settings.json', formData)
         .then((response) => {
-            btnLoading.value = false
+            btnLoading.value = false;
             settingsModel.value.forEach((setting) => {
-                if (modifedSettings.hasOwnProperty(setting.key)) {
-                    setting.value = modifedSettings[setting.key]
-                    settings[setting.key] = modifedSettings[setting.key]
+                if (modifiedSettings.hasOwnProperty(setting.key)) {
+                    setting.value = modifiedSettings[setting.key];
+                    settings.value[setting.key] = modifiedSettings[setting.key];
                 }
-            })
+            });
+
             try {
-                toast(
-                    response.data.message, {
-                    class: [
-                        'm-notifier',
-                        'success'
-                    ]
-                }
-                )
-            } catch (error) {
-                //
-            }
+                toast(response.data.message, {
+                    class: ['m-notifier', 'success']
+                });
+            } catch (error) { }
 
-            for (const key in modifedSettings) {
-                if (modifedSettings.hasOwnProperty(key)) {
-                    const setting = settingsModel.value.find((setting) => setting.key === key);
-                    if (setting && setting.options && setting.options.refresh) {
-                        window.location.reload()
-                        break
-                    }
+            for (const key in modifiedSettings) {
+                const setting = settingsModel.value.find((s) => s.key === key);
+                if (setting && setting.options && setting.options.refresh) {
+                    window.location.reload();
+                    break;
                 }
             }
-
-            // Update the settingsModel and settings ref with the new values
-
-
-
-
-
         })
         .catch((error) => {
-            error = true
-            btnLoading.value = false
-            toast(
-                I18n.t('js.core.generic_error')
-            )
-        })
+            error = true;
+            btnLoading.value = false;
+            toast(I18n.t('js.core.generic_error'));
+        });
 }
 
-
-
 function uploaderButton(form) {
-    document.getElementById(`${form}`).click()
+    document.getElementById(`${form}`).click();
 }
 
 function handleImageChange(e) {
-    const data = e.target.files[0]
-    settings[`${e.target.id.replace("upload-", "")}`] = data
-    const preview = document.getElementById(e.target.id.replace("upload-", "preview-"))
+    const data = e.target.files[0];
+    settings[`${e.target.id.replace('upload-', '')}`] = data;
+    const preview = document.getElementById(e.target.id.replace('upload-', 'preview-'));
 }
 
-onMounted(() => {
-    settingsModel.value = props.settingsData
-    category.value = props.category
+onMounted(onDataLoaded);
+onUpdated(onDataLoaded);
+
+function onDataLoaded() {
+    settingsModel.value = props.settingsData;
+    category.value = props.category;
 
     settingsModel.value.forEach((setting) => {
-        settings[setting.key] = setting.value
-    })
-})
-
-onUpdated(() => {
-    settingsModel.value = props.settingsData
-    category.value = props.category
-
-    settingsModel.value.forEach((setting) => {
-        settings[setting.key] = setting.value
-    })
-})
-
+        settings.value[setting.key] = setting.value;
+    });
+}
 </script>

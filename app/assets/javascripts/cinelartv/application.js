@@ -18,6 +18,8 @@ import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/icon-library';
+import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
+
 
 
 const CinelarTV = createApp(App)
@@ -39,7 +41,7 @@ let pluginMap = [
     ConfirmDialog,
     pinia,
     Axios,
-    iconLibrary
+    iconLibrary,
 ]
 
 CinelarTV.use(Vue3Progress, {
@@ -50,6 +52,12 @@ CinelarTV.use(Vue3Progress, {
 CinelarTV.use(Vue3Toasity, {
     duration: 5000,
     position: 'bottom-center',
+})
+
+CinelarTV.use(VueMonacoEditorPlugin, {
+    paths: {
+        vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs'
+    }
 })
 
 pluginMap.map(plugin => {
