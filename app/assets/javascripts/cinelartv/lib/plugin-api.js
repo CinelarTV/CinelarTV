@@ -2,6 +2,7 @@
 
 // Path: app/assets/javascripts/cinelartv/lib/plugin-api.js
 
+import { ref } from "vue";
 import { useGlobalStore } from "../store/global";
 import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
 const globalStore = useGlobalStore();
@@ -16,7 +17,7 @@ class PluginAPI {
             throw "Banner must have an id and show properties";
         }
 
-        if(banner.content && banner?.custom_html) {
+        if (banner.content && banner?.custom_html) {
             // Prioritize custom HTML over content
             banner.content = null;
         }
@@ -43,6 +44,11 @@ class PluginAPI {
     getSiteSettings() {
         return SiteSettings;
     }
+
+    ref(value) {
+        return ref(value);
+    }
+
 }
 
 export default PluginAPI;
