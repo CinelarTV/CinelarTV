@@ -61,26 +61,28 @@ module HomeHelper
     # get the latest episode watched, otherwise, get the movie (with times of course)
 
     if current_profile.present?
-      continue_watching = ContinueWatching.where(profile_id: current_profile.id).order("updated_at DESC").limit(20).map do |cw|
+      continue_watching = []
+
+      # Obtén los elementos de ContinueWatching para el perfil actual
+      continue_watching_items = ContinueWatching.where(profile_id: current_profile.id).order("updated_at DESC").limit(20)
+
+      # Utiliza un hash para rastrear las series y sus episodios más recientes
+      series_episodes = {}
+
+      continue_watching_items.each do |cw|
         content = cw.content
         episode = cw.episode
 
         if episode.present? # Verifica si es una serie
-          latest_episode = ContinueWatching.where(profile_id: current_profile.id, content_id: content.id).order("last_watched_at DESC").first
-          {
-            id: content.id,
-            title: content.title,
-            description: content.description,
-            banner: content.banner,
-            liked: liked_contents_ids&.include?(content.id),
-            progress: latest_episode.progress,
-            duration: latest_episode.duration,
-            last_watched_at: latest_episode.updated_at,
-            episode: latest_episode.as_json(except: %i[created_at updated_at]),
-          }
+          if !series_episodes.key?(content.id) || episode.updated_at > series_episodes[content.id][:episode].updated_at
+            series_episodes[content.id] = {
+              episode: episode,
+              content: content,
+            }
+          end
         else
           # Si no es una serie (por ejemplo, una película), muestra la información tal como está en el objeto `cw`
-          {
+          continue_watching << {
             id: content.id,
             title: content.title,
             description: content.description,
@@ -91,6 +93,22 @@ module HomeHelper
             last_watched_at: cw.last_watched_at,
           }
         end
+      end
+
+      # Agrega los episodios más recientes de las series a la lista `continue_watching`
+      series_episodes.each do |content_id, data|
+        continue_watching << {
+          id: data[:content].id,
+          title: data[:content].title,
+          description: data[:content].description,
+          banner: data[:content].banner,
+          liked: liked_contents_ids&.include?(data[:content].id),
+          # from continue_watching_items
+          progress: continue_watching_items.find_by(content_id: data[:content].id).progress,
+          duration: continue_watching_items.find_by(content_id: data[:content].id).duration,
+          last_watched_at: continue_watching_items.find_by(content_id: data[:content].id).last_watched_at,
+          episode: data[:episode].as_json(except: %i[created_at updated_at]),
+        }
       end
 
       if continue_watching.present? && !continue_watching.empty?

@@ -41,6 +41,7 @@ Rails.application.routes.draw do
 
   # Player routes
   get "/watch/:id", to: "player#watch"
+  get "/watch/:id/:episode_id", to: "player#watch"
   put "/watch/:id/progress", to: "player#update_current_progress"
 
   # Dev route to refresh the settings
