@@ -78,7 +78,17 @@ const AdminRoutes = {
                     component: SettingsView,
                     meta: {
                         requireAdmin: true
-                    }
+                    },
+                    children: [
+                        {
+                            name: 'admin.settings.general.category',
+                            path: ':category',
+                            component: SettingsView,
+                            meta: {
+                                requireAdmin: true
+                            }
+                        }
+                    ]
                 },
             ]
         },

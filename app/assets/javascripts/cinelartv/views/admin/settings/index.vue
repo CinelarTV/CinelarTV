@@ -92,8 +92,8 @@
                                 :style="`background-color: ${settings[setting.key] || settingsModel[index].value}`">
                                 &nbsp;
                             </span>
-                            <input type="color" class="setting-value input" :value="settings[setting.key]"
-                                @input="console.log($event.target.value); settings[setting.key] = $event.target.value" />
+                            <input type="color" class="setting-value input" :value="setting.value"
+                                @input="updateValue(setting.key, $event.target.value)" />
                         </template>
 
                         <template v-if="setting.type === 'code'" class="flex">

@@ -46,11 +46,14 @@ import { onMounted, computed } from 'vue'
 import SiteSettingsIndex from './index.vue'
 import { ref } from 'vue'
 import { ajax } from '../../../lib/axios-setup';
+import { useRoute, useRouter } from 'vue-router';
 
 const categories = ref(null)
 const currentCategory = ref(null)
 const settingsData = ref([])
 const sidebarOpened = ref(false)
+const route = useRoute()
+const router = useRouter()
 
 var filteredSettings = computed(() => {
     if (!currentCategory.value) {
@@ -99,8 +102,8 @@ function getCategories() {
 }
 
 const onCurrentCategoryChange = (value) => {
+    router.replace({ params: { category: value } });
     currentCategory.value = value;
-    console.log(value);
 }
 
 
@@ -109,7 +112,12 @@ onMounted(() => {
         settingsData.value = r.data.site_settings
         filteredSettings.value = r.data.site_settings
         categories.value = getCategories()
-        currentCategory.value = categories.value[0].name
+
+        if(route.params.category){
+            currentCategory.value = route.params.category
+        } else {
+            currentCategory.value = categories.value[0].name
+        }
     })
 })
 </script>
