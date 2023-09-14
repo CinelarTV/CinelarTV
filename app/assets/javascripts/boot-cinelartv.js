@@ -14,7 +14,7 @@ import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(modul
     try {
         // Load the plugin API after CinelarTV is mounted (to ensure the global store is available)
         const PluginAPI = require('./cinelartv/lib/plugin-api').default;
-        window.PluginAPI = new PluginAPI('1.0.0');
+        window.PluginAPI = new PluginAPI('1.0.0', CinelarTV);
     } catch (error) {
         console.log(error);
     }

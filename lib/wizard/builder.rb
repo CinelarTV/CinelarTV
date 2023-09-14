@@ -14,6 +14,14 @@ class Wizard
         step.emoji = "👋"
         step.banner = "/images/wizard/introduction.png"
         step.description = I18n.t("js.wizard.introduction.description")
+
+        step.add_field(
+          id: "default_locale",
+          type: "select",
+          required: true,
+          value: SiteSetting.default_locale || "en",
+          options: I18n.available_locales.map { |locale| [locale, locale] },
+        )
       end
 
       @wizard.append_step("site_info") do |step|
@@ -81,7 +89,6 @@ class Wizard
           SiteSetting.wizard_completed = true
         end
       end
-
 
       @wizard
     end

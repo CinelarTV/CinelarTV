@@ -12,7 +12,7 @@
       </section>
       <section class="video-info">
         <h1 class="video-title">
-          {{ data.content.title }}
+          {{ data.content?.title }}
         </h1>
         <span class="video-episode" v-if="data.episode">
           {{ data.season.title }} - {{ data.episode.title }}
@@ -73,6 +73,7 @@ const fetchData = async () => {
     } else {
       url = `/watch/${videoId}.json`;
     }
+    console.log(url);
     const response = await ajax.get(url);
     data.value = response.data.data;
     if (data.value.content.content_type === 'MOVIE') {
@@ -98,11 +99,12 @@ onMounted(async () => {
   await fetchData();
 
   if (data.value.content.content_type === 'MOVIE' && route.params.episodeId) {
-    router.replace(`/watch/${videoId}`) // Remove episodeId from URL if it's a movie
+    router.replace(`/watch/${videoId}`)
   }
 
   const { progress, duration } = data.value.continue_watching;
   if (progress > 0) {
+    if(!ctvPlayer.value) return;
     ctvPlayer.value.currentTime = progress;
   }
 

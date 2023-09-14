@@ -11,7 +11,8 @@ let VideoPlayerRoute =
     children: [
         {
             name: 'videoplayer.show',
-            path: ':episodeId'
+            path: ':episodeId',
+            component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.vue'),
         }
     ]
     

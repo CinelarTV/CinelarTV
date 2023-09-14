@@ -2,7 +2,8 @@
 
 // Path: app/assets/javascripts/cinelartv/lib/plugin-api.js
 
-import { ref } from "vue";
+import { ref, h } from "vue";
+import { compile } from "vue-template-compiler";
 import { useGlobalStore } from "../store/global";
 import { useIconsStore } from "../store/icons";
 import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
@@ -10,8 +11,13 @@ const globalStore = useGlobalStore();
 const iconsStore = useIconsStore();
 
 class PluginAPI {
-    constructor(version) {
+    constructor(version, vueInstance) {
         this.version = version;
+        this.vueInstance = vueInstance;
+    }
+
+    currentInstance() {
+        return this.vueInstance;
     }
 
     addGlobalBanner(banner) {
@@ -98,11 +104,7 @@ class PluginAPI {
         svgSheet.appendChild(symbol);
 
 
-    }
-
-
-
-
+    } 
 }
 
 export default PluginAPI;

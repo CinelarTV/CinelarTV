@@ -43,7 +43,6 @@ module Admin
             setting_params[key] = image.to_blob
             logo_uploader.store!(setting_params[key])
           end
-          
 
           logo_uploader.store!(setting_params[key])
           SiteSetting.send("#{key}=", logo_uploader.url)
@@ -71,7 +70,7 @@ module Admin
         end
 
         update_carrierwave_setting if is_storage_related?(setting_params.keys)
-        render json: { message: 'I18n.t("js.core.success_settings")' }, status: :ok
+        render json: { message: I18n.t("js.core.success_settings") }, status: :ok
       end
     end
 
