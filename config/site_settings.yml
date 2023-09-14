@@ -235,7 +235,7 @@ customization:
     default: rgba(255, 255, 255, 0.2)
     type: color
   custom_css:
-    client: true
+    client: false # Javascript don't need to read it, because it's rendered on a <style> tag
     refresh: true
     default: ""
     type: 'code'
