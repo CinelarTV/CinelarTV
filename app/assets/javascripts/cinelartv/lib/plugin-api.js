@@ -7,6 +7,7 @@ import { compile } from "vue-template-compiler";
 import { useGlobalStore } from "../store/global";
 import { useIconsStore } from "../store/icons";
 import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
+import loadScript from './load-script'
 const globalStore = useGlobalStore();
 const iconsStore = useIconsStore();
 
@@ -105,6 +106,8 @@ class PluginAPI {
 
 
     } 
+    
+    loadScript = loadScript;
 }
 
 export default PluginAPI;
