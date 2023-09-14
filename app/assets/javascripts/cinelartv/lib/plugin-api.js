@@ -11,9 +11,15 @@ class PluginAPI {
     }
 
     addGlobalBanner(banner) {
-        if (!banner.id || !banner.content || !banner.show) {
-            throw "Banner must have an id, content and show properties";
+        if (!banner.id || !banner.show) {
+            throw "Banner must have an id and show properties";
         }
+
+        if(banner.content && banner?.custom_html) {
+            // Prioritize custom HTML over content
+            banner.content = null;
+        }
+
 
         // If banner already exists, update it, otherwise add it
         let existingBanner = globalStore.banners.find(b => b.id === banner.id);

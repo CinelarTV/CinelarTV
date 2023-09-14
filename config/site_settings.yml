@@ -273,6 +273,11 @@ experimental:
     refresh: true
     default: ""
     type: 'list'
+  custom_js:
+    client: true
+    refresh: true
+    default: ""
+    type: 'code'
 
 internal:
   license_key:
