@@ -102,7 +102,7 @@ function getCategories() {
 }
 
 const onCurrentCategoryChange = (value) => {
-    router.replace({ params: { category: value } });
+    router.replace(`/admin/site_settings/${value}`)
     currentCategory.value = value;
 }
 
@@ -117,6 +117,7 @@ onMounted(() => {
             currentCategory.value = route.params.category
         } else {
             currentCategory.value = categories.value[0].name
+            router.replace(`/admin/site_settings/${categories.value[0].name}`)
         }
     })
 })
