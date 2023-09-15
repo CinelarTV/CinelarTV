@@ -92,12 +92,15 @@
                                 :style="`background-color: ${settings[setting.key] || settingsModel[index].value}`">
                                 &nbsp;
                             </span>
-                            <input type="color" class="setting-value input" :value="setting.value"
-                                @input="updateValue(setting.key, $event.target.value)" />
+                            <c-input @input="e => settings[setting.key] = e.target.value"
+                                type="text" v-model="settings[setting.key]" class="setting-value input"
+                                :label="$t(`js.admin.settings.${category}.${setting.key}.title`)" data-coloris />
                         </template>
 
                         <template v-if="setting.type === 'code'" class="flex">
-                            <vue-monaco-editor theme="vs-dark" @update:value="value => updateValue(setting.key, value)" :value="setting.value" :language="getLanguageByKey(setting.key)" height="350px" width="100%">
+                            <vue-monaco-editor theme="vs-dark" @update:value="value => updateValue(setting.key, value)"
+                                :value="setting.value" :language="getLanguageByKey(setting.key)" height="350px"
+                                width="100%">
                                 <template #loading>
                                     <c-spinner />
                                 </template>
