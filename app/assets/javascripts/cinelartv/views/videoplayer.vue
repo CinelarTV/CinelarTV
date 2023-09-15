@@ -7,7 +7,7 @@
       <div class="ctv-overlay" ref="vplayerOverlay">
         <section class="back-button">
           <router-link :to="`/contents/${data.content.id}`">
-            <c-button icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
+            <c-button class="forced" icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
           </router-link>
         </section>
         <section class="video-info">
@@ -46,6 +46,7 @@ const vplayerOverlay = ref(null);
 const userActive = ref(false);
 const isPlaying = ref(false);
 const lastDataSent = ref(null);
+const fullscreen = ref(false);
 const currentPlayback = ref({
   currentTime: 0,
   duration: 0
@@ -104,6 +105,7 @@ onMounted(async () => {
 
   videoPlayer.value = videojs(videoPlayerRef.value, {
     autoplay: true,
+    inactivityTimeout: 0,
     preload: 'auto',
     responsive: true,
     fill: true,
@@ -136,11 +138,16 @@ onMounted(async () => {
     videoPlayer.value.currentTime(progress);
   }
 
+  
+// Alway show control bar (For testing purposes)
+
+
+
   //CTV Custom Overlay
 
   videoPlayer.value.el().appendChild(vplayerOverlay.value);
 
-
+  // Set userinactive timeout to 0 to always show controls
 
 
   videoPlayer.value.on('userinactive', () => {
@@ -158,6 +165,15 @@ onMounted(async () => {
 
   videoPlayer.value.on('pause', () => {
     isPlaying.value = false;
+  });
+
+  replacePlayerIcons();
+
+  // On toggle fullscreen, call replacePlayerIcons
+
+  videoPlayer.value.on('fullscreenchange', () => {
+    fullscreen.value = !fullscreen.value;
+    replacePlayerIcons();
   });
 
   console.log(videoPlayer.value);
@@ -178,6 +194,16 @@ onBeforeUnmount(() => {
   document.body.classList.remove('video-player');
   videoPlayer.value.dispose();
 });
+
+const replacePlayerIcons = () => {
+  const fullscreenButton = videoPlayer.value.controlBar.getChild('fullscreenToggle');
+  if(fullscreen.value) {
+    fullscreenButton.setIcon('minimize');
+  } else {
+    fullscreenButton.setIcon('maximize');
+  }
+  
+};
 
 const togglePlayPause = () => {
   if (isPlaying.value) {

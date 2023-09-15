@@ -1,6 +1,8 @@
 import * as icons from "lucide-static";
 import { SiteSettings } from "../pre-initializers/essentials-preload"; // Inject is not available before App initialization, so we need to import it here
 import { useIconsStore } from "../store/icons";
+
+const PLAYER_ICONS = ["play", "pause", "maximize", "minimize"]
 const ICON_MAP = [
     "activity",
     "airplay",
@@ -21,6 +23,8 @@ const ICON_MAP = [
     "loader",
     "logOut",
     "pause",
+    "maximize",
+    "minimize",
     "play",
     "frown",
     "playCircle",
@@ -66,7 +70,9 @@ export const generateSpriteSheet = () => {
         ICON_MAP.push(icon);
     });
 
-    const svgSymbols = ICON_MAP.map((icon) => {
+    let svgSymbols = [];
+
+    ICON_MAP.map((icon) => {
         const lowerCamelCaseIcon = toLowerCamelCase(icon);
         const dashCaseIcon = lowerCamelCaseIcon.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
         const symbol = icons[icon];
@@ -77,7 +83,12 @@ export const generateSpriteSheet = () => {
         }
         iconCount++;
 
-        return `<symbol id="${dashCaseIcon}" viewBox="0 0 24 24">${symbol}</symbol>`;
+        if(PLAYER_ICONS.includes(icon)) {
+            // Add additional symbol with "vjs-icon" prefix
+            svgSymbols.push(`<symbol id="vjs-icon-${dashCaseIcon}" viewBox="0 0 24 24">${symbol}</symbol>`);
+        }
+
+        svgSymbols.push(`<symbol id="${dashCaseIcon}" viewBox="0 0 24 24">${symbol}</symbol>`);
     });
 
     const svgSpriteContent = `<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">${svgSymbols.join("")}</svg>`;
