@@ -63,6 +63,10 @@ module ApplicationHelper
       scripts << "https://app.lemonsqueezy.com/js/lemon.js"
     end
 
+    if SiteSetting.enable_chromecast
+      scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
+    end
+
     scripts.map do |script|
       javascript_include_tag(script, defer: true)
     end.join.html_safe
