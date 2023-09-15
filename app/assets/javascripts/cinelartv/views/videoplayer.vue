@@ -107,6 +107,7 @@ onMounted(async () => {
     preload: 'auto',
     responsive: true,
     fill: true,
+    poster: data.value.content.banner,
     experimentalSvgIcons: true,
     bigPlayButton: false,
     errorDisplay: false,

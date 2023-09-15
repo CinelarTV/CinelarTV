@@ -251,3 +251,14 @@ body.video-player #c-progress {
     background: inherit;
     font-size: initial;
 }
+
+.video-js .vjs-poster picture.vjs-poster img {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
