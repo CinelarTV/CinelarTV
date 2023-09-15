@@ -97,7 +97,7 @@
                         </template>
 
                         <template v-if="setting.type === 'code'" class="flex">
-                            <vue-monaco-editor theme="vs-dark" @update:value="value => updateValue(setting.key, value)" :value="setting.value" :language="getLanguageByKey(setting.key)" height="350px">
+                            <vue-monaco-editor theme="vs-dark" @update:value="value => updateValue(setting.key, value)" :value="setting.value" :language="getLanguageByKey(setting.key)" height="350px" width="100%">
                                 <template #loading>
                                     <c-spinner />
                                 </template>
