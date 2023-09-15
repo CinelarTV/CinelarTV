@@ -1,7 +1,7 @@
 <template>
   <div class="video-player-container" @mousemove="toggleOverlay" v-if="data">
     <video ref="ctvPlayer" class="ctv-player" controls muted>
-      <source :src="videoSource" type="video/mp4" />
+      <source :src="videoSource" />
     </video>
 
     <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen()">
