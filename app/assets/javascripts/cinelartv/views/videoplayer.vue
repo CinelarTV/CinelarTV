@@ -135,11 +135,11 @@ onMounted(async () => {
   console.log(videoPlayer.value);
 
   videoPlayer.value.on('timeupdate', async () => {
-    currentPlayback.value.currentTime = videoPlayer.value?.currentTime;
-    currentPlayback.value.duration = videoPlayer.value?.duration;
+    currentPlayback.value.currentTime = videoPlayer.value?.currentTime();
+    currentPlayback.value.duration = videoPlayer.value?.duration();
     if (Date.now() - lastDataSent.value > 5000) {
       lastDataSent.value = Date.now();
-      if (videoPlayer.value.currentTime > 1) {
+      if (videoPlayer.value.currentTime() > 1) {
         await sendCurrentPosition();
       }
     }
@@ -162,8 +162,8 @@ const togglePlayPause = () => {
 const sendCurrentPosition = async () => {
   try {
     await ajax.put(`/watch/${videoId}/progress.json`, {
-      progress: ctvPlayer.value.currentTime,
-      duration: ctvPlayer.value.duration,
+      progress: videoPlayer.value.currentTime,
+      duration: videoPlayer.value.duration,
       episode_id: episodeId
     });
   } catch (error) {
