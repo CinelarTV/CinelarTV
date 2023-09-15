@@ -162,8 +162,8 @@ const togglePlayPause = () => {
 const sendCurrentPosition = async () => {
   try {
     await ajax.put(`/watch/${videoId}/progress.json`, {
-      progress: videoPlayer.value.currentTime,
-      duration: videoPlayer.value.duration,
+      progress: videoPlayer.value.currentTime(),
+      duration: videoPlayer.value.duration(),
       episode_id: episodeId
     });
   } catch (error) {
