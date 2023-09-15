@@ -45,6 +45,7 @@ const videoPlayer = ref(null);
 const vplayerOverlay = ref(null);
 const userActive = ref(false);
 const isPlaying = ref(false);
+const loading = ref(true);
 const lastDataSent = ref(null);
 const fullscreen = ref(false);
 const currentPlayback = ref({
@@ -149,6 +150,13 @@ onMounted(async () => {
 
   // Set userinactive timeout to 0 to always show controls
 
+  // Replace the default loading spinner with a custom one <div class="ctv-loading-spinner"></div>
+  videoPlayer.value.LoadingSpinner = videojs.getComponent('LoadingSpinner');
+
+  videoPlayer.value.loadingSpinner = new videoPlayer.value.LoadingSpinner(videoPlayer.value, {
+    contentElType: 'div',
+    contentEl: videoPlayer.value.el().querySelector('.ctv-loading-spinner')
+  });
 
   videoPlayer.value.on('userinactive', () => {
     userActive.value = false;
@@ -165,6 +173,14 @@ onMounted(async () => {
 
   videoPlayer.value.on('pause', () => {
     isPlaying.value = false;
+  });
+
+  videoPlayer.value.on('waiting', () => {
+    loading.value = true;
+  });
+
+  videoPlayer.value.on('playing', () => {
+    loading.value = false;
   });
 
   replacePlayerIcons();

@@ -298,3 +298,11 @@ body.video-player #c-progress {
 .vjs-svg-icon:hover, .vjs-control:focus .vjs-svg-icon {
     filter: drop-shadow(0 0 0.75rem rgba(255,255,255,.5));
 }
+
+.vjs-loading-spinner::after {
+    border-color: #fff;
+}
+
+.vjs-loading-spinner::before {
+    border-color: #fff;
+}
