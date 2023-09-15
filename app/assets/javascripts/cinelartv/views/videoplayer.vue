@@ -1,7 +1,7 @@
 <template>
   <div class="video-player-container" @mousemove="toggleOverlay" v-if="data">
     <video ref="ctvPlayer" class="ctv-player" controls muted>
-      <source :src="videoSource" />
+      <source :src="videoSource" :type="getVideoType(videoSource)" />
     </video>
 
     <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen()">
@@ -256,6 +256,18 @@ const formatTime = (time) => {
   const seconds = Math.floor(time - (hours * 3600) - (minutes * 60));
   const formattedTime = `${hours > 0 ? hours + ':' : ''}${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
   return formattedTime;
+};
+
+const getVideoType = (url) => {
+  const extension = url.split('.').pop();
+  switch (extension) {
+    case 'mp4':
+      return 'video/mp4';
+    case 'm3u8':
+      return 'application/x-mpegURL';
+    default:
+      return 'video/mp4';
+  }
 };
 
 onBeforeUnmount(async () => {
