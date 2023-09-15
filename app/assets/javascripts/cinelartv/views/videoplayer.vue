@@ -134,7 +134,7 @@ onMounted(async () => {
 
   console.log(videoPlayer.value);
 
-/*   videoPlayer.value.on('timeupdate', async () => {
+  videoPlayer.value.on('timeupdate', async () => {
     currentPlayback.value.currentTime = videoPlayer.value?.currentTime;
     currentPlayback.value.duration = videoPlayer.value?.duration;
     if (Date.now() - lastDataSent.value > 5000) {
@@ -143,7 +143,7 @@ onMounted(async () => {
         await sendCurrentPosition();
       }
     }
-  }); */
+  });
 });
 
 onBeforeUnmount(() => {
