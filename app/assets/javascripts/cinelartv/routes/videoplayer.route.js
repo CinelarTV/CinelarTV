@@ -13,7 +13,7 @@ let VideoPlayerRoute =
             name: 'videoplayer.show',
             path: ':episodeId',
             component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.vue'),
-        }
+        },
     ]
     
 }

@@ -1,79 +1,73 @@
 <template>
-  <div class="video-player-container" @mousemove="toggleOverlay" v-if="data">
-    <video ref="ctvPlayer" class="ctv-player" controls muted>
-      <source :src="videoSource" :type="getVideoType(videoSource)" />
-    </video>
-
-    <div class="ctv-overlay" :class="{ 'overlay--hidden': !showOverlay }" @dblclick="toggleFullscreen()">
-      <section class="back-button">
-        <router-link :to="`/contents/${data.content.id}`">
-          <c-button icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
-        </router-link>
-      </section>
-      <section class="video-info">
-        <h1 class="video-title">
-          {{ data.content?.title }}
-        </h1>
-        <span class="video-episode" v-if="data.episode">
-          {{ data.season.title }} - {{ data.episode.title }}
-        </span>
-      </section>
-      <section class="video-controls">
-        <c-icon-button class="video-control" icon="rotate-ccw" @click="seekBy(-10)" />
-        <c-icon-button class="video-control" :icon="isPlaying ? 'pause' : 'play'" @click="togglePlayPause" />
-        <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
-      </section>
-      <section class="video-progress">
-        <input type="range" class="video-progress-bar" min="0" max="100" step="0.01"
-          :value="(currentPlayback.currentTime / currentPlayback.duration) * 100"
-          @input="seekTo(currentPlayback.duration * ($event.target.value / 100))" />
-        <div class="progress-info">
-          <span class="video-time">
-            {{ formatTime(currentPlayback.currentTime) }} <span class="remaining-time">/ {{
-              formatTime(currentPlayback.duration) }}</span></span>
-        </div>
-      </section>
+  <div class="video-player-container" v-if="data">
+    <div class="video-player">
+      <video ref="videoPlayerRef" id="ctv-player" controls preload="auto"
+        class="video-js vjs-default-skin vjs-big-play-centered relative">
+        <source :src="videoSource" type="video/mp4" />
+      </video>
+      <div class="ctv-overlay" ref="vplayerOverlay">
+        <section class="back-button">
+          <router-link :to="`/contents/${data.content.id}`">
+            <c-button icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
+          </router-link>
+        </section>
+        <section class="video-info">
+          <h1 class="video-title">
+            {{ data.content?.title }}
+          </h1>
+          <span class="video-episode" v-if="data.episode">
+            {{ data.season.title }} - {{ data.episode.title }}
+          </span>
+        </section>
+        <section class="video-controls">
+          <c-icon-button class="video-control" icon="rotate-ccw" @click="seekBy(-10)" />
+          <c-icon-button class="video-control" :icon="isPlaying ? 'pause' : 'play'" @click="togglePlayPause" />
+          <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
+        </section>
+      </div>
     </div>
-  </div>
-  <div v-else>
-    <c-spinner />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, onBeforeUnmount } from 'vue';
-import fluidPlayer from 'fluid-player';
+import { ref, onMounted, onBeforeMount, onBeforeUnmount, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { toast } from 'vue3-toastify';
 import { ajax } from '../lib/axios-setup';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css'; // Importar estilos de Video.js
 
-const ctvPlayer = ref(null);
-const showOverlay = ref(true);
-const isPlaying = ref(false);
-const isMuted = ref(false);
-const lastDataSent = ref(null);
-const route = useRoute();
-const router = useRouter();
-const videoId = route.params.id;
-const episodeId = route.params.episodeId;
+const SiteSettings = inject('SiteSettings');
+const currentUser = inject('currentUser');
+const i18n = inject('I18n');
+
 const data = ref(null);
-const autoHideOverlay = ref();
-const fluidplayer = ref(null);
-const videoSource = ref('');
+const videoSource = ref(null);
+const videoPlayer = ref(null);
+const vplayerOverlay = ref(null);
+const userActive = ref(false);
+const isPlaying = ref(false);
+const lastDataSent = ref(null);
 const currentPlayback = ref({
   currentTime: 0,
   duration: 0
 });
 
+
+const videoPlayerRef = ref();
+
+const route = useRoute();
+const router = useRouter();
+const videoId = route.params.id;
+const episodeId = route.params.episodeId;
+
 const fetchData = async () => {
   try {
-    let url = ''
+    let url = '';
     if (episodeId) {
       url = `/watch/${videoId}/${episodeId}.json`;
     } else {
       url = `/watch/${videoId}.json`;
     }
-    console.log(url);
     const response = await ajax.get(url);
     data.value = response.data.data;
     if (data.value.content.content_type === 'MOVIE') {
@@ -81,13 +75,10 @@ const fetchData = async () => {
     } else {
       if (data.value.content.content_type === 'TV_SHOW' && !(route.params.episodeId || data.value.episode.id)) {
         let episodeId = data.value.continue_watching.episode_id || data.value.episode.id;
-        router.replace(`/watch/${videoId}/${episodeId}`) // Add episodeId to URL if it's a tv show
+        router.replace(`/watch/${videoId}/${episodeId}`); // Agregar episodeId a la URL si es un programa de televisión
       }
       videoSource.value = data.value.episode.url;
     }
-
-
-
   } catch (error) {
     console.error(error);
     toast.error('Error al cargar el video.');
@@ -98,121 +89,73 @@ onMounted(async () => {
   document.body.classList.add('video-player');
   await fetchData();
 
-  if (data.value.content.content_type === 'MOVIE' && route.params.episodeId) {
-    router.replace(`/watch/${videoId}`)
-  }
-
-  const { progress, duration } = data.value.continue_watching;
-  if (progress > 0) {
-    if(!ctvPlayer.value) return;
-    ctvPlayer.value.currentTime = progress;
-  }
-
-  const options = {
-    layoutControls: {
-      miniPlayer: {
-        enabled: false
-      },
-      controlBar: {
-        autoHideTimeout: 3,
-        animated: true,
-        autoHide: true
-      },
-      htmlOnPauseBlock: {
-        html: null,
-        height: '',
-        width: null
-      },
-      autoPlay: true,
-      mute: false,
-      allowTheatre: false,
-      playPauseAnimation: true,
-      playbackRateEnabled: false,
-      allowDownload: false,
-      playButtonShowing: true,
-      fillToContainer: false,
-      posterImage: ''
-    },
-  };
-
-  fluidplayer.value = fluidPlayer(ctvPlayer.value, options);
-
-  ctvPlayer.value.addEventListener('play', () => {
-    isPlaying.value = true;
-  });
-
-  ctvPlayer.value.addEventListener('pause', () => {
-    isPlaying.value = false;
-  });
-
-  ctvPlayer.value.addEventListener('timeupdate', async () => {
-    currentPlayback.value.currentTime = ctvPlayer.value?.currentTime;
-    currentPlayback.value.duration = ctvPlayer.value?.duration;
-    if (Date.now() - lastDataSent.value > 5000) {
-      lastDataSent.value = Date.now();
-      if (ctvPlayer.value.currentTime > 1) {
-        await sendCurrentPosition();
-      }
+  videoPlayer.value = videojs(videoPlayerRef.value, {
+    autoplay: true,
+    preload: 'auto',
+    responsive: true,
+    fill: true,
+    experimentalSvgIcons: true,
+    bigPlayButton: false,
+    errorDisplay: false,
+    controlBar: {
+      playToggle: false,
+      pictureInPictureToggle: false,
     }
   });
 
+  
+  const { progress, duration } = data.value.continue_watching;
+  if (progress > 0) {
+    if(!videoPlayer.value) return;
+    videoPlayer.value.currentTime(progress);
+  }
 
-  ctvPlayer.value.addEventListener('waiting', () => {
-    console.log('waiting');
+  //CTV Custom Overlay
+
+  videoPlayer.value.el().appendChild(vplayerOverlay.value);
+
+
+  videoPlayer.value.on('userinactive', () => {
+    userActive.value = false;
   });
 
-  ctvPlayer.value.addEventListener('loadstart', () => {
-    //console.log('loadstart');
+  videoPlayer.value.on('useractive', () => {
+    userActive.value = true;
+
   });
 
-  ctvPlayer.value.addEventListener('canplay', () => {
-    //console.log('canplay');
+  videoPlayer.value.on('play', () => {
+    isPlaying.value = true;
   });
 
-  ctvPlayer.value.addEventListener('error', (e) => {
-    console.error('Error:', e);
-    alert('Error al reproducir el video.');
+  videoPlayer.value.on('pause', () => {
+    isPlaying.value = false;
   });
 
-  ctvPlayer.value.removeAttribute('muted');
-  ctvPlayer.value.muted = false;
+  console.log(videoPlayer.value);
 
-
-
-  toggleOverlay();
+/*   videoPlayer.value.on('timeupdate', async () => {
+    currentPlayback.value.currentTime = videoPlayer.value?.currentTime;
+    currentPlayback.value.duration = videoPlayer.value?.duration;
+    if (Date.now() - lastDataSent.value > 5000) {
+      lastDataSent.value = Date.now();
+      if (videoPlayer.value.currentTime > 1) {
+        await sendCurrentPosition();
+      }
+    }
+  }); */
 });
 
-const seekTo = (time) => {
-  ctvPlayer.value.currentTime = time;
-  currentPlayback.value.currentTime = time;
-  if (ctvPlayer.value.paused) {
-    ctvPlayer.value.play();
-  }
-};
-
-const seekBy = (seconds) => {
-  seekTo(currentPlayback.value.currentTime + seconds);
-};
+onBeforeUnmount(() => {
+  document.body.classList.remove('video-player');
+  videoPlayer.value.dispose();
+});
 
 const togglePlayPause = () => {
-  if (ctvPlayer.value.paused) {
-    ctvPlayer.value.play();
+  if (isPlaying.value) {
+    videoPlayer.value.pause();
   } else {
-    ctvPlayer.value.pause();
-  }
-};
-
-const toggleOverlay = (click = false) => {
-  if (!showOverlay.value) {
-    showOverlay.value = true;
-    autoHideOverlay.value = setTimeout(() => {
-      showOverlay.value = false;
-    }, 3000);
-  } else {
-    clearTimeout(autoHideOverlay.value);
-    autoHideOverlay.value = setTimeout(() => {
-      showOverlay.value = false;
-    }, 3000);
+    videoPlayer.value.play();
   }
 };
 
@@ -228,62 +171,7 @@ const sendCurrentPosition = async () => {
   }
 };
 
-document.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-});
-
-const toggleFullscreen = (exit = false) => {
-  if (document.fullscreenElement) {
-    document.exitFullscreen().catch((error) => {
-      // Do nothing
-    });
-  } else {
-    document.documentElement.requestFullscreen().catch((error) => {
-      // Do nothing
-    });
-  }
-
-  if (exit) {
-    document.exitFullscreen().catch((error) => {
-      // Do nothing
-    });
-  }
+const seekBy = (seconds) => {
+  videoPlayer.value.currentTime(videoPlayer.value.currentTime() + seconds);
 };
-
-const formatTime = (time) => {
-  const hours = Math.floor(time / 3600);
-  const minutes = Math.floor((time - (hours * 3600)) / 60);
-  const seconds = Math.floor(time - (hours * 3600) - (minutes * 60));
-  const formattedTime = `${hours > 0 ? hours + ':' : ''}${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-  return formattedTime;
-};
-
-const getVideoType = (url) => {
-  const extension = url.split('.').pop();
-  console.log(extension);
-  switch (extension) {
-    case 'mp4':
-      return 'video/mp4';
-    case 'm3u8':
-      return 'application/x-mpegurl';
-    default:
-      return 'video/mp4';
-  }
-};
-
-onBeforeUnmount(async () => {
-  data.value = null;
-  // Remove event listeners
-  ctvPlayer.value.removeEventListener('timeupdate', () => { });
-
-
-  document.body.classList.remove('video-player')
-  ctvPlayer.value.pause();
-  ctvPlayer.value = null;
-  fluidplayer.value.destroy();
-  document.exitFullscreen().catch((error) => {
-    // Do nothing
-  });
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-});
 </script>
