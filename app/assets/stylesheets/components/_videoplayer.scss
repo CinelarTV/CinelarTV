@@ -242,3 +242,12 @@ body.video-player #c-progress {
     min-width: 4em;
     touch-action: none;
 }
+
+.video-js button {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background: inherit;
+    font-size: initial;
+}

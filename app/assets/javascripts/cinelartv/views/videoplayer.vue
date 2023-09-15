@@ -113,7 +113,6 @@ onMounted(async () => {
     controlBar: {
       playToggle: false,
       pictureInPictureToggle: false,
-      // Vertical Volume Control
       volumePanel: {
         inline: false
       },
@@ -139,6 +138,8 @@ onMounted(async () => {
   //CTV Custom Overlay
 
   videoPlayer.value.el().appendChild(vplayerOverlay.value);
+
+
 
 
   videoPlayer.value.on('userinactive', () => {
