@@ -3,7 +3,6 @@
     <div class="video-player">
       <video ref="videoPlayerRef" id="ctv-player" controls preload="auto"
         class="video-js vjs-default-skin vjs-big-play-centered relative">
-        <source :src="videoSource" type="video/mp4" />
       </video>
       <div class="ctv-overlay" ref="vplayerOverlay">
         <section class="back-button">
@@ -85,6 +84,20 @@ const fetchData = async () => {
   }
 };
 
+const getVideoType = (url) => {
+  const extension = url.split('.').pop();
+  console.log(extension);
+  switch (extension) {
+    case 'mp4':
+      return 'video/mp4';
+    case 'm3u8':
+      return 'application/x-mpegURL';
+      return 'application/x-mpegurl';
+    default:
+      return 'video/mp4';
+  }
+}
+
 onMounted(async () => {
   document.body.classList.add('video-player');
   await fetchData();
@@ -100,13 +113,26 @@ onMounted(async () => {
     controlBar: {
       playToggle: false,
       pictureInPictureToggle: false,
-    }
+      // Vertical Volume Control
+      volumePanel: {
+        inline: false
+      },
+    },
+    sources: [
+      {
+        src: videoSource.value,
+        type: getVideoType(videoSource.value)
+      }
+    ]
   });
 
-  
+
+
+
+
   const { progress, duration } = data.value.continue_watching;
   if (progress > 0) {
-    if(!videoPlayer.value) return;
+    if (!videoPlayer.value) return;
     videoPlayer.value.currentTime(progress);
   }
 
