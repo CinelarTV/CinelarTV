@@ -4,15 +4,14 @@
             <form @submit.prevent="updateSettings" v-if="settings">
                 <div class="setting-container" v-for="(setting, index) in settingsModel" :key="setting.key">
                     <span class="setting-title">
-                        {{ $t(`js.admin.settings.${category}.${setting.key}.title`) }}
+                        {{ $t(`js.admin.settings.${setting.key}.title`) }}
                     </span>
                     <!-- Type 0: String -->
 
                     <div class="flex flex-col max-w-md">
                         <c-input v-if="setting.type === 'string'" @input="settings[setting.key] = $event.target.value"
                             class="setting-value input" type="text" :value="settingsModel[index].value"
-                            :maxlength="setting.options.limit"
-                            :label="$t(`js.admin.settings.${category}.${setting.key}.title`)" />
+                            :maxlength="setting.options.limit" :label="$t(`js.admin.settings.${setting.key}.title`)" />
 
                         <!-- Type 1: Boolean -->
 
@@ -52,11 +51,11 @@
 
                         <div v-else-if="setting.type === 'enum'">
                             <c-select
-                                :options="setting.options.allowed_values.map(option => ({ value: option, label: $t(`js.admin.settings.${category}.${setting.key}.options.${option}`) }))"
+                                :options="setting.options.allowed_values.map(option => ({ value: option, label: $t(`js.admin.settings.${setting.key}.options.${option}`) }))"
                                 :placeholder="settings[setting.key] || setting.value" v-model="settings[setting.key]"
                                 @update:modelValue="settings[setting.key] = $event"
                                 :modelValue="settings[setting.key] || setting.value"
-                                :label="$t(`js.admin.settings.${category}.${setting.key}.title`)" />
+                                :label="$t(`js.admin.settings.${setting.key}.title`)" />
 
                         </div>
 
@@ -82,7 +81,7 @@
 
                         <textarea v-if="setting.type == 'textarea'" @input="settings[setting.key] = $event.target.value"
                             :value="setting.value" class="setting-value textarea" type="text"
-                            :label="$t(`js.admin.settings.${category}.${setting.key}.title`)"></textarea>
+                            :label="$t(`js.admin.settings.${setting.key}.title`)"></textarea>
 
                         <!-- Type : Color Picker -->
 
@@ -92,9 +91,9 @@
                                 :style="`background-color: ${settings[setting.key] || settingsModel[index].value}`">
                                 &nbsp;
                             </span>
-                            <c-input @input="e => settings[setting.key] = e.target.value"
-                                type="text" v-model="settings[setting.key]" class="setting-value input"
-                                :label="$t(`js.admin.settings.${category}.${setting.key}.title`)" data-coloris />
+                            <c-input @input="e => settings[setting.key] = e.target.value" type="text"
+                                v-model="settings[setting.key]" class="setting-value input"
+                                :label="$t(`js.admin.settings.${setting.key}.title`)" data-coloris />
                         </template>
 
                         <template v-if="setting.type === 'code'" class="flex">
@@ -111,8 +110,7 @@
 
 
 
-                        <span class="setting-description"
-                            v-html="$t(`js.admin.settings.${category}.${setting.key}.description`)" />
+                        <span class="setting-description" v-html="$t(`js.admin.settings.${setting.key}.description`)" />
                     </div>
 
                 </div>
@@ -150,16 +148,16 @@ const updateValue = (key, value) => {
 };
 
 const getLanguageByKey = (key) => {
-    switch (key) {
-        case 'custom_css':
-            return 'css';
-        case 'custom_js':
-            return 'javascript';
-        case 'custom_html':
-            return 'html';
-        default:
-            return 'plaintext';
-    }
+    const languageMap = {
+        'custom_css': 'css',
+        'custom_js': 'javascript',
+        'custom_html': 'html',
+        'custom_json': 'json',
+        'additonal_player_settings': 'json',
+        'api_custom_data': 'json',
+    };
+
+    return languageMap[key] || 'plaintext';
 };
 
 function updateSettings(e) {

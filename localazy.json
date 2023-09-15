@@ -2,7 +2,8 @@
     "upload": {  
       "type": "yaml",
       "features": ["lang_root"],
-      "files": "config/locales/en.yml"         
+      "files": "config/locales/en.yml",
+      "deprecate": "project"  
     },
     "download": {
       "files": "config/locales/${lang}.yml",

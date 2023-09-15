@@ -21,7 +21,7 @@
                                 @click="onCurrentCategoryChange(category.name)">
                                 <c-icon :icon="getCategoryIcon(category.name)" class="icon" />
                                 <a class="nav-link">
-                                    {{ $t(`js.admin.settings.${category.name}.title`) }}
+                                    {{ $t(`js.admin.settings.categories.${category.name}`) }}
                                 </a>
                             </li>
                         </ul>
@@ -68,6 +68,8 @@ const getCategoryIcon = (category) => {
             return 'box';
         case 'content':
             return 'clapperboard';
+        case 'player':
+            return 'play-square';
         case 'monetization':
             return 'circle-dollar-sign';
         case 'storage':

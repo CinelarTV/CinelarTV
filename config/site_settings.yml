@@ -73,6 +73,18 @@ content:
     type: 'string'
     secret: true
 
+player:
+  enable_chromecast:
+    client: true
+    refresh: true
+    default: true
+    type: 'boolean'
+  additonal_player_settings:
+    client: true
+    refresh: true
+    default: "{}"
+    type: 'code'
+
 monetization:
   enable_subscription:
     client: true
@@ -255,7 +267,7 @@ developer:
     client: false
     refresh: false
     default: "{}"
-    type: 'json'
+    type: 'code'
     secret: false
 experimental:
   enable_web_updater:

@@ -28,6 +28,7 @@ const ICON_MAP = [
     "play",
     "frown",
     "playCircle",
+    "playSquare",
     "plus",
     "rotateCcw",
     "rotateCw",

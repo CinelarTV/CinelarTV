@@ -50,6 +50,45 @@ es:
         updater: "Actualizador"
         users: "Usuarios"
       settings:
+        additional_icons:
+          description: "Permite añadir iconos adicionales a la aplicación"
+          title: "Iconos adicionales"
+        additonal_player_settings:
+          description: "Proporciona una forma de añadir ajustes adicionales al reproductor. Esto puede resultar útil si desea ampliar la funcionalidad del reproductor. Documentación de la API: <a href='https://videojs.com/guides/options/' target='_blank'> https://videojs.com/guides/options/ </a>"
+          title: "Ajustes adicionales del reproductor"
+        allow_registration:
+          description: "Permite a los usuarios registrarse en el sitio"
+          title: "¿Permitir el registro?"
+        allow_video_direct_link:
+          description: "Permite el enlace directo de los vídeos. Esto puede ser un problema si no tienes control sobre el servidor donde se alojan los vídeos, ya que puede provocar un alto consumo de ancho de banda o interrupciones en el servicio"
+          title: "Permitir enlace directo de vídeo"
+        api_custom_data:
+          description: "Proporciona una forma de añadir datos personalizados a la API de dispositivos. Esto puede resultar útil si quieres añadir datos personalizados a la API, como la versión de tu aplicación"
+          title: "Datos personalizados de la API"
+        background_color:
+          description: "El color de fondo de la aplicación, será el color de la pantalla de carga y el fondo de la aplicación"
+          title: "Color de fondo"
+        base_font_family:
+          description: "La fuente de la aplicación"
+          title: "Fuente base"
+        body_text_color:
+          description: "El color del texto de la aplicación"
+          title: "Color del texto del cuerpo"
+        categories:
+          content: "Contenido"
+          customization: "Personalización"
+          developer: "Desarrollador"
+          experimental: "Experimental"
+          general: "General"
+          monetization: "Monetización"
+          player: "Reproductor"
+          storage: "Almacenamiento"
+        cdn_enabled:
+          description: "Activa la CDN, que se utilizará para servir los archivos multimedia de su sitio"
+          title: "CDN habilitado"
+        cdn_url:
+          description: "La URL de tu proveedor de CDN"
+          title: "CDN Url"
         content:
           enable_metadata_recommendation:
             description: "Permite obtener metadatos de TheMovieDB al momento de añadir un nuevo contenido, esto te ayudará a rellenar los campos del contenido automáticamente"
@@ -58,140 +97,116 @@ es:
           tmdb_api_key:
             description: "La clave API de tu cuenta de TMDB, la puedes obtener <a href='https://www.themoviedb.org/settings/api' target='_blank'>aquí</a>."
             title: "Clave de API TMDB"
-        customization:
-          additional_icons:
-            description: "Permite añadir iconos adicionales a la aplicación"
-            title: "Iconos adicionales"
-          background_color:
-            description: "El color de fondo de la aplicación, será el color de la pantalla de carga y el fondo de la aplicación"
-            title: "Color de fondo"
-          base_font_family:
-            description: "La fuente de la aplicación"
-            title: "Fuente base"
-          body_text_color:
-            description: "El color del texto de la aplicación"
-            title: "Color del texto del cuerpo"
-          custom_css:
-            description: "Permite personalizar el CSS de la aplicación"
-            title: "CSS personalizado"
-          enable_carousel:
-            description: "Activa el carrusel en la página de inicio"
-            title: "Activar carrusel"
-          header_background_color:
-            description: "El color de fondo del encabezado de la aplicación"
-            title: "Color de fondo del encabezado"
-          header_font_family:
-            description: "La fuente del encabezado de la aplicación"
-            title: "Fuente del Encabezado"
-          homescreen_cards_custom_html:
-            description: "Permite personalizar el HTML de las tarjetas en la pantalla de inicio"
-            title: "HTML personalizado para Tarjetas de pantalla de inicio"
-          homescreen_cards_style:
-            description: "El estilo de las tarjetas en la pantalla de inicio"
-            title: "Estilo de tarjetas de pantalla de inicio"
-            values:
-              backdrop: "Fondo"
-              poster: "Póster"
-          primary_color:
-            description: "Color primario de la descripción"
-            title: "Color primario"
-          quaternary_color:
-            description: "Se utiliza para algunos botones y enlaces"
-            title: "Color cuaternario"
-          secondary_color:
-            description: "Se utiliza para algunos botones y enlaces"
-            title: "Color secundario"
-          tertiary_color:
-            description: "Se utiliza para algunos enlaces y pestañas"
-            title: "Color terciario"
-          title: "Personalización"
-        developer:
-          api_custom_data:
-            description: "Proporciona una forma de añadir datos personalizados a la API de dispositivos. Esto puede resultar útil si quieres añadir datos personalizados a la API, como la versión de tu aplicación"
-            title: "Datos personalizados de la API"
-          enable_js_error_reporting:
-            description: "Permite informar de errores de JavaScript, esto enviará los errores al servidor y se mostrará en la consola. Puede ver los informes en <a href='/logs'>/logs</a>"
-            title: "Habilitar el informe de errores de JavaScript"
-          title: "Desarrollador"
-        experimental:
-          enable_web_updater:
-            description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
-            title: "Actualizador web experimental"
-          external_scripts:
-            description: "Carga los scripts desde una URL externa, esto puede ser útil si quieres usar una CDN para cargar los scripts"
-            title: "Scripts externos"
-          external_stylesheets:
-            description: "Carga las hojas de estilo desde una URL externa, esto puede ser útil si quieres usar una CDN para cargar las hojas de estilo"
-            title: "Hojas de estilo externas"
-          title: "Experimental"
-        general:
-          allow_registration:
-            description: "Permite a los usuarios registrarse en el sitio"
-            title: "¿Permitir el registro?"
-          default_locale:
-            description: "El idioma predeterminado de tu sitio"
-            title: "Idioma predeterminado"
-          enable_sitemap:
-            description: "Activa el mapa del sitio, esto ayudará a los motores de búsqueda a indexar tu sitio"
-            title: "Habilitar mapa del sitio"
-          enable_splash_screen:
-            description: "Activa la pantalla de bienvenida cuando se carga la aplicación"
-            title: "Habilitar pantalla de carga"
-          site_description:
-            description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
-            title: "Descripción del sitio"
-          site_favicon:
-            description: "El favicon de tu sitio, tal y como aparecerá en la pestaña del navegador"
-            title: "Favicon del sitio"
-          site_logo:
-            description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación"
-            title: "Logotipo del sitio"
-          site_mobile_logo:
-            description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación en los dispositivos móviles"
-            title: "Logotipo del sitio móvil"
-          site_name:
-            description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
-            title: "Nombre del sitio"
-          title: "General"
-        monetization:
-          enable_subscription:
-            description: "Activa el sistema de suscripción, esto le permitirá cobrar a sus usuarios por el acceso a su sitio"
-            title: "Habilitar la suscripción"
-          lemon_api_key:
-            description: "La clave API de tu cuenta de LemonSqueezy, la puedes obtener aquí <a href='https://lemonsqueezy.com' target='_blank'> </a>"
-            title: "Clave de API LemonSqueezy"
-          title: "Monetización"
+        custom_css:
+          description: "Permite personalizar el CSS de la aplicación"
+          title: "CSS personalizado"
+        custom_js:
+          description: "Permite personalizar el JavaScript mediante el Plugin API. Esto puede resultar útil si desea ampliar la funcionalidad de la aplicación"
+          title: "JavaScript personalizado"
+        default_locale:
+          description: "El idioma predeterminado de tu sitio"
+          title: "Idioma predeterminado"
+        enable_carousel:
+          description: "Activa el carrusel en la página de inicio"
+          title: "Activar carrusel"
+        enable_chromecast:
+          description: "Habilita la funcionalidad Chromecast, esto permitirá a sus usuarios transmitir los videos a sus dispositivos compatibles con Chromecast"
+          title: "Activar Chromecast"
+        enable_js_error_reporting:
+          description: "Permite informar de errores de JavaScript, esto enviará los errores al servidor y se mostrará en la consola. Puede ver los informes en <a href='/logs'>/logs</a>"
+          title: "Habilitar el informe de errores de JavaScript"
+        enable_metadata_recommendation:
+          description: "Permite obtener metadatos de TheMovieDB al momento de añadir un nuevo contenido, esto te ayudará a rellenar los campos del contenido automáticamente"
+          title: "Habilitar la recomendación de metadatos"
+        enable_sitemap:
+          description: "Activa el mapa del sitio, esto ayudará a los motores de búsqueda a indexar tu sitio"
+          title: "Habilitar mapa del sitio"
+        enable_splash_screen:
+          description: "Activa la pantalla de bienvenida cuando se carga la aplicación"
+          title: "Habilitar pantalla de carga"
+        enable_subscription:
+          description: "Activa el sistema de suscripción, esto le permitirá cobrar a sus usuarios por el acceso a su sitio"
+          title: "Habilitar la suscripción"
+        enable_web_updater:
+          description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
+          title: "Actualizador web experimental"
+        external_scripts:
+          description: "Carga los scripts desde una URL externa, esto puede ser útil si quieres usar una CDN para cargar los scripts"
+          title: "Scripts externos"
+        external_stylesheets:
+          description: "Carga las hojas de estilo desde una URL externa, esto puede ser útil si quieres usar una CDN para cargar las hojas de estilo"
+          title: "Hojas de estilo externas"
+        header_background_color:
+          description: "El color de fondo del encabezado de la aplicación"
+          title: "Color de fondo del encabezado"
+        header_font_family:
+          description: "La fuente del encabezado de la aplicación"
+          title: "Fuente del Encabezado"
+        homescreen_cards_custom_html:
+          description: "Permite personalizar el HTML de las tarjetas en la pantalla de inicio"
+          title: "HTML personalizado para Tarjetas de pantalla de inicio"
+        homescreen_cards_style:
+          description: "El estilo de las tarjetas en la pantalla de inicio"
+          title: "Estilo de tarjetas de pantalla de inicio"
+          values:
+            backdrop: "Fondo"
+            poster: "Póster"
+        lemon_api_key:
+          description: "La clave API de tu cuenta de LemonSqueezy, la puedes obtener aquí <a href='https://lemonsqueezy.com' target='_blank'> </a>"
+          title: "Clave de API LemonSqueezy"
+        lemon_webhook_secret:
+          description: "El secreto del webhook de tu webhook LemonSqueezy. Asegúrese de leer la documentación en el foro de CinelarTV. <a href='https://forum.cinelar.tv/t/lemonsqueezy-webhook-secret/19' target='_blank'> </a>"
+          title: "LemonSqueezy WebHook Secret"
+        primary_color:
+          description: ""
+          title: "Color primario"
+        quaternary_color:
+          description: "Se utiliza para algunos botones y enlaces"
+          title: "Color cuaternario"
+        s3_access_key_id:
+          description: "El identificador de clave de acceso de su cuenta S3"
+          title: "ID de clave de acceso S3"
+        s3_bucket:
+          description: "El depósito que se utiliza para almacenar los archivos multimedia de su sitio"
+          title: "S3 Bucket\n"
+        s3_endpoint:
+          description: "El punto final de su proveedor de S3"
+          title: "S3 endpoint"
+        s3_region:
+          description: "La región de su cuenta S3"
+          title: "Región S3"
+        s3_secret_access_key:
+          description: "La clave de acceso secreta de su cuenta S3"
+          title: "Clave de acceso secreta S3"
         save: "Guardar"
-        storage:
-          allow_video_direct_link:
-            description: "Permite el enlace directo de los vídeos. Esto puede ser un problema si no tienes control sobre el servidor donde se alojan los vídeos, ya que puede provocar un alto consumo de ancho de banda o interrupciones en el servicio"
-            title: "Permitir enlace directo de vídeo"
-          cdn_enabled:
-            description: "Activa la CDN, que se utilizará para servir los archivos multimedia de su sitio"
-            title: "CDN habilitado"
-          cdn_url:
-            description: "La URL de tu proveedor de CDN"
-            title: "CDN Url"
-          s3_access_key_id:
-            description: "El identificador de clave de acceso de su cuenta S3"
-            title: "ID de clave de acceso S3"
-          s3_bucket:
-            description: "El depósito que se utiliza para almacenar los archivos multimedia de su sitio"
-            title: "S3 Bucket\n"
-          s3_endpoint:
-            description: "El punto final de su proveedor de S3"
-            title: "S3 endpoint"
-          s3_region:
-            description: "La región de su cuenta S3"
-            title: "Región S3"
-          s3_secret_access_key:
-            description: "La clave de acceso secreta de su cuenta S3"
-            title: "Clave de acceso secreta S3"
-          storage_provider:
-            description: "El proveedor de almacenamiento de su sitio, se utilizará para almacenar los archivos multimedia de su sitio"
-            title: "Proveedor de almacenamiento"
-          title: "Almacenamiento"
+        secondary_color:
+          description: "Se utiliza para algunos botones y enlaces"
+          title: "Color secundario"
+        site_description:
+          description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+          title: "Descripción del sitio"
+        site_favicon:
+          description: "El favicon de tu sitio, tal y como aparecerá en la pestaña del navegador"
+          title: "Favicon del sitio"
+        site_logo:
+          description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación"
+          title: "Logotipo del sitio"
+        site_mobile_logo:
+          description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación en los dispositivos móviles"
+          title: "Logotipo del sitio móvil"
+        site_name:
+          description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+          title: "Nombre del sitio"
+        storage_provider:
+          description: "El proveedor de almacenamiento de su sitio, se utilizará para almacenar los archivos multimedia de su sitio"
+          title: "Proveedor de almacenamiento"
+        tertiary_color:
+          description: "Se utiliza para algunos enlaces y pestañas"
+          title: "Color terciario"
         title: "Configuración del sitio"
+        tmdb_api_key:
+          description: "La clave API de tu cuenta de TMDB, la puedes obtener <a href='https://www.themoviedb.org/settings/api' target='_blank'>aquí</a>."
+          title: "Clave de API TMDB"
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"
