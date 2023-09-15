@@ -260,11 +260,12 @@ const formatTime = (time) => {
 
 const getVideoType = (url) => {
   const extension = url.split('.').pop();
+  console.log(extension);
   switch (extension) {
     case 'mp4':
       return 'video/mp4';
     case 'm3u8':
-      return 'application/x-mpegURL';
+      return 'application/x-mpegurl';
     default:
       return 'video/mp4';
   }
