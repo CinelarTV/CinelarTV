@@ -43,3 +43,6 @@ yarn-debug.log*
 
 # Ignore css build files
 /app/assets/builds/*.css
+
+# Ignore localazy keys
+/localazy.keys.json
