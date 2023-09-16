@@ -11,7 +11,7 @@ Sidekiq.configure_client do |config|
 end
 
 if Rails.env.production? && ENV.keys.any? { |key| key.start_with?("RAILWAY_") }
-  config.after_initialize do
+  Rails.config.after_initialize do
     unless Sidekiq::ProcessSet.new.any? || !CinelarTV.maintenance_enabled
       Rails.logger.info("CinelarTV is running on Railway, starting Sidekiq manually...")
       system("bundle exec sidekiq")
