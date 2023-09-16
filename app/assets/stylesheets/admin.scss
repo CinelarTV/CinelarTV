@@ -143,6 +143,13 @@
     display: flex;
 }
 
+#updated-recently {
+    background: url('/public/assets/images/confetti-bg.svg');
+    background-size: 110vw 110vh;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 body.is-mobile {
 
     .settings .setting-container .setting-image-uploader {

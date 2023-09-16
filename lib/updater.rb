@@ -24,6 +24,14 @@ module CinelarTV
       `git log --format=%s -n 1`
     end
 
+    def self.last_updated_at
+      CinelarTV.cache.read("updated_at")
+    end
+
+    def self.last_updated_at=(val)
+      CinelarTV.cache.write("updated_at", val)
+    end
+
     def self.log(message)
       publish "log", message + "\n"
     end
@@ -109,6 +117,13 @@ module CinelarTV
       run("rake assets:precompile")
 
       percent(92)
+
+      # Update the last updated at time
+
+      self.last_updated_at = Time.now
+
+      percent(95)
+
       log("************** Disabling Maintenance Mode ***************")
 
       percent(100)

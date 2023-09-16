@@ -2,6 +2,25 @@
   <div class="panel">
     <c-spinner v-if="!dashboardData" />
     <div v-else id="admin-dashboard" class="pt-2">
+      <section id="updated-recently" v-if="daysSince(dashboardData.version_check.last_updated_at) <= 3"
+        class="flex flex-col py-2 w-full mb-8 rounded-md">
+
+        <div class="flex justify-center text-center text-white p-4 items-center text-xl font-medium">
+          ¡Parece que has actualizado recientemente!
+        </div>
+
+        <div class="flex flex-col justify-center text-center text-white p-4 pt-0 items-center text-xl font-medium">
+          <span class="text-base px-4">
+            Conoce las novedades de esta versión
+          </span>
+          <a href="https://forum.cinelartv.com/c/releases" target="_blank" rel="noopener noreferrer">
+            <c-button class="bg-black bg-opacity-60 mt-4" icon="arrow-right">Novedades</c-button>
+          </a>
+        </div>
+          
+
+        
+      </section>
       <section id="updates-available" class="inline-flex px-4 py-2 w-full bg-emerald-500 text-white mb-8"
         v-if="dashboardData.version_check.updates_available">
         <UploadCloud />
@@ -42,7 +61,14 @@
                   <SmileIcon :size="48" />
                 </span>
               </div>
-              <div class="version-notes">You're up to date!</div>
+              <div class="version-notes">
+                <template v-if="daysSince(new Date(dashboardData.version_check.last_updated_at)) <= 3">
+                  <p>Parece que has actualizado recientemente</p>
+                </template>
+
+
+
+              </div>
             </template>
             <template v-else>
               <div class="face">
@@ -97,8 +123,8 @@
                 :chartOptions="chartOptions" />
             </div>
           </template>
-      
-          
+
+
 
 
 
@@ -163,6 +189,14 @@ const commitUrl = computed(() => {
 const formattedSha = computed(() => {
   return dashboardData.value.version_check.installed_sha.substr(0, 10)
 })
+
+const daysSince = (date) => {
+  const today = Date.now()
+  const parsedDate = new Date(date)
+  const diffTime = Math.abs(today - parsedDate.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays === 0 ? 0 : diffDays - 1
+}
 
 const chartOptions = {
   responsive: true,

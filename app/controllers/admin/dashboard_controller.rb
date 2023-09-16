@@ -29,6 +29,7 @@ module Admin
         remote_version: CinelarTV::Updater.remote_version,
         versions_diff: CinelarTV::Updater.versions_diff,
         last_commit_message: CinelarTV::Updater.last_commit_message,
+        last_updated_at: CinelarTV::Updater.last_updated_at,
       }
 
       data[:statistics] = statistics
