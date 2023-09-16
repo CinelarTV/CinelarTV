@@ -44,7 +44,7 @@ class AdminDashboardData
 
   def check_updates
     add_problem(
-      content: I18n.t("dashboard.updates_warning"),
+      content: I18n.t("dashboard.updates_available"),
       icon: "rocket",
     ) if CinelarTV::Updater.updates_available?
   end
