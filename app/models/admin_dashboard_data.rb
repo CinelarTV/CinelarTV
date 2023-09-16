@@ -34,7 +34,7 @@ class AdminDashboardData
   end
 
   def check_ram
-    unless memory_info.total_memory.nil? || memory_info.total_memory > 10_000_000
+    unless memory_info.total_memory.nil? || memory_info.total_memory > 1_000_000
       add_problem(
         content: I18n.t("dashboard.memory_warning"),
         icon: "cpu",
