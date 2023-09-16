@@ -46,7 +46,7 @@ class AdminDashboardData
     add_problem(
       content: I18n.t("dashboard.updates_available"),
       icon: "rocket",
-    ) if CinelarTV::Updater.updates_available?
+    ) if CinelarTV::Updater.updates_available? && SiteSetting.enable_web_updater
   end
 
   def check_sidekiq
