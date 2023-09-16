@@ -11,6 +11,9 @@ es:
             name:
               blank: "El nombre no puede estar en blanco"
               too_short: "El nombre es demasiado corto, debe tener al menos %{count} caracteres"
+  dashboard:
+    memory_warning: "El servidor se está ejecutando con menos de 1 GB de RAM. CinelarTV recomienda al menos 1 GB de memoria para funcionar correctamente."
+    sidekiq_warning: "Sidekiq no se está ejecutando. Sidekiq ejecuta muchas tareas de forma asíncrona, como enviar correos electrónicos o procesar recomendaciones. Asegúrese de que se esté ejecutando al menos un proceso de Sidekiq. <a href='https://github.com/mperham/sidekiq' target='_blank'>Obtén más información sobre Sidekiq aquí. </a>"
   js:
     admin:
       actions:

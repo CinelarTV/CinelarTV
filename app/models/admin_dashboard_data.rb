@@ -1,0 +1,67 @@
+# frozen_string_literal: true
+
+class AdminDashboardData
+  def initialize(opts = {})
+    @opts = opts
+    @problems = []
+  end
+
+  def problems
+    # Agrega los problemas verificados por símbolos a la lista de problemas
+    problem_syms.each do |sym|
+      send(sym)
+    end
+
+    # Agrega problemas adicionales basados en condiciones
+    add_problem(
+      content: "Your CinelarTV instance is not activated. Your customers will not be able to use the site until you activate it.",
+      type: "critical",
+      icon: "frown",
+    ) unless CinelarTV.valid_license?
+
+    add_problem(
+      content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
+      type: "info",
+      icon: "sparkles",
+    ) unless SiteSetting.wizard_completed
+
+    @problems
+  end
+
+  def problem_syms
+    # Define aquí los problemas verificados por símbolos
+    [:check_ram, :check_sidekiq]
+  end
+
+  def check_ram
+    unless memory_info.total_memory.nil? || memory_info.total_memory > 10_000_000
+      add_problem(
+        content: I18n.t("dashboard.memory_warning"),
+        type: "warning",
+        icon: "exclamation-triangle",
+      )
+    end
+  end
+
+  def check_sidekiq
+    add_problem(
+      content: I18n.t("dashboard.sidekiq_warning"),
+      type: "critical",
+      icon: "frown",
+    ) if Sidekiq::ProcessSet.new.size.zero?
+  end
+
+  private
+
+  def memory_info
+    @memory_info ||= MemoryInfo.new
+  end
+
+  def add_problem(content:, type:, icon:)
+    @problems << {
+      content: content,
+      type: type,
+      icon: icon,
+    }
+  end
+end
