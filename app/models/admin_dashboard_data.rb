@@ -14,10 +14,10 @@ class AdminDashboardData
 
     # Agrega problemas adicionales basados en condiciones
     add_problem(
-      content: "Your CinelarTV instance is not activated. Your customers will not be able to use the site until you activate it.",
+      content: "Your CinelarTV instance is not activated. Please enter a valid license key to continue using commercial features.",
       type: "critical",
       icon: "frown",
-    ) unless CinelarTV.valid_license?
+    ) unless CinelarTV.valid_license? && SiteSetting.enable_subscription
 
     add_problem(
       content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
