@@ -44,7 +44,9 @@ const ICON_MAP = [
     "circleDollarSign",
     "brush",
     "testTube2",
-    "code2"
+    "code2",
+    "cpu",
+    "rocket",
 ];
 
 

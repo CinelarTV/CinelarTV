@@ -25,22 +25,28 @@ class AdminDashboardData
       icon: "sparkles",
     ) unless SiteSetting.wizard_completed
 
-    @problems
+    @problems.sort_by { |p| [p[:type] == "critical" ? 0 : 1, p[:type] == "info" ? 2 : 1] }
   end
 
   def problem_syms
     # Define aquí los problemas verificados por símbolos
-    [:check_ram, :check_sidekiq]
+    [:check_updates, :check_ram, :check_sidekiq]
   end
 
   def check_ram
     unless memory_info.total_memory.nil? || memory_info.total_memory > 10_000_000
       add_problem(
         content: I18n.t("dashboard.memory_warning"),
-        type: "warning",
-        icon: "exclamation-triangle",
+        icon: "cpu",
       )
     end
+  end
+
+  def check_updates
+    add_problem(
+      content: I18n.t("dashboard.updates_warning"),
+      icon: "rocket",
+    ) if CinelarTV::Updater.updates_available?
   end
 
   def check_sidekiq
@@ -57,7 +63,7 @@ class AdminDashboardData
     @memory_info ||= MemoryInfo.new
   end
 
-  def add_problem(content:, type:, icon:)
+  def add_problem(content:, type: "info", icon: "exclamation-triangle")
     @problems << {
       content: content,
       type: type,

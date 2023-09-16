@@ -1,7 +1,20 @@
 @import "./common/admin/base.scss";
 
 .admin-dashboard {
-    @apply mt-10 
+    @apply mt-10;
+
+    #problems {
+
+        .problem-container {
+            @apply flex my-2 text-white p-4 items-center;
+
+            .text-base a {
+                @apply text-[var(--c-tertiary-color)] hover:text-[var(--c-tertiary-50)]
+            }
+
+        }
+        
+    }
 }
 
 .admin-dashboard .panel {

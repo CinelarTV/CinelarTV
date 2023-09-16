@@ -21,16 +21,9 @@
 
         
       </section>
-      <section id="updates-available" class="inline-flex px-4 py-2 w-full bg-emerald-500 text-white mb-8"
-        v-if="dashboardData.version_check.updates_available">
-        <UploadCloud />
-        <span class="text-base px-4">
-          Hay actualizaciones disponibles
-        </span>
-      </section>
       <section id="problems" class="flex flex-col py-2 w-full mb-8" v-if="dashboardData.problems.length > 0">
         <template v-for="problem in dashboardData.problems">
-          <div class="flex my-2 text-white p-4 items-center" :class="getClassByType(problem.type)">
+          <div class="problem-container" :class="getClassByType(problem.type)">
             <div class="flex-shrink-0">
               <c-icon :icon="problem.icon" :size="24" />
             </div>
@@ -242,11 +235,11 @@ const chartOptions = {
 const getClassByType = (type) => {
   switch (type) {
     case 'critical':
-      return 'bg-red-500'
+      return 'bg-red-700'
     case 'warning':
       return 'bg-yellow-500'
     case 'info':
-      return 'bg-blue-500'
+      return 'bg-[var(--c-primary-100)]'
     default:
       return 'bg-gray-500'
   }
