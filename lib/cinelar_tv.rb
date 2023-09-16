@@ -48,7 +48,15 @@ module CinelarTV
 
   @@maintenance_enabled = false
 
-  @@valid_license = nil
+  def self.cache
+    @cache ||= begin
+        if ENV["REDIS_URL"].nil?
+          ActiveSupport::Cache::MemoryStore.new
+        else
+          Cache.new
+        end
+      end
+  end
 
   def self.maintenance_enabled
     @@maintenance_enabled
@@ -59,18 +67,17 @@ module CinelarTV
   end
 
   def self.valid_license?
-    if @@valid_license.nil?
+    if cache.read("valid_license") == nil
       Rails.logger.info("License validation job not yet run. Running now...")
       LicenseValidationJob.new.perform
-      # Return the value from the last validation
-      @@valid_license
+      # Return the value from the cache, if not present, return false
+      cache.read("valid_license") || false
+    else
+      cache.read("valid_license")
     end
-
-    @@valid_license
   end
 
   def self.set_valid_license(value)
-    # Boolean value
-    @@valid_license = value
+    cache.write("valid_license", value)
   end
 end
