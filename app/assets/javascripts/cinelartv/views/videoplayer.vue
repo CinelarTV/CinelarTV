@@ -23,6 +23,12 @@
           <c-icon-button class="video-control" :icon="isPlaying ? 'pause' : 'play'" @click="togglePlayPause" />
           <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
         </section>
+  
+        <section class="skip-intro-section">
+          <c-button class="skip-intro-button" icon="skip-forward" @click="skipIntro">
+            {{ $t('js.video_player.skip_intro') }}
+          </c-button>
+        </section>
       </div>
     </div>
   </div>
@@ -34,6 +40,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ajax } from '../lib/axios-setup';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css'; // Importar estilos de Video.js
+import chromecast from '@silvermine/videojs-chromecast'
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
@@ -106,7 +113,6 @@ onMounted(async () => {
 
   videoPlayer.value = videojs(videoPlayerRef.value, {
     autoplay: true,
-    inactivityTimeout: 0,
     preload: 'auto',
     responsive: true,
     fill: true,
@@ -194,6 +200,7 @@ onMounted(async () => {
 
   console.log(videoPlayer.value);
 
+
   videoPlayer.value.on('timeupdate', async () => {
     currentPlayback.value.currentTime = videoPlayer.value?.currentTime();
     currentPlayback.value.duration = videoPlayer.value?.duration();
@@ -204,6 +211,14 @@ onMounted(async () => {
       }
     }
   });
+
+  // Expose videojs player to the window object because @silvermine/videojs-chromecast plugin needs it
+  window.videojs = videoPlayer.value;
+
+    // Register videojs-chromecast plugin
+
+    //chromecast(videoPlayer.value)
+
 });
 
 onBeforeUnmount(() => {
