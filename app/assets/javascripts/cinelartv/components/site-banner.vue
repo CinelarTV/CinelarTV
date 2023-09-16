@@ -1,5 +1,5 @@
 <template>
-    <div id="global-alerts" v-if="banners.length > 0">
+    <div id="global-alerts" v-if="banners.length > 0 && $route.meta.showHeader !== false">
         <template v-for="banner in banners" :key="banner.id">
             <template v-if="banner.custom_html">
                 <div :id="banner.id" :class="`${banner.id}`" v-if="banner.show">
