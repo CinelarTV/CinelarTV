@@ -29,7 +29,6 @@ class LicenseValidationJob
         # License is valid, you can process the response or update your database accordingly
         Rails.logger.info("License #{license_key} is valid.")
         CinelarTV.set_valid_license(true)
-        # Additional processing, e.g., update the license status in your database
       else
         # License is not valid, handle the error accordingly
         Rails.logger.error("License #{license_key} is not valid. Error: #{data["error"]}")
