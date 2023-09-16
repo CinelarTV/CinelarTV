@@ -21,6 +21,13 @@ module CinelarTV
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
+    if Rails.env.production? && ENV.keys.any? { |key| key.start_with?("RAILWAY_") }
+      config.after_initialize do
+        Rails.logger.info("CinelarTV is running on Railway, starting Sidekiq manually...")
+        system("bundle exec sidekiq")
+      end
+    end
+
     lib_dir = Rails.root.join("lib")
 
     config.autoload_paths << "#{root}/lib"
