@@ -23,8 +23,10 @@ module CinelarTV
 
     if Rails.env.production? && ENV.keys.any? { |key| key.start_with?("RAILWAY_") }
       config.after_initialize do
-        Rails.logger.info("CinelarTV is running on Railway, starting Sidekiq manually...")
-        system("bundle exec sidekiq")
+        unless Sidekiq::ProcessSet.new.any? || !CinelarTV.maintenance_enabled
+          Rails.logger.info("CinelarTV is running on Railway, starting Sidekiq manually...")
+          system("bundle exec sidekiq")
+        end
       end
     end
 
