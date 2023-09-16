@@ -1329,6 +1329,13 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@silvermine/videojs-chromecast@^1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@silvermine/videojs-chromecast/-/videojs-chromecast-1.4.1.tgz#a5763eb85dfd4bc8f47a1b8b150d5dadbb8ea658"
+  integrity sha512-tXeikkWoNC3WIl2WSkIag1CLMbGsgn+26LM4LoB4qx0TQ8mkg7pgpldCTkvXxLVaDluQ/uEm2uxrgrMmjOc6sw==
+  dependencies:
+    webcomponents.js "git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24"
+
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.27.8.tgz#6667fac16c436b5434a387a34dedb013198f6e6e"
@@ -5861,6 +5868,10 @@ wbuf@^1.1.0, wbuf@^1.7.3:
   integrity sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
   dependencies:
     minimalistic-assert "^1.0.0"
+
+"webcomponents.js@git+https://git@github.com/webcomponents/webcomponentsjs.git#v0.7.24":
+  version "0.7.24"
+  resolved "git+https://git@github.com/webcomponents/webcomponentsjs.git#8a2e40557b177e2cca0def2553f84c8269c8f93e"
 
 webpack-assets-manifest@5:
   version "5.1.0"
