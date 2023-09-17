@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 # spec/controllers/likes_controller_spec.rb
 
 require "rails_helper"
 
+# rubocop:disable Metrics/BlockLength
 RSpec.describe LikesController, type: :controller do
   let(:user) { create(:user) }
   let(:content) { create(:content) }
