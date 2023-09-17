@@ -8,7 +8,7 @@ class WebhooksController < ApplicationController
     event_name = request.headers["X-Event-Name"]
     payload = JSON.parse(request.body.read)
 
-    WebhookLog.create!(event_name: event_name, payload: payload.to_json)
+    WebhookLog.create!(event_name: event_name, payload: payload.to_json) unless event_name == "license_key_updated"
 
     case event_name
     when "subscription_created"
