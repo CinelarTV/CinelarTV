@@ -70,6 +70,7 @@
                                             <UploadCloudIcon />
                                         </c-button>
                                         <input :ref="`upload-${setting.key}`" class="hidden" @change="handleImageChange"
+                                            
                                             :v-model:value="settings[setting.key]" :id="`upload-${setting.key}`" type="file"
                                             accept="image/*" />
                                     </div>
@@ -219,8 +220,12 @@ function uploaderButton(form) {
 }
 
 function handleImageChange(e) {
+    let settingName = e.target.id.replace('upload-', '');
     const data = e.target.files[0];
-    settings[`${e.target.id.replace('upload-', '')}`] = data;
+    settings.value[settingName] = data;
+    console.log(data);
+    console.log(settingName);
+
     const preview = document.getElementById(e.target.id.replace('upload-', 'preview-'));
 }
 
