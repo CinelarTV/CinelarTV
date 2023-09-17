@@ -17,6 +17,7 @@
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require "factory_bot_rails"
+Dir[Rails.root.join("spec", "factories", "**", "*.rb")].each { |f| require f }
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -33,10 +34,6 @@ RSpec.configure do |config|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
 
     config.include FactoryBot::Syntax::Methods
-
-    config.before(:suite) do
-      FactoryBot.find_definitions
-    end
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
