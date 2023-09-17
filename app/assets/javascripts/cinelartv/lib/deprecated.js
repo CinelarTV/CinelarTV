@@ -26,6 +26,4 @@ export default function deprecated(msg, options = {}) {
     msg = msg.join(' ');
 
     reportError(new Error(msg), 'warning');
- 
-    console.warn(msg);
-}
+ }
