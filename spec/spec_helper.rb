@@ -33,8 +33,6 @@ RSpec.configure do |config|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
 
     config.include FactoryBot::Syntax::Methods
-    config.include Devise::Test::ControllerHelpers, type: :controller
-    config.include Warden::Test::Helpers
   end
 
   # rspec-mocks config goes here. You can use an alternate test double
