@@ -63,6 +63,7 @@ group :development, :test do
   gem "rubocop-performance", "~> 1.14", require: false # A collection of RuboCop cops to check for performance optimizations in Ruby code
   gem "rubocop-rails", "~> 2.14", require: false # Automatic Rails code style checking tool
   gem "rubocop-rspec", "~> 2.11", require: false # Code style checking for RSpec files
+  gem "brakeman", "~> 5.1", require: false # A static analysis security vulnerability scanner for Ruby on Rails applications
 end
 
 group :development do
