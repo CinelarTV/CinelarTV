@@ -9,5 +9,6 @@ FactoryBot.define do
     email { Faker::Internet.email }
     password { "password" }
     password_confirmation { "password" }
+    username { Faker::Internet.username }
   end
 end
