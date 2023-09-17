@@ -214,6 +214,13 @@ es:
       updater:
         ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"
+    common:
+      actions: "Acciones"
+      created_at: "Creado el"
+      email: "Email"
+      id: "ID"
+      name: "Name"
+      updated_at: "Actualizado el"
     user:
       added_to_favorites: "Añadido a favoritos"
       already_in_favorites: "Ya está en favoritos"

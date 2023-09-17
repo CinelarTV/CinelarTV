@@ -9,9 +9,9 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>{{ $t('js.admin.users.table.email') }}</th>
-                            <th>{{ $t('js.admin.users.table.role') }}</th>
-                            <th>{{ $t('js.admin.users.table.actions') }}</th>
+                            <th>{{ $t('js.common.email') }}</th>
+                            <th>{{ $t('js.common.role') }}</th>
+                            <th>{{ $t('js.common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
