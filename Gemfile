@@ -117,7 +117,7 @@ gem "carrierwave-aws", "~> 1.6"
 gem "erb-formatter", "~> 0.4.3"
 
 gem "active_model_serializers", "~> 0.8.3"
-gem "wdm", ">= 0.1.0", platforms: [:x64_mingw]
+gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "httparty", "~> 0.21.0"
 
 gem "sidekiq" # To run background jobs
