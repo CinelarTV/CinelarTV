@@ -70,7 +70,7 @@ module Admin
         end
 
         update_carrierwave_setting if is_storage_related?(setting_params.keys)
-        render json: { message: I18n.t("js.core.success_settings") }, status: :ok
+        render json: { message: I18n.t("js.settings.saved_successfully") }, status: :ok
       end
     end
 

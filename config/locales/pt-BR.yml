@@ -161,6 +161,7 @@ pt-BR:
         lemon_webhook_secret:
           description: "The webhook secret of your LemonSqueezy webhook. Be sure to read the documentation on <a href='https://forum.cinelar.tv/t/lemonsqueezy-webhook-secret/19' target='_blank'>CinelarTV forum</a>."
           title: "LemonSqueezy WebHook Secret"
+        no_changes: "You haven't made any changes"
         primary_color:
           description: ""
           title: "Primary color"
@@ -248,6 +249,8 @@ pt-BR:
             title: "Site name"
         title: "Site info"
       step: "Step"
+  settings:
+    saved_successfully: "Settings saved successfully"
   wizard:
     site_info:
       description: "This information will be used to configure your site"
