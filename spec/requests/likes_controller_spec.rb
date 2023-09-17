@@ -8,8 +8,11 @@ require "rails_helper"
 RSpec.describe LikesController, type: :controller do
   let(:user) { create(:user) }
   let(:content) { create(:content) }
-  # rubocop:disable Style/HashSyntax
-  let(:current_profile) { create(:profile, user: user) }
+  let(:profile) { create(:profile, user: user) }
+
+  # Set the current profile
+
+  user.current_profile = profile
 
   before do
     sign_in user
