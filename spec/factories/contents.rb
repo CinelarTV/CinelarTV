@@ -10,7 +10,7 @@ FactoryBot.define do
     description { Faker::Lorem.paragraph }
     banner { Faker::Internet.url }
     cover { Faker::Internet.url }
-    content_type { %w[MOVIE TV_SHOW].sample }
+    content_type { %w[MOVIE TVSHOW].sample }
     url { Faker::Internet.url }
     year { Faker::Number.between(from: 1900, to: Time.now.year) }
     trailer_url { Faker::Internet.url }
