@@ -4,7 +4,7 @@ namespace :admin do
   get "dashboard" => "dashboard#index"
   get "dashboard/statistics" => "dashboard#reports"
 
-  resources :site_settings, only: [:create, :index]
+  resources :site_settings, only: %i[create index]
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
   get "updates/progress" => "updates#check_progress"

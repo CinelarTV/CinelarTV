@@ -13,48 +13,56 @@ class AdminDashboardData
     end
 
     # Agrega problemas adicionales basados en condiciones
-    add_problem(
-      content: "Your CinelarTV instance is not activated. Please enter a valid license key to continue using commercial features.",
-      type: "critical",
-      icon: "frown",
-    ) unless CinelarTV.valid_license? && SiteSetting.enable_subscription
+    unless CinelarTV.valid_license? && SiteSetting.enable_subscription
+      add_problem(
+        content: "Your CinelarTV instance is not activated. Please enter a valid license key to continue using commercial features.",
+        type: "critical",
+        icon: "frown"
+      )
+    end
 
-    add_problem(
-      content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
-      type: "info",
-      icon: "sparkles",
-    ) unless SiteSetting.wizard_completed
+    unless SiteSetting.wizard_completed
+      add_problem(
+        content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
+        type: "info",
+        icon: "sparkles"
+      )
+    end
 
     @problems.sort_by { |p| [p[:type] == "critical" ? 0 : 1, p[:type] == "info" ? 2 : 1] }
   end
 
   def problem_syms
     # Define aquí los problemas verificados por símbolos
-    [:check_updates, :check_ram, :check_sidekiq]
+    %i[check_updates check_ram check_sidekiq]
   end
 
   def check_ram
-    unless memory_info.total_memory.nil? || memory_info.total_memory > 1_000_000
-      add_problem(
-        content: I18n.t("dashboard.memory_warning"),
-        icon: "cpu",
-      )
-    end
+    return if memory_info.total_memory.nil? || memory_info.total_memory > 1_000_000
+
+    add_problem(
+      content: I18n.t("dashboard.memory_warning"),
+      icon: "cpu"
+    )
   end
 
   def check_updates
+    return unless CinelarTV::Updater.updates_available? && SiteSetting.enable_web_updater
+
     add_problem(
       content: I18n.t("dashboard.updates_available"),
-      icon: "rocket",
-    ) if CinelarTV::Updater.updates_available? && SiteSetting.enable_web_updater
+      icon: "rocket"
+    )
   end
 
   def check_sidekiq
+    return unless Sidekiq::ProcessSet.new.empty?
+
     add_problem(
       content: I18n.t("dashboard.sidekiq_warning"),
       type: "critical",
-      icon: "frown",
-    ) if Sidekiq::ProcessSet.new.size.zero?
+      icon: "frown"
+    )
   end
 
   private
@@ -65,9 +73,9 @@ class AdminDashboardData
 
   def add_problem(content:, type: "info", icon: "exclamation-triangle")
     @problems << {
-      content: content,
-      type: type,
-      icon: icon,
+      content:,
+      type:,
+      icon:
     }
   end
 end

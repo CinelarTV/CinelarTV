@@ -5,12 +5,10 @@ class SitemapController < ApplicationController
     @contents = Content.all
     # 404 if sitemap is disabled
     Rails.logger.info "Sitemap enabled: #{SiteSetting.enable_sitemap}"
-    if !SiteSetting.enable_sitemap
-      render status: :not_found
+    if SiteSetting.enable_sitemap
+      respond_to(&:xml)
     else
-      respond_to do |format|
-        format.xml
-      end
+      render status: :not_found
     end
   end
 end

@@ -6,24 +6,24 @@ require "updater"
 module CinelarTV
   def self.git_version
     @git_version ||= begin
-        git_cmd = "git rev-parse HEAD"
-        try_git(git_cmd, CinelarTV::Application::Version::FULL)
-      end
+      git_cmd = "git rev-parse HEAD"
+      try_git(git_cmd, CinelarTV::Application::Version::FULL)
+    end
   end
 
   def self.git_branch
     @git_branch ||= begin
-        git_cmd = "git rev-parse --abbrev-ref HEAD"
-        try_git(git_cmd, "unknown")
-      end
+      git_cmd = "git rev-parse --abbrev-ref HEAD"
+      try_git(git_cmd, "unknown")
+    end
   end
 
   def self.last_commit_date
     @last_commit_date ||= begin
-        git_cmd = 'git log -1 --format="%ct"'
-        seconds = try_git(git_cmd, nil)
-        seconds.nil? ? nil : DateTime.strptime(seconds, "%s")
-      end
+      git_cmd = 'git log -1 --format="%ct"'
+      seconds = try_git(git_cmd, nil)
+      seconds.nil? ? nil : DateTime.strptime(seconds, "%s")
+    end
   end
 
   def self.try_git(git_cmd, default_value)
@@ -31,7 +31,7 @@ module CinelarTV
 
     begin
       version_value = `#{git_cmd}`.strip
-    rescue
+    rescue StandardError
       version_value = default_value
     end
 
@@ -41,21 +41,19 @@ module CinelarTV
 
   def self.full_version
     @full_version ||= begin
-        git_cmd = 'git describe --dirty --match "v[0-9]*" 2> /dev/null'
-        try_git(git_cmd, "unknown")
-      end
+      git_cmd = 'git describe --dirty --match "v[0-9]*" 2> /dev/null'
+      try_git(git_cmd, "unknown")
+    end
   end
 
   @@maintenance_enabled = false
 
   def self.cache
-    @cache ||= begin
-        if ENV["REDIS_URL"].nil?
-          ActiveSupport::Cache::MemoryStore.new
-        else
-          Cache.new
-        end
-      end
+    @cache ||= if ENV["REDIS_URL"].nil?
+                 ActiveSupport::Cache::MemoryStore.new
+               else
+                 Cache.new
+               end
   end
 
   def self.maintenance_enabled
@@ -67,7 +65,7 @@ module CinelarTV
   end
 
   def self.valid_license?
-    if cache.read("valid_license") == nil
+    if cache.read("valid_license").nil?
       Rails.logger.info("License validation job not yet run. Running now...")
       LicenseValidationJob.new.perform
       # Return the value from the cache, if not present, return false
@@ -77,7 +75,7 @@ module CinelarTV
     end
   end
 
-  def self.set_valid_license(value)
+  def self.valid_license(value)
     cache.write("valid_license", value)
   end
 end

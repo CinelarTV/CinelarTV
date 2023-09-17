@@ -9,9 +9,9 @@ Rails.application.routes.draw do
   root to: "application#index", as: "app"
 
   devise_for :users, controllers: {
-                       sessions: "users/sessions",
-                       registrations: "users/registrations",
-                     }
+    sessions: "users/sessions",
+    registrations: "users/registrations"
+  }
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
@@ -37,7 +37,7 @@ Rails.application.routes.draw do
   post "/contents/:id/unlike", to: "likes#unlike"
 
   get "/contents/:id", to: "contents#show"
-  get "/t/:id", to: redirect("/contents/%{id}")
+  get "/t/:id", to: redirect("/contents/%<id>s")
 
   # Player routes
   get "/watch/:id", to: "player#watch"
@@ -45,9 +45,7 @@ Rails.application.routes.draw do
   put "/watch/:id/progress", to: "player#update_current_progress"
 
   # Dev route to refresh the settings
-  if Rails.env.development?
-    get "/r", to: "application#refresh_settings"
-  end
+  get "/r", to: "application#refresh_settings" if Rails.env.development?
 
   draw :admin
 

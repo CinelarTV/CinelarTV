@@ -1,0 +1,65 @@
+Style/Documentation:
+  Enabled: false
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'node_modules/**/*'
+    - 'vendor/**/*'
+    - 'bin/*'
+    - 'config/initializers/*'
+    - 'db/**/*'
+    - 'lib/mi_educacion.rb'
+
+Metrics/MethodLength:
+  Enabled: false
+
+Lint/UselessAssignment:
+  Enabled: false
+
+Layout/LineLength:
+  Description: 'Checks that line length does not exceed the configured limit.'
+  AutoCorrect: true # this is false by default
+  Exclude:
+    - Gemfile
+
+Style/StringLiterals:
+  Description: 'Checks if uses of quotes match the configured preference.'
+  StyleGuide: '#consistent-string-literals'
+  Enabled: true
+  EnforcedStyle: double_quotes
+  ConsistentQuotesInMultiline: true
+
+Metrics/CyclomaticComplexity:
+  Description: >-
+    A complexity metric that is strongly correlated to the number
+    of test cases needed to validate a method.
+  Enabled: true
+  Max: 13
+
+Metrics/PerceivedComplexity:
+  Description: >-
+                 A complexity metric geared towards measuring complexity for a
+                 human reader.
+  Enabled: true
+  Max: 14
+
+Metrics/AbcSize:
+  Description: >-
+                 A calculated magnitude based on number of assignments,
+                 branches, and conditions.
+  Enabled: false
+
+Metrics/ClassLength:
+  Description: 'Avoid classes longer than 100 lines of code.'
+  Enabled: false
+
+Naming/FileName:
+  Enabled: false
+
+Style/IfUnlessModifier:
+  Description: >-
+                 Favor modifier if/unless usage when you have a
+                 single-line body.
+  StyleGuide: '#if-as-a-modifier'
+  Enabled: false

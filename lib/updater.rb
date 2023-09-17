@@ -33,7 +33,7 @@ module CinelarTV
     end
 
     def self.log(message)
-      publish "log", message + "\n"
+      publish "log", "#{message}\n"
     end
 
     def self.publish(type, value)
@@ -148,7 +148,7 @@ module CinelarTV
       [
         "FAILED TO UPGRADE",
         e.inspect,
-        e.backtrace.join("\n"),
+        e.backtrace.join("\n")
       ].each do |message|
         warn(message)
         log(message)
@@ -169,7 +169,7 @@ module CinelarTV
         retval = wait_thread.value
       end
 
-      return if retval == 0
+      return if retval.zero?
 
       warn("FAILED: '#{cmd}' exited with a return value of #{retval}")
       warn(msg)

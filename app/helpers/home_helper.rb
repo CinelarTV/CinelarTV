@@ -14,7 +14,7 @@ module HomeHelper
           title: content.title,
           description: content.description,
           banner: content.banner,
-          liked: liked_contents_ids&.include?(content.id),
+          liked: liked_contents_ids&.include?(content.id)
         }
       end
     end
@@ -25,7 +25,7 @@ module HomeHelper
         title: content.title,
         description: content.description,
         banner: content.banner,
-        liked: liked_contents_ids&.include?(content.id),
+        liked: liked_contents_ids&.include?(content.id)
       }
     end
 
@@ -36,15 +36,15 @@ module HomeHelper
           title: content.title,
           description: content.description,
           banner: content.banner,
-          liked: liked_contents_ids&.include?(content.id),
+          liked: liked_contents_ids&.include?(content.id)
         }
       end,
       content: [
         {
           title: "Agregados recientemente",
-          content: added_recently.reverse,
-        },
-      ],
+          content: added_recently.reverse
+        }
+      ]
     }
 
     if recommended_based_on_liked.present? && !recommended_based_on_liked.empty?
@@ -52,7 +52,7 @@ module HomeHelper
         0,
         {
           title: "Porque te gustó #{random_liked.title}",
-          content: recommended_based_on_liked.shuffle,
+          content: recommended_based_on_liked.shuffle
         }
       )
     end
@@ -76,8 +76,8 @@ module HomeHelper
         if episode.present? # Verifica si es una serie
           if !series_episodes.key?(content.id) || episode.updated_at > series_episodes[content.id][:episode].updated_at
             series_episodes[content.id] = {
-              episode: episode,
-              content: content,
+              episode:,
+              content:
             }
           end
         else
@@ -90,13 +90,13 @@ module HomeHelper
             liked: liked_contents_ids&.include?(content.id),
             progress: cw.progress,
             duration: cw.duration,
-            last_watched_at: cw.last_watched_at,
+            last_watched_at: cw.last_watched_at
           }
         end
       end
 
       # Agrega los episodios más recientes de las series a la lista `continue_watching`
-      series_episodes.each do |content_id, data|
+      series_episodes.each do |_content_id, data|
         continue_watching << {
           id: data[:content].id,
           title: data[:content].title,
@@ -107,7 +107,7 @@ module HomeHelper
           progress: continue_watching_items.find_by(content_id: data[:content].id).progress,
           duration: continue_watching_items.find_by(content_id: data[:content].id).duration,
           last_watched_at: continue_watching_items.find_by(content_id: data[:content].id).last_watched_at,
-          episode: data[:episode].as_json(except: %i[created_at updated_at]),
+          episode: data[:episode].as_json(except: %i[created_at updated_at])
         }
       end
 
@@ -116,7 +116,7 @@ module HomeHelper
           0,
           {
             title: "Continuar viendo",
-            content: continue_watching,
+            content: continue_watching
           }
         )
       end

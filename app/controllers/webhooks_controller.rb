@@ -12,7 +12,7 @@ class WebhooksController < ApplicationController
     event_name = request.headers["X-Event-Name"]
     payload = JSON.parse(request.body.read)
 
-    WebhookLog.create!(event_name: event_name, payload: payload.to_json) unless ignored_events.include?(event_name)
+    WebhookLog.create!(event_name:, payload: payload.to_json) unless ignored_events.include?(event_name)
 
     case event_name
     when "subscription_created"
@@ -40,25 +40,25 @@ class WebhooksController < ApplicationController
     local_signature = OpenSSL::HMAC.hexdigest("SHA256", secret, payload)
 
     # Compara la firma calculada con la firma proporcionada en el encabezado
-    unless ActiveSupport::SecurityUtils.secure_compare(local_signature, header_signature)
-      render plain: "Invalid signature", status: :unauthorized
-    end
+    return if ActiveSupport::SecurityUtils.secure_compare(local_signature, header_signature)
+
+    render plain: "Invalid signature", status: :unauthorized
   end
 
   def handle_subscription_created(payload)
     subscription_data = payload["data"]["attributes"]
     customer_id = subscription_data["customer_id"]
 
-    user = User.find_by(customer_id: customer_id) || User.find_by(email: subscription_data["user_email"])
+    user = User.find_by(customer_id:) || User.find_by(email: subscription_data["user_email"])
 
     if user.nil?
       user = User.create!(
-        customer_id: customer_id,
+        customer_id:,
         email: subscription_data["user_email"],
-        username: subscription_data["user_name"].gsub(" ", "_"),
+        username: subscription_data["user_name"].gsub(" ", "_")
       )
     else
-      user.update(customer_id: customer_id)
+      user.update(customer_id:)
     end
 
     create_user_subscription(user, subscription_data)
@@ -66,11 +66,11 @@ class WebhooksController < ApplicationController
 
   def handle_subscription_updated(payload)
     order_id = payload["data"]["attributes"]["order_id"]
-    user_subscription = UserSubscription.find_by(order_id: order_id)
+    user_subscription = UserSubscription.find_by(order_id:)
 
-    if user_subscription
-      update_user_subscription(user_subscription, payload["data"]["attributes"])
-    end
+    return unless user_subscription
+
+    update_user_subscription(user_subscription, payload["data"]["attributes"])
   end
 
   def create_user_subscription(user, subscription_data)
@@ -95,7 +95,7 @@ class WebhooksController < ApplicationController
       ends_at: subscription_data["ends_at"],
       created_at: subscription_data["created_at"],
       updated_at: subscription_data["updated_at"],
-      test_mode: subscription_data["test_mode"],
+      test_mode: subscription_data["test_mode"]
     )
   end
 
@@ -111,7 +111,7 @@ class WebhooksController < ApplicationController
       renews_at: attributes["renews_at"],
       ends_at: attributes["ends_at"],
       updated_at: attributes["updated_at"],
-      test_mode: attributes["test_mode"],
+      test_mode: attributes["test_mode"]
     )
   end
 end

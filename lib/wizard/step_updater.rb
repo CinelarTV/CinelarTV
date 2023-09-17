@@ -19,10 +19,10 @@ class Wizard
     def update
       @step.updater.call(self) if @step.present? && @step.updater.present?
 
-      if success?
-        # Implement logging or any other actions specific to CinelarTV
-        Rails.logger.info("Wizard step updated successfully")
-      end
+      return unless success?
+
+      # Implement logging or any other actions specific to CinelarTV
+      Rails.logger.info("Wizard step updated successfully")
     end
 
     def success?
@@ -56,9 +56,9 @@ class Wizard
     end
 
     def apply_settings(*ids)
-      ids.each { |id|
+      ids.each do |id|
         apply_setting(id)
-      }
+      end
     end
   end
 end

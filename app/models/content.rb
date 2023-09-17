@@ -13,7 +13,7 @@ class Content < ApplicationRecord
 
   validates :title, presence: true
   validates :content_type, presence: true
-  validates_inclusion_of :content_type, in: ["TVSHOW", "MOVIE"]
+  validates_inclusion_of :content_type, in: %w[TVSHOW MOVIE]
   validates :year, numericality: { only_integer: true }, allow_nil: true
 
   # On destroy, delete the associated and continue watching
@@ -21,11 +21,12 @@ class Content < ApplicationRecord
   before_destroy :delete_associated_continue_watching
 
   def self.search(title)
-    where("available = ? AND (LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?))", true, "%#{title}%", "%#{title}%")
+    where("available = ? AND (LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?))", true, "%#{title}%",
+          "%#{title}%")
   end
 
   def self.find_by_type(type)
-    where(type: type)
+    where(type:)
   end
 
   def update_categories(category_ids)

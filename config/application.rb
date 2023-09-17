@@ -21,7 +21,7 @@ module CinelarTV
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    lib_dir = Rails.root.join("lib")
+    Rails.root.join("lib")
 
     config.autoload_paths << "#{root}/lib"
 

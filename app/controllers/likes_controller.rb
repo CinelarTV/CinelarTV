@@ -8,13 +8,13 @@ class LikesController < ApplicationController
     @content = Content.find(params[:id])
     if current_profile.liked_contents.include?(@content)
       render json: {
-               error: "You already liked this content",
-             }, status: :unprocessable_entity
+        error: "You already liked this content"
+      }, status: :unprocessable_entity
     else
       current_profile.liked_contents << @content
       render json: {
-               message: "Content liked successfully",
-             }
+        message: "Content liked successfully"
+      }
     end
   end
 
@@ -23,12 +23,12 @@ class LikesController < ApplicationController
     if current_profile.liked_contents.include?(@content)
       current_profile.liked_contents.delete(@content)
       render json: {
-               message: "Content unliked successfully",
-             }
+        message: "Content unliked successfully"
+      }
     else
       render json: {
-               error: "You didn't like this content",
-             }, status: :unprocessable_entity
+        error: "You didn't like this content"
+      }, status: :unprocessable_entity
     end
   end
 end

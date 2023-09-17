@@ -45,7 +45,7 @@ class Cache
   end
 
   def write(name, value, expires_in: nil)
-    write_entry(normalize_key(name), value, expires_in: expires_in)
+    write_entry(normalize_key(name), value, expires_in:)
   end
 
   def delete(name)
@@ -57,17 +57,17 @@ class Cache
       key = normalize_key(name)
       raw = nil
 
-      raw = redis.get(key) if !force
+      raw = redis.get(key) unless force
 
       if raw
         begin
           Marshal.load(raw) # rubocop:disable Security/MarshalLoad
-        rescue => e
+        rescue StandardError => e
           log_first_exception(e)
         end
       else
         val = blk.call
-        write_entry(key, val, expires_in: expires_in)
+        write_entry(key, val, expires_in:)
         val
       end
     elsif force
@@ -81,17 +81,17 @@ class Cache
   protected
 
   def log_first_exception(e)
-    if !defined?(@logged_a_warning)
-      @logged_a_warning = true
-      Rails.logger.warn("Cache read error: #{e.message}")
-    end
+    return if defined?(@logged_a_warning)
+
+    @logged_a_warning = true
+    Rails.logger.warn("Cache read error: #{e.message}")
   end
 
   def read_entry(key)
-    if data = redis.get(key)
+    if (data = redis.get(key))
       Marshal.load(data) # rubocop:disable Security/MarshalLoad
     end
-  rescue => e
+  rescue StandardError => e
     log_first_exception(e)
   end
 

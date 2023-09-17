@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#MiniScheduler.configure do |config|
+# MiniScheduler.configure do |config|
 # An instance of Redis. See https://github.com/redis/redis-rb
 
 # config.redis = $redis
@@ -35,10 +35,10 @@
 # config.before_sidekiq_web_request do
 #   ...
 # end
-#end
+# end
 
-#if Sidekiq.server? && defined?(Rails)
+# if Sidekiq.server? && defined?(Rails)
 #  Rails.application.config.after_initialize do
 #    MiniScheduler.start(workers: 5)
 #  end
-#end
+# end

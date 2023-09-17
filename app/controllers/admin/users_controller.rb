@@ -7,11 +7,11 @@ module Admin
       @users = User.all
       respond_to do |format|
         format.html
-        format.json {
+        format.json do
           render json: {
-            data: @users.as_json(only: [:id, :email, :username, :created_at, :updated_at]),
+            data: @users.as_json(only: %i[id email username created_at updated_at])
           }
-        }
+        end
       end
     end
   end

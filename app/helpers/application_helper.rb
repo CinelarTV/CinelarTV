@@ -17,36 +17,30 @@ module ApplicationHelper
     puts "current_profile: #{@current_profile}"
     user_with_profile = @current_user.as_json(include: {
                                                 profiles: {
-                                                  include: :preferences,
-                                                },
+                                                  include: :preferences
+                                                }
                                               })
 
-    if (@current_user)
+    if @current_user
       user_with_profile = user_with_profile.merge({
-        admin: @current_user.has_role?(:admin),
-      })
+                                                    admin: @current_user.has_role?(:admin)
+                                                  })
     end
 
-    if @current_profile
-      user_with_profile = user_with_profile.merge(current_profile: @current_profile)
-    end
+    user_with_profile = user_with_profile.merge(current_profile: @current_profile) if @current_profile
 
     subscription_data = UserSubscription.find_by(user_id: @current_user.id) if @current_user
 
-    if subscription_data
-      user_with_profile = user_with_profile.merge(subscription: subscription_data)
-    end
+    user_with_profile = user_with_profile.merge(subscription: subscription_data) if subscription_data
 
     @preloaded_json = {
       SiteSettings: exposed_settings,
       isMobile: device == "mobile",
-      currentUser: user_with_profile,
+      currentUser: user_with_profile
     }
 
     # If path is /, we are on the homepage, so we can preload content
-    if request.path == "/"
-      @preloaded_json[:homepageData] = homepage_data
-    end
+    @preloaded_json[:homepageData] = homepage_data if request.path == "/"
 
     @preloaded_json.to_json.html_safe
   end
@@ -59,9 +53,7 @@ module ApplicationHelper
     external_scripts = SiteSetting.external_scripts || ""
     scripts = external_scripts.split("|")
 
-    if SiteSetting.enable_subscription
-      scripts << "https://app.lemonsqueezy.com/js/lemon.js"
-    end
+    scripts << "https://app.lemonsqueezy.com/js/lemon.js" if SiteSetting.enable_subscription
 
     if SiteSetting.enable_chromecast
       scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"

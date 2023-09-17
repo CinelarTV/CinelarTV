@@ -7,7 +7,11 @@ class SessionController < ApplicationController
 
   def profiles
     # Try to find the user profiles, if fails, return an empty array
-    profiles = current_user.profiles rescue []
+    profiles = begin
+      current_user.profiles
+    rescue StandardError
+      []
+    end
     render json: profiles
   end
 
@@ -40,6 +44,7 @@ class SessionController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:email, :password, :password_confirmation, profile_attributes: %i[display_name username biography selected_profile_id])
+    params.require(:user).permit(:email, :password, :password_confirmation,
+                                 profile_attributes: %i[display_name username biography selected_profile_id])
   end
 end

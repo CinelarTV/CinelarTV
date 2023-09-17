@@ -3,37 +3,35 @@
 module Admin
   class ContentsController < Admin::BaseController
     def find_recommended_metadata
-      begin
-        if SiteSetting.tmdb_api_key.blank?
-          render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity
-          return
-        end
-
-        if params[:title].blank?
-          render json: { error: "Title is required" }, status: :unprocessable_entity
-          return
-        end
-
-        # Get the TMDB API Key from the Site Settings
-        api_key = SiteSetting.tmdb_api_key.strip
-        # Initialize the TMDB API
-        tmdb = Tmdb::Api.key(api_key)
-
-        Tmdb::Api.language(SiteSetting.default_locale)
-
-        Rails.logger.info("Using TMDB API Key: #{api_key}")
-
-        @search = Tmdb::Search.multi(params[:title])
-        # Render as JSON
-        render json: {
-                 data: @search.table,
-                 config: @config.as_json,
-               }
-      rescue Tmdb::Error => e
-        render json: { error: "Error occurred: #{e.message}" }, status: :unprocessable_entity
-      rescue StandardError => e
-        render json: { error: "An error occurred: #{e.message}" }, status: :unprocessable_entity
+      if SiteSetting.tmdb_api_key.blank?
+        render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity
+        return
       end
+
+      if params[:title].blank?
+        render json: { error: "Title is required" }, status: :unprocessable_entity
+        return
+      end
+
+      # Get the TMDB API Key from the Site Settings
+      api_key = SiteSetting.tmdb_api_key.strip
+      # Initialize the TMDB API
+      Tmdb::Api.key(api_key)
+
+      Tmdb::Api.language(SiteSetting.default_locale)
+
+      Rails.logger.info("Using TMDB API Key: #{api_key}")
+
+      @search = Tmdb::Search.multi(params[:title])
+      # Render as JSON
+      render json: {
+        data: @search.table,
+        config: @config.as_json
+      }
+    rescue Tmdb::Error => e
+      render json: { error: "Error occurred: #{e.message}" }, status: :unprocessable_entity
+    rescue StandardError => e
+      render json: { error: "An error occurred: #{e.message}" }, status: :unprocessable_entity
     end
 
     def create
@@ -55,8 +53,8 @@ module Admin
         format.html
         format.json do
           render json: {
-                   data: @contents.as_json,
-                 }
+            data: @contents.as_json
+          }
         end
       end
     end
@@ -70,8 +68,11 @@ module Admin
         format.json do
           render json: {
             data: @content.as_json.merge({
-              seasons: @seasons.map { |s| { id: s.id, title: s.title, description: s.description, position: s.position } },
-            }),
+                                           seasons: @seasons.map do |s|
+                                                      { id: s.id, title: s.title, description: s.description,
+                                                        position: s.position }
+                                                    end
+                                         })
           }
         end
       end
@@ -89,12 +90,12 @@ module Admin
         format.html
         format.json do
           render json: {
-                   data: {
-                     content: @content.as_json.merge({
-                       like_count: @like_count,
-                     }),
-                   },
-                 }
+            data: {
+              content: @content.as_json.merge({
+                                                like_count: @like_count
+                                              })
+            }
+          }
         end
       end
     end
@@ -133,12 +134,13 @@ module Admin
           format.html
           format.json do
             render json: {
-                     data: {
-                       episodes: @episodes.map { |e|
-                         { id: e.id, title: e.title, description: e.description, thumbnail: e.thumbnail || @content.banner, position: e.position }
-                       },
-                     },
-                   }
+              data: {
+                episodes: @episodes.map do |e|
+                  { id: e.id, title: e.title, description: e.description,
+                    thumbnail: e.thumbnail || @content.banner, position: e.position }
+                end
+              }
+            }
           end
         end
       else
@@ -153,11 +155,11 @@ module Admin
       @season = Season.find(params[:season_id])
       episode_order = params[:episode_order]
 
-      if episode_order.present?
-        episode_order.each_with_index do |episode_id, index|
-          episode = @season.episodes.find(episode_id)
-          episode.update(position: index)
-        end
+      return unless episode_order.present?
+
+      episode_order.each_with_index do |episode_id, index|
+        episode = @season.episodes.find(episode_id)
+        episode.update(position: index)
       end
     end
 
@@ -184,9 +186,7 @@ module Admin
       @content.assign_attributes(content_params.except(:banner, :cover)) # Ignore banner and cover because they are processed above
 
       # Series can't have an url
-      if @content.content_type == "TVSHOW" && @content.url?
-        @content.url = nil
-      end
+      @content.url = nil if @content.content_type == "TVSHOW" && @content.url?
 
       if @content.save
         render json: { message: "Content updated successfully", status: :ok }
@@ -207,8 +207,8 @@ module Admin
         format.html
         format.json do
           render json: {
-                   data: @contents.as_json,
-                 }
+            data: @contents.as_json
+          }
         end
       end
     end
@@ -258,7 +258,8 @@ module Admin
     private
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, :available, category_ids: [])
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, :available,
+                                      category_ids: [])
     end
 
     def season_params

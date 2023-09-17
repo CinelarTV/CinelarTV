@@ -26,7 +26,7 @@ class CreateUserSubscriptions < ActiveRecord::Migration[7.0]
       t.boolean :test_mode
 
       # Don't define timestamps because LemonSqueeze already defines them
-      #t.timestamps
+      # t.timestamps
     end
   end
 end

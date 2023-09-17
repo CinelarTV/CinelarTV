@@ -15,7 +15,7 @@ class MetadataController < ApplicationController
     {
       name: SiteSetting.site_name,
       short_name: SiteSetting.site_name.truncate(12, separator: " ", omission: ""),
-      display: display,
+      display:,
       start_url: "/",
       background_color: SiteSetting.background_color,
       theme_color: SiteSetting.header_background_color,
@@ -24,26 +24,26 @@ class MetadataController < ApplicationController
           src: SiteSetting.site_mobile_logo,
           sizes: "512x512",
           type: "image/png",
-          purpose: "any",
-        },
+          purpose: "any"
+        }
       ],
       shortcuts: [
         {
           name: I18n.t("js.nav.explore"),
           short_name: I18n.t("js.nav.explore"),
-          url: "/explore",
+          url: "/explore"
         },
         {
           name: I18n.t("js.nav.search"),
           short_name: I18n.t("js.nav.search"),
-          url: "/search",
+          url: "/search"
         },
         {
           name: I18n.t("js.nav.my_collection"),
           short_name: I18n.t("js.nav.my_collection"),
-          url: "/collections",
-        },
-      ],
+          url: "/collections"
+        }
+      ]
     }
   end
 end

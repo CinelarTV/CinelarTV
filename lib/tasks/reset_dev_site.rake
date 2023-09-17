@@ -2,7 +2,7 @@
 
 namespace :reset_dev_site do
   desc "Reset the entire site in development"
-  task :reset => :environment do
+  task reset: :environment do
     if Rails.env.development?
       puts "Resetting the database..."
       Rake::Task["db:drop"].invoke

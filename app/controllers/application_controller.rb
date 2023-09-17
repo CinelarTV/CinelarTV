@@ -5,16 +5,13 @@ class ApplicationController < ActionController::Base
   before_action :require_finish_installation?
 
   before_action do
-    if current_user && current_user.is_admin?
-      Rack::MiniProfiler.authorize_request
-    end
+    Rack::MiniProfiler.authorize_request if current_user&.is_admin?
   end
 
   # Crea un before_action, si el usuario está logueado, pero no tiene un perfil seleccionado, lo redirige a la página de selección de perfil.
-  #before_action :check_profile_if_signed_in
+  # before_action :check_profile_if_signed_in
 
-  def index
-  end
+  def index; end
 
   def refresh_settings
     SiteSetting.reload_settings
@@ -24,7 +21,7 @@ class ApplicationController < ActionController::Base
   def capybara_spin
     ## Fullscreen video https://www.youtube.com/embed/k-BBfhWLfAQ?si=hA_9OFUrrZba97CQ
     respond_to do |format|
-      format.html {
+      format.html do
         render html: '
         <title>CinelarTV</title>
         <iframe width="100%" height="100%" src="https://www.youtube.com/embed/k-BBfhWLfAQ?autoplay=1&controls=0&showinfo=0&autohide=1&loop=1" frameborder="0" allowfullscreen></iframe>
@@ -36,21 +33,21 @@ class ApplicationController < ActionController::Base
         }
         </style>
         '.html_safe
-      }
-      format.json {
+      end
+      format.json do
         render json: {
-          message: "Capybara 🦦",
+          message: "Capybara 🦦"
         }
-      }
+      end
     end
   end
 
   def current_profile
     return @current_profile if defined?(@current_profile)
 
-    if user_signed_in? && session[:current_profile_id].present?
-      @current_profile ||= current_user.profiles.find_by(id: session[:current_profile_id])
-    end
+    return unless user_signed_in? && session[:current_profile_id].present?
+
+    @current_profile ||= current_user.profiles.find_by(id: session[:current_profile_id])
   end
 
   helper_method :current_profile
@@ -60,11 +57,13 @@ class ApplicationController < ActionController::Base
   def check_profile_if_signed_in
     # Ignore if request is POST or JSON format
     return if request.post? || request.format.json?
+
     @select_profile_path = "/profiles/select"
     return if request.path == @select_profile_path # Agrega esta línea para evitar el bucle
-    if user_signed_in? && !current_profile
-      redirect_to @select_profile_path # Cambia "select_profile_path" a la ruta adecuada
-    end
+
+    return unless user_signed_in? && !current_profile
+
+    redirect_to @select_profile_path # Cambia "select_profile_path" a la ruta adecuada
   end
 
   def reload_storage_config
@@ -73,8 +72,8 @@ class ApplicationController < ActionController::Base
   end
 
   def require_finish_installation?
-    if SiteSetting.waiting_on_first_user && !request.path.start_with?("/finish-installation")
-      redirect_to "/finish-installation"
-    end
+    return false unless SiteSetting.waiting_on_first_user && !request.path.start_with?("/finish-installation")
+
+    redirect_to "/finish-installation"
   end
 end

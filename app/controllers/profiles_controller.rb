@@ -19,9 +19,7 @@ class ProfilesController < ApplicationController
   def create
     @profile = current_user.profiles.new(profile_params)
     # Set the profile type to OWNER if it's the first profile
-    if current_user.profiles.count == 0
-      @profile.profile_type = "OWNER"
-    end
+    @profile.profile_type = "OWNER" if current_user.profiles.count.zero?
     if @profile.save
       render json: { message: "Profile created successfully", status: :ok }
     else
@@ -52,10 +50,10 @@ class ProfilesController < ApplicationController
   def default_avatars
     # List default avatars (Currently is a static list, but in the future we allow the Admin to add more)
     render json: [
-      { id: 'coolCat', name: 'Cool Cat', path: '/assets/default/avatars/coolCat.png' },
-      { id: 'cuteCat', name: 'Cute Cat', path: '/assets/default/avatars/cuteCat.png' },
-      { id: 'dino_boy', name: 'Dino Boy', path: '/assets/default/avatars/dino_boy.png' },
-      { id: 'baby_unicorn', name: 'Baby Unicorn', path: '/assets/default/avatars/baby_unicorn.png' },
+      { id: "coolCat", name: "Cool Cat", path: "/assets/default/avatars/coolCat.png" },
+      { id: "cuteCat", name: "Cute Cat", path: "/assets/default/avatars/cuteCat.png" },
+      { id: "dino_boy", name: "Dino Boy", path: "/assets/default/avatars/dino_boy.png" },
+      { id: "baby_unicorn", name: "Baby Unicorn", path: "/assets/default/avatars/baby_unicorn.png" }
     ]
   end
 
@@ -64,8 +62,8 @@ class ProfilesController < ApplicationController
   def profile_params
     # Solo aceptar que profile_type sea NORMAL o KIDS, ya que OWNER solo debe existir una vez
     params.require(:profile).permit(:name, :avatar_id, :profile_type).tap do |whitelisted|
-      whitelisted[:profile_type] = params[:profile][:profile_type] if params[:profile][:profile_type].in? ["NORMAL", "KIDS"]
+      whitelisted[:profile_type] = params[:profile][:profile_type] if params[:profile][:profile_type].in? %w[NORMAL
+                                                                                                             KIDS]
     end
   end
-  
 end

@@ -5,7 +5,6 @@ class HomeController < ApplicationController
   include HomeHelper
 
   def homepage
-
     respond_to do |format|
       format.html
       format.json { render json: homepage_data }

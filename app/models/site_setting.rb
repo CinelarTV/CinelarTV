@@ -5,34 +5,34 @@ class SiteSetting < RailsSettings::Base
   class << self
     def load_settings
       settings_yaml = Rails.root.join("config", "site_settings.yml")
-      if File.exist?(settings_yaml)
-        settings = YAML.load_file(settings_yaml)
-        settings.each do |category, settings_data|
-          scope category.to_sym do
-            settings_data.each do |key, options|
-              field key.to_sym,
-                    default: options["default"] || ENV["CINELAR_#{key.upcase}"],
-                    type: options["type"],
-                    exposed_to_client: options["client"] || false,
-                    refresh: options["refresh"] || false,
-                    readonly: options["readonly"] || false,
-                    allowed_values: options["allowed_values"] || nil,
-                    hidden: options["hidden"] || false
-            end
+      return unless File.exist?(settings_yaml)
+
+      settings = YAML.load_file(settings_yaml)
+      settings.each do |category, settings_data|
+        scope category.to_sym do
+          settings_data.each do |key, options|
+            field key.to_sym,
+                  default: options["default"] || ENV.fetch("CINELAR_#{key.upcase}", nil),
+                  type: options["type"],
+                  exposed_to_client: options["client"] || false,
+                  refresh: options["refresh"] || false,
+                  readonly: options["readonly"] || false,
+                  allowed_values: options["allowed_values"] || nil,
+                  hidden: options["hidden"] || false
           end
         end
+      end
 
-        # Set internal settings
+      # Set internal settings
 
-        scope :internal do
-          field :waiting_on_first_user,
-                default: -> { default_waiting_on_first_user_value },
-                type: :boolean
+      scope :internal do
+        field :waiting_on_first_user,
+              default: -> { default_waiting_on_first_user_value },
+              type: :boolean
 
-          field :developer_emails,
-                default: ENV["CINELAR_DEVELOPER_EMAILS"], # This is a comma-separated list of emails
-                type: :string
-        end
+        field :developer_emails,
+              default: ENV.fetch("CINELAR_DEVELOPER_EMAILS", nil), # This is a comma-separated list of emails
+              type: :string
       end
     end
 
@@ -40,9 +40,7 @@ class SiteSetting < RailsSettings::Base
       settings = {}
       defined_fields.each do |field|
         field_options = field[:options]
-        if field_options && field_options[:exposed_to_client]
-          settings[field[:key]] = send(field[:key])
-        end
+        settings[field[:key]] = send(field[:key]) if field_options && field_options[:exposed_to_client]
       end
       settings
     end
@@ -54,11 +52,9 @@ class SiteSetting < RailsSettings::Base
     private
 
     def default_waiting_on_first_user_value
-      begin
-        !User.exists?
-      rescue ActiveRecord::NoDatabaseError
-        true
-      end
+      !User.exists?
+    rescue ActiveRecord::NoDatabaseError
+      true
     end
 
     def build_validators(options)
@@ -80,13 +76,9 @@ class SiteSetting < RailsSettings::Base
     def hide_setting?(options)
       hidden_option = options[:hidden]
       return false unless hidden_option
-      if hidden_option.is_a?(String) && respond_to?(hidden_option)
-        return send(hidden_option)
-      end
+      return send(hidden_option) if hidden_option.is_a?(String) && respond_to?(hidden_option)
 
-      if hidden_option.is_a?(Proc)
-        return hidden_option.call
-      end
+      return hidden_option.call if hidden_option.is_a?(Proc)
 
       false
     end

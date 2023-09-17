@@ -17,7 +17,7 @@ module Admin
         remote_version: CinelarTV::Updater.remote_version,
         versions_diff: CinelarTV::Updater.versions_diff,
         last_commit_message: CinelarTV::Updater.last_commit_message,
-        last_updated_at: CinelarTV::Updater.last_updated_at,
+        last_updated_at: CinelarTV::Updater.last_updated_at
       }
 
       data[:statistics] = statistics
@@ -35,7 +35,7 @@ module Admin
 
       report_types = {
         signups: "Signups",
-        likes: "Likes",
+        likes: "Likes"
       }
 
       report_types[:user_subscriptions] = "User Subscriptions" if SiteSetting.enable_subscription
@@ -45,19 +45,19 @@ module Admin
         report.title = title
         report.available_filters = {
           start_date: { type: :date, title: "Start Date" },
-          end_date: { type: :date, title: "End Date" },
+          end_date: { type: :date, title: "End Date" }
         }
 
         report.filters = {
           start_date: params[:start_date].presence || report.default_start_date,
-          end_date: params[:end_date].presence || report.default_end_date,
+          end_date: params[:end_date].presence || report.default_end_date
         }
 
         report.start_date = report.filters[:start_date]
         report.end_date = report.filters[:end_date]
         report.labels = [
           { type: :date, property: :x, title: "Day" },
-          { type: :number, property: :y, title: "Count" },
+          { type: :number, property: :y, title: "Count" }
         ]
 
         case type

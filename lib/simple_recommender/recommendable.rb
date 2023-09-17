@@ -7,15 +7,15 @@ module SimpleRecommender
   module Recommendable
     extend ActiveSupport::Concern
     DEFAULT_N_RESULTS = 10
-    SIMILARITY_KEY = "similarity" # todo: allow renaming to avoid conflicts
+    SIMILARITY_KEY = "similarity" # TODO: allow renaming to avoid conflicts
     AssociationMetadata = Struct.new(:join_table, :foreign_key, :association_foreign_key)
 
     module ClassMethods
       def similar_by(association_name)
         define_method :similar_items do |n_results: DEFAULT_N_RESULTS|
           query = similar_query(
-            association_name: association_name,
-            n_results: n_results,
+            association_name:,
+            n_results:
           )
           self.class.find_by_sql(query)
         end
@@ -54,9 +54,7 @@ module SimpleRecommender
       def similar_query(association_name:, n_results:)
         reflection = self.class.reflect_on_association(association_name)
 
-        if reflection.nil?
-          raise ArgumentError, "Could not find association #{association_name}"
-        end
+        raise ArgumentError, "Could not find association #{association_name}" if reflection.nil?
 
         metadata = association_metadata(reflection)
         join_table = metadata[:join_table]
@@ -97,8 +95,8 @@ module SimpleRecommender
           FROM similar_items
           JOIN #{this_table} ON #{this_table}.id = similar_items.#{fkey}
           ORDER BY similarity DESC;
-          
-          SQL
+        #{'  '}
+        SQL
       end
     end
   end

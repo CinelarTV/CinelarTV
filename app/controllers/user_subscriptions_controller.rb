@@ -9,18 +9,16 @@ class UserSubscriptionsController < ApplicationController
 
     subscription_data = get_subscription_details
 
-    if subscription_data
-      @subscriptions[:api_response] = subscription_data
-    end
+    @subscriptions[:api_response] = subscription_data if subscription_data
 
     respond_to do |format|
       format.html
-      format.json {
+      format.json do
         render json: {
-                 data: @subscriptions.as_json,
+          data: @subscriptions.as_json
 
-               }
-      }
+        }
+      end
     end
   end
 
@@ -52,18 +50,16 @@ class UserSubscriptionsController < ApplicationController
     end
 
     # Fetch with headers
-    response = HTTParty.get("https://api.lemonsqueezy.com/v1/subscriptions/#{@subscription.order_id}", :headers => {
-                                                                                                         "Authorization" => "Bearer #{SiteSetting.lemon_api_key}",
-                                                                                                       })
+    response = HTTParty.get("https://api.lemonsqueezy.com/v1/subscriptions/#{@subscription.order_id}", headers: {
+                              "Authorization" => "Bearer #{SiteSetting.lemon_api_key}"
+                            })
 
-    if response.code == 200
-      data = JSON.parse(response.body)
-    end
+    data = JSON.parse(response.body) if response.code == 200
 
     data
   rescue StandardError => e
     # Handle other exceptions
     Rails.logger.error("Error while getting subscription details for user #{current_user.id}: #{e.message}")
-    return nil
+    nil
   end
 end

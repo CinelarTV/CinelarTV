@@ -20,7 +20,7 @@ class Wizard
           type: "select",
           required: true,
           value: SiteSetting.default_locale || "en",
-          options: I18n.available_locales.map { |locale| [locale, locale] },
+          options: I18n.available_locales.map { |locale| [locale, locale] }
         )
       end
 
@@ -29,7 +29,7 @@ class Wizard
           id: "site_name",
           type: "text",
           required: true,
-          value: SiteSetting.site_name || "",
+          value: SiteSetting.site_name || ""
         )
 
         step.on_update do |updater|
@@ -46,7 +46,7 @@ class Wizard
           id: "license_key",
           type: "text",
           required: true,
-          value: SiteSetting.license_key || "",
+          value: SiteSetting.license_key || ""
         )
 
         step.on_update do |updater|
@@ -55,14 +55,14 @@ class Wizard
           activate_url = "https://api.lemonsqueezy.com/v1/licenses/activate"
 
           response = HTTParty.post(activate_url, {
-            body: {
-              license_key: updater.fields[:license_key],
-              instance_name: "CTV_#{SecureRandom.hex(10)}",
-            }.to_json,
-            headers: {
-              "Content-Type" => "application/json",
-            },
-          })
+                                     body: {
+                                       license_key: updater.fields[:license_key],
+                                       instance_name: "CTV_#{SecureRandom.hex(10)}"
+                                     }.to_json,
+                                     headers: {
+                                       "Content-Type" => "application/json"
+                                     }
+                                   })
 
           if response.code == 200
             # La licencia se activó con éxito, puedes procesar la respuesta si es necesario
@@ -85,7 +85,7 @@ class Wizard
         step.banner = "/images/wizard/ready.png"
         step.description = I18n.t("js.wizard.ready.description")
 
-        step.on_update do |updater|
+        step.on_update do |_updater|
           SiteSetting.wizard_completed = true
         end
       end

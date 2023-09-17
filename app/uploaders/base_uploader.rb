@@ -5,7 +5,7 @@ class BaseUploader < CarrierWave::Uploader::Base
   include CarrierWave::MiniMagick
   require "aws-sdk-s3"
 
-  
+
 
   # Choose what kind of storage to use for this uploader based on SiteSetting, and fall back to file
   # storage if nothing is set. This is useful for development and testing.
@@ -17,19 +17,15 @@ class BaseUploader < CarrierWave::Uploader::Base
       Rails.logger.info("Using S3 for uploads")
       storage :aws
       # Set the endpoint to the SiteSetting if it exists, otherwise use the default endpoint for the region
-      @endpoint = SiteSetting.s3_endpoint ? SiteSetting.s3_endpoint : "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
-      @cdn_url = ''
-      if SiteSetting.cdn_enabled && SiteSetting.cdn_url
-        @cdn_url = SiteSetting.cdn_url
-      else
-        @cdn_url = nil
-      end
+      @endpoint = SiteSetting.s3_endpoint || "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
+      @cdn_url = ""
+      @cdn_url = (SiteSetting.cdn_url if SiteSetting.cdn_enabled && SiteSetting.cdn_url)
       configure do |config|
         config.aws_credentials = {
           access_key_id: SiteSetting.s3_access_key_id,
           secret_access_key: SiteSetting.s3_secret_access_key,
           region: SiteSetting.s3_region || "us-east-1",
-          endpoint: @endpoint,
+          endpoint: @endpoint
         }
         config.aws_bucket = SiteSetting.s3_bucket || "cinelartv"
         config.aws_acl = "public-read"
@@ -79,7 +75,6 @@ class BaseUploader < CarrierWave::Uploader::Base
     raise CarrierWave::IntegrityError, "GIF contains too many frames. Max frame count allowed is #{FRAME_MAX}."
   end
 
-  private
 
   configure_storage
 end

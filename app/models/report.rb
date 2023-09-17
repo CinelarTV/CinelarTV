@@ -3,7 +3,7 @@
 # app/models/report.rb
 class Report
   SCHEMA_VERSION = 1
-  FILTERS = %i[start_date end_date category group]
+  FILTERS = %i[start_date end_date category group].freeze
 
   include Reports::Likes
   include Reports::Signups
@@ -34,23 +34,23 @@ class Report
   def default_labels
     [
       { type: :date, property: :x, title: I18n.t("reports.default.labels.day") },
-      { type: :number, property: :y, title: I18n.t("reports.default.labels.count") },
+      { type: :number, property: :y, title: I18n.t("reports.default.labels.count") }
     ]
   end
 
-  def as_json(options = {})
+  def as_json(_options = {})
     {
-      type: type,
-      data: data,
-      labels: labels,
-      filters: filters,
-      available_filters: available_filters,
-      icon: icon,
-      title: title,
+      type:,
+      data:,
+      labels:,
+      filters:,
+      available_filters:,
+      icon:,
+      title:
     }
   end
 
-  def Report.add_report(name, &block)
-    singleton_class.instance_eval { define_method("report_#{name}", &block) }
+  def self.add_report(name, &)
+    singleton_class.instance_eval { define_method("report_#{name}", &) }
   end
 end

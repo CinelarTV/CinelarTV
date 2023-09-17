@@ -11,6 +11,9 @@ module Admin
           response = site_settings.each_with_object([]) do |setting, memo|
             # Exclude internal settings scope
             next if setting[:scope] == :internal
+
+            next if setting[:options][:hidden]
+
             memo << {
               key: setting[:key],
               category: setting[:scope],
@@ -18,8 +21,8 @@ module Admin
               type: setting[:type],
               readonly: setting[:readonly],
               value: SiteSetting.send(setting[:key]),
-              options: setting[:options],
-            } unless setting[:options][:hidden]
+              options: setting[:options]
+            }
           end
 
           render json: { site_settings: response }
@@ -29,10 +32,10 @@ module Admin
 
     def create
       @errors = []
-      setting_params.keys.each do |key|
+      setting_params.each_key do |key|
         next if setting_params[key].nil?
 
-        if ["site_logo", "site_mobile_logo", "site_favicon"].include?(key)
+        if %w[site_logo site_mobile_logo site_favicon].include?(key)
           logo_uploader = LogoUploader.new
           if key == "site_favicon"
             # Read the original image using MiniMagick
@@ -50,18 +53,17 @@ module Admin
           # Si no, actualizar el valor de la configuración
           setting = SiteSetting.new(var: key)
           setting.value = setting_params[key].strip
-          unless setting.valid?
-            @errors << setting.errors.full_messages
-          end
+          @errors << setting.errors.full_messages unless setting.valid?
         end
       end
 
       if @errors.any?
         render json: { error: @errors.to_sentence }, status: :unprocessable_entity
       else
-        setting_params.keys.each do |key|
+        setting_params.each_key do |key|
           # Si el campo es el de la imagen del sitio, ya lo actualizamos, por lo que no necesitamos hacer nada aquí
-          next if ["site_logo", "site_mobile_logo", "site_favicon"].include?(key)
+          next if %w[site_logo site_mobile_logo site_favicon].include?(key)
+
           puts "Setting #{key} to #{setting_params[key]}"
           @new_value = setting_params[key]
 
