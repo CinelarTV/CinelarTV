@@ -222,6 +222,9 @@ pt-BR:
       id: "ID"
       name: "Name"
       updated_at: "Updated at"
+    offline_indicator:
+      no_internet: "No internet connection"
+      reload: "Reload page"
     user:
       added_to_favorites: "Added to favorites"
       already_in_favorites: "Already in favorites"

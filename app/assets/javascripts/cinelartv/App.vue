@@ -2,6 +2,7 @@
     <div id="mountpoint">
         <vue3-progress id="c-progress" />
         <SiteHeader v-if="$route.meta.showHeader !== false" />
+        <OfflineIndicator />
         <main>
             <SiteBanner />
             <router-view v-slot="{ Component, route }">
@@ -19,6 +20,7 @@ import SiteHeader from './components/site-header.vue'
 import { useHead } from 'unhead'
 import { useRoute } from 'vue-router';
 import SiteBanner from './components/site-banner.vue';
+import OfflineIndicator from './components/offline-indicator.vue';
 const route = useRoute();
 
 const SiteSettings = inject('SiteSettings');

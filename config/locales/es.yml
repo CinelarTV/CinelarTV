@@ -222,6 +222,9 @@ es:
       id: "ID"
       name: "Nombre"
       updated_at: "Actualizado el"
+    offline_indicator:
+      no_internet: "Sin conexión a Internet"
+      reload: "Recargar página"
     user:
       added_to_favorites: "Añadido a favoritos"
       already_in_favorites: "Ya está en favoritos"
