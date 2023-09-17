@@ -264,7 +264,7 @@ developer:
     default: true
     type: 'boolean'
   api_custom_data:
-    client: false
+    client: true
     refresh: false
     default: "{}"
     type: 'code'
