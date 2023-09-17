@@ -8,6 +8,7 @@ import { useGlobalStore } from "../store/global";
 import { useIconsStore } from "../store/icons";
 import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
 import loadScript from './load-script'
+import deprecated from "./deprecated";
 const globalStore = useGlobalStore();
 const iconsStore = useIconsStore();
 
@@ -22,29 +23,50 @@ class PluginAPI {
     }
 
     addGlobalBanner(banner) {
-        if (!banner.id || !banner.show) {
+        deprecated("addGlobalBanner is deprecated. Use addGlobalNotice instead.", {
+            deprecatedFunction: "addGlobalBanner",
+            since: "1.0.0",
+            dropFrom: "1.1.0"
+        });
+
+        this.addGlobalNotice(banner);
+    }
+
+    addGlobalNotice(notice) {
+        if (!notice.id || !notice.show) {
             throw "Banner must have an id and show properties";
         }
 
-        if (banner.content && banner?.custom_html) {
+        if (notice.content && notice?.custom_html) {
             // Prioritize custom HTML over content
-            banner.content = null;
+            notice.content = null;
         }
 
 
         // If banner already exists, update it, otherwise add it
-        let existingBanner = globalStore.banners.find(b => b.id === banner.id);
-        if (existingBanner) {
-            existingBanner = banner;
+        let existingNotice = globalStore.banners.find(b => b.id === notice.id);
+        if (existingNotice) {
+            existingNotice = notice;
         }
         else {
-            globalStore.banners.push(banner);
+            globalStore.banners.push(notice);
         }
     }
 
     removeGlobalBanner(id) {
+        deprecated("removeGlobalBanner is deprecated. Use removeGlobalNotice instead.", {
+            deprecatedFunction: "removeGlobalBanner",
+            since: "1.0.0",
+            dropFrom: "1.1.0"
+        });
+
+        this.removeGlobalNotice(id);
+    }
+
+    removeGlobalNotice(id) {
         globalStore.banners = globalStore.banners.filter(banner => banner.id !== id);
     }
+
 
     getCurrentUser() {
         return currentUser;
