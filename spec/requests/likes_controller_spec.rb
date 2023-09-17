@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 # spec/controllers/likes_controller_spec.rb
 
 require "rails_helper"
