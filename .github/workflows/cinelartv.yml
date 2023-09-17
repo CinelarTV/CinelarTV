@@ -57,7 +57,7 @@ jobs:
         run: bundle audit check --ignore CVE-2015-9284 --update
 
       - name: Security audit application code
-        run: bundle exec brakeman --no-exit-on-error --skip-files lib/cinelar_tv.rb lib/updater.rb
+        run: bundle exec brakeman --no-exit-on-error --skip-files lib/cinelar_tv.rb,lib/updater.rb
 
       - name: Lint Ruby files
         run: bundle exec rubocop --parallel
