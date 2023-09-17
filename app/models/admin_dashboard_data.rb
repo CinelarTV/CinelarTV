@@ -17,7 +17,7 @@ class AdminDashboardData
       add_problem(
         content: "Your CinelarTV instance is not activated. Please enter a valid license key to continue using commercial features.",
         type: "critical",
-        icon: "frown"
+        icon: "frown",
       )
     end
 
@@ -25,7 +25,7 @@ class AdminDashboardData
       add_problem(
         content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",
         type: "info",
-        icon: "sparkles"
+        icon: "sparkles",
       )
     end
 
@@ -42,7 +42,7 @@ class AdminDashboardData
 
     add_problem(
       content: I18n.t("dashboard.memory_warning"),
-      icon: "cpu"
+      icon: "cpu",
     )
   end
 
@@ -51,17 +51,18 @@ class AdminDashboardData
 
     add_problem(
       content: I18n.t("dashboard.updates_available"),
-      icon: "rocket"
+      icon: "rocket",
     )
   end
 
   def check_sidekiq
-    return unless Sidekiq::ProcessSet.new.empty?
+    # rubocop:disable Style/ZeroLengthPredicate
+    return unless Sidekiq::ProcessSet.new.size.zero?
 
     add_problem(
       content: I18n.t("dashboard.sidekiq_warning"),
       type: "critical",
-      icon: "frown"
+      icon: "frown",
     )
   end
 
@@ -75,7 +76,7 @@ class AdminDashboardData
     @problems << {
       content:,
       type:,
-      icon:
+      icon:,
     }
   end
 end
