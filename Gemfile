@@ -1,4 +1,5 @@
-# frozen_string_literal: true
+# Bump this to issue a Rails update
+rails_version = "7.0.7.1"
 
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
@@ -6,7 +7,14 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 ruby "3.2.2"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.0.7"
+gem "rails", rails_version
+gem "actionmailer", rails_version
+gem "actionpack", rails_version
+gem "actionview", rails_version
+gem "activemodel", rails_version
+gem "activerecord", rails_version
+gem "activesupport", rails_version
+gem "railties", rails_version
 
 # Use SCSS for stylesheets
 gem "sass-rails"
@@ -110,7 +118,7 @@ gem "erb-formatter", "~> 0.4.3"
 
 gem "active_model_serializers", "~> 0.8.3"
 
-gem "wdm", ">= 0.1.0" if Gem.win_platform?
+gem "wdm", ">= 0.1.0" # For Windows
 gem "httparty", "~> 0.21.0"
 
 gem "sidekiq" # To run background jobs
