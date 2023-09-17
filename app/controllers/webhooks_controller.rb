@@ -4,11 +4,15 @@ class WebhooksController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:callback]
   before_action :verify_signature, only: [:callback]
 
+  def ignored_events
+    %w[license_key_updated]
+  end
+
   def callback
     event_name = request.headers["X-Event-Name"]
     payload = JSON.parse(request.body.read)
 
-    WebhookLog.create!(event_name: event_name, payload: payload.to_json) unless event_name == "license_key_updated"
+    WebhookLog.create!(event_name: event_name, payload: payload.to_json) unless ignored_events.include?(event_name)
 
     case event_name
     when "subscription_created"
