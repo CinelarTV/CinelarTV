@@ -21,7 +21,7 @@
                             <td>
                                 
                                 <button class="btn btn-danger btn-sm" @click="deleteUser(user.id)">
-                                    {{ $t('js.admin.users.table.delete') }}
+                                    {{ $t('js.admin.actions.delete') }}
                                 </button>
                             </td>
                         </tr>

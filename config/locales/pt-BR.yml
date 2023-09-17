@@ -1,61 +1,61 @@
 ---
-en:
+pt-BR:
   activerecord:
     errors:
       messages:
-        invalid: "Invalid %{model}"
-        record_invalid: "Validation failed: %{errors}"
+        invalid: "%{model} inválido"
+        record_invalid: "Falha na validação: %{errors}"
       models:
         profile:
           attributes:
             name:
-              blank: "Name cannot be blank"
-              too_short: "Name is too short, it must be at least %{count} characters"
+              blank: "O nome não pode ficar em branco"
+              too_short: "O nome é muito curto, deve ter pelo menos %{count} caracteres"
   dashboard:
-    memory_warning: "Your server is running with less than 1 GB of total memory. CinelarTV recommends at least 1 GB of memory to run properly."
+    memory_warning: "Seu servidor está funcionando com menos de 1 GB de memória total. O CinelarTV recomenda pelo menos 1 GB de memória para funcionar corretamente."
     sidekiq_warning: "Sidekiq is not running. Many tasks, like sending emails or processing recommendations, are executed asynchronously by Sidekiq. Please ensure at least one Sidekiq process is running. <a href='https://github.com/mperham/sidekiq' target='_blank'>Learn about Sidekiq here</a>."
     updates_available: "It seems that there are updates available for CinelarTV. <a href='/admin/updates'>Click here to update</a>."
   js:
     admin:
       actions:
-        add: "Add"
-        cancel: "Cancel"
-        delete: "Delete"
-        edit: "Edit"
-        save: "Save"
+        add: "Adicionar"
+        cancel: "Cancelar"
+        delete: "Excluir"
+        edit: "Editar"
+        save: "Salvar"
       content_manager:
-        actions: "Actions"
-        content_cover: "Cover"
-        content_title: "Title"
-        content_type: "Type"
+        actions: "Ações"
+        content_cover: "Capa"
+        content_title: "Título"
+        content_type: "Tipo"
         content_types:
-          MOVIE: "Movie"
-          TVSHOW: "Series"
-        create_content: "Add content"
-        created_at: "Created at"
+          MOVIE: "Filme"
+          TVSHOW: "Shows"
+        create_content: "Adicionar conteúdo"
+        created_at: "Criado em"
         id: "ID"
         nav:
-          all_content: "All content"
-          categories: "Categories"
-          episodes: "Episodes"
-          movies: "Movies"
-          seasons: "Seasons"
-          series: "Series"
-        updated_at: "Updated at"
+          all_content: "Todo o conteúdo"
+          categories: "Categorias"
+          episodes: "Episódios"
+          movies: "Filmes"
+          seasons: "Temporadas"
+          series: "Séries"
+        updated_at: "Atualizado em"
       dashboard:
         statistics:
-          likes: "Likes"
+          likes: "Curtidas"
           signups: "Signups"
-          user_subscriptions: "User subscriptions"
+          user_subscriptions: "Assinaturas do usuário"
       nav:
-        content: "Manage content"
-        dashboard: "Dashboard"
-        settings: "Settings"
-        updater: "Upgrader"
-        users: "Users"
+        content: "Gerenciar conteúdo"
+        dashboard: "Painel de controle"
+        settings: "Configurações"
+        updater: "Atualizador"
+        users: "Usuários"
       settings:
         additional_icons:
-          description: "Allows to add additional icons to the application"
+          description: "Permite adicionar ícones adicionais ao aplicativo"
           title: "Additional icons"
         additonal_player_settings:
           description: "Provides a way to add additional settings to the player. This can be useful if you want to extend the functionality of the player. API Documentation: <a href='https://videojs.com/guides/options/' target='_blank'>https://videojs.com/guides/options/</a>"
@@ -97,10 +97,10 @@ en:
           enable_metadata_recommendation:
             description: "Allow to fetch metadata from TheMovieDB at the moment of adding a new content, this will help you to fill the fields of the content automatically"
             title: "Enable metadata recommendation"
-          title: "Content"
+          title: "Conteúdo"
           tmdb_api_key:
-            description: "The API key of your TMDB account, you can get it <a href='https://www.themoviedb.org/settings/api' target='_blank'>here</a>"
-            title: "TMDB API key"
+            description: "A chave de API da sua conta TMDB, você pode obtê-la <a href='https://www.themoviedb.org/settings/api' target='_blank'> aqui</a>"
+            title: "Chave de API TMDB"
         custom_css:
           description: "Allows to customize the CSS of the application"
           title: "Custom CSS"
@@ -212,8 +212,8 @@ en:
           description: "The API key of your TMDB account, you can get it <a href='https://www.themoviedb.org/settings/api' target='_blank'>here</a>"
           title: "TMDB API key"
       updater:
-        ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
-        ready_title: "¿Ready for update?"
+        ready_description: "O CinelarTV é um software que está sendo atualizado constantemente, e lembramos que talvez você queira estar na vanguarda, por isso implementamos esse recurso experimental para torná-lo tão simples quanto pressionar um botão."
+        ready_title: "¿Pronto para atualização?"
     common:
       actions: "Actions"
       created_at: "Created at"
