@@ -10,12 +10,11 @@ RSpec.describe LikesController, type: :controller do
   let(:content) { create(:content) }
   let(:profile) { create(:profile, user: user) }
 
-  # Set the current profile
-
-  user.current_profile = profile
-
   before do
     sign_in user
+
+    # Set the current profile
+    user.current_profile = profile
   end
 
   describe "POST #like" do
