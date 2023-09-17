@@ -2,6 +2,8 @@
 
 # spec/factories/content.rb
 
+require "faker"
+
 FactoryBot.define do
   factory :content do
     title { Faker::Lorem.sentence }
