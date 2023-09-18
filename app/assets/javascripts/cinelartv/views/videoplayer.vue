@@ -6,8 +6,9 @@
       </video>
       <div class="ctv-overlay" ref="vplayerOverlay" @click="handleOverlayClick">
         <section class="back-button">
-          <router-link :to="`/contents/${data.content.id}`">
-            <c-button class="forced" icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
+          <router-link :to="`/contents/${data.content.id}`" class="button c-button">
+            <c-icon icon="chevron-left" />
+            {{ $t('js.video_player.back') }}
           </router-link>
         </section>
         <section class="video-info">
