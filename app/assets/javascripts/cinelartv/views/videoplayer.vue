@@ -25,7 +25,7 @@
           <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
         </section>
       </div>
-      <section class="skippers" v-if="data.episode" ref="skippersRef">
+      <section class="skippers" :class="showSkipIntro ? '' : 'skippers-hidden'" v-if="data.episode" ref="skippersRef">
         <c-button class="skip-intro-button !bg-opacity-70 !bg-black
         " icon="fast-forward" @click="skipIntro">
           {{ $t('js.video_player.skip_intro') }}
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, onBeforeUnmount, inject } from 'vue';
+import { ref, onMounted, onBeforeMount, onBeforeUnmount, inject, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ajax } from '../lib/axios-setup';
 import videojs from 'video.js';
@@ -62,6 +62,8 @@ const currentPlayback = ref({
   currentTime: 0,
   duration: 0
 });
+
+const showSkipIntro = ref(false);
 
 
 const videoPlayerRef = ref();
@@ -158,6 +160,7 @@ onMounted(async () => {
   }
 
 
+
   // Alway show control bar (For testing purposes)
 
 
@@ -249,6 +252,18 @@ onMounted(async () => {
 
 });
 
+watch(currentPlayback.value, (newVal, oldVal) => {
+  if (data.value.episode) {
+    if(data.value.episode?.skip_intro_start && data.value.episode?.skip_intro_end) {
+      if (newVal.currentTime >= data.value.episode.skip_intro_start && newVal.currentTime <= data.value.episode.skip_intro_end) {
+        showSkipIntro.value = true;
+      } else {
+        showSkipIntro.value = false;
+      }
+    }
+  }
+});
+
 onBeforeUnmount(() => {
   document.body.classList.remove('video-player');
   if (videoPlayer.value.isFullscreen()) {
@@ -297,6 +312,10 @@ const sendCurrentPosition = async () => {
   } catch (error) {
     console.error(error);
   }
+};
+
+const skipIntro = () => {
+  videoPlayer.value.currentTime(data.value.episode.skip_intro_end);
 };
 
 const seekBy = (seconds) => {
