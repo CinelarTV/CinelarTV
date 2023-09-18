@@ -148,7 +148,7 @@ module CinelarTV
       [
         "FAILED TO UPGRADE",
         e.inspect,
-        e.backtrace.join("\n")
+        e.backtrace.join("\n"),
       ].each do |message|
         warn(message)
         log(message)
@@ -169,7 +169,7 @@ module CinelarTV
         retval = wait_thread.value
       end
 
-      return if retval.zero?
+      return if retval == 0
 
       warn("FAILED: '#{cmd}' exited with a return value of #{retval}")
       warn(msg)

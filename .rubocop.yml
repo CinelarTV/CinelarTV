@@ -63,3 +63,26 @@ Style/IfUnlessModifier:
                  single-line body.
   StyleGuide: '#if-as-a-modifier'
   Enabled: false
+
+Style/NumericPredicate:
+  Description: >-
+                 Checks for comparison of a variable with a numeric value
+                 instead of using the numeric predicate method.
+  StyleGuide: '#numeric-predicate'
+  Enabled: false
+
+Naming/PredicateName:
+  Description: >-
+                 Checks for predicate (boolean) methods named with the
+                 prefixes is_ or has_.
+  StyleGuide: '#predicate-methods'
+  Enabled: false
+Style/TrailingCommaInArrayLiteral:
+  Description: >-
+                 Checks for trailing comma in array literals.
+  StyleGuide: '#trailing-comma'
+  Enabled: false
+Metrics/BlockLength:
+  Description: >-
+                 Avoid blocks longer than 15 lines.
+  Enabled: false
