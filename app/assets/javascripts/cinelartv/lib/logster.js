@@ -34,7 +34,7 @@ export const reportError = (err, severity) => {
         message: err.name,
         url: AppRouter.currentRoute.value.fullPath,
         window_location: window.location && (window.location + ""),
-        stacktrace: err.stack,
+        stacktrace: err.stack ? err.stack : err.message ? err.message : err + "",
         severity,
     }
 
