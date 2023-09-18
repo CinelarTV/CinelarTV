@@ -51,25 +51,33 @@
                 <div class="panel-body">
                   <div class="episodes-list">
                     <template v-for="season in contentData.content.seasons" :key="season.id">
-                      <div class="season-episodes" v-if="season.id === activeSeason">
+                      <div class="" v-if="season.id === activeSeason">
                         <template v-if="season.episodes.length === 0">
                           <p class="text-center">No hay episodios disponibles.</p>
                         </template>
-                        <template v-else v-for="episode in season.episodes" :key="episode.id">
-                          <div class="episode-container">
-                            <div class="episode-header">
-                              <h3 class="episode-title">
-                                {{ episode.title }}
-                              </h3>
+                        <div class="season-episodes" v-else>
+                          <template v-for="episode in season.episodes" :key="episode.id">
+                            <div class="episode-container">
+                              <img :src="episode.thumbnail" class="episode-thumbnail" />
+                              <div class="episode-metadata">
+                                <h3 class="episode-title">
+                                  {{ episode.title }}
+                                </h3>
+                                <p class="episode-description">
+                                  {{ episode.description }}
+                                </p>
+                              </div>
+                              <div class="episode-actions">
+                                <c-button @click="playEpisode(episode.id)">
+                                  <PlayCircleIcon class="icon" :size="18" />
+                                  Reproducir
+                                </c-button>
+                              </div>
                             </div>
-                            <div class="episode-actions">
-                              <c-button @click="playEpisode(episode.id)">
-                                <PlayCircleIcon class="icon" :size="18" />
-                                Reproducir
-                              </c-button>
-                            </div>
-                          </div>
-                        </template>
+                          </template>
+                        </div>
+
+
                       </div>
                     </template>
                   </div>

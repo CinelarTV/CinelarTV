@@ -20,7 +20,7 @@
 }
 
 .episode-manager-list {
-    @apply my-4;
+    @apply my-4 overflow-y-auto max-h-96;
 
     .episode-manager-container {
         @apply flex my-2 py-4 px-6 items-center bg-white bg-opacity-5 rounded-md md:flex-row flex-col;
@@ -40,7 +40,7 @@
     }
 }
 
-.episode-container {
+.editor-episode-container {
     @apply flex my-2 py-4 px-6 items-center bg-white bg-opacity-5 rounded-md md:flex-row flex-col;
 
     .episode-thumbnail {

@@ -174,6 +174,18 @@ onMounted(async () => {
     // Only episode videos have skippers
   }
 
+  // Add custom button to control bar for admin users
+
+  if (currentUser.admin) {
+    videoPlayer.value.controlBar.addChild('button', {
+      text: 'Admin',
+      el: videoPlayer.value.controlBar.el().insertBefore(document.createElement('button'), videoPlayer.value.controlBar.el().firstChild),
+      onClick: () => {
+        router.push(`/admin/contents/${data.value.content.id}/edit`);
+      }
+    });
+  }
+
 
   // Set userinactive timeout to 0 to always show controls
 

@@ -30,7 +30,7 @@
                                     :group="episodeGroup" ghost-class="opacity-50" @start="reorderingEpisodes = true"
                                     @end="reorderingEpisodes = false">
                                     <template #item="{ element, index }">
-                                        <div class="episode-container">
+                                        <div class="editor-episode-container">
                                             <c-icon-button class="handle" icon="grip-vertical" />
                                             <img :src="element.thumbnail" class="episode-thumbnail" />
                                             <div class="episode-header">
