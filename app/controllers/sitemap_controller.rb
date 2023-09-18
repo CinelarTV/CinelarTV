@@ -6,7 +6,10 @@ class SitemapController < ApplicationController
     # 404 if sitemap is disabled
     Rails.logger.info "Sitemap enabled: #{SiteSetting.enable_sitemap}"
     if SiteSetting.enable_sitemap
-      respond_to(&:xml)
+      # rubocop:disable Style/SymbolProc
+      respond_to do |format|
+        format.xml
+      end
     else
       render status: :not_found
     end
