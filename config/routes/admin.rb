@@ -4,7 +4,9 @@ namespace :admin do
   get "dashboard" => "dashboard#index"
   get "dashboard/statistics" => "dashboard#reports"
 
-  resources :site_settings, only: %i[create index]
+  get "site_settings" => "site_settings#index"
+  put "site_settings" => "site_settings#update"
+  get "site_settings/:category" => "site_settings#index"
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
   get "updates/progress" => "updates#check_progress"
@@ -28,4 +30,7 @@ namespace :admin do
 
   # User Management related routes
   get "/users", to: "users#index"
+
+  # Custom Pages related routes
+  get "/custom-pages", to: "custom_pages#index"
 end

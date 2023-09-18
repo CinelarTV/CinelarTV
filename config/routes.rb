@@ -9,9 +9,9 @@ Rails.application.routes.draw do
   root to: "application#index", as: "app"
 
   devise_for :users, controllers: {
-    sessions: "users/sessions",
-    registrations: "users/registrations"
-  }
+                       sessions: "users/sessions",
+                       registrations: "users/registrations",
+                     }
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
@@ -81,6 +81,7 @@ Rails.application.routes.draw do
 
   get "/404-content" => "exceptions#not_found_body"
 
-  # Catch all route, to render the app (vue-router will take care of the routing)
-  get "*path", to: "application#index"
+  # This is the catch-all route for custom pages, but also for the Single Page Application (For now)
+  # TODO: Create a route for each route in the SPA to avoid this catch-all
+  get "*path", to: "custom_pages#show", as: :custom_page_catch_all
 end

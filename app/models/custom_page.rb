@@ -1,0 +1,2 @@
+class CustomPage < ApplicationRecord
+end

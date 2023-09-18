@@ -21,7 +21,7 @@ module Admin
               type: setting[:type],
               readonly: setting[:readonly],
               value: SiteSetting.send(setting[:key]),
-              options: setting[:options]
+              options: setting[:options],
             }
           end
 
@@ -30,7 +30,7 @@ module Admin
       end
     end
 
-    def create
+    def update
       @errors = []
       setting_params.each_key do |key|
         next if setting_params[key].nil?

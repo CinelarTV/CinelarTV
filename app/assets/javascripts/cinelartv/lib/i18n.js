@@ -7,8 +7,10 @@ try {
 
 import { SiteSettings } from '../pre-initializers/essentials-preload'
 
+// TODO: Locale should be set by the user using preferences
 I18n.locale = SiteSettings.default_locale
-I18n.defaultLocale = SiteSettings.default_locale
+I18n.defaultLocale = 'en'
+I18n.fallbacks = true
 
 window.I18n = I18n
 

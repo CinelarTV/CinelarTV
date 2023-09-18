@@ -290,6 +290,11 @@ experimental:
     refresh: true
     default: ""
     type: 'code'
+  enable_custom_pages:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
 
 internal:
   license_key:
