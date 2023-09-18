@@ -27,7 +27,7 @@
       </div>
       <section class="skippers" v-if="data.episode">
         <c-button class="skip-intro-button !bg-opacity-70 !bg-black
-        " icon="skip-forward" @click="skipIntro">
+        " icon="fast-forward" @click="skipIntro">
           {{ $t('js.video_player.skip_intro') }}
         </c-button>
       </section>
@@ -51,7 +51,7 @@ const data = ref(null);
 const videoSource = ref(null);
 const videoPlayer = ref(null);
 const vplayerOverlay = ref(null);
-const userActive = ref(false);
+const userActive = ref(true);
 const isPlaying = ref(false);
 const loading = ref(true);
 const lastDataSent = ref(null);

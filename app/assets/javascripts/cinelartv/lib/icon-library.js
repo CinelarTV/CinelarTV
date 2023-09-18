@@ -27,6 +27,7 @@ const ICON_MAP = [
     "minimize",
     "play",
     "frown",
+    "fastForward",
     "playCircle",
     "playSquare",
     "plus",
