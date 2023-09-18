@@ -47,6 +47,7 @@ import { useHead } from 'unhead';
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
 const i18n = inject('I18n');
+const isMobile = inject('isMobile');
 
 const data = ref(null);
 const videoSource = ref(null);
@@ -165,28 +166,15 @@ onMounted(async () => {
 
   videoPlayer.value.el().appendChild(vplayerOverlay.value);
 
-  videoPlayer.value.el().appendChild(skippersRef.value);
-
-  // On mobile, try to force horizontal orientation, and toggle fullscreen on play
-
-  if (window.innerWidth < 768) {
-    try {
-      videoPlayer.value.requestFullscreen();
-      screen.orientation.lock('landscape-primary');
-    } catch (error) {
-      // Do nothing, maybe the device doesn't support
-    }
+  if(skippersRef.value) {
+    videoPlayer.value.el().appendChild(skippersRef.value);
+    // Only episode videos have skippers
   }
+
 
   // Set userinactive timeout to 0 to always show controls
 
-  // Replace the default loading spinner with a custom one <div class="ctv-loading-spinner"></div>
-  videoPlayer.value.LoadingSpinner = videojs.getComponent('LoadingSpinner');
 
-  videoPlayer.value.loadingSpinner = new videoPlayer.value.LoadingSpinner(videoPlayer.value, {
-    contentElType: 'div',
-    contentEl: videoPlayer.value.el().querySelector('.ctv-loading-spinner')
-  });
 
   videoPlayer.value.on('userinactive', () => {
     userActive.value = false;
@@ -243,6 +231,22 @@ onMounted(async () => {
 
   //chromecast(videoPlayer.value)
 
+  if (isMobile) {
+    try {
+      videoPlayer.value.requestFullscreen();
+      if (screen && screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape-primary');
+      } else if (window.screen && window.screen.lockOrientation) {
+        window.screen.lockOrientation('landscape-primary');
+      } else {
+        console.warn('El navegador no admite la API de bloqueo de orientación.');
+      }
+    } catch (error) {
+      console.error('Error al cambiar la orientación:', error);
+    }
+  }
+
+
 });
 
 onBeforeUnmount(() => {
@@ -255,7 +259,6 @@ onBeforeUnmount(() => {
       // Do nothing, this is not supported on desktop
     }
   }
-  
   videoPlayer.value.dispose();
   videoPlayer.value = null;
 });
