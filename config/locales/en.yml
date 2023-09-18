@@ -116,6 +116,9 @@ en:
         enable_chromecast:
           description: "Enables the Chromecast functionality, this will allow your users to cast the videos to their Chromecast capable devices"
           title: "Enable Chromecast"
+        enable_custom_pages:
+          description: "This will allow you to create custom pages in <a href='/admin/custom_pages'>/admin/custom_pages</a>"
+          title: "Enable custom pages"
         enable_js_error_reporting:
           description: "Enables the reporting of JavaScript errors, this will send the errors to the server and will be displayed in the console. You can see the reports in <a href='/logs'>/logs</a>"
           title: "Enable JavaScript error reporting"
@@ -134,9 +137,6 @@ en:
         enable_web_updater:
           description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
           title: "Experimental web updater"
-        enable_custom_pages:
-          description: "This will allow you to create custom pages in <a href='/admin/custom_pages'>/admin/custom_pages</a>"
-          title: "Enable custom pages"
         external_scripts:
           description: "Loads the scripts from an external URL, this can be useful if you want to use a CDN to load the scripts"
           title: "External scripts"
@@ -234,6 +234,8 @@ en:
       removed_from_favorites: "Removed from favorites"
     video_player:
       back: "Back"
+      next_episode: "Next episode"
+      skip_intro: "Skip intro"
     wizard:
       introduction:
         description: "\U0001f389 Welcome to CinelarTV! \U0001f389<br><br>Before you start, we need to configure some things. Don't worry, it's very simple and you'll only have to do it once."

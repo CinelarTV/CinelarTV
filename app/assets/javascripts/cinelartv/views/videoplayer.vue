@@ -1,6 +1,6 @@
 <template>
   <div class="video-player-container" v-if="data">
-    <div class="video-player">
+    <div class="video-player" :class="userActive ? 'user-active' : 'user-inactive'">
       <video ref="videoPlayerRef" id="ctv-player" controls preload="auto"
         class="video-js vjs-default-skin vjs-big-play-centered relative">
       </video>
@@ -24,13 +24,13 @@
           <c-icon-button class="video-control" :icon="isPlaying ? 'pause' : 'play'" @click="togglePlayPause" />
           <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
         </section>
-
-        <section class="skip-intro-section hidden">
-          <c-button class="skip-intro-button" icon="skip-forward" @click="skipIntro">
-            {{ $t('js.video_player.skip_intro') }}
-          </c-button>
-        </section>
       </div>
+      <section class="skippers" v-if="data.episode">
+        <c-button class="skip-intro-button !bg-opacity-70 !bg-black
+        " icon="skip-forward" @click="skipIntro">
+          {{ $t('js.video_player.skip_intro') }}
+        </c-button>
+      </section>
     </div>
   </div>
 </template>

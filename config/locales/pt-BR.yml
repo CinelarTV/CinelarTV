@@ -116,6 +116,9 @@ pt-BR:
         enable_chromecast:
           description: "Enables the Chromecast functionality, this will allow your users to cast the videos to their Chromecast capable devices"
           title: "Enable Chromecast"
+        enable_custom_pages:
+          description: "This will allow you to create custom pages in <a href='/admin/custom_pages'>/admin/custom_pages</a>"
+          title: "Enable custom pages"
         enable_js_error_reporting:
           description: "Enables the reporting of JavaScript errors, this will send the errors to the server and will be displayed in the console. You can see the reports in <a href='/logs'>/logs</a>"
           title: "Enable JavaScript error reporting"
@@ -231,6 +234,8 @@ pt-BR:
       removed_from_favorites: "Removed from favorites"
     video_player:
       back: "Back"
+      next_episode: "Next episode"
+      skip_intro: "Skip intro"
     wizard:
       introduction:
         description: "\U0001f389 Welcome to CinelarTV! \U0001f389<br><br>Before you start, we need to configure some things. Don't worry, it's very simple and you'll only have to do it once."
