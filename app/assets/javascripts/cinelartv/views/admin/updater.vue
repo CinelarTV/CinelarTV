@@ -12,28 +12,37 @@
             <div v-else class="">
 
                 <section id="web-updater-landing" class="text-center">
-                    <span class="bg-blue-100 rounded-full px-2 py-1 text-blue-700 text-sm font-medium
-                                                    ">Experimental</span>
-                    <h2 class="text-xl font-medium text-[var(--c-secondary-600)] mt-2">{{ $t('js.admin.updater.ready_title')
-                    }}
 
-                    </h2>
+                    <div id="ready-for-update-banner"
+                        class="flex flex-col mb-8 py-8 w-full rounded-md bg-[var(--c-primary-50)]">
+                        <h2 class="text-2xl font-medium">
+                            {{ $t('js.admin.updater.ready_title') }}
+                        </h2>
+                    </div>
+
+                    <span class="bg-blue-100 rounded-full px-2 py-1 text-blue-700 text-sm font-medium">
+                        Experimental
+                    </span>
+
+
                     <p class="max-w-2xl text-center mx-auto mt-2">
                         {{ $t('js.admin.updater.ready_description') }}
                     </p>
 
                 </section>
 
-                <c-button @click="runUpdate" :disabled="updating"
-                    class="button dark mx-auto px-4 py-2 mt-4 flex justify-center"
-                    :class="[updating ? '!bg-gray-700' : '']">
-                    {{ updating ? "Updating..." : "Update now" }}
-                </c-button>
+                <div class="updater-footer flex mt-8 justify-center space-x-4">
 
-                <c-button class="!bg-red-500" @click="restartServer">
-                    Restart server
-                </c-button>
+                    <c-button @click="runUpdate" :disabled="updating" class="button dark px-4 py-2 mt-4 flex justify-center"
+                        :class="[updating ? '!bg-gray-700' : '']">
+                        {{ updating ? "Updating..." : "Update now" }}
+                    </c-button>
 
+                    <c-button @click="restartServer" :disabled="updating"
+                        class="button dark px-4 py-2 mt-4 flex justify-center !bg-red-500" :class="[updating ? '!bg-gray-700' : '']">
+                        Restart server
+                    </c-button>
+                </div>
 
                 <section id="update-failed" class="mx-2 bg-red-500 px-4 py-2" v-if="updateStatus === 'failed'">
 

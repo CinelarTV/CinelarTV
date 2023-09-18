@@ -163,6 +163,13 @@
     background-position: center;
 }
 
+#ready-for-update-banner {
+    background: url('/public/assets/images/ready-for-update.svg');
+    background-size: 110vw 110vh;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 body.is-mobile {
 
     .settings .setting-container .setting-image-uploader {
