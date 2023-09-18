@@ -8,25 +8,20 @@ import { ajax } from "./axios-setup";
 var lastReport = null;
 
 if (!window.Logster) {
-	window.Logster = {
-		enabled: SiteSettings.enable_js_error_reporting
-	};
+    window.Logster = {
+        enabled: SiteSettings.enable_js_error_reporting
+    };
 }
 
-if(!Logster.enabled) {
-    if(process.env.NODE_ENV === 'development') {
+if (!Logster.enabled) {
+    if (process.env.NODE_ENV === 'development') {
         console.warn("DEV: JS error reporting is disabled.\nThis message is only shown in development mode.");
     }
 }
 
 
 export const reportError = (err, severity) => {
-    if(!err) return;
-    if (severity === 'error') {
-        console.error(err)
-    } else {
-        console.warn(err)
-    }
+    if (!err) return;
 
     if (lastReport && new Date() - lastReport < 1000 * 60) {
         return;
@@ -43,28 +38,34 @@ export const reportError = (err, severity) => {
         severity,
     }
 
-    if(!SiteSettings.enable_js_error_reporting) {
+    if (!SiteSettings.enable_js_error_reporting) {
         return;
     }
 
-    if(process.env.NODE_ENV !== 'development') {
-        ajax.post("/logs/report_js_error",
-            reportData
-        );
+    if (severity === 'error') {
+        console.error(err)
+    } else {
+        console.warn(err)
     }
+
+    ajax.post("/logs/report_js_error",
+        reportData
+    ).catch(err => {
+        // Do nothing, we don't want to report errors about reporting errors
+    });
 }
 
 
 
 export default {
-	install: (app) => {
-		app.config.errorHandler = function(err, vm, info) {
-			reportError(err, 'error')
-		};
+    install: (app) => {
+        app.config.errorHandler = function (err, vm, info) {
+            reportError(err, 'error')
+        };
 
-		app.config.warnHandler = function(err, vm, info) {
-			reportError(err, 'warning')
-		};
+        app.config.warnHandler = function (err, vm, info) {
+            reportError(err, 'warning')
+        };
 
-	}
+    }
 };
