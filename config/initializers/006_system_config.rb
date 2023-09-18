@@ -12,7 +12,9 @@ Rails.application.reloader.to_prepare do
     ]
 
     Logster.config.use_full_hostname = true
-    Logster.config.enable_js_error_reporting = SiteSetting.enable_js_error_reporting
+    # We have SiteSetting.enable_js_error_reporting, but only affect the client side
+    # Keep enabled to expose /logs/reports_js_error endpoint
+    Logster.config.enable_js_error_reporting = true
     Logster.config.application_version = CinelarTV.git_version
     Logster.config.web_title = '🍿 Log Viewer - CinelarTV AIO'
 
