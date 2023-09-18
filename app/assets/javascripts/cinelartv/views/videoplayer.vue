@@ -167,6 +167,17 @@ onMounted(async () => {
 
   videoPlayer.value.el().appendChild(skippersRef.value);
 
+  // On mobile, try to force horizontal orientation, and toggle fullscreen on play
+
+  if (window.innerWidth < 768) {
+    try {
+      videoPlayer.value.requestFullscreen();
+      screen.orientation.lock('landscape-primary');
+    } catch (error) {
+      // Do nothing, maybe the device doesn't support
+    }
+  }
+
   // Set userinactive timeout to 0 to always show controls
 
   // Replace the default loading spinner with a custom one <div class="ctv-loading-spinner"></div>
@@ -236,7 +247,17 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   document.body.classList.remove('video-player');
+  if (videoPlayer.value.isFullscreen()) {
+    videoPlayer.value.exitFullscreen();
+    try {
+      screen.orientation.unlock();
+    } catch (error) {
+      // Do nothing, this is not supported on desktop
+    }
+  }
+  
   videoPlayer.value.dispose();
+  videoPlayer.value = null;
 });
 
 const replacePlayerIcons = () => {
