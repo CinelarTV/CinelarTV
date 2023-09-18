@@ -127,8 +127,17 @@ class PluginAPI {
         svgSheet.appendChild(symbol);
 
 
-    } 
-    
+    }
+
+    getCustomData() {
+        try {
+            let customData = JSON.parse(SiteSettings.api_custom_data);
+            return customData;
+        } catch (error) {
+            console.error("Unable to parse custom data");
+        }
+    }
+
     loadScript = loadScript;
 }
 
