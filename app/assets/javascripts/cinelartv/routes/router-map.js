@@ -24,7 +24,7 @@ const AppRouter = createRouter({
 
 
 AppRouter.beforeEach((to, from, next) => {
-   
+
     // Redirigir a 'home.index' si ya estás en 'profile.select' y el usuario tiene un perfil
     if (to.name === 'profile.select' && currentUser && currentUser.current_profile) {
         next({
@@ -93,6 +93,12 @@ AppRouter.afterEach((to, from) => {
     }
     document.body.setAttribute('data-current-path', to.path);
     CinelarTV.config.globalProperties.$progress.finish()
+})
+
+AppRouter.onError((err) => {
+    if (/loading chunk \d* failed./i.test(err.message)) {
+        alert('Failed to load chunk. Please reload the page.')
+    }
 })
 
 

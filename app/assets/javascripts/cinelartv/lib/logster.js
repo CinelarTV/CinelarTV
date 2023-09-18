@@ -31,10 +31,12 @@ export const reportError = (err, severity) => {
     lastReport = new Date();
 
     let reportData = {
-        message: err.name,
+        message: err.message ? err.message : err + "",
         url: AppRouter.currentRoute.value.fullPath,
         window_location: window.location && (window.location + ""),
         stacktrace: err.stack ? err.stack : err.message ? err.message : err + "",
+        column: err.column || err.columnNumber ? err.column || err.columnNumber : null,
+        line: err.line || err.lineNumber ? err.line || err.lineNumber : null,
         severity,
     }
 
