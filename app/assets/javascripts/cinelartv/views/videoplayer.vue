@@ -25,7 +25,7 @@
           <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
         </section>
       </div>
-      <section class="skippers" v-if="data.episode">
+      <section class="skippers" v-if="data.episode" ref="skippersRef">
         <c-button class="skip-intro-button !bg-opacity-70 !bg-black
         " icon="fast-forward" @click="skipIntro">
           {{ $t('js.video_player.skip_intro') }}
@@ -64,6 +64,7 @@ const currentPlayback = ref({
 
 
 const videoPlayerRef = ref();
+const skippersRef = ref();
 
 const route = useRoute();
 const router = useRouter();
@@ -163,6 +164,8 @@ onMounted(async () => {
   //CTV Custom Overlay
 
   videoPlayer.value.el().appendChild(vplayerOverlay.value);
+
+  videoPlayer.value.el().appendChild(skippersRef.value);
 
   // Set userinactive timeout to 0 to always show controls
 
