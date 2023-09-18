@@ -4,7 +4,7 @@
       <video ref="videoPlayerRef" id="ctv-player" controls preload="auto"
         class="video-js vjs-default-skin vjs-big-play-centered relative">
       </video>
-      <div class="ctv-overlay" ref="vplayerOverlay">
+      <div class="ctv-overlay" ref="vplayerOverlay" @click="handleOverlayClick">
         <section class="back-button">
           <router-link :to="`/contents/${data.content.id}`">
             <c-button class="forced" icon="chevron-left">{{ $t('js.video_player.back') }}</c-button>
@@ -23,7 +23,7 @@
           <c-icon-button class="video-control" :icon="isPlaying ? 'pause' : 'play'" @click="togglePlayPause" />
           <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
         </section>
-  
+
         <section class="skip-intro-section">
           <c-button class="skip-intro-button" icon="skip-forward" @click="skipIntro">
             {{ $t('js.video_player.skip_intro') }}
@@ -120,6 +120,9 @@ onMounted(async () => {
     experimentalSvgIcons: true,
     bigPlayButton: false,
     errorDisplay: false,
+    userActions: {
+      hotkeys: true
+    },
     controlBar: {
       playToggle: false,
       pictureInPictureToggle: false,
@@ -145,8 +148,8 @@ onMounted(async () => {
     videoPlayer.value.currentTime(progress);
   }
 
-  
-// Alway show control bar (For testing purposes)
+
+  // Alway show control bar (For testing purposes)
 
 
 
@@ -215,9 +218,9 @@ onMounted(async () => {
   // Expose videojs player to the window object because @silvermine/videojs-chromecast plugin needs it
   window.videojs = videoPlayer.value;
 
-    // Register videojs-chromecast plugin
+  // Register videojs-chromecast plugin
 
-    //chromecast(videoPlayer.value)
+  //chromecast(videoPlayer.value)
 
 });
 
@@ -228,12 +231,18 @@ onBeforeUnmount(() => {
 
 const replacePlayerIcons = () => {
   const fullscreenButton = videoPlayer.value.controlBar.getChild('fullscreenToggle');
-  if(fullscreen.value) {
+  if (fullscreen.value) {
     fullscreenButton.setIcon('minimize');
   } else {
     fullscreenButton.setIcon('maximize');
   }
-  
+
+};
+
+const handleOverlayClick = (e) => {
+  if (e.target === vplayerOverlay.value) {
+    togglePlayPause();
+  }
 };
 
 const togglePlayPause = () => {
