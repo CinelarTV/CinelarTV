@@ -25,7 +25,7 @@
           <c-icon-button class="video-control" icon="rotate-cw" @click="seekBy(10)" />
         </section>
 
-        <section class="skip-intro-section">
+        <section class="skip-intro-section hidden">
           <c-button class="skip-intro-button" icon="skip-forward" @click="skipIntro">
             {{ $t('js.video_player.skip_intro') }}
           </c-button>
