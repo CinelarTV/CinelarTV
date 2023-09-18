@@ -184,7 +184,7 @@ function updateSettings(e) {
     btnLoading.value = true;
 
     ajax
-        .post('/admin/site_settings.json', formData)
+        .put('/admin/site_settings.json', formData)
         .then((response) => {
             btnLoading.value = false;
             settingsModel.value.forEach((setting) => {

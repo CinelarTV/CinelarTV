@@ -5,7 +5,7 @@ namespace :admin do
   get "dashboard/statistics" => "dashboard#reports"
 
   get "site_settings" => "site_settings#index"
-  post "site_settings" => "site_settings#update"
+  put "site_settings" => "site_settings#update"
   get "site_settings/:category" => "site_settings#index"
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
