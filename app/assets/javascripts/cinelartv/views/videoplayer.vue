@@ -42,6 +42,7 @@ import { ajax } from '../lib/axios-setup';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css'; // Importar estilos de Video.js
 import chromecast from '@silvermine/videojs-chromecast'
+import { useHead } from 'unhead';
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
@@ -111,6 +112,11 @@ const getVideoType = (url) => {
 onMounted(async () => {
   document.body.classList.add('video-player');
   await fetchData();
+
+  useHead({
+    title: data.value?.content?.title,
+  });
+
 
   videoPlayer.value = videojs(videoPlayerRef.value, {
     autoplay: true,
@@ -269,4 +275,6 @@ const sendCurrentPosition = async () => {
 const seekBy = (seconds) => {
   videoPlayer.value.currentTime(videoPlayer.value.currentTime() + seconds);
 };
+
+
 </script>
