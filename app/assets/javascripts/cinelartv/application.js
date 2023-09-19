@@ -60,7 +60,7 @@ CinelarTV.use(VueMonacoEditorPlugin, {
     }
 })
 
-pluginMap.map(plugin => {
+pluginMap.forEach(plugin => {
     CinelarTV.use(plugin)
 })
 
