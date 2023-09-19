@@ -63,9 +63,6 @@ es:
         allow_registration:
           description: "Permite a los usuarios registrarse en el sitio"
           title: "¿Permitir el registro?"
-        allow_video_direct_link:
-          description: "Permite el enlace directo de los vídeos. Esto puede ser un problema si no tienes control sobre el servidor donde se alojan los vídeos, ya que puede provocar un alto consumo de ancho de banda o interrupciones en el servicio"
-          title: "Permitir enlace directo de vídeo"
         api_custom_data:
           description: "Proporciona una forma de añadir datos personalizados a la API de dispositivos. Esto puede resultar útil si quieres añadir datos personalizados a la API, como la versión de tu aplicación"
           title: "Datos personalizados de la API"

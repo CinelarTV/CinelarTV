@@ -107,11 +107,6 @@ monetization:
     secret: true
 
 storage:
-  allow_video_direct_link:
-    client: true
-    refresh: true
-    default: false
-    type: 'boolean'
   storage_provider:
     client: true
     refresh: true

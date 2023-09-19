@@ -63,9 +63,6 @@ pt-BR:
         allow_registration:
           description: "Allows users to register on the site"
           title: "Allow registration"
-        allow_video_direct_link:
-          description: "Allows the direct link of the videos. This can be a problem if you don't have control over the server where the videos are hosted, as it can cause a high consumption of bandwidth or interruptions in the service"
-          title: "Allow video direct link"
         api_custom_data:
           description: "Provides a way to add custom data to the Device API. This can be useful if you want to add custom data to the API, such as the version of your application"
           title: "API custom data"

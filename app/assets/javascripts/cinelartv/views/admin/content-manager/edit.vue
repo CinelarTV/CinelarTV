@@ -32,11 +32,6 @@
                         <c-input type="number" placeholder="Year" :value="content.year"
                             @update:modelValue="value => editedData.year = value" />
 
-                        <template v-if="content.content_type === 'MOVIE' && SiteSettings.allow_video_direct_link">
-                            <c-input placeholder="Paste Video Link" :value="content.url"
-                                @update:modelValue="value => editedData.url = value" />
-                        </template>
-
                         <SwitchGroup>
                             <div class="flex items-center">
                                 <SwitchLabel class="mr-4">
