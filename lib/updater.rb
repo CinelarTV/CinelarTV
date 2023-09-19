@@ -7,7 +7,7 @@ require "io/wait"
 module CinelarTV
   module Updater
     def self.remote_version
-      `git ls-remote --heads origin main`.strip.split.first
+      `git ls-remote --heads origin test-passed`.strip.split.first
     end
 
     def self.versions_diff
