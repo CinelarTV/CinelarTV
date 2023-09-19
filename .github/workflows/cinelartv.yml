@@ -66,11 +66,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      # Cambia a la rama "test-passed" o crea una nueva con el contenido de la rama "main" si no existe, y la publica
       - name: Create or switch to test-passed branch
         run: |
-          git checkout test-passed
-          git pull origin test-passed
-          git push origin test-passed
+          # Cambiar a la rama "test-passed" si existe, o crearla si no existe
+          git checkout -B test-passed origin/test-passed || git checkout -b test-passed
+          
+          # Forzar la actualización de la rama "test-passed" con el contenido de la rama "main"
+          git reset --hard origin/main
+          
+          # Publicar la rama "test-passed" en el repositorio remoto
+          git push -f origin test-passed
 
