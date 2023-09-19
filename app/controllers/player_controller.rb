@@ -8,118 +8,29 @@ class PlayerController < ApplicationController
   def watch
     return unless @content
 
-    case @content.content_type
-    when "TVSHOW"
-      if params[:episode_id]
-        @episode = Episode.find_by(id: params[:episode_id])
-        @season = @content.seasons.find_by(id: @episode&.season_id)
-      else
-        @season = @content.seasons.first
-        @episode = @season.episodes.first if @season
-      end
-    when "MOVIE"
-      # No se requiere ningún procesamiento adicional para películas.
-    end
+    find_episode_and_season if @content.content_type == "TVSHOW"
 
     profile = Profile.find_by(id: session[:current_profile_id])
-
-    # Si profile existe, encuentra o crea un registro ContinueWatching
-    if profile && @content
-      continue_watching = ContinueWatching.find_or_create_by(
-        profile_id: profile.id,
-        content_id: @content.id,
-        episode_id: @episode&.id
-      )
-    end
+    continue_watching = create_or_find_continue_watching(profile)
 
     respond_to do |format|
       format.html
-      format.json do
-        if @content
-          data = {
-            content: @content.as_json(except: %i[created_at updated_at]),
-            continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id
-                                                                     content_id id])
-          }
-
-          data[:episode] = @episode.as_json(except: %i[created_at updated_at]) if @episode
-          data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
-          render json: { data: }
-        else
-          render json: {
-            errors: ["Content not found"],
-            error_type: "content_not_found"
-          }
-        end
-      end
+      format.json { render_json_response(continue_watching) }
     end
   end
 
   def update_current_progress
-    profile_id = Profile.find_by(id: session[:current_profile_id])&.id
+    profile = Profile.find_by(id: session[:current_profile_id])
     @content = Content.find_by(id: params[:id])
 
-    if @content
-      if @content.content_type == "TVSHOW"
-        # Si es una serie (TVSHOW), también necesitamos el episodio correspondiente
-        episode = Episode.find_by(id: params[:episode_id])
+    return render_content_not_found unless @content
 
-        if episode
-          # Encuentra o crea un registro ContinueWatching para el perfil, contenido y episodio
-          continue_watching = ContinueWatching.find_or_create_by(
-            profile_id:,
-            content_id: @content.id,
-            episode_id: episode.id
-          )
-
-          Rails.logger.info "Continue Watching: #{continue_watching.inspect}"
-
-          # Actualiza el progreso y la duración según los parámetros que recibas
-          progress = params[:progress].to_d
-          duration = params[:duration].to_d
-
-          # Actualiza el registro ContinueWatching
-          continue_watching.update(
-            progress:,
-            duration:,
-            last_watched_at: Time.now
-          )
-
-          continue_watching.save
-
-          # Puedes responder con un mensaje de éxito
-          render json: :ok
-        else
-          # Maneja el caso en el que no se encuentra el episodio
-          render json: { message: "Episodio no encontrado." }, status: :not_found
-        end
-      elsif @content.content_type == "MOVIE"
-        # Si es una película, no necesitas un episodio
-        # Encuentra o crea un registro ContinueWatching para el perfil y contenido
-        continue_watching = ContinueWatching.find_or_create_by(
-          profile_id:,
-          content_id: @content.id
-        )
-
-        # Actualiza el progreso y la duración según los parámetros que recibas
-        progress = params[:progress].to_d
-        duration = params[:duration].to_d
-
-        # Actualiza el registro ContinueWatching
-        continue_watching.update(
-          progress:,
-          duration:,
-          last_watched_at: Time.now
-        )
-
-        render json: :ok
-      else
-        # Maneja el caso en el que el tipo de contenido no es válido
-        render json: { message: "Tipo de contenido no válido." }, status: :unprocessable_entity
-      end
+    if @content.content_type == "TVSHOW"
+      handle_tvshow_update(profile)
+    elsif @content.content_type == "MOVIE"
+      handle_movie_update(profile)
     else
-      # Maneja el caso en el que no se encuentra el contenido
-      render json: { message: "Contenido no encontrado." }, status: :not_found
+      render_invalid_content_type
     end
   end
 
@@ -130,30 +41,158 @@ class PlayerController < ApplicationController
   end
 
   def check_content_availability
-    available = if !@content || @content.blank?
-                  false
-                elsif @content.content_type == "MOVIE"
-                  @content.available && (!@content.url.blank? || @content.url == "null")
-                else
-                  @content.available
-                end
+    return if content_available?
 
-    unless available
-      respond_to do |format|
-        format.html
-        format.json do
-          render json: {
-                   errors: [
-                     "El contenido no está disponible para su reproducción."
-                   ],
-                   error_type: "content_not_available"
-                 },
-                 status: :unprocessable_entity
-        end
-      end
-    end
+    render_content_not_available
   rescue StandardError => e
-    # Aquí puedes manejar la excepción, registrarla o responder de acuerdo a tus necesidades.
     render json: { error: e.message }, status: :unprocessable_entity
+  end
+
+  def find_episode_and_season
+    if params[:episode_id]
+      @episode = Episode.find_by(id: params[:episode_id])
+      @season = @content.seasons.find_by(id: @episode&.season_id)
+    else
+      @season = @content.seasons.first
+      @episode = @season.episodes.first if @season
+    end
+  end
+
+  def create_or_find_continue_watching(profile)
+    return unless profile && @content
+
+    ContinueWatching.find_or_create_by(
+      profile_id: profile.id,
+      content_id: @content.id,
+      episode_id: @episode&.id,
+    )
+  end
+
+  def render_json_response(continue_watching)
+    return render_content_not_found unless @content
+
+    data = {
+      content: {
+        id: @content.id,
+        title: @content.title,
+        description: @content.description,
+        content_type: @content.content_type,
+        banner: @content.banner,
+      },
+      continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id id]),
+    }
+
+    if @content.content_type == "MOVIE"
+      data[:sources] = video_sources_data
+    elsif @content.content_type == "TVSHOW" && @episode
+      data[:sources] = episode_video_sources_data
+    end
+
+    if @content.content_type == "TVSHOW" && @episode
+      data[:episode] = {
+        id: @episode.id,
+        title: @episode.title,
+        description: @episode.description,
+      }
+    end
+    data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
+
+    render json: { data: data }
+  end
+
+  def video_sources_data
+    @content.video_sources.map do |vs|
+      {
+        id: vs.id,
+        url: vs.url,
+        quality: vs.quality,
+      }
+    end
+  end
+
+  def episode_video_sources_data
+    @episode.video_sources.map do |vs|
+      {
+        id: vs.id,
+        url: vs.url,
+        quality: vs.quality,
+      }
+    end
+  end
+
+  def content_available?
+    return false if @content.blank?
+
+    if @content.content_type == "MOVIE"
+      @content.available && (!@content.url.blank? || @content.url == "null")
+    else
+      @content.available
+    end
+  end
+
+  def render_content_not_available
+    render json: {
+      errors: ["El contenido no está disponible para su reproducción."],
+      error_type: "content_not_available",
+    }, status: :unprocessable_entity
+  end
+
+  def handle_tvshow_update(profile)
+    episode = Episode.find_by(id: params[:episode_id])
+
+    if episode
+      continue_watching = ContinueWatching.find_or_create_by(
+        profile_id: profile.id,
+        content_id: @content.id,
+        episode_id: episode.id,
+      )
+
+      update_continue_watching(continue_watching)
+    else
+      render_episode_not_found
+    end
+  end
+
+  def handle_movie_update(profile)
+    continue_watching = ContinueWatching.find_or_create_by(
+      profile_id: profile.id,
+      content_id: @content.id,
+    )
+
+    update_continue_watching(continue_watching)
+  end
+
+  def update_continue_watching(continue_watching)
+    progress = params[:progress].to_d
+    duration = params[:duration].to_d
+
+    continue_watching.update(
+      progress: progress,
+      duration: duration,
+      last_watched_at: Time.now,
+    )
+
+    continue_watching.save
+
+    render json: :ok
+  end
+
+  def render_content_not_found
+    render json: {
+      errors: ["Content not found"],
+      error_type: "content_not_found",
+    }, status: :not_found
+  end
+
+  def render_episode_not_found
+    render json: {
+      message: "Episodio no encontrado.",
+    }, status: :not_found
+  end
+
+  def render_invalid_content_type
+    render json: {
+      message: "Tipo de contenido no válido.",
+    }, status: :unprocessable_entity
   end
 end

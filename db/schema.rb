@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_18_123946) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -195,6 +195,18 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_18_123946) do
     t.index ["role_id"], name: "index_users_roles_on_role_id"
     t.index ["user_id", "role_id"], name: "index_users_roles_on_user_id_and_role_id"
     t.index ["user_id"], name: "index_users_roles_on_user_id"
+  end
+
+  create_table "video_sources", force: :cascade do |t|
+    t.string "url"
+    t.string "quality"
+    t.string "format"
+    t.string "storage_location"
+    t.string "videoable_type", null: false
+    t.uuid "videoable_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["videoable_type", "videoable_id"], name: "index_video_sources_on_videoable"
   end
 
   create_table "webhook_logs", force: :cascade do |t|

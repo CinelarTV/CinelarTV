@@ -2,6 +2,7 @@
 
 # app/models/content.rb
 class Content < ApplicationRecord
+  has_many :video_sources, as: :videoable
   has_many :content_categories
   has_many :categories, through: :content_categories
   has_many :seasons

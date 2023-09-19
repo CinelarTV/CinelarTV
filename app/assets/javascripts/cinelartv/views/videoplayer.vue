@@ -77,27 +77,31 @@ const episodeId = route.params.episodeId;
 const fetchData = async () => {
   try {
     let url = '';
+
     if (episodeId) {
       url = `/watch/${videoId}/${episodeId}.json`;
     } else {
       url = `/watch/${videoId}.json`;
     }
+
     const response = await ajax.get(url);
     data.value = response.data.data;
-    if (data.value.content.content_type === 'MOVIE') {
-      videoSource.value = data.value.content.url;
-    } else {
-      if (data.value.content.content_type === 'TV_SHOW' && !(route.params.episodeId || data.value.episode.id)) {
-        let episodeId = data.value.continue_watching.episode_id || data.value.episode.id;
-        router.replace(`/watch/${videoId}/${episodeId}`); // Agregar episodeId a la URL si es un programa de televisión
-      }
-      videoSource.value = data.value.episode.url;
+
+
+    // Redireccionar si es un programa de televisión sin episodio seleccionado
+    if (
+      data.value.content.content_type === 'TVSHOW' &&
+      !(route.params.episodeId || (data.episode && data.value.episode.id))
+    ) {
+      let episodeId = data.value.continue_watching ? data.value.continue_watching.episode_id : (data.value.episode ? data.value.episode.id : '');
+      router.replace(`/watch/${videoId}/${episodeId}`); // Agregar episodeId a la URL si es un programa de televisión
     }
   } catch (error) {
     console.error(error);
     toast.error('Error al cargar el video.');
   }
 };
+
 
 const getVideoType = (url) => {
   const extension = url.split('.').pop();
@@ -141,12 +145,12 @@ onMounted(async () => {
         inline: false
       },
     },
-    sources: [
-      {
-        src: videoSource.value,
-        type: getVideoType(videoSource.value)
+    sources: data.value.sources.map((source) => {
+      return {
+        src: source.url,
+        type: getVideoType(source.url)
       }
-    ]
+    })
   });
 
 
@@ -169,7 +173,7 @@ onMounted(async () => {
 
   videoPlayer.value.el().appendChild(vplayerOverlay.value);
 
-  if(skippersRef.value) {
+  if (skippersRef.value) {
     videoPlayer.value.el().appendChild(skippersRef.value);
     // Only episode videos have skippers
   }
@@ -266,7 +270,7 @@ onMounted(async () => {
 
 watch(currentPlayback.value, (newVal, oldVal) => {
   if (data.value.episode) {
-    if(data.value.episode?.skip_intro_start && data.value.episode?.skip_intro_end) {
+    if (data.value.episode?.skip_intro_start && data.value.episode?.skip_intro_end) {
       if (newVal.currentTime >= data.value.episode.skip_intro_start && newVal.currentTime <= data.value.episode.skip_intro_end) {
         showSkipIntro.value = true;
       } else {
