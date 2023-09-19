@@ -57,7 +57,7 @@
                         </template>
                         <div class="season-episodes" v-else>
                           <template v-for="episode in season.episodes" :key="episode.id">
-                            <div class="episode-container">
+                            <div class="episode-container" @click="playEpisode(episode.id)">
                               <img :src="episode.thumbnail" class="episode-thumbnail" />
                               <div class="episode-metadata">
                                 <h3 class="episode-title">
@@ -66,12 +66,6 @@
                                 <p class="episode-description">
                                   {{ episode.description }}
                                 </p>
-                              </div>
-                              <div class="episode-actions">
-                                <c-button @click="playEpisode(episode.id)">
-                                  <PlayCircleIcon class="icon" :size="18" />
-                                  Reproducir
-                                </c-button>
                               </div>
                             </div>
                           </template>
