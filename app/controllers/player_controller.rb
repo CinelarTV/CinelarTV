@@ -89,11 +89,7 @@ class PlayerController < ApplicationController
     end
 
     if @content.content_type == "TVSHOW" && @episode
-      data[:episode] = {
-        id: @episode.id,
-        title: @episode.title,
-        description: @episode.description,
-      }
+      data[:episode] = @episode.as_json(except: %i[created_at updated_at])
     end
     data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
 
