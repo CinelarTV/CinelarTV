@@ -13,9 +13,9 @@ class ContentsController < ApplicationController
         format.json do
           render json: {
             errors: [
-              "Query is required"
+              "Query is required",
             ],
-            error_type: "query_required"
+            error_type: "query_required",
           }
         end
       end
@@ -27,7 +27,7 @@ class ContentsController < ApplicationController
       format.html
       format.json do
         render json: {
-          data: @contents.as_json(only: %i[id title description banner])
+          data: @contents.as_json(only: %i[id title description banner]),
         }
       end
     end
@@ -39,6 +39,7 @@ class ContentsController < ApplicationController
     if @content
       @is_liked = current_profile&.liked_contents&.include?(@content)
       @seasons = @content.seasons.order(position: :asc)
+      @related_content = @content.similar_items
       if current_profile && @content.content_type == "SERIES"
         most_recent_watched_episode = ContinueWatching.where(profile: current_profile,
                                                              content: @content).order(updated_at: :desc).not(episode_id: nil).first
@@ -49,7 +50,8 @@ class ContentsController < ApplicationController
       end
       @data = {
         content: @content.as_json(except: %i[created_at updated_at url]),
-        liked: @is_liked
+        liked: @is_liked,
+        related_content: @related_content.as_json(only: %i[id title description banner]),
       }
 
       if most_recent_watched_episode.present?
@@ -75,9 +77,9 @@ class ContentsController < ApplicationController
                 title: e.title,
                 description: e.description,
                 thumbnail: e.thumbnail || @content.banner,
-                position: e.position
+                position: e.position,
               }
-            end
+            end,
 
           }
         end

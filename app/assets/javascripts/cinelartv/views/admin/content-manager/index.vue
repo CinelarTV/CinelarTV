@@ -39,7 +39,7 @@
                         </thead>
                         <tbody>
                             <tr v-for="item in content" :key="item.id" class="border-t border-[var(--c-primary-color)]">
-                                <td class="px-4 py-2">
+                                <td class="px-4 py-2" :title="item.id">
                                     {{ item.id.slice(0, 8) }}...
                                 </td>
                                 <td class="px-4 py-2">{{ item.title }}</td>

@@ -120,7 +120,7 @@ class PlayerController < ApplicationController
     return false if @content.blank?
 
     if @content.content_type == "MOVIE"
-      @content.available && (!@content.url.blank? || @content.url == "null")
+      @content.available && !@content.video_sources.empty?
     else
       @content.available
     end
