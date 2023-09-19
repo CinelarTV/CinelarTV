@@ -11,7 +11,7 @@ class SitemapController < ApplicationController
         format.xml
       end
     else
-      render status: :not_found
+      render plain: "Not found", status: :not_found
     end
   end
 end

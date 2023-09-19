@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # spec/controllers/sitemap_controller_spec.rb
 
 require "rails_helper"
@@ -8,6 +10,7 @@ RSpec.describe SitemapController, type: :controller do
       before do
         # Establece que SiteSetting.enable_sitemap sea verdadero
         allow(SiteSetting).to receive(:enable_sitemap).and_return(true)
+        allow(SiteSetting).to receive(:waiting_on_first_user).and_return(false)
       end
 
       it "responds with success" do
@@ -26,7 +29,7 @@ RSpec.describe SitemapController, type: :controller do
 
       it "renders an XML response" do
         get :index
-        expect(response.content_type).to eq("application/xml")
+        expect(response.content_type).to eq("application/xml; charset=utf-8")
       end
     end
 
@@ -34,6 +37,7 @@ RSpec.describe SitemapController, type: :controller do
       before do
         # Establece que SiteSetting.enable_sitemap sea falso
         allow(SiteSetting).to receive(:enable_sitemap).and_return(false)
+        allow(SiteSetting).to receive(:waiting_on_first_user).and_return(false)
       end
 
       it "responds with not_found" do
