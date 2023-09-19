@@ -36,7 +36,7 @@ class ApplicationController < ActionController::Base
       end
       format.json do
         render json: {
-          message: "Capybara 🦦"
+          message: "Capybara 🦦",
         }
       end
     end
@@ -74,6 +74,7 @@ class ApplicationController < ActionController::Base
   def require_finish_installation?
     return false unless SiteSetting.waiting_on_first_user && !request.path.start_with?("/finish-installation")
 
-    redirect_to "/finish-installation"
+    redirect_to "/finish-installation", status: 302
+    true
   end
 end
