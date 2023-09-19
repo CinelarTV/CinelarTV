@@ -70,6 +70,7 @@ jobs:
       # Cambia a la rama "test-passed" o crea una nueva con el contenido de la rama "main" si no existe, y la publica
       - name: Create or switch to test-passed branch
         run: |
-          git checkout -B test-passed main
-          git push -u origin test-passed
-          
+          git checkout test-passed
+          git pull origin test-passed
+          git push origin test-passed
+
