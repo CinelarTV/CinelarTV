@@ -67,8 +67,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Cambia a la rama "test-passed" o crea una nueva si no existe, y publica los cambios
+      # Cambia a la rama "test-passed" o crea una nueva con el contenido de la rama "main" si no existe, y la publica
       - name: Create or switch to test-passed branch
         run: |
-          git checkout -b test-passed || git checkout test-passed
+          git checkout -B test-passed main
           git push -u origin test-passed
+          
