@@ -11,7 +11,8 @@ class SitemapController < ApplicationController
         format.xml
       end
     else
-      render plain: "Not found", status: :not_found
+      # Render application/index.html.erb (Format: HTML)
+      render "application/index", status: :not_found, formats: :html
     end
   end
 end
