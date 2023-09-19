@@ -144,6 +144,8 @@ onMounted(async () => {
       volumePanel: {
         inline: false
       },
+      volumePanel: false,
+      fullscreenToggle: false
     },
     sources: data.value.sources.map((source) => {
       return {
