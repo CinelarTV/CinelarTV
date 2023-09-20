@@ -92,6 +92,7 @@ class PlayerController < ApplicationController
       data[:episode] = @episode.as_json(except: %i[created_at updated_at])
     end
     data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
+    data[:season][:episodes] = @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position]) if @season
 
     render json: { data: data }
   end
