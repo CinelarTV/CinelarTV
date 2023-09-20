@@ -87,20 +87,29 @@ const fetchData = async () => {
     const response = await ajax.get(url);
     data.value = response.data.data;
 
-
     // Redireccionar si es un programa de televisión sin episodio seleccionado
     if (
       data.value.content.content_type === 'TVSHOW' &&
-      !(route.params.episodeId || (data.episode && data.value.episode.id))
+      !(route.params.episodeId || data.value.episode?.id)
     ) {
-      let episodeId = data.value.continue_watching ? data.value.continue_watching.episode_id : (data.value.episode ? data.value.episode.id : '');
-      router.replace(`/watch/${videoId}/${episodeId}`); // Agregar episodeId a la URL si es un programa de televisión
+      // Obtener el primer episodio de la temporada
+      const firstEpisode = data.value.season.episodes[0];
+
+      if (firstEpisode) {
+        const episodeId = firstEpisode.id;
+        console.log('Redireccionando a:', `/watch/${videoId}/${episodeId}`);
+        return router.replace(`/watch/${videoId}/${episodeId}`); // Agregar episodeId a la URL si es un programa de televisión
+      }
+    }
+    else if (!route.params.episodeId && data.value.episode?.id) {
+      return router.replace(`/watch/${videoId}/${data.value.episode.id}`);
     }
   } catch (error) {
     console.error(error);
     toast.error('Error al cargar el video.');
   }
 };
+
 
 
 const getVideoType = (url) => {
@@ -131,6 +140,7 @@ onMounted(async () => {
     preload: 'auto',
     responsive: true,
     fill: true,
+    inactivityTimeout: 0,
     poster: data.value.content.banner,
     experimentalSvgIcons: true,
     bigPlayButton: false,
@@ -153,7 +163,7 @@ onMounted(async () => {
   });
 
 
-
+  // set user inactive timeout to 5 seconds
 
 
   const { progress, duration } = data.value.continue_watching;
