@@ -83,6 +83,7 @@ module CinelarTV
 
       log("=> Puma PID: #{pid}")
       log("=> Current git hash: #{CinelarTV.git_version}")
+      log("=> Current git branch: #{CinelarTV.git_branch}")
       log("=> Remote git hash: #{remote_version}")
       log("=> Commit message: #{last_commit_message}")
       log("=> Versions diff: #{versions_diff}")
