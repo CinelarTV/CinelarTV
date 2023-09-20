@@ -285,7 +285,7 @@ body.video-player #c-progress {
     border-color: #fff;
 }
 .video-player.user-inactive .skippers {
-    @apply translate-y-10 
+    @apply translate-y-10 transition-none;
 }
 .video-player .skippers {
     position: absolute;
@@ -297,7 +297,8 @@ body.video-player #c-progress {
     align-items: flex-end;
     justify-content: flex-end;
     z-index: 100;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
+    
 
     .skip-intro-button {
         @apply !bg-opacity-70 !bg-black !border-[1.5px] !border-white !text-white !rounded-none !border-solid;
