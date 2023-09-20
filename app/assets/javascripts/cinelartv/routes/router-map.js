@@ -24,6 +24,7 @@ const AppRouter = createRouter({
 
 
 AppRouter.beforeEach((to, from, next) => {
+    document.body.classList.add('route-transition')
 
     // Redirigir a 'home.index' si ya estás en 'profile.select' y el usuario tiene un perfil
     if (to.name === 'profile.select' && currentUser && currentUser.current_profile) {
@@ -93,6 +94,7 @@ AppRouter.afterEach((to, from) => {
     }
     document.body.setAttribute('data-current-path', to.path);
     CinelarTV.config.globalProperties.$progress.finish()
+    document.body.classList.remove('route-transition')
 })
 
 AppRouter.onError((err) => {

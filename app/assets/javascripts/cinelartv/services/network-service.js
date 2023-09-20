@@ -11,10 +11,12 @@ export const useNetworkService = defineStore('network', {
     listenStatusChange() {
       window.addEventListener('online', () => {
         this.setIsOnline(true);
+        document.body.classList.remove('cinelar-offline')
       });
 
       window.addEventListener('offline', () => {
         this.setIsOnline(false);
+        document.body.classList.add('cinelar-offline')      
       });
     },
   },
