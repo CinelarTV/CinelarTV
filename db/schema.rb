@@ -35,7 +35,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "trailer_url"
-    t.boolean "available"
+    t.boolean "available", default: true
   end
 
   create_table "continue_watchings", force: :cascade do |t|
@@ -61,6 +61,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
     t.json "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_custom_pages_on_slug", unique: true
   end
 
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
