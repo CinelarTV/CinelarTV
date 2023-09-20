@@ -215,6 +215,11 @@ en:
       updater:
         ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
         ready_title: "¿Ready for update?"
+    home:
+      categories: "Categories"
+      continue_watching: "Continue watching"
+      because_you_watched: "Because you watched %{title}"
+      because_you_liked: "Because you liked %{title}"
     common:
       actions: "Actions"
       created_at: "Created at"
