@@ -24,7 +24,13 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: db/test.sqlite3
+  adapter: postgresql
+  database: <%= ENV['CINELAR_DB'] || 'cinelar_test' %>
+  host: <%= ENV['CINELAR_DB_HOSTNAME'] || 'localhost' %>
+  username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
+  password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
+  port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
+
 
 production:
   <<: *default
