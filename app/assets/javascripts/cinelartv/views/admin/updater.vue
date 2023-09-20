@@ -55,7 +55,7 @@
                             :style="`width: ${updateProgress}%`"> {{ updateProgress }}%</div>
                     </div>
 
-                    <details id="expandable-logs" v-if="updating">
+                    <details id="expandable-logs" v-if="outputMessage.length > 0">
                         <summary>{{ currentLine }}</summary>
                         <div v-if="updating" class="terminal-updating">
                             <template v-for="line in outputMessage">
@@ -142,6 +142,7 @@ onMounted(() => {
 
 const runUpdate = () => {
     updating.value = true
+    outputMessage.value = []
     ajax.post('/admin/upgrade.json')
         .then(response => {
             if (response.data.error_type === "no_updates_available") {
