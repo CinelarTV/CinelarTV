@@ -77,6 +77,11 @@ Naming/PredicateName:
                  prefixes is_ or has_.
   StyleGuide: '#predicate-methods'
   Enabled: false
+Style/TrailingCommaInHashLiteral:
+  Description: >-
+                 Checks for trailing comma in hash literals.
+  StyleGuide: '#trailing-comma'
+  Enabled: false
 Style/TrailingCommaInArrayLiteral:
   Description: >-
                  Checks for trailing comma in array literals.
