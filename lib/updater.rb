@@ -98,9 +98,9 @@ module CinelarTV
       run("git pull")
       percent(25)
 
-      run("bundle config set --local without 'development test'")
-
       run("bundle install")
+
+      run("bundle config set --local without 'development test'")
 
       percent(30)
       run("yarn install --production")
