@@ -140,7 +140,7 @@ onMounted(async () => {
     preload: 'auto',
     responsive: true,
     fill: true,
-    inactivityTimeout: 0,
+    inactivityTimeout: route.query.debug ? 0 : 3000,
     poster: data.value.content.banner,
     experimentalSvgIcons: true,
     bigPlayButton: false,
