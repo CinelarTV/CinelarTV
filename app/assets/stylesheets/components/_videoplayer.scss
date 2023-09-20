@@ -298,6 +298,10 @@ body.video-player #c-progress {
     justify-content: flex-end;
     z-index: 100;
     transition: transform 0.4s ease;
+
+    .skip-intro-button {
+        @apply !bg-opacity-70 !bg-black !border-[1.5px] !border-white !text-white !rounded-none !border-solid;
+    }
 }
 .video-player .skippers.skippers-hidden {
     transform: translateX(100%);

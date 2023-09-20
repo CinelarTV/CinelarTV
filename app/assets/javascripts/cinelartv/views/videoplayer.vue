@@ -26,8 +26,7 @@
         </section>
       </div>
       <section class="skippers" :class="showSkipIntro ? '' : 'skippers-hidden'" v-if="data.episode" ref="skippersRef">
-        <c-button class="skip-intro-button !bg-opacity-70 !bg-black
-        " icon="fast-forward" @click="skipIntro">
+        <c-button class="skip-intro-button" icon="fast-forward" @click="skipIntro">
           {{ $t('js.video_player.skip_intro') }}
         </c-button>
       </section>
