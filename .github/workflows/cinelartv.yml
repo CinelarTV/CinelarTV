@@ -27,6 +27,7 @@ jobs:
         with:
           read_key: ${{ secrets.LOCALAZY_READ_KEY }}
           write_key: ${{ secrets.LOCALAZY_WRITE_KEY }}
+        continue-on-error: true
 
       - name: Install Ruby and gems
         uses: ruby/setup-ruby@v1
