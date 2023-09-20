@@ -57,7 +57,7 @@
 
                     <details id="expandable-logs" v-if="outputMessage.length > 0">
                         <summary>{{ currentLine }}</summary>
-                        <div v-if="updating" class="terminal-updating">
+                        <div v-if="outputMessage.length > 0" class="terminal-updating">
                             <template v-for="line in outputMessage">
                                 {{ line }}
                             </template>
