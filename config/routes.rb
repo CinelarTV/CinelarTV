@@ -8,10 +8,14 @@ Rails.application.routes.draw do
 
   root to: "application#index", as: "app"
 
-  devise_for :users, controllers: {
-                       sessions: "users/sessions",
-                       registrations: "users/registrations",
-                     }
+  devise_for :users, { controllers: { registrations: "users/registrations", sessions: "users/sessions" } }
+  devise_scope :user do
+    get "/login" => "users/sessions#new"
+    get "/signup" => "users/registrations#new"
+    post "/signup" => "users/registrations#create"
+    post "/login" => "users/sessions#create"
+    delete "/logout" => "users/sessions#destroy"
+  end
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 

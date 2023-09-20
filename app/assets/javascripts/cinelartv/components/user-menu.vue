@@ -161,7 +161,7 @@ const checkRenderModal = async () => {
 }
 
 const userLogout = () => {
-  ajax.delete('/users/sign_out.json')
+  ajax.delete('/logout.json')
     .then(() => {
       window.location.href = '/'
     })

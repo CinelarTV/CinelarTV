@@ -100,7 +100,7 @@ export default {
         submitLogin(e) {
             e.preventDefault()
             this.loading = true
-            ajax.post('/users/sign_in.json', {
+            ajax.post('/login.json', {
                 user: {
                     email: this.email,
                     password: this.password,

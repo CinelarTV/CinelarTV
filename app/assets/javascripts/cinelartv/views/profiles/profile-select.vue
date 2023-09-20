@@ -94,7 +94,7 @@ const deleteProfile = (profile) => {
 }
 
 const userLogout = () => {
-    ajax.delete('/users/sign_out.json').then((response) => {
+    ajax.delete('/logout.json').then((response) => {
         window.location.href = '/';
     }).catch((error) => {
         console.log(error);

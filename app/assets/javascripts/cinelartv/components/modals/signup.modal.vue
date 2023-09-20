@@ -81,7 +81,7 @@ function submitRegistration(e) {
     e.preventDefault()
     loading.value = true
     ajax
-        .post('/users.json', {
+        .post('/signup.json', {
             user: {
                 username: username.value,
                 email: email.value,
