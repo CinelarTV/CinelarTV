@@ -141,9 +141,6 @@ onMounted(async () => {
     controlBar: {
       playToggle: false,
       pictureInPictureToggle: false,
-      volumePanel: {
-        inline: false
-      },
       volumePanel: false,
       fullscreenToggle: false
     },
@@ -222,13 +219,9 @@ onMounted(async () => {
     loading.value = false;
   });
 
-  replacePlayerIcons();
-
-  // On toggle fullscreen, call replacePlayerIcons
 
   videoPlayer.value.on('fullscreenchange', () => {
     fullscreen.value = !fullscreen.value;
-    replacePlayerIcons();
   });
 
   console.log(videoPlayer.value);
@@ -296,15 +289,7 @@ onBeforeUnmount(() => {
   videoPlayer.value = null;
 });
 
-const replacePlayerIcons = () => {
-  const fullscreenButton = videoPlayer.value.controlBar.getChild('fullscreenToggle');
-  if (fullscreen.value) {
-    fullscreenButton.setIcon('minimize');
-  } else {
-    fullscreenButton.setIcon('maximize');
-  }
 
-};
 
 const handleOverlayClick = (e) => {
   if (e.target === vplayerOverlay.value) {
