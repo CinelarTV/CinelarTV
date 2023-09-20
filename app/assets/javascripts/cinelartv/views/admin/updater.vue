@@ -119,6 +119,10 @@ onMounted(() => {
         })
 
     MessageBus.subscribe("/admin/upgrade", (data) => {
+        if(data) {
+            // If we receive a message, it means the update is running
+            updating.value = true
+        }
         if (data.type == "percent") {
             updateProgress.value = data.value
         }
