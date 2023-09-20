@@ -222,6 +222,12 @@ es:
       id: "ID"
       name: "Nombre"
       updated_at: "Actualizado el"
+    home:
+      added_recently: "Añadido recientemente"
+      because_you_liked: "Porque te gustó %{title}"
+      because_you_watched: "Porque viste %{title}"
+      categories: "Categorías"
+      continue_watching: "Continuar viendo"
     offline_indicator:
       no_internet: "Sin conexión a Internet"
       reload: "Recargar página"

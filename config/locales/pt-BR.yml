@@ -222,6 +222,12 @@ pt-BR:
       id: "ID"
       name: "Name"
       updated_at: "Updated at"
+    home:
+      added_recently: "Added recently"
+      because_you_liked: "Because you liked %{title}"
+      because_you_watched: "Because you watched %{title}"
+      categories: "Categories"
+      continue_watching: "Continue watching"
     offline_indicator:
       no_internet: "No internet connection"
       reload: "Reload page"
