@@ -5,7 +5,7 @@
       <c-spinner />
     </div>
     <div v-else>
-      <div class="content-overview" :data-content-id="contentData.content.id">
+      <div class="content-overview" :data-content-id="contentData.content.id" :data-content-type="contentData.content.content_type === 'MOVIE' ? 'movie' : 'tvshow'">
         <div class="banner-wrapper" />
 
 
