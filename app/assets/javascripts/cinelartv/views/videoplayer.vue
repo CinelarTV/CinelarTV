@@ -4,7 +4,7 @@
       <video ref="videoPlayerRef" id="ctv-player" controls preload="auto"
         class="video-js vjs-default-skin vjs-big-play-centered relative">
       </video>
-      <div class="ctv-overlay" ref="vplayerOverlay" @click="handleOverlayClick">
+      <div class="ctv-overlay" ref="vplayerOverlay" @click="handleOverlayClick" @dblclick="toggleFullscreen">
         <section class="back-button">
           <router-link :to="`/contents/${data.content.id}`" class="button c-button">
             <c-icon icon="chevron-left" />
@@ -303,6 +303,16 @@ onBeforeUnmount(() => {
 const handleOverlayClick = (e) => {
   if (e.target === vplayerOverlay.value) {
     togglePlayPause();
+  }
+};
+
+const toggleFullscreen = (e) => {
+  if (e.target === vplayerOverlay.value) {
+    if (videoPlayer.value.isFullscreen()) {
+      videoPlayer.value.exitFullscreen();
+    } else {
+      videoPlayer.value.requestFullscreen();
+    }
   }
 };
 

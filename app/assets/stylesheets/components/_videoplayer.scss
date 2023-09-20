@@ -95,12 +95,13 @@ body.video-player #c-progress {
     font-weight: 600;
 }
 .ctv-overlay .video-info {
-    @apply text-center;
+    @apply text-center select-none;
     .video-episode {
         font-size: 14px;
         font-weight: 600;
-        margin-bottom: 10px;
+        margin-top: 16px;
         opacity: 0.8 
+
    }
 }
 .overlay--hidden {
