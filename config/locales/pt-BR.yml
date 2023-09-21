@@ -228,6 +228,7 @@ pt-BR:
       because_you_watched: "Because you watched %{title}"
       categories: "Categories"
       continue_watching: "Continue watching"
+      top_10_content_by_country: "Top 10 on %{country}"
     offline_indicator:
       no_internet: "No internet connection"
       reload: "Reload page"

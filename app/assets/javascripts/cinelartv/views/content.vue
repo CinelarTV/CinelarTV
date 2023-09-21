@@ -127,8 +127,8 @@ const getContent = async () => {
   } catch (error) {
     console.error(error)
     if (error.response.status === 404) {
-      // Redirige a la página de "no encontrado" si el contenido no se encuentra
-      router.replace({ name: 'application.not-found', replace: true })
+      // Redirige a la página de "no encontrado" si el contenido no se encuentra, pero sin cambiar la URL
+      router.replace({ name: 'application.not-found' })
     }
   }
 }

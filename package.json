@@ -48,6 +48,7 @@
     "vanilla-jsoneditor": "^0.18.3",
     "video.js": "^8.5.2",
     "vue": "^3.3.4",
+    "vue-final-modal": "^4.4.5",
     "vue-loader": "^17.2.2",
     "vue-meta": "3.0.0-alpha.10",
     "vue-router": "4",

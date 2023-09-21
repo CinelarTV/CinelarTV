@@ -13,6 +13,37 @@ class PlayerController < ApplicationController
     profile = Profile.find_by(id: session[:current_profile_id])
     continue_watching = create_or_find_continue_watching(profile)
 
+    reproduction = Reproduction.new(
+      profile_id: profile.id,
+      content_id: @content.id,
+      played_at: Time.now,
+    )
+
+    ip_address = nil
+
+    if Rails.env.production?
+      ip_address = request.remote_ip
+    else
+      begin
+        ip_address = Net::HTTP.get(URI.parse("http://checkip.amazonaws.com/")).squish
+      rescue StandardError => e
+        Rails.logger.error "Error fetching IP address: #{e.message}"
+      end
+    end
+
+    if ip_address.present?
+      Rails.logger.info "IP address: #{ip_address}"
+      reproduction.set_country_code(ip_address)
+    else
+      Rails.logger.warn "No IP address available, country code not set"
+    end
+
+    begin
+      reproduction.save if request.format.json?
+    rescue StandardError => e
+      Rails.logger.error "Error saving reproduction: #{e.message}"
+    end
+
     respond_to do |format|
       format.html
       format.json { render_json_response(continue_watching) }

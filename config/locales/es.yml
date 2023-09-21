@@ -228,6 +228,7 @@ es:
       because_you_watched: "Porque viste %{title}"
       categories: "Categorías"
       continue_watching: "Continuar viendo"
+      top_10_content_by_country: "Los 10 mejores en %{country}"
     offline_indicator:
       no_internet: "Sin conexión a Internet"
       reload: "Recargar página"

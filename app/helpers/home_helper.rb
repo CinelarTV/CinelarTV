@@ -127,6 +127,33 @@ module HomeHelper
           }
         )
       end
+
+      ip_address = nil
+
+      if Rails.env.production?
+        ip_address = request.remote_ip
+      else
+        begin
+          ip_address = Net::HTTP.get(URI.parse("http://checkip.amazonaws.com/")).squish
+        rescue StandardError => e
+          Rails.logger.error "Error fetching IP address: #{e.message}"
+        end
+      end
+
+      if ip_address.present?
+        IpInfo.lookup(ip_address).tap do |ip_info|
+          if CinelarTV.cache.read("top_10_content_#{ip_info[:country_code]}").present?
+            # Merge the top 10 content by country with the homepage data
+            @homepage_data[:content].insert(
+              1,
+              {
+                title: I18n.t("js.home.top_10_content_by_country", country: ip_info[:country]),
+                content: CinelarTV.cache.read("top_10_content_#{ip_info[:country_code]}"),
+              }
+            )
+          end
+        end
+      end
     end
   end
 end

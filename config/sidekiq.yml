@@ -6,3 +6,8 @@
       class: LicenseValidationJob
       queue: 'default'
       description: 'Verify if the license for this CinelarTV instance is valid'
+    get_top_10_for_country:
+      every: '1h'
+      class: Top10ContentJob
+      queue: 'default'
+      description: 'Get the top 10 movies for each country'

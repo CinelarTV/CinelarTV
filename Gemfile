@@ -131,3 +131,6 @@ gem "wdm", ">= 0.1.0", platforms: %i[mingw mswin x64_mingw jruby]
 gem "sidekiq" # To run background jobs
 # gem 'mini_scheduler' # To schedule background jobs
 gem "sidekiq-scheduler"
+
+gem "maxminddb" # To get user's location
+gem "countries" # To get Countries information

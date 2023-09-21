@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_21_163321) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -35,7 +35,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "trailer_url"
-    t.boolean "available", default: true
+    t.boolean "available"
   end
 
   create_table "continue_watchings", force: :cascade do |t|
@@ -61,7 +61,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
     t.json "metadata"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["slug"], name: "index_custom_pages_on_slug", unique: true
   end
 
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -105,6 +104,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_profiles_on_user_id"
+  end
+
+  create_table "reproductions", force: :cascade do |t|
+    t.uuid "profile_id", null: false
+    t.uuid "content_id", null: false
+    t.datetime "played_at", null: false
+    t.string "country_code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_reproductions_on_content_id"
+    t.index ["profile_id"], name: "index_reproductions_on_profile_id"
   end
 
   create_table "roles", force: :cascade do |t|
@@ -225,5 +235,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_19_155412) do
   add_foreign_key "likes", "profiles"
   add_foreign_key "preferences", "profiles"
   add_foreign_key "profiles", "users"
+  add_foreign_key "reproductions", "contents"
+  add_foreign_key "reproductions", "profiles"
   add_foreign_key "seasons", "contents"
 end
