@@ -224,8 +224,9 @@ const addSeason = () => {
 };
 
 const editSeasonEpisodes = (id) => {
-    episodeManagerModalRef.value.setSeasonId(id);
-    episodeManagerModalRef.value.setIsOpen(true);
+    router.push({
+        path: `/admin/content-manager/${contentId}/seasons/${id}/episodes`
+    });
 };
 
 onMounted(() => {

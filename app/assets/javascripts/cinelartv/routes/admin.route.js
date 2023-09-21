@@ -61,6 +61,14 @@ const AdminRoutes = {
                         requireAdmin: true
                     }
                 },
+                {
+                    name: 'admin.content.manager.manage-episodes',
+                    path: ':contentId/seasons/:seasonId/episodes',
+                    component: () => import('../views/admin/content-manager/episode-manager.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
+                }
             ]
         },
         {
