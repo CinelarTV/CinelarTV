@@ -48,6 +48,8 @@ const ICON_MAP = [
     "code2",
     "cpu",
     "rocket",
+    "trash2",
+    "pencil",
 ];
 
 

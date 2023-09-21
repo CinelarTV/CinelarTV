@@ -5,7 +5,16 @@
         </div>
 
     </div>
-    <div v-else> 
+    <div v-else class="mt-4"> 
+        <div class="flex">
+            
+            <c-button @click="backToEditor" icon="chevron-left">
+                Regresar
+            </c-button>
+            <c-button class="ml-auto" @click="createEpisode" icon="plus">
+                Add
+            </c-button>
+        </div>
         <draggable tag="div" v-model="episodeList" class="episode-manager-list" handle=".handle" :group="episodeGroup"
             ghost-class="opacity-50" @start="reorderingEpisodes = true" @end="reorderingEpisodes = false">
             <template #item="{ element, index }">
@@ -21,12 +30,10 @@
                         </p>
                     </div>
                     <div class="episode-actions">
-                        <c-button @click="editEpisode(element)">
-                            <EditIcon class="icon" :size="18" />
+                        <c-button @click="editEpisode(element)" icon="pencil">
                             Edit
                         </c-button>
-                        <c-button class="ml-2" @click="deleteEpisode(element)">
-                            <Trash2Icon class="icon" :size="18" />
+                        <c-button class="ml-2" @click="deleteEpisode(element)" icon="trash2">
                             Delete
                         </c-button>
                     </div>
@@ -34,15 +41,6 @@
             </template>
         </draggable>
 
-
-        <div class="flex">
-            <c-button class="ml-auto" @click="setIsOpen(false)" icon="x">
-                Close
-            </c-button>
-            <c-button class="ml-2" @click="createEpisode" icon="plus">
-                Add
-            </c-button>
-        </div>
         <create-episode-modal ref="episodeModalRef" :season-id="route.params.seasonId" @episode-created="getEpisodeList()"
             :content-id="route.params.contentId" />
 
@@ -51,7 +49,7 @@
 
 <script setup>
 import { ref, defineProps, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import draggable from 'vuedraggable'
 import { toast } from 'vue3-toastify';
 import createEpisodeModal from '../../../components/modals/create-episode.modal.vue';
@@ -63,6 +61,7 @@ const reorderingEpisodes = ref(false)
 const episodeModalRef = ref()
 
 const route = useRoute()
+const router = useRouter()
 
 watch(reorderingEpisodes, async (value) => {
     if (value === false) {
@@ -94,6 +93,12 @@ const reorderEpisodes = async () => {
         toast.error('Error al guardar el orden de episodios: ' + error.error);
     }
 };
+
+const backToEditor = () => {
+    router.push({
+        path: `/admin/content-manager/${route.params.contentId}/edit`
+    })
+}
 
 
 
