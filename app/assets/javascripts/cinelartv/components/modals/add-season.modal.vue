@@ -56,6 +56,7 @@ import { toast } from 'vue3-toastify';
 import { ajax } from '../../lib/axios-setup';
 
 const SiteSettings = inject('SiteSettings');
+const i18n = inject('I18n');
 
 const emit = defineEmits(['season-created'])
 
@@ -104,11 +105,11 @@ const submitCreateSeason = (e) => {
 
     ajax.post(`/admin/content-manager/${props.content.id}/seasons`, data)
         .then(response => {
-            toast.success('Season created successfully')
+            toast.success(i18n.t('js.admin.content_manager.season_created'))
             emit('season-created', response)
         })
         .catch(error => {
-            toast.error('An error ocurred while creating the season')
+            toast.error(i18n.t('js.admin.content_manager.season_created_error', { error: error.message }))
             console.log(error)
         })
         .finally(() => {

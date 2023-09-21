@@ -124,6 +124,7 @@ import { ajax } from '../../../lib/axios-setup';
 import { Switch } from '@headlessui/vue';
 
 const SiteSettings = inject('SiteSettings');
+const i18n = inject('I18n');
 
 const route = useRoute();
 const router = useRouter();
@@ -166,11 +167,11 @@ const saveSeasonsOrder = async () => {
         const response = await ajax.put(`/admin/content-manager/${contentId}/reorder-seasons.json`, {
             season_order: content.value.seasons.map((season) => season.id)
         });
-        toast.success('Orden de temporadas guardado con éxito.');
+        toast.success(i18n.t('admin.content_manager.season.reorder_success'));
         await fetchContent();
     } catch (error) {
         console.log(error);
-        toast.error('Error al guardar el orden de temporadas: ' + error.error);
+        toast.error(i18n.t('admin.content_manager.season.reorder_error', { error: error.error }));
     }
 };
 
