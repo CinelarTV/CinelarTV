@@ -106,8 +106,6 @@
         </div>
         <add-season-modal v-if="content.content_type === 'TVSHOW'" :content="content" ref="addSeasonModalRef"
             @season-created="fetchContent" />
-        <EpisodeManagerModal v-if="content.content_type === 'TVSHOW'" :content="content" ref="episodeManagerModalRef"
-            :seasonId="selectedSeason" />
     </div>
 </template>
   
@@ -118,7 +116,6 @@ import { onMounted, ref, inject, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
-import EpisodeManagerModal from '../../../components/modals/episode-manager.modal.vue';
 import draggable from 'vuedraggable';
 import { ajax } from '../../../lib/axios-setup';
 import { Switch } from '@headlessui/vue';
@@ -132,20 +129,17 @@ const contentId = route.params.id;
 const loading = ref(true);
 const content = ref({});
 const addSeasonModalRef = ref();
-const episodeManagerModalRef = ref();
 const reorderingSeasons = ref(false);
 const contentTypes = ref([
     { value: 'MOVIE', label: 'Movie' },
     { value: 'TVSHOW', label: 'Serie' }
 ]);
 const loadingButton = ref(false);
-const selectedSeason = ref('');
 
 const fetchContent = async () => {
     try {
         const response = await ajax.get(`/admin/content-manager/${contentId}.json`);
         content.value = response.data.data;
-        // Exclude banner and cover from editedData
         editedData.value = Object.fromEntries(Object.entries(content.value).filter(([key, value]) => !['banner', 'cover'].includes(key)));
     } catch (error) {
         console.log(error);
@@ -232,7 +226,6 @@ const editSeasonEpisodes = (id) => {
 
 onMounted(() => {
     fetchContent();
-    console.log(episodeManagerModalRef);
 });
 </script>
   
