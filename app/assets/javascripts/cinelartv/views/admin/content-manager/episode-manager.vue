@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, watch, onMounted } from 'vue';
+import { ref, defineProps, watch, onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import draggable from 'vuedraggable'
 import { toast } from 'vue3-toastify';
@@ -62,6 +62,7 @@ const episodeModalRef = ref()
 
 const route = useRoute()
 const router = useRouter()
+const i18n = inject('I18n')
 
 watch(reorderingEpisodes, async (value) => {
     if (value === false) {
@@ -86,11 +87,11 @@ const reorderEpisodes = async () => {
         const response = await ajax.put(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/reorder-episodes.json`, {
             episode_order: episodeList.value.map((episode) => episode.id)
         });
-        toast.success('Orden de episodios guardado con éxito.');
+        toast.success(i18n.t('admin.content_manager.episode_manager.reorder_success'));
         await getEpisodeList();
     } catch (error) {
         console.log(error);
-        toast.error('Error al guardar el orden de episodios: ' + error.error);
+        toast.error(i18n.t('admin.content_manager.episode_manager.reorder_error', { error: error.message }));
     }
 };
 
