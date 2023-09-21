@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
+  include JsonError
+
   before_action :reload_storage_config
   before_action :require_finish_installation?
 
@@ -48,6 +50,27 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in? && session[:current_profile_id].present?
 
     @current_profile ||= current_user.profiles.find_by(id: session[:current_profile_id])
+  end
+
+  rescue_from CinelarTV::NotFound do |e|
+    rescue_actions(
+      :not_found,
+      e.status,
+      original_path: e.original_path,
+      custom_message: e.custom_message,
+    )
+  end
+
+  def rescue_actions(type, status_code, opts = nil)
+    opts ||= {}
+    show_json_errors =
+      (request.format && request.format.json?) || (request.xhr?)
+
+    if show_json_errors
+      render json: create_errors_json(type, opts), status: status_code
+    else
+      render "exceptions/#{status_code}", status: status_code, layout: "application"
+    end
   end
 
   helper_method :current_profile

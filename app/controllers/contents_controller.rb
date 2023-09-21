@@ -25,24 +25,22 @@ class ContentsController < ApplicationController
   def show
     @content = Content.find_by(id: params[:id])
 
-    if @content
-      @data = {
-        content: @content.as_json(except: %i[created_at updated_at url available]),
-        liked: current_profile&.liked_contents&.include?(@content),
-        related_content: @content.similar_items.as_json(only: %i[id title description banner]),
-      }
+    raise CinelarTV::NotFound unless @content
 
-      @data[:content][:available] = available?
+    @data = {
+      content: @content.as_json(except: %i[created_at updated_at url available]),
+      liked: current_profile&.liked_contents&.include?(@content),
+      related_content: @content.similar_items.as_json(only: %i[id title description banner]),
+    }
 
-      handle_seasons_and_episodes if @content.content_type == "TVSHOW"
-      handle_continue_watching if @content.content_type == "MOVIE"
+    @data[:content][:available] = available?
 
-      respond_to do |format|
-        format.html
-        format.json { render json: @data }
-      end
-    else
-      handle_not_found
+    handle_seasons_and_episodes if @content.content_type == "TVSHOW"
+    handle_continue_watching if @content.content_type == "MOVIE"
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @data }
     end
   end
 
@@ -84,12 +82,5 @@ class ContentsController < ApplicationController
 
     @data[:content][:most_recent_watched_episode] = most_recent_watched_episode.as_json(only: %i[episode_id progress duration]) if most_recent_watched_episode.present?
     @data[:content][:continue_watching] = continue_watching.as_json(only: %i[progress duration]) if continue_watching.present?
-  end
-
-  def handle_not_found
-    respond_to do |format|
-      format.html
-      format.json { head :not_found }
-    end
   end
 end
