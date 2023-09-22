@@ -21,6 +21,7 @@
             </RouterLink>
           </div>
         </section>
+        <img :src="data.banner" class="blurred-shadow" :alt="data.title" />
       </article>
     </li>
   </template>

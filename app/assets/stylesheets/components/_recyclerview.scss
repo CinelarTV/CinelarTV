@@ -23,15 +23,26 @@
     grid-template-columns: repeat(2, calc(var(--ctv-carousel-column-margin) - var(--ctv-carousel-column-gap)));
     grid-template-rows: 1fr;
     justify-content: space-between;
-    overflow: hidden;
+    align-items: center;
 }
+
+.recyclerview:before,
+.recyclerview:after {
+    content: ".";    
+    display: block;    
+    height: 0;    
+    overflow: hidden; 
+}
+
+.recyclerview:after { clear: both; }
+
 
 .recyclerview > ul {
     grid-column-start: left-start;
     grid-column-end: right-end;
     grid-row: 1;
     z-index: 1;
-    align-items: flex-start;
+    align-items: center;
     display: flex;
     flex-direction: row;
     -webkit-scroll-snap-type: x proximity;
@@ -41,7 +52,6 @@
     -ms-overflow-style: none;
     list-style: none;
     overflow-x: scroll;
-    align-items: flex-start;
     display: flex;
     flex-direction: row;
     -webkit-scroll-snap-type: x proximity;
@@ -50,6 +60,7 @@
     padding: 0 var(--ctv-carousel-column-margin);
     scroll-behavior: smooth;
     scrollbar-width: none;
+    height: 140%;
 }
 
 .recyclerview > ul::-webkit-scrollbar {
@@ -61,13 +72,33 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    height: 100%;
 }
 
 .recyclerview-card-article {
     --ctv-packshot-width: calc((var(--ctv-screen-width) - var(--ctv-carousel-column-margin)*2 - var(--ctv-carousel-column-gap)*var(--ctv-card-gap-number))/var(--ctv-card-number)*1);
     display: flex;
+    position: relative;
     flex-direction: column;
     width: var(--ctv-packshot-width);
+
+
+    .blurred-shadow {
+        position: absolute;
+        bottom: -10px;
+        filter: blur(10px);
+        opacity: 0;
+        z-index: -1;
+        transition: opacity 0.3s ease;
+    }
+
+    
+}
+
+.recyclerview-card-article:hover, .recyclerview-card-article:focus {
+    .blurred-shadow {
+        opacity: 1;
+    }
 }
 
 .content-item {
@@ -91,15 +122,24 @@ li.content-item {
 }
 
 .recyclerview-card-article__element {
-    scale: 1;
-    @apply transition-all;
-    transition-duration: 0.2s;
-    transition-delay: 0.3s;
     position: relative;
 }
 
-.recyclerview-card-article__element:hover {
+.content-item {
+    scale: 1;
+    @apply transition-all;
+    transition-duration: 0.2s;
+    border-radius: 8px;
+}
+
+.content-item:hover {
     scale: 1.05;
+    @apply border-2 border-white border-solid;
+}
+
+.content-item:focus {
+    scale: 1.05;
+    @apply border-2 border-white border-solid;
 }
 
 .recyclerview-card-article__image img {
