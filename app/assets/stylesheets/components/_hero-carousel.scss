@@ -215,7 +215,6 @@
     display: flex;
     justify-content: center;
     @apply bottom-5;
-
 }
 
 .carousel-indicators>li {
@@ -226,11 +225,16 @@
     height: 8px;
     list-style: none;
     width: 8px;
-
+    transition: all .3s ease;
+    transform: scale(0.8);
 }
 
 .carousel-indicators>li.active {
     background: white;
+    width: 40px;
+    border-radius: 16px;
+    height: 8px;
+    @apply my-auto;
 }
 
 .carousel-indicators>li::marker {
