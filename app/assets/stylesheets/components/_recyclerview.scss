@@ -95,7 +95,7 @@
     
 }
 
-.recyclerview-card-article:hover, .recyclerview-card-article:focus {
+.recyclerview-card-article:hover {
     .blurred-shadow {
         opacity: 1;
     }
@@ -130,7 +130,13 @@ li.content-item {
     @apply transition-all;
     transition-duration: 0.2s;
     border-radius: 8px;
+
+    .expanded-info {
+        background-color: black;
+        color: white;
+    }    
 }
+
 
 .content-item:hover {
     scale: 1.05;
@@ -140,6 +146,12 @@ li.content-item {
 .content-item:focus {
     scale: 1.05;
     @apply border-2 border-white border-solid;
+
+    .recyclerview-card-article {
+        .blurred-shadow {
+            opacity: 1;
+        }
+    }
 }
 
 .recyclerview-card-article__image img {

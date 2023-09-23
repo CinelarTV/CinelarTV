@@ -27,6 +27,10 @@ html, body {
   @apply h-full;
 }
 
+*:focus {
+  outline: none;
+}
+
 #cinelartv, #mountpoint, #profile-selector {
   @apply h-full
 }
