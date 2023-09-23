@@ -45,6 +45,7 @@ en:
       dashboard:
         statistics:
           likes: "Likes"
+          reproductions: "Reproductions"
           signups: "Signups"
           user_subscriptions: "User subscriptions"
       nav:

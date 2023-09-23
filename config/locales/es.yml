@@ -45,6 +45,7 @@ es:
       dashboard:
         statistics:
           likes: "Me gusta"
+          reproductions: "Reproducciones"
           signups: "Registros"
           user_subscriptions: "Suscripciones de usuarios"
       nav:

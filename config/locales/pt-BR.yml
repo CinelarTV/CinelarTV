@@ -45,6 +45,7 @@ pt-BR:
       dashboard:
         statistics:
           likes: "Curtidas"
+          reproductions: "Reproductions"
           signups: "Signups"
           user_subscriptions: "Assinaturas do usuário"
       nav:
