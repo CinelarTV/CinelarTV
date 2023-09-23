@@ -34,7 +34,7 @@ const userLinks = [
         icon: 'credit-card',
         title: i18n.t('js.user.nav.subscriptions'),
         to: '/account/billing',
-        enabled: SiteSettings.enable_subscription || false, // Subscriptions are only available if subscriptions are enabled
+        enabled: SiteSettings.enable_subscription || false, // Subscriptions tab is enabled only if subscriptions are enabled
     },
     {
         title: i18n.t('js.user.nav.settings'),
