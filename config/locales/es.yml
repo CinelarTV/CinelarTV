@@ -238,9 +238,10 @@ es:
       no_internet: "Sin conexión a Internet"
       reload: "Recargar página"
     user:
-      added_to_favorites: "Añadido a favoritos"
-      already_in_favorites: "Ya está en favoritos"
-      removed_from_favorites: "Eliminado de favoritos"
+      nav:
+        dashboard: "Panel de control"
+        settings: "Preferencias"
+        subscriptions: "Subscriptions"
     video_player:
       back: "Volver"
       next_episode: "Siguiente episodio"

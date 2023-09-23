@@ -238,9 +238,10 @@ en:
       no_internet: "No internet connection"
       reload: "Reload page"
     user:
-      added_to_favorites: "Added to favorites"
-      already_in_favorites: "Already in favorites"
-      removed_from_favorites: "Removed from favorites"
+      nav:
+        dashboard: "Dashboard"
+        settings: "Settings"
+        subscriptions: "Subscriptions"
     video_player:
       back: "Back"
       next_episode: "Next episode"
