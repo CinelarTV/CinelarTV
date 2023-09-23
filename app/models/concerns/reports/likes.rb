@@ -18,13 +18,14 @@ module Reports
         # Initialize the data hash with all dates in the range and zero likes
         date_range.each { |date| likes_data[date] = 0 }
 
-        # Fetch and group likes data from the Content model
-        Content
-          .joins(:liking_profiles)
-          .where("contents.created_at >= ? AND contents.created_at <= ?", report.start_date, report.end_date)
-          .group("DATE(contents.created_at)")
-          .count
-          .each { |date, count| likes_data[date.to_date] = count }
+        # Fetch and group likes
+        ActiveRecord::Base.connection.execute("
+  SELECT DATE(updated_at) AS date, COUNT(*) AS count
+  FROM likes
+  WHERE updated_at >= '#{report.start_date}' AND updated_at <= '#{report.end_date}'
+  GROUP BY DATE(updated_at)
+  ORDER BY date
+").each { |row| likes_data[row["date"].to_date] = row["count"] }
 
         # Convert the hash to an array of objects with x and y properties
         likes_data_array = likes_data.map { |date, count| { x: date.to_s, y: count } }
