@@ -27,7 +27,7 @@ const i18n = inject('I18n');
 const currentUser = inject('currentUser');
 
 const fetchBillingData = async () => {
-    const { data } = await ajax.get('/user/billing.json');
+    const { data } = await ajax.get('/account/billing.json');
     return data.data
 };
 
