@@ -13,7 +13,7 @@
           <span class="text-base px-4">
             Conoce las novedades de esta versión
           </span>
-          <a href="https://forum.cinelartv.com/c/releases" target="_blank" rel="noopener noreferrer">
+          <a href="https://foro-cinelar.yanquisalexander.me/tag/release-notes" target="_blank" rel="noopener noreferrer">
             <c-button class="bg-black bg-opacity-60 mt-4" icon="arrow-right">Novedades</c-button>
           </a>
         </div>
