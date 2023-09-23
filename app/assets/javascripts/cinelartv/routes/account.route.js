@@ -5,6 +5,14 @@ let AccountRoute = {
     component: () => import(/* webpackChunkName: "account" */ '../views/account/index.vue'),
     children: [
         {
+            name: 'account.dashboard',
+            path: 'dashboard',
+            component: () => import(/* webpackChunkName: "account" */ '../views/account/dashboard.vue'),
+            meta: {
+                requireAuth: true
+            }
+        },
+        {
             name: 'account.billing',
             path: 'billing',
             component: () => import(/* webpackChunkName: "account" */ '../views/account/billing.vue'),

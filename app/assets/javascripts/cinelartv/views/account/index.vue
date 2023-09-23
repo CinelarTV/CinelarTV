@@ -27,6 +27,7 @@ const currentUser = inject('currentUser');
 
 const userLinks = [
     {
+        icon: 'layout-grid',
         title: i18n.t('js.user.nav.dashboard'),
         to: '/account/dashboard',
     },
@@ -37,6 +38,7 @@ const userLinks = [
         enabled: SiteSettings.enable_subscription || false, // Subscriptions tab is enabled only if subscriptions are enabled
     },
     {
+        icon: 'settings',
         title: i18n.t('js.user.nav.settings'),
         to: '/account/settings',
     },

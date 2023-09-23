@@ -50,6 +50,7 @@ const ICON_MAP = [
     "rocket",
     "trash2",
     "pencil",
+    "layoutGrid",
 ];
 
 
