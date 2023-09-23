@@ -14,16 +14,15 @@ module ApplicationHelper
 
     @current_user = current_user
     @current_profile = current_profile
-    puts "current_profile: #{@current_profile}"
     user_with_profile = @current_user.as_json(include: {
                                                 profiles: {
-                                                  include: :preferences
-                                                }
+                                                  include: :preferences,
+                                                },
                                               })
 
     if @current_user
       user_with_profile = user_with_profile.merge({
-                                                    admin: @current_user.has_role?(:admin)
+                                                    admin: @current_user.has_role?(:admin),
                                                   })
     end
 
@@ -36,7 +35,7 @@ module ApplicationHelper
     @preloaded_json = {
       SiteSettings: exposed_settings,
       isMobile: device == "mobile",
-      currentUser: user_with_profile
+      currentUser: user_with_profile,
     }
 
     # If path is /, we are on the homepage, so we can preload content
