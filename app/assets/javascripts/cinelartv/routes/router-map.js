@@ -1,6 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { currentUser, SiteSettings } from '../pre-initializers/essentials-preload'
-import { success } from 'high-console'
 import CinelarTV from '../application'
 
 function loadRoutes() {
@@ -99,7 +98,9 @@ AppRouter.afterEach((to, from) => {
 
 AppRouter.onError((err) => {
     if (/loading chunk \d* failed./i.test(err.message)) {
-        alert('Failed to load chunk. Please reload the page.')
+        if(confirm(window.I18n.t('errors.chunk_loading_error'))) {
+            window.location.reload()
+        }
     }
 })
 
