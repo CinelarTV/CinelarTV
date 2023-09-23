@@ -7,4 +7,10 @@ class Episode < ApplicationRecord
 
   validates :title, presence: true
   validates :description, presence: true
+
+  before_destroy :destroy_video_sources
+
+  def destroy_video_sources
+    video_sources.destroy_all
+  end
 end
