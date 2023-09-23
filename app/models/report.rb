@@ -8,6 +8,7 @@ class Report
   include Reports::Likes
   include Reports::Signups
   include Reports::UserSubscriptions
+  include Reports::Reproductions
 
   attr_accessor :type, :data, :start_date, :end_date, :labels, :filters, :available_filters, :icon, :title
 
@@ -34,7 +35,7 @@ class Report
   def default_labels
     [
       { type: :date, property: :x, title: I18n.t("reports.default.labels.day") },
-      { type: :number, property: :y, title: I18n.t("reports.default.labels.count") }
+      { type: :number, property: :y, title: I18n.t("reports.default.labels.count") },
     ]
   end
 
@@ -46,7 +47,7 @@ class Report
       filters:,
       available_filters:,
       icon:,
-      title:
+      title:,
     }
   end
 
