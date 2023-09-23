@@ -61,6 +61,9 @@ en:
         additonal_player_settings:
           description: "Provides a way to add additional settings to the player. This can be useful if you want to extend the functionality of the player. API Documentation: <a href='https://videojs.com/guides/options/' target='_blank'>https://videojs.com/guides/options/</a>"
           title: "Additonal player settings"
+        allow_admin_to_create_users:
+          description: "Allows the admin to create users from the admin panel"
+          title: "Allow admin to create users"
         allow_registration:
           description: "Allows users to register on the site"
           title: "Allow registration"
@@ -84,6 +87,7 @@ en:
           general: "General"
           monetization: "Monetization"
           player: "Player"
+          security: "Security"
           storage: "Storage"
         cdn_enabled:
           description: "Enables the CDN, this will be used to serve the media files of your site"

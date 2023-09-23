@@ -61,6 +61,9 @@ pt-BR:
         additonal_player_settings:
           description: "Provides a way to add additional settings to the player. This can be useful if you want to extend the functionality of the player. API Documentation: <a href='https://videojs.com/guides/options/' target='_blank'>https://videojs.com/guides/options/</a>"
           title: "Additonal player settings"
+        allow_admin_to_create_users:
+          description: "Allows the admin to create users from the admin panel"
+          title: "Allow admin to create users"
         allow_registration:
           description: "Allows users to register on the site"
           title: "Allow registration"
@@ -77,13 +80,14 @@ pt-BR:
           description: "The color of the text of the application"
           title: "Body text color"
         categories:
-          content: "Content"
+          content: "Conteúdo"
           customization: "Customization"
           developer: "Developer"
           experimental: "Experimental"
           general: "General"
           monetization: "Monetization"
           player: "Player"
+          security: "Security"
           storage: "Storage"
         cdn_enabled:
           description: "Enables the CDN, this will be used to serve the media files of your site"
@@ -184,7 +188,7 @@ pt-BR:
         s3_secret_access_key:
           description: "The secret access key of your S3 account"
           title: "S3 secret access key"
-        save: "Save"
+        save: "Salvar"
         secondary_color:
           description: "Used for some buttons and links"
           title: "Secondary color"
@@ -211,23 +215,23 @@ pt-BR:
           title: "Tertiary color"
         title: "Site settings"
         tmdb_api_key:
-          description: "The API key of your TMDB account, you can get it <a href='https://www.themoviedb.org/settings/api' target='_blank'>here</a>"
-          title: "TMDB API key"
+          description: "A chave de API da sua conta TMDB, você pode obtê-la aqui <a href='https://www.themoviedb.org/settings/api' target='_blank'> </a>"
+          title: "Chave de API TMDB"
       updater:
         ready_description: "O CinelarTV é um software que está sendo atualizado constantemente, e lembramos que talvez você queira estar na vanguarda, por isso implementamos esse recurso experimental para torná-lo tão simples quanto pressionar um botão."
         ready_title: "¿Pronto para atualização?"
     common:
-      actions: "Actions"
-      created_at: "Created at"
+      actions: "Ações"
+      created_at: "Criado em"
       email: "Email"
       id: "ID"
       name: "Name"
-      updated_at: "Updated at"
+      updated_at: "Atualizado em"
     home:
       added_recently: "Added recently"
       because_you_liked: "Because you liked %{title}"
       because_you_watched: "Because you watched %{title}"
-      categories: "Categories"
+      categories: "Categorias"
       continue_watching: "Continue watching"
       top_10_content_by_country: "Top 10 on %{country}"
     offline_indicator:
@@ -249,10 +253,10 @@ pt-BR:
         description: "Introduce your license key to enable Commercial features"
         title: "License"
       site_info:
-        description: "This information will be used to configure your site"
+        description: "Essas informações serão usadas para configurar seu site"
         fields:
           default_locale:
-            description: "The default language of your site"
+            description: "O idioma padrão do seu site"
             title: "Default language"
           site_description:
             description: "A short description of your site, as it will appear in the description meta tag of the browser"
@@ -266,15 +270,15 @@ pt-BR:
     saved_successfully: "Settings saved successfully"
   wizard:
     site_info:
-      description: "This information will be used to configure your site"
+      description: "Essas informações serão usadas para configurar seu site"
       fields:
         default_locale:
-          description: "The default language of your site"
-          title: "Default language"
+          description: "O idioma padrão do seu site"
+          title: "Idioma predefinido"
         site_description:
-          description: "A short description of your site, as it will appear in the description meta tag of the browser"
-          title: "Site description"
+          description: "Uma breve descrição do seu site, conforme aparecerá na meta tag de descrição do navegador"
+          title: "Descrição do site"
         site_name:
-          description: "The name of your site, as it will appear in the title bar of the browser"
-          title: "Site name"
-      title: "Site info"
+          description: "O nome do seu site, conforme aparecerá na barra de título do navegador"
+          title: "Nome do site"
+      title: "Informações do site"

@@ -60,6 +60,13 @@ general:
     refresh: false
     default: true
     type: 'boolean'
+security:
+  allow_admin_to_create_users:
+    client: true
+    refresh: true
+    default: false
+    hidden: true
+    type: 'boolean'  
 content:
   enable_metadata_recommendation:
     client: true

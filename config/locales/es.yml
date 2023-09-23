@@ -61,6 +61,9 @@ es:
         additonal_player_settings:
           description: "Proporciona una forma de añadir ajustes adicionales al reproductor. Esto puede resultar útil si desea ampliar la funcionalidad del reproductor. Documentación de la API: <a href='https://videojs.com/guides/options/' target='_blank'> https://videojs.com/guides/options/ </a>"
           title: "Ajustes adicionales del reproductor"
+        allow_admin_to_create_users:
+          description: "Permite al administrador crear usuarios desde el panel de administración"
+          title: "Permitir que el administrador cree usuarios"
         allow_registration:
           description: "Permite a los usuarios registrarse en el sitio"
           title: "¿Permitir el registro?"
@@ -84,6 +87,7 @@ es:
           general: "General"
           monetization: "Monetización"
           player: "Reproductor"
+          security: "Seguridad"
           storage: "Almacenamiento"
         cdn_enabled:
           description: "Activa la CDN, que se utilizará para servir los archivos multimedia de su sitio"
