@@ -115,5 +115,18 @@ const getEpisodeList = async () => {
     }
 };
 
+const deleteEpisode = async (episode) => {
+    if(confirm(i18n.t('admin.content_manager.episode_manager.delete_confirm'))) {
+        try {
+            const response = await ajax.delete(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes/${episode.id}.json`);
+            toast.success(i18n.t('admin.content_manager.episode_manager.delete_success'));
+            await getEpisodeList();
+        } catch (error) {
+            console.log(error);
+            toast.error(i18n.t('admin.content_manager.episode_manager.delete_error', { error: error.message }));
+        }
+    }
+};
+
 
 </script>

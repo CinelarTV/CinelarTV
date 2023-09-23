@@ -26,7 +26,7 @@ module Admin
       # Render as JSON
       render json: {
         data: @search.table,
-        config: @config.as_json
+        config: @config.as_json,
       }
     rescue Tmdb::Error => e
       render json: { error: "Error occurred: #{e.message}" }, status: :unprocessable_entity
@@ -53,27 +53,29 @@ module Admin
         format.html
         format.json do
           render json: {
-            data: @contents.as_json
+            data: @contents.as_json,
           }
         end
       end
     end
 
     def show
-      @content = Content.find(params[:id])
-      @seasons = @content.seasons.order(position: :asc)
+      @content = Content.includes(:seasons, :video_sources).find(params[:id])
+      seasons_data = @content.seasons.order(position: :asc) if @content.content_type == "TVSHOW"
 
       respond_to do |format|
         format.html
         format.json do
-          render json: {
-            data: @content.as_json.merge({
-                                           seasons: @seasons.map do |s|
-                                                      { id: s.id, title: s.title, description: s.description,
-                                                        position: s.position }
-                                                    end
-                                         })
-          }
+          content_data = @content.as_json
+          content_data[:seasons] = seasons_data.map do |s|
+            { id: s.id, title: s.title, description: s.description, position: s.position }
+          end if seasons_data
+          content_data[:video_sources] = @content.video_sources.map do |vs|
+            { id: vs.id, url: vs.url, quality: vs.quality, storage_location: vs.storage_location }
+          end if @content.video_sources && @content.content_type == "MOVIE"
+          # Episodes are not included in the content data because they are loaded separately
+
+          render json: { data: content_data }
         end
       end
     end
@@ -92,9 +94,9 @@ module Admin
           render json: {
             data: {
               content: @content.as_json.merge({
-                                                like_count: @like_count
-                                              })
-            }
+                like_count: @like_count,
+              }),
+            },
           }
         end
       end
@@ -138,8 +140,8 @@ module Admin
                 episodes: @episodes.map do |e|
                   { id: e.id, title: e.title, description: e.description,
                     thumbnail: e.thumbnail || @content.banner, position: e.position }
-                end
-              }
+                end,
+              },
             }
           end
         end
@@ -177,6 +179,12 @@ module Admin
       render json: { message: "Temporadas reordenadas con éxito", status: :ok }
     end
 
+    def delete_episode
+      @episode = Episode.find(params[:episode_id])
+      @episode.destroy
+      render json: { message: "Episode deleted successfully", status: :ok }
+    end
+
     def update
       @content = Content.find(params[:id])
 
@@ -207,7 +215,7 @@ module Admin
         format.html
         format.json do
           render json: {
-            data: @contents.as_json
+            data: @contents.as_json,
           }
         end
       end

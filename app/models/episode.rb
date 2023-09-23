@@ -9,8 +9,13 @@ class Episode < ApplicationRecord
   validates :description, presence: true
 
   before_destroy :destroy_video_sources
+  before_destroy :delete_associated_continue_watching
 
   def destroy_video_sources
     video_sources.destroy_all
+  end
+
+  def delete_associated_continue_watching
+    ContinueWatching.where(episode_id: id).destroy_all
   end
 end
