@@ -45,20 +45,6 @@ module Admin
       end
     end
 
-    def random_contents
-      # Obtener los contenidos que estén disponibles y que tenga trailer_url
-      @contents = Content.where(available: true).where.not(trailer_url: nil).order("RANDOM()").limit(10)
-
-      respond_to do |format|
-        format.html
-        format.json do
-          render json: {
-            data: @contents.as_json,
-          }
-        end
-      end
-    end
-
     def show
       @content = Content.includes(:seasons, :video_sources).find(params[:id])
       seasons_data = @content.seasons.order(position: :asc) if @content.content_type == "TVSHOW"
@@ -185,13 +171,20 @@ module Admin
       render json: { message: "Episode deleted successfully", status: :ok }
     end
 
+    def update_episode
+      @episode = Episode.find(params[:episode_id])
+      @episode.update(episode_params)
+      render json: { message: "Episode updated successfully", status: :ok }
+    end
+
     def update
       @content = Content.find(params[:id])
 
       # Await the uploaded images
       handle_uploaded_images
 
-      @content.assign_attributes(content_params.except(:banner, :cover)) # Ignore banner and cover because they are processed above
+      @content.assign_attributes(content_params.except(:banner, :cover))
+      # Ignore banner and cover because they are processed above
 
       # Series can't have an url
       @content.url = nil if @content.content_type == "TVSHOW" && @content.url?
