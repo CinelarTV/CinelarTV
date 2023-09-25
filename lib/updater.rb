@@ -99,15 +99,18 @@ module CinelarTV
       run("git fetch origin test-passed")
       percent(25)
 
+      log("*** Installing Ruby Gems ***")
       run("bundle install --retry 3 --jobs 4")
 
       run("bundle config set --local without 'development test'")
 
       percent(30)
+      log("*** Installing node modules ***")
       run("yarn install --production")
 
       percent(50)
 
+      log("*** Running Database Migrations ***")
       run("rake db:migrate")
 
       percent(65)
