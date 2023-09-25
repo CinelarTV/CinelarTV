@@ -95,10 +95,11 @@ module CinelarTV
       log("")
       percent(10)
 
-      run("git pull")
+      # Fetch the latest code from the repo
+      run("git fetch origin test-passed")
       percent(25)
 
-      run("bundle install")
+      run("bundle install --retry 3 --jobs 4")
 
       run("bundle config set --local without 'development test'")
 
