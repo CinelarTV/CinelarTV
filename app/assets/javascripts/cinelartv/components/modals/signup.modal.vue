@@ -12,7 +12,7 @@
                         enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
-                            class="dialog register w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all">
+                            class="dialog register w-full max-w-md transform overflow-hidden p-6 text-left align-middle shadow-xl transition-all">
                             <div class="image-container justify-center flex pb-4">
                                 <img :src="SiteSettings.site_logo" class="modal-site-logo" />
                             </div>

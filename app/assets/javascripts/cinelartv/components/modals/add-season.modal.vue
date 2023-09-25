@@ -11,7 +11,7 @@
                         enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
-                            class="dialog create-season w-full max-w-md transform overflow-hidden rounded-2xl p-6 text-left align-middle shadow-xl transition-all">
+                            class="dialog create-season w-full max-w-md transform overflow-hidden p-6 text-left align-middle shadow-xl transition-all">
                             <!-- Your season creation form here -->
                             <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]" v-emoji>
                                 Create a New Season 🌟
