@@ -208,6 +208,17 @@ onMounted(async () => {
     bannerWrapper.classList.add('banner-loaded')
   })
 
+  // Even if the image fails to load, we still want to add the banner-loaded class to the banner wrapper
+
+  image.addEventListener('error', () => {
+    if(contentData.value.content.cover) {
+      bannerWrapper.style.backgroundImage = `url(${contentData.value.content.cover})` // Use the cover image as a fallback (if available)
+    } else {
+      bannerWrapper.style.backgroundImage = 'url(/assets/images/content_no_media.png)' // Use a placeholder image as a fallback
+    }
+    
+    bannerWrapper.classList.add('banner-loaded')
+  })
   // Configura el título y la descripción de la página para SEO
   useHead({
     title: contentData.value?.content?.title,
@@ -220,32 +231,3 @@ onMounted(async () => {
   })
 })
 </script>
-  
-  <!-- Estilos CSS (puedes personalizarlos) -->
-<style scoped>
-.banner-container {
-  position: relative;
-}
-
-.banner-image {
-  width: 100%;
-  height: calc(100vh - 16vh);
-  object-fit: cover;
-  object-position: center;
-}
-
-.banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-</style>
-  
