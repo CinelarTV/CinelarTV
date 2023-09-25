@@ -68,7 +68,7 @@ const label = computed(() => {
         leave-to-class="opacity-0"
       >
         <ListboxOptions
-          class="overflow-auto absolute z-10 py-1 mt-1 w-full max-h-60 text-base bg-[var(--c-primary-50)] rounded-md ring-1 ring-black ring-opacity-5 shadow-lg focus:outline-none sm:text-sm"
+          class="overflow-auto absolute z-10 py-1 mt-1 w-full max-h-60 text-base bg-[var(--c-primary-50)] ring-1 ring-black ring-opacity-5 shadow-lg focus:outline-none sm:text-sm"
         >
           <ListboxOption
             v-for="option in props.options"
