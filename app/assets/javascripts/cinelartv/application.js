@@ -16,6 +16,7 @@ import Vue3Progress from "vue3-progress";
 import Axios from './lib/axios-setup'
 import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
+require('./lib/register-service-worker')
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/icon-library';
 import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
