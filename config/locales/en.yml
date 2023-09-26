@@ -127,6 +127,9 @@ en:
         enable_metadata_recommendation:
           description: "Allow to fetch metadata from TheMovieDB at the moment of adding a new content, this will help you to fill the fields of the content automatically"
           title: "Enable metadata recommendation"
+        enable_plugins:
+          description: "Allows to enable plugins in <a href='/admin/plugins'>/admin/plugins</a>"
+          title: "Enable plugins"
         enable_sitemap:
           description: "Enables the sitemap, this will help search engines to index your site"
           title: "Enable sitemap"

@@ -1,6 +1,7 @@
 import { createApp } from 'vue/dist/vue.esm-bundler'
 import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
+import SafeMode from './pre-initializers/safe-mode'
 import AppRouter from './routes/router-map';
 import { createHead } from 'unhead'
 import twemoji from './plugins/twemoji'

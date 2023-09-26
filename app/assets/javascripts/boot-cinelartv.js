@@ -1,6 +1,7 @@
 import { SiteSettings, showPreloaderError } from './cinelartv/pre-initializers/essentials-preload';
 import '../builds/cinelartv-wind.css'
 import loadScript from './cinelartv/lib/load-script';
+import { SafeMode } from './cinelartv/pre-initializers/safe-mode';
 
 
 import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(module => {
@@ -15,6 +16,15 @@ import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(modul
         // Load the plugin API after CinelarTV is mounted (to ensure the global store is available)
         const PluginAPI = require('./cinelartv/lib/plugin-api').default;
         window.PluginAPI = new PluginAPI('1.0.0', CinelarTV);
+
+        if (SafeMode.enabled) {
+            window.PluginAPI.addGlobalNotice({
+                id: 'safe-mode',
+                type: 'warning',
+                content: 'The site is running in safe mode. Some features may be disabled.',
+                show: true,
+            })
+        }
     } catch (error) {
         console.log(error);
     }

@@ -297,6 +297,11 @@ experimental:
     refresh: true
     default: false
     type: 'boolean'
+  enable_plugins:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
 
 internal:
   license_key:

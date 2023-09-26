@@ -127,6 +127,9 @@ es:
         enable_metadata_recommendation:
           description: "Permite obtener metadatos de TheMovieDB al momento de añadir un nuevo contenido, esto te ayudará a rellenar los campos del contenido automáticamente"
           title: "Habilitar la recomendación de metadatos"
+        enable_plugins:
+          description: "Permite habilitar complementos en <a href='/admin/plugins'> /admin/plugins </a>"
+          title: "Habilitar complementos"
         enable_sitemap:
           description: "Activa el mapa del sitio, esto ayudará a los motores de búsqueda a indexar tu sitio"
           title: "Habilitar mapa del sitio"
@@ -241,7 +244,7 @@ es:
       nav:
         dashboard: "Panel de control"
         settings: "Preferencias"
-        subscriptions: "Subscriptions"
+        subscriptions: "Suscripciones"
     video_player:
       back: "Volver"
       next_episode: "Siguiente episodio"

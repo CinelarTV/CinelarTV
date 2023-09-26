@@ -1,18 +1,51 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { currentUser, SiteSettings } from '../pre-initializers/essentials-preload'
+import { query } from '../utils/query'
 import CinelarTV from '../application'
+import { SafeMode } from '../pre-initializers/safe-mode'
 
-function loadRoutes() {
+
+
+const loadRoutes = () => {
     const routes = require.context('./', true, /\.route\.js$/)
 
     return routes.keys()
         .map(routes)         // import module
         .map(m => {
+            if (!m.default?.path) {
+                console.warn(`Route ${m.default.name} has no path. Skipping...`)
+                return
+            }
             return m.default
         })  // get `default` export from each resolved module
 }
 
-let routes = loadRoutes()
+const loadPluginRoutes = () => {
+    const routes = require.context('pluginsDir', true, /routes\/.+\.route\.js$/);
+    return routes.keys()
+        .map(routes)         // import module
+        .map(m => {
+            if (!m.default?.path) {
+                console.warn(`Route ${m.default.name} has no path. Skipping...`)
+                return
+            }
+            return m.default
+        })  // get `default` export from each resolved module
+}
+
+
+
+let routes = []
+
+routes = routes.concat(loadRoutes())
+
+if (SiteSettings.enable_plugins) {
+    if (SafeMode.enabled && SafeMode.noPlugins) {}
+    else {
+        routes = routes.concat(loadPluginRoutes())
+    }
+        
+}
 
 
 
@@ -98,7 +131,7 @@ AppRouter.afterEach((to, from) => {
 
 AppRouter.onError((err) => {
     if (/loading chunk \d* failed./i.test(err.message)) {
-        if(confirm(window.I18n.t('errors.chunk_loading_error'))) {
+        if (confirm(window.I18n.t('errors.chunk_loading_error'))) {
             window.location.reload()
         }
     }

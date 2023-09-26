@@ -34,7 +34,7 @@ class PluginAPI {
 
     addGlobalNotice(notice) {
         if (!notice.id || !notice.show) {
-            throw "Banner must have an id and show properties";
+            console.error("Banner must have an id and show properties");
         }
 
         if (notice.content && notice?.custom_html) {

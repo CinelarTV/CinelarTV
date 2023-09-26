@@ -35,8 +35,8 @@ export const reportError = (err, severity) => {
         url: AppRouter.currentRoute.value.fullPath,
         window_location: window.location && (window.location + ""),
         stacktrace: err.stack ? err.stack : err.message ? err.message : err + "",
-        column: err.column || err.columnNumber ? err.column || err.columnNumber : null,
-        line: err.line || err.lineNumber ? err.line || err.lineNumber : null,
+        column: err.column || err.columnNumber ? err.column || err.columnNumber : 1,
+        line: err.line || err.lineNumber ? err.line || err.lineNumber : 1,
         severity,
     }
 
