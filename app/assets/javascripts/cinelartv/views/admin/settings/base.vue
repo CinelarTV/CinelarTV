@@ -106,6 +106,8 @@ function getCategories() {
 const onCurrentCategoryChange = (value) => {
     router.replace(`/admin/site_settings/${value}`)
     currentCategory.value = value;
+    sidebarOpened.value = false
+
 }
 
 
