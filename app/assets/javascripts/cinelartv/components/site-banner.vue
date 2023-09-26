@@ -1,12 +1,12 @@
 <template>
     <div id="global-alerts" v-if="banners.length > 0 && $route.meta.showHeader !== false">
         <template v-for="banner in banners" :key="banner.id">
-            <template v-if="banner.custom_html">
+            <template v-if="banner.customHtml">
                 <div :id="banner.id" :class="`${banner.id}`" v-if="banner.show">
-                    <span v-html="banner.custom_html" />
+                    <div v-html="banner.customHtml" />
                 </div>
             </template>
-            <div :id="banner.id" :class="`mx-auto global-notice ${banner.id}`" v-if="banner.show && !banner.custom_html">
+            <div :id="banner.id" :class="`mx-auto global-notice ${banner.id}`" v-if="banner.show && !banner.customHtml">
                 <span v-html="banner.content" />
             </div>
         </template>

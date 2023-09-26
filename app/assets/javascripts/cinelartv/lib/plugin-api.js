@@ -42,6 +42,27 @@ class PluginAPI {
             notice.content = null;
         }
 
+        if (notice.css) {
+            const styleId = `notice-${notice.id}-css`;
+            let styleTag = document.getElementById(styleId);
+
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = styleId;
+
+                const assetsStylesheets = document.querySelector('cinelar-assets-stylesheets');
+
+                if (!assetsStylesheets) {
+                    console.error("Unable to find <cinelar-assets-stylesheets> tag");
+                    return;
+                }
+
+                assetsStylesheets.appendChild(styleTag);
+            }
+            styleTag.innerHTML = notice.css;
+        }
+
+
 
         // If banner already exists, update it, otherwise add it
         let existingNotice = globalStore.banners.find(b => b.id === notice.id);
