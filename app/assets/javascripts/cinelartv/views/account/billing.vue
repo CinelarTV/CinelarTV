@@ -22,6 +22,11 @@
         </p>
         <!-- Agrega más detalles de la suscripción según sea necesario -->
       </div>
+      <div v-else>
+        <p>
+          Parece que no tienes una suscripción activa.
+        </p>
+      </div>
     </div>
     <div v-else>
       <div class="flex mb-4 items-center">
