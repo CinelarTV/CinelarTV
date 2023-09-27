@@ -40,11 +40,11 @@ let routes = []
 routes = routes.concat(loadRoutes())
 
 if (SiteSettings.enable_plugins) {
-    if (SafeMode.enabled && SafeMode.noPlugins) {}
+    if (SafeMode.enabled && SafeMode.noPlugins) { }
     else {
         routes = routes.concat(loadPluginRoutes())
     }
-        
+
 }
 
 
@@ -57,6 +57,14 @@ const AppRouter = createRouter({
 
 AppRouter.beforeEach((to, from, next) => {
     document.body.classList.add('route-transition')
+
+    // External links should open in a new tab for security reasons
+
+    if (to.path.startsWith('http') || to.path.startsWith('https')) {
+        // Abrir enlace externo en una nueva pestaña
+        window.open(to.path, '_blank');
+    }
+
 
     // Redirigir a 'home.index' si ya estás en 'profile.select' y el usuario tiene un perfil
     if (to.name === 'profile.select' && currentUser && currentUser.current_profile) {

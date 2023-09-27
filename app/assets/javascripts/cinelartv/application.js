@@ -1,7 +1,8 @@
 import { createApp } from 'vue/dist/vue.esm-bundler'
 import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
-import SafeMode from './pre-initializers/safe-mode'
+import preInitializers from './pre-initializers';
+import PluginComponents from './lib/plugin-components';
 import AppRouter from './routes/router-map';
 import { createHead } from 'unhead'
 import twemoji from './plugins/twemoji'
@@ -44,6 +45,7 @@ let pluginMap = [
     pinia,
     Axios,
     iconLibrary,
+    PluginComponents,
 ]
 
 CinelarTV.use(Vue3Progress, {
