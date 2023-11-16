@@ -12,7 +12,7 @@
             <div class="panel-body">
                 <div class="edit-content" :data-content-id="$route.params.id">
 
-                    <form @submit="saveContent">
+                    <div>
                         <c-input :modelValue="content.title" @update:text="value => editedData.title = value"
                             placeholder="Title" />
 
@@ -45,12 +45,13 @@
                             </div>
                         </SwitchGroup>
 
+                        <c-videoable-manager :content-id="content.id" v-if="content.content_type === 'MOVIE'" :initial-video-sources="content.video_sources" />
 
 
-                        <c-button type="submit" :loading="loadingButton" :icon="SaveIcon">
+                        <c-button @click="saveContent" :loading="loadingButton" :icon="SaveIcon">
                             Save
                         </c-button>
-                    </form>
+                    </div>
 
                     <c-button class="bg-red-500" @click="deleteContent" :icon="Trash2Icon">
                         Delete
@@ -116,8 +117,9 @@ import { onMounted, ref, inject, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
+import cVideoableManager from '../../../components/c-videoable-manager.vue';
 import draggable from 'vuedraggable';
-import { ajax } from '../../../lib/axios-setup';
+import { ajax } from '../../../lib/Ajax';
 import { Switch } from '@headlessui/vue';
 
 const SiteSettings = inject('SiteSettings');
@@ -228,4 +230,4 @@ onMounted(() => {
     fetchContent();
 });
 </script>
-  
+  ../../../lib/ajax

@@ -6,14 +6,19 @@ import { ref, h } from "vue";
 import { compile } from "vue-template-compiler";
 import { useGlobalStore } from "../store/global";
 import { useIconsStore } from "../store/icons";
-import { currentUser, SiteSettings } from "../pre-initializers/essentials-preload";
 import loadScript from './load-script'
 import deprecated from "./deprecated";
+import { useSiteSettings } from "../app/services/site-settings";
+import { useCurrentUser } from "../app/services/current-user";
 const globalStore = useGlobalStore();
 const iconsStore = useIconsStore();
+const { currentUser } = useCurrentUser();
+const { siteSettings } = useSiteSettings();
 
 class PluginAPI {
-    constructor(version, vueInstance) {
+    public version: string;
+    private vueInstance: any;
+    constructor(version: string, vueInstance: any) {
         this.version = version;
         this.vueInstance = vueInstance;
     }
@@ -94,7 +99,7 @@ class PluginAPI {
     }
 
     getSiteSettings() {
-        return SiteSettings;
+        return useSiteSettings().siteSettings.value
     }
 
     ref(value) {
@@ -152,7 +157,7 @@ class PluginAPI {
 
     getCustomData() {
         try {
-            let customData = JSON.parse(SiteSettings.api_custom_data);
+            let customData = JSON.parse(siteSettings.api_custom_data);
             return customData;
         } catch (error) {
             console.error("Unable to parse custom data");

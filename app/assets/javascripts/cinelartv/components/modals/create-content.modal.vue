@@ -109,7 +109,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { CheckIcon, SparklesIcon } from 'lucide-vue-next';
 import RecommendedMetadataModal from './recommended-metadata.modal.vue'
 import cImageUpload from '../forms/c-image-upload.vue';
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const SiteSettings = inject('SiteSettings');
 
@@ -218,4 +218,4 @@ const findRecommendedMetadata = () => {
         })
 }
 </script>
-  
+  ../../lib/ajax

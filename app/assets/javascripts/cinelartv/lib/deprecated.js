@@ -1,4 +1,4 @@
-import {reportError} from './logster.js';
+import {reportError} from './Logster';
 
 export default function deprecated(msg, options = {}) {
     const { deprecatedFunction, since, dropFrom } = options;

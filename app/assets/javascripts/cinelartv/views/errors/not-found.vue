@@ -24,7 +24,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ajax } from '../../lib/axios-setup'
+import { ajax } from '../../lib/Ajax'
 import ContentCard from '../../components/content-card.vue'
 
 const errorData = ref(null)
@@ -40,4 +40,4 @@ onMounted(() => {
     })
 })
 
-</script>
+</script>../../lib/ajax

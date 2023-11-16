@@ -37,7 +37,7 @@ import { ref, onMounted, inject } from 'vue'
 import { useHead } from 'unhead'
 import { useRoute, useRouter } from 'vue-router'
 import { getCurrentInstance } from 'vue'
-import { ajax } from '../../lib/axios-setup'
+import { ajax } from '../../lib/Ajax'
 
 const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
@@ -69,4 +69,4 @@ useHead({
     title: $t('js.admin.users.title')
 })
 
-</script>
+</script>../../lib/ajax

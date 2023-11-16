@@ -1,7 +1,7 @@
 // store/icons.js
 
 import { defineStore } from 'pinia'
-import { generateSpriteSheet } from '../lib/icon-library'
+import { generateSpriteSheet } from '../lib/IconLibrary'
 
 
 export const useIconsStore = defineStore('icons', {

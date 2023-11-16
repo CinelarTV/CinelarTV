@@ -95,7 +95,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { PlayCircleIcon } from 'lucide-vue-next'
 import { useHead } from 'unhead'
 import requireSignupModal from '../components/modals/require-signup.modal.vue'
-import { ajax } from '../lib/axios-setup'
+import { ajax } from '../lib/Ajax'
 
 const currentUser = inject('currentUser')
 
@@ -230,4 +230,4 @@ onMounted(async () => {
     ]
   })
 })
-</script>
+</script>../lib/ajax

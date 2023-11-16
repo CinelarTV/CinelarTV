@@ -52,7 +52,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@headlessui/vue'
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const isOpen = ref(false)
 const emit = defineEmits(['openSignupModal', 'openLoginModal'])
@@ -71,4 +71,4 @@ function signupModal() {
 defineExpose({
     setIsOpen
 })
-</script>
+</script>../../lib/ajax

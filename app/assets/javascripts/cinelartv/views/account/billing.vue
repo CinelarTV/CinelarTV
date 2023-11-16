@@ -44,7 +44,7 @@
   <script setup>
   import { ref, onMounted, inject } from 'vue';
   import { useHead } from 'unhead';
-  import { ajax } from '../../lib/axios-setup';
+  import { ajax } from '../../lib/Ajax';
   
   const billingData = ref(null);
   
@@ -76,4 +76,4 @@
     ],
   });
   </script>
-  
+  ../../lib/ajax

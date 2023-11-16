@@ -53,7 +53,7 @@ import { useRoute, useRouter } from 'vue-router';
 import draggable from 'vuedraggable'
 import { toast } from 'vue3-toastify';
 import createEpisodeModal from '../../../components/modals/create-episode.modal.vue';
-import { ajax } from '../../../lib/axios-setup';
+import { ajax } from '../../../lib/Ajax';
 
 const loadingEpisodeList = ref(true)
 const episodeList = ref([])
@@ -130,3 +130,4 @@ const deleteEpisode = async (episode) => {
 
 
 </script>
+../../../lib/ajax

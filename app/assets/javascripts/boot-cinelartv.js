@@ -1,4 +1,4 @@
-import { SiteSettings, showPreloaderError } from './cinelartv/pre-initializers/essentials-preload';
+import { showPreloaderError } from './cinelartv/pre-initializers/essentials-preload';
 import '../builds/cinelartv-wind.css'
 import loadScript from './cinelartv/lib/load-script';
 import { SafeMode } from './cinelartv/pre-initializers/safe-mode';
@@ -14,7 +14,7 @@ import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(modul
 
     try {
         // Load the plugin API after CinelarTV is mounted (to ensure the global store is available)
-        const PluginAPI = require('./cinelartv/lib/plugin-api').default;
+        const PluginAPI = require('./cinelartv/lib/PluginAPI.ts').default;
         window.PluginAPI = new PluginAPI('1.0.0', CinelarTV);
 
         if (SafeMode.enabled) {
@@ -40,6 +40,6 @@ import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(modul
 
 }).catch(error => {
     console.log(error);
-    showPreloaderError();
-    throw "Unable to boot CinelarTV: Essential preloaded data not found";
+    showPreloaderError(error);
+    throw `CinelarTV failed to load: ${error}`;
 });

@@ -53,7 +53,7 @@ import { getCurrentInstance, onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { CheckIcon } from 'lucide-vue-next';
 import { toast } from 'vue3-toastify';
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const SiteSettings = inject('SiteSettings');
 const i18n = inject('I18n');
@@ -124,4 +124,4 @@ const submitCreateSeason = (e) => {
     setIsOpen(false)
 }
 </script>
-  
+  ../../lib/ajax

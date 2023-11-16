@@ -34,7 +34,7 @@ class AdminDashboardData
 
   def problem_syms
     # Define aquí los problemas verificados por símbolos
-    %i[check_updates check_ram check_sidekiq]
+    %i[check_updates check_ram check_sidekiq check_ffmpeg_present]
   end
 
   def check_ram
@@ -64,6 +64,14 @@ class AdminDashboardData
       type: "critical",
       icon: "frown",
     )
+  end
+
+  def check_ffmpeg_present
+    add_problem(
+      content: I18n.t("dashboard.ffmpeg_warning"),
+      type: "warning",
+      icon: "frown",
+    ) unless Transcoder.ffmpeg_present?
   end
 
   private

@@ -15,23 +15,24 @@
 </template>
 
 <script setup>
-import { inject } from 'vue';
 import SiteHeader from './components/site-header.vue'
 import { useHead } from 'unhead'
 import { useRoute } from 'vue-router';
 import SiteBanner from './components/site-banner.vue';
 import OfflineIndicator from './components/offline-indicator.vue';
+import { useSiteSettings } from './app/services/site-settings';
 const route = useRoute();
 
-const SiteSettings = inject('SiteSettings');
-
+const { siteSettings } = useSiteSettings();
 useHead({
-    title: SiteSettings.site_name,
-    titleTemplate: `%s | ${SiteSettings.site_name}`,
+    // @ts-ignore
+    title: siteSettings.site_name,
+    titleTemplate: `%s | ${siteSettings.site_name}`,
     meta: [
         {
             name: 'description',
-            content: SiteSettings.value?.site?.description
+            // @ts-ignore
+            content: siteSettings.site_description
         }
     ]
 })

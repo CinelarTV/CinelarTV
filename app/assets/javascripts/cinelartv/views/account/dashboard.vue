@@ -13,7 +13,7 @@
   <script setup>
   import { ref, onMounted, inject } from 'vue';
   import { useHead } from 'unhead';
-  import { ajax } from '../../lib/axios-setup';
+  import { ajax } from '../../lib/Ajax';
     
   const SiteSettings = inject('SiteSettings');
   const i18n = inject('I18n');
@@ -34,4 +34,4 @@
     ],
   });
   </script>
-  
+  ../../lib/ajax

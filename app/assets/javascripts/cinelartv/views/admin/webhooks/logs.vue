@@ -23,7 +23,7 @@
   
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
-import { ajax } from '../../../lib/axios-setup'
+import { ajax } from '../../../lib/Ajax'
 
 onMounted(() => {
     fetchLogs()
@@ -47,4 +47,4 @@ const formatPayload = (payload) => {
     }
 }
 </script>
-  
+  ../../../lib/ajax

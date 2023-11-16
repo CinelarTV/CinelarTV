@@ -3,46 +3,40 @@ import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
 import preInitializers from './pre-initializers';
 import PluginComponents from './lib/plugin-components';
-import AppRouter from './routes/router-map';
 import { createHead } from 'unhead'
 import twemoji from './plugins/twemoji'
+import AppRouter from './routes/router-map';
 const metaManager = createHead()
-import Logster from './lib/logster'
+import Logster from './lib/Logster'
 import globalComponents from './lib/global-components';
 import I18n from './lib/i18n'
 import ColorPicker from './plugins/color-picker'
 import * as ConfirmDialog from 'vuejs-confirm-dialog'
 import Vue3Toasity from 'vue3-toastify';
-import { createPinia } from 'pinia'
 import Vue3Progress from "vue3-progress";
-import Axios from './lib/axios-setup'
+import Axios from './lib/Ajax'
 import { addCompiledComponent } from './lib/componentManager';
 require('./lib/message-bus')
 require('./lib/register-service-worker')
 import 'vue3-toastify/dist/index.css';
-import iconLibrary from './lib/icon-library';
+import iconLibrary from './lib/IconLibrary';
 import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
 
 
-
 const CinelarTV = createApp(App)
-const pinia = createPinia()
 
 CinelarTV.addComponent = addCompiledComponent
 
-
-
-let pluginMap = [
+let pluginMap = [    
     EssentialsPreloaded,
-    AppRouter,
     metaManager,
+    AppRouter,
     globalComponents,
     twemoji,
     Logster,
     I18n,
     ColorPicker,
     ConfirmDialog,
-    pinia,
     Axios,
     iconLibrary,
     PluginComponents,
@@ -73,5 +67,13 @@ pluginMap.forEach(plugin => {
 document.querySelector("noscript")?.remove();
 
 MessageBus.start();
+
+
+
+
+CinelarTV.destroy = () => {
+    MessageBus.stop()
+    CinelarTV.unmount()
+}
 
 export default CinelarTV

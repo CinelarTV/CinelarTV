@@ -60,7 +60,7 @@ import { PlusCircleIcon } from 'lucide-vue-next'
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue'
 import { PencilIcon, Trash2Icon } from 'lucide-vue-next';
 import { Howl, Howler } from 'howler';
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const currentUser = inject('currentUser')
 const SiteSettings = inject('SiteSettings')
@@ -191,3 +191,4 @@ onMounted(() => {
     color: white;
 }
 </style>
+../../lib/ajax

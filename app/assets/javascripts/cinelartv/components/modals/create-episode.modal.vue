@@ -73,7 +73,7 @@ import { getCurrentInstance, onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { CheckIcon } from 'lucide-vue-next';
 import cImageUpload from '../forms/c-image-upload.vue';
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const SiteSettings = inject('SiteSettings');
 
@@ -141,3 +141,4 @@ const submitCreateEpisode = (e) => {
         })
 }
 </script>
+../../lib/ajax

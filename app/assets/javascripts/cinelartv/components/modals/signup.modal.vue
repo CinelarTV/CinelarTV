@@ -65,7 +65,7 @@ import {
     DialogDescription,
 } from '@headlessui/vue'
 import { Unlock, LoaderIcon } from 'lucide-vue-next'
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax'
 
 const isOpen = ref(false)
 const username = ref('')
@@ -104,4 +104,4 @@ function submitRegistration(e) {
 defineExpose({
     setIsOpen,
 })
-</script>
+</script>../../lib/ajax

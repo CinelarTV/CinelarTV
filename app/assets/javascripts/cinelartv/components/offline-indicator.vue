@@ -11,7 +11,7 @@
 
 <script setup>
 import { inject, computed, onMounted } from 'vue';
-import { useNetworkService } from '../services/network-service';
+import { useNetworkService } from '../app/services/network-service';
 
 const i18n = inject('I18n');
 
@@ -26,4 +26,4 @@ const reloadPage = () => {
 onMounted(() => {
     networkService.listenStatusChange();
 })
-</script>
+</script>../app/services/network-service

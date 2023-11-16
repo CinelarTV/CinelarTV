@@ -302,6 +302,11 @@ experimental:
     refresh: true
     default: false
     type: 'boolean'
+  enable_transcoding:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
 
 internal:
   license_key:

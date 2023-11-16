@@ -2,10 +2,10 @@
   <Menu as="div" class="relative inline-block text-left" v-if="currentUser">
     <MenuButton id="current-user">
       <p class="user-name">
-        {{ currentUser?.current_profile?.name || currentUser.display_name || currentUser.email }}
+        {{ currentUser?.current_profile?.name || currentUser.username || currentUser.email }}
       </p>
       <img class="avatar" :src="getProfileAvatar(currentUser?.current_profile?.avatar_id)"
-        :title="currentUser.display_name || currentUser.email" />
+        :title="currentUser?.current_profile.name || currentUser.email" />
     </MenuButton>
 
     <transition enter-active-class="transition duration-100 ease-out" enter-from-class="transform scale-95 opacity-0"
@@ -39,7 +39,7 @@
     </transition>
   </Menu>
   <div class="flex items-center space-x-2" v-else>
-    <button @click="openSignupModal" class="button" v-if="SiteSettings.allow_registration">
+    <button @click="openSignupModal" class="button" v-if="siteSettings.allow_registration">
       <SignupModal ref="signupModal" />
       Sign up
     </button>
@@ -52,20 +52,20 @@
 </template>
   
 <script setup>
+import { useCurrentUser } from '../app/services/current-user'
+import { useSiteSettings } from '../app/services/site-settings'
 import { inject, ref, onMounted } from 'vue'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import LoginModal from './modals/login.modal.vue'
 import SignupModal from './modals/signup.modal.vue'
-import { ajax } from '../lib/axios-setup';
+import { ajax } from '../lib/Ajax';
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 
-const currentUser = inject('currentUser')
-const SiteSettings = inject('SiteSettings')
-
-const isMainProfile = ref(currentUser?.current_profile?.id === currentUser?.profiles[0]?.id)
+const { currentUser, isMainProfile } = useCurrentUser()
+const { siteSettings } = useSiteSettings()
 
 const getProfileAvatar = (avatar) => {
   const defaultAvatarList = ['coolCat', 'cuteCat']
@@ -103,31 +103,31 @@ const menuItems = ref([
     text: 'Administrar suscripción',
     icon: 'credit-card',
     href: '/account/billing',
-    visible: isMainProfile.value && SiteSettings.enable_subscription,
+    visible: isMainProfile && siteSettings.enable_subscription,
   },
   {
     text: 'Administrar contenido',
     icon: 'clapperboard',
     href: '/admin/content-manager',
-    visible: currentUser?.admin && isMainProfile.value,
+    visible: currentUser?.admin && isMainProfile
   },
   {
     text: 'Configuración',
     icon: 'settings',
     href: '/account/preferences',
-    visible: isMainProfile.value,
+    visible: isMainProfile,
   },
   {
     text: 'Administrador',
     icon: 'wrench',
     href: '/admin',
-    visible: currentUser?.admin && isMainProfile.value,
+    visible: currentUser?.admin && isMainProfile
   },
   {
     text: 'Mis Tickets',
     icon: 'help-circle',
     href: '/tickets',
-    visible: isMainProfile.value,
+    visible: isMainProfile,
   },
 ])
 
@@ -170,4 +170,4 @@ const userLogout = () => {
     })
 }
 </script>
-  
+  ../lib/ajax

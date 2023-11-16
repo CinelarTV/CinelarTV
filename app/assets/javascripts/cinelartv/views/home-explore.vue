@@ -88,7 +88,7 @@ import { ref, onMounted, getCurrentInstance, inject } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
-import { ajax } from '../lib/axios-setup';
+import { ajax } from '../lib/Ajax';
 import ContentCard from '../components/content-card.vue';
 
 const SiteSettings = inject('SiteSettings');
@@ -266,4 +266,4 @@ onMounted(async () => {
         startAutoScroll();
     }
 });
-</script>
+</script>../lib/ajax

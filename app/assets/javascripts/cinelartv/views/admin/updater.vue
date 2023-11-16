@@ -77,7 +77,7 @@ import { onMounted, ref, onUnmounted } from 'vue';
 import { AlertTriangle } from 'lucide-vue-next';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 
 var updating = ref(false)
@@ -167,4 +167,4 @@ const restartServer = () => {
 onUnmounted(() => {
     MessageBus.unsubscribe('/admin/upgrade')
 })
-</script>
+</script>../../lib/ajax

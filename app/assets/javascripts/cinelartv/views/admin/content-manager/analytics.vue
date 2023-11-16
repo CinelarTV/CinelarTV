@@ -51,7 +51,7 @@ import { Trash2Icon } from 'lucide-vue-next';
 import { CheckIcon } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
-import { ajax } from '../../../lib/axios-setup';
+import { ajax } from '../../../lib/Ajax';
 const route = useRoute()
 const router = useRouter()
 const contentId = route.params.id
@@ -84,4 +84,4 @@ onMounted(() => {
     fetchContent()
 })
 
-</script>
+</script>../../../lib/ajax

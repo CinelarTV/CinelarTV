@@ -12,7 +12,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { useHead } from 'unhead'
-import { ajax } from '../lib/axios-setup';
+import { ajax } from '../lib/Ajax';
 const route = useRoute()
 const router = useRouter()
 
@@ -57,4 +57,4 @@ onMounted(() => {
 })
 
 
-</script>
+</script>../lib/ajax

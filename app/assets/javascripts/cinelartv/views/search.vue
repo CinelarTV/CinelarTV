@@ -31,7 +31,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ajax } from '../lib/axios-setup';
+import { ajax } from '../lib/Ajax';
 import ContentCard from '../components/content-card.vue';
 
 const searchQuery = ref('');
@@ -68,4 +68,4 @@ watch(() => searchQuery.value, () => {
 });
 
 
-</script>
+</script>../lib/ajax

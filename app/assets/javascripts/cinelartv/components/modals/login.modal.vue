@@ -73,7 +73,7 @@ import {
     DialogDescription,
 } from '@headlessui/vue'
 import { Unlock, Fingerprint, LoaderIcon } from 'lucide-vue-next'
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const isOpen = ref(false)
 
@@ -121,4 +121,4 @@ export default {
         }
     }
 }
-</script>
+</script>../../lib/ajax

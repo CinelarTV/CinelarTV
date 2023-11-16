@@ -37,7 +37,7 @@
 <script setup>
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, inject, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ajax } from '../lib/axios-setup';
+import { ajax } from '../lib/Ajax';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css'; // Importar estilos de Video.js
 import chromecast from '@silvermine/videojs-chromecast'
@@ -346,3 +346,4 @@ const seekBy = (seconds) => {
 
 
 </script>
+../lib/ajax

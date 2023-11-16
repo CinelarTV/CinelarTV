@@ -5,10 +5,12 @@ try {
     console.warn("No translations found")
 }
 
-import { SiteSettings } from '../pre-initializers/essentials-preload'
+import { useSiteSettings } from '../app/services/site-settings'
+import { PiniaStore } from '../app/lib/Pinia'
+const { siteSettings } = useSiteSettings(PiniaStore)
 
 // TODO: Locale should be set by the user using preferences
-I18n.locale = SiteSettings.default_locale
+I18n.locale = siteSettings.default_locale
 I18n.defaultLocale = 'en'
 I18n.fallbacks = true
 

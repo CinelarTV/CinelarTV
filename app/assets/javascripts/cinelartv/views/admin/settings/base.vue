@@ -45,7 +45,7 @@
 import { onMounted, computed } from 'vue'
 import SiteSettingsIndex from './index.vue'
 import { ref } from 'vue'
-import { ajax } from '../../../lib/axios-setup';
+import { ajax } from '../../../lib/Ajax';
 import { useRoute, useRouter } from 'vue-router';
 
 const categories = ref(null)
@@ -147,4 +147,4 @@ export default {
         }
     },
 }
-</script>
+</script>../../../lib/ajax

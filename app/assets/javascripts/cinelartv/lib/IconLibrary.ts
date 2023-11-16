@@ -1,6 +1,9 @@
 import * as icons from "lucide-static";
-import { SiteSettings } from "../pre-initializers/essentials-preload"; // Inject is not available before App initialization, so we need to import it here
+import { useSiteSettings } from "../app/services/site-settings";
 import { useIconsStore } from "../store/icons";
+import { PiniaStore } from "../app/lib/Pinia";
+
+const { siteSettings } = useSiteSettings(PiniaStore);
 
 const PLAYER_ICONS = ["play", "pause", "maximize", "minimize"]
 const ICON_MAP = [
@@ -67,8 +70,8 @@ export const generateSpriteSheet = () => {
     let iconCount = 0;
     const iconsStore = useIconsStore(); // Obtiene el store de íconos
 
-    if (SiteSettings?.additional_icons) {
-        SiteSettings.additional_icons.split('|').forEach((icon) => {
+    if (siteSettings.value?.additional_icons) {
+        siteSettings.value.additional_icons.split('|').forEach((icon) => {
             ICON_MAP.push(icon);
         });
     }

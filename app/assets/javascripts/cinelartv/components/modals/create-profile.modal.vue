@@ -68,7 +68,7 @@ import { onMounted, ref, inject } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { Unlock, LoaderIcon } from 'lucide-vue-next'
 import { PlusIcon } from 'lucide-vue-next';
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 
 const SiteSettings = inject('SiteSettings')
 const currentUser = inject('currentUser')
@@ -118,3 +118,4 @@ const submitCreateProfile = (e) => {
 }
 
 </script>
+../../lib/ajax

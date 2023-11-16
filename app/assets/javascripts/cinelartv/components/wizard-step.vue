@@ -64,7 +64,7 @@ import CInput from './forms/c-input.vue';
 import { useRouter } from 'vue-router';
 import twemoji from 'twemoji';
 import { toast } from 'vue3-toastify';
-import { ajax } from '../lib/axios-setup';
+import { ajax } from '../lib/Ajax';
 
 
 const emit = defineEmits(['update:step']);
@@ -149,4 +149,4 @@ const goToNextStep = async () => {
 
 
 </script>
-  
+  ../lib/ajax

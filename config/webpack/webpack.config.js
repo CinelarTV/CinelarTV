@@ -1,8 +1,12 @@
 // See the shakacode/shakapacker README and docs directory for advice on customizing your webpackConfig.
 const { generateWebpackConfig, merge } = require('shakapacker')
 const path = require('path')
+const ForkTSCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
-const webpackConfig = generateWebpackConfig()
+
+const webpackConfig = generateWebpackConfig({
+  plugins: [new ForkTSCheckerWebpackPlugin()],
+})
 
 const vueConfig = require('./loaders/vue')
 
@@ -12,6 +16,10 @@ const aliasConfig = {
       pluginsDir: path.resolve(__dirname, '../../plugins/'),
       components: path.resolve(__dirname, '../../app/assets/javascripts/cinelartv/components/'),
       views: path.resolve(__dirname, '../../app/assets/javascripts/cinelartv/views/'),
+      models: path.resolve(__dirname, '../../app/assets/javascripts/cinelartv/app/models/'),
+      '@': path.resolve(__dirname, '../../app/assets/javascripts/cinelartv/'),
+      app: path.resolve(__dirname, '../../app/assets/javascripts/cinelartv/app/'),
+      services: path.resolve(__dirname, '../../app/assets/javascripts/cinelartv/services/'),
     }
   }
 }

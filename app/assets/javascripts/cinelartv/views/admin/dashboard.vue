@@ -134,7 +134,7 @@
 import { ref, computed, onMounted, inject } from 'vue'
 import { UploadCloud } from 'lucide-vue-next'
 import { useHead } from 'unhead'
-import { ajax } from '../../lib/axios-setup';
+import { ajax } from '../../lib/Ajax';
 import { Chart, registerables } from "chart.js";
 import adminReportsChart from '../../components/admin/admin-reports-chart.vue'
 Chart.register(...registerables);
@@ -292,4 +292,4 @@ const fetchStatistics = async () => {
 onMounted(() => {
   fetchDashboard()
 })
-</script>
+</script>../../lib/ajax

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-export const useNetworkService = defineStore('network', {
+export const useNetworkService = defineStore('online-status', {
   state: () => ({
     isOnline: navigator.onLine,
   }),

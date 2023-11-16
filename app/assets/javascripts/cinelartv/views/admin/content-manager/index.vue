@@ -68,7 +68,7 @@ import { ref, getCurrentInstance, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import CreateContentModal from '../../../components/modals/create-content.modal.vue';
 import { PlusIcon } from 'lucide-vue-next';
-import { ajax } from '../../../lib/axios-setup';
+import { ajax } from '../../../lib/Ajax';
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 const router = useRouter()
 
@@ -105,4 +105,4 @@ onMounted(() => {
 })
 
 </script>
-  
+  ../../../lib/ajax
