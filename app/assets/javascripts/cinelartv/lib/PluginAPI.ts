@@ -99,7 +99,7 @@ class PluginAPI {
     }
 
     getSiteSettings() {
-        return useSiteSettings().siteSettings.value
+        return siteSettings;
     }
 
     ref(value) {
