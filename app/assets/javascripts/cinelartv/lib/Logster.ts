@@ -25,8 +25,6 @@ declare global {
 
 let lastReport: Date | null = null;
 
-console.log("Logster enabled: " + siteSettings.enable_js_error_reporting);
-
 if (!window.Logster) {
   window.Logster = {
     enabled: !!siteSettings.enable_js_error_reporting,
@@ -38,9 +36,6 @@ if (!window.Logster.enabled) {
     console.warn("DEV: JS error reporting is disabled.\nThis message is only shown in development mode.");
   }
 }
-
-console.log(siteSettings)
-
 
 export const reportError = (err: Error, severity: string): void => {
   if (!err) return;
