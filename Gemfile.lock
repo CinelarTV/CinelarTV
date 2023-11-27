@@ -144,6 +144,10 @@ GEM
       railties (>= 3.0)
     diff-lcs (1.5.0)
     domain_name (0.6.20231109)
+    doorkeeper (5.6.7)
+      railties (>= 5)
+    doorkeeper-jwt (0.4.1)
+      jwt (>= 2.1)
     erb-formatter (0.4.3)
       syntax_tree (~> 6.0)
     erubi (1.12.0)
@@ -186,6 +190,7 @@ GEM
       activesupport (>= 5.0.0)
     jmespath (1.6.2)
     json (2.6.3)
+    jwt (2.7.1)
     kredis (1.6.0)
       activemodel (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -469,6 +474,8 @@ DEPENDENCIES
   debug
   devise (~> 4.9)
   devise_uid (~> 0.1.1)
+  doorkeeper
+  doorkeeper-jwt
   erb-formatter (~> 0.4.3)
   factory_bot_rails
   faker

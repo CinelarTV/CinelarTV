@@ -10,24 +10,32 @@ import loadScript from './load-script'
 import deprecated from "./deprecated";
 import { useSiteSettings } from "../app/services/site-settings";
 import { useCurrentUser } from "../app/services/current-user";
-const globalStore = useGlobalStore();
+import { Banner, useBanners } from "../app/services/banner-store";
 const iconsStore = useIconsStore();
 const { currentUser } = useCurrentUser();
 const { siteSettings } = useSiteSettings();
 
+let instance = null;
+
 class PluginAPI {
     public version: string;
-    private vueInstance: any;
+    public vueInstance: any;
     constructor(version: string, vueInstance: any) {
-        this.version = version;
-        this.vueInstance = vueInstance;
+        
+        if (!instance) {
+            this.version = version;
+            this.vueInstance = vueInstance;
+            instance = this;
+        } else {
+            return instance;
+        }
     }
 
-    currentInstance() {
-        return this.vueInstance;
+    public static getInstance() {
+        return instance || null;
     }
 
-    addGlobalBanner(banner) {
+    addGlobalBanner(banner: Banner) {
         deprecated("addGlobalBanner is deprecated. Use addGlobalNotice instead.", {
             deprecatedFunction: "addGlobalBanner",
             since: "1.0.0",
@@ -37,12 +45,14 @@ class PluginAPI {
         this.addGlobalNotice(banner);
     }
 
-    addGlobalNotice(notice) {
-        if (!notice.id || !notice.show) {
+    addGlobalNotice(notice: Banner) {
+        const { addBanner, findBanner } = useBanners();
+        console.log(notice)
+        if (!notice.id || notice.show === undefined) {
             console.error("Banner must have an id and show properties");
         }
 
-        if (notice.content && notice?.custom_html) {
+        if (notice.content && notice?.customHtml) {
             // Prioritize custom HTML over content
             notice.content = null;
         }
@@ -70,12 +80,12 @@ class PluginAPI {
 
 
         // If banner already exists, update it, otherwise add it
-        let existingNotice = globalStore.banners.find(b => b.id === notice.id);
+        let existingNotice = findBanner(notice.id);
         if (existingNotice) {
             existingNotice = notice;
         }
         else {
-            globalStore.banners.push(notice);
+            addBanner(notice);
         }
     }
 
@@ -90,7 +100,8 @@ class PluginAPI {
     }
 
     removeGlobalNotice(id) {
-        globalStore.banners = globalStore.banners.filter(banner => banner.id !== id);
+        const { removeBanner } = useBanners();
+        removeBanner(id);
     }
 
 

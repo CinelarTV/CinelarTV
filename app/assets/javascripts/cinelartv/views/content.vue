@@ -5,24 +5,22 @@
       <c-spinner />
     </div>
     <div v-else>
-      <div class="content-overview" :data-content-id="contentData.content.id" :data-content-type="contentData.content.content_type === 'MOVIE' ? 'movie' : 'tvshow'">
+      <div class="content-overview" :data-content-id="contentData.id"
+        :data-content-type="contentData.isMovie ? 'movie' : 'tvshow'">
         <div class="banner-wrapper" />
 
 
 
         <div class="content-details">
           <div class="content-title">
-            <h1>{{ contentData.content.title }}</h1>
+            <h1>{{ contentData.title }}</h1>
           </div>
           <div class="content-description">
-            <p>{{ contentData.content.description }}</p>
+            <p>{{ contentData.description }}</p>
           </div>
-          <div class="content-actions" v-if="contentData.content.available">
+          <div class="content-actions" v-if="contentData.available">
             <c-button icon="play-circle" class="bg-blue-500 hover:bg-blue-600 text-white" @click="playContent">
-              <template v-if="contentData.content.continue_watching">
-                Continuar viendo
-              </template>
-              <template v-else-if="contentData.content.most_recent_watched_episode">
+              <template v-if="contentData.continueWatching">
                 Continuar viendo
               </template>
               <template v-else>
@@ -35,11 +33,11 @@
               <span class="text-red-500">Este contenido no está disponible en este momento.</span>
             </p>
           </div>
-          <div v-if="contentData.content.content_type === 'TVSHOW'">
+          <div v-if="contentData.isTVShow">
             <div class="relative mt-16">
               <div class="panel-header flex flex-col">
                 <div class="w-full flex justify-center space-x-2">
-                  <template v-for="season in contentData.content.seasons" :key="season.id">
+                  <template v-for="season in contentData.seasons" :key="season.id">
                     <c-button @click="toggleSeason(season.id)">
                       {{ season.title }}
                     </c-button>
@@ -50,7 +48,7 @@
 
                 <div class="panel-body">
                   <div class="episodes-list">
-                    <template v-for="season in contentData.content.seasons" :key="season.id">
+                    <template v-for="season in contentData.seasons" :key="season.id">
                       <div class="" v-if="season.id === activeSeason">
                         <template v-if="season.episodes.length === 0">
                           <p class="text-center">No hay episodios disponibles.</p>
@@ -83,19 +81,20 @@
         </div>
 
       </div>
-      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.content.title"
+      <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.title"
         @openSignupModal="console.log(0)" />
     </div>
   </div>
 </template>
   
-<script setup>
+<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { PlayCircleIcon } from 'lucide-vue-next'
 import { useHead } from 'unhead'
 import requireSignupModal from '../components/modals/require-signup.modal.vue'
 import { ajax } from '../lib/Ajax'
+import Content from '../app/models/Content'
 
 const currentUser = inject('currentUser')
 
@@ -103,7 +102,7 @@ const $route = useRoute()
 const router = useRouter()
 
 const loading = ref(true)
-const contentData = ref(null)
+const contentData = ref<Content>(null)
 const showTrailer = ref(false)
 const activeSeason = ref(null)
 const requireSignupModalRef = ref(null)
@@ -111,17 +110,19 @@ const loginModalRef = ref(null)
 
 const getContent = async () => {
   try {
-    const { data } = await ajax.get(`/contents/${$route.params.id}.json`)
-    contentData.value = data
-    if (data.content.content_type === 'TVSHOW') {
-      if (data.content.seasons?.length > 0) {
-        activeSeason.value = data.content.seasons[0].id
+    contentData.value = await Content.getById($route.params.id.toString())
+
+    console.log('Contenido:', contentData.value)
+
+    if (contentData.value.isTVShow) {
+      if (contentData.value.seasons?.length > 0) {
+        activeSeason.value = contentData.value.seasons[0].id
       }
     }
     loading.value = false
     // Verificar si hay tráiler después de cargar el contenido
-    if (contentData.value.trailer) {
-      await preloadTrailer(contentData.value.trailer)
+    if (contentData.value.trailerUrl) {
+      await preloadTrailer(contentData.value.trailerUrl)
       showTrailer.value = true
     }
   } catch (error) {
@@ -155,14 +156,14 @@ const playContent = () => {
     return
   }
 
-  if (contentData.value.content.content_type === 'MOVIE') {
-    router.push(`/watch/${contentData.value.content.id}`)
+  if (contentData.value.isMovie) {
+    router.push(`/watch/${contentData.value.id}`)
   } else {
-    if (contentData.value.content.most_recent_watched_episode) {
-      router.push(`/watch/${contentData.value.content.id}/${contentData.value.content.most_recent_watched_episode.episode_id}`)
+    if (contentData.value.continueWatching) {
+      router.push(`/watch/${contentData.value.id}/${contentData.value.continueWatching.episodeId}`)
       return
     }
-    router.push(`/watch/${contentData.value.content.id}/${contentData.value.content.seasons[0].episodes[0].id}`)
+    router.push(`/watch/${contentData.value.id}/${contentData.value.seasons[0].episodes[0].id}`)
   }
 }
 
@@ -171,7 +172,7 @@ const playEpisode = (episodeId) => {
     openRequireSignupModal()
     return
   }
-  router.push(`/watch/${contentData.value.content.id}/${episodeId}`)
+  router.push(`/watch/${contentData.value.id}/${episodeId}`)
 }
 
 
@@ -199,33 +200,33 @@ onMounted(async () => {
   document.body.classList.add('content-route')
 
 
-  const bannerWrapper = document.querySelector('.banner-wrapper')
+  const bannerWrapper = document.querySelector('.banner-wrapper') as HTMLElement
   const image = new Image()
-  image.src = contentData.value.content.banner
+  image.src = contentData.value.banner
 
   image.addEventListener('load', () => {
-    bannerWrapper.style.backgroundImage = `url(${image.src})`
+
+    bannerWrapper.style.backgroundImage = `url(${image.src})`;
     bannerWrapper.classList.add('banner-loaded')
   })
 
-  // Even if the image fails to load, we still want to add the banner-loaded class to the banner wrapper
-
   image.addEventListener('error', () => {
-    if(contentData.value.content.cover) {
-      bannerWrapper.style.backgroundImage = `url(${contentData.value.content.cover})` // Use the cover image as a fallback (if available)
+    if (contentData.value.cover) {
+
+      bannerWrapper.style.backgroundImage = `url(${contentData.value.cover})` // Use the cover image as a fallback (if available)
     } else {
       bannerWrapper.style.backgroundImage = 'url(/assets/images/content_no_media.png)' // Use a placeholder image as a fallback
     }
-    
+
     bannerWrapper.classList.add('banner-loaded')
   })
   // Configura el título y la descripción de la página para SEO
   useHead({
-    title: contentData.value?.content?.title,
+    title: contentData.value.title,
     meta: [
       {
         name: 'description',
-        content: contentData.value?.content?.description
+        content: contentData.value?.description
       }
     ]
   })

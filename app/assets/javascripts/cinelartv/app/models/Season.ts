@@ -32,6 +32,7 @@ class Season {
     }
 
     get episodes(): Episode[] {
+        console.log(this.data.episodes);
         return this.data.episodes.map((episodeData) => new Episode(episodeData));
     }
 }

@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
 
   before_action :reload_storage_config
   before_action :require_finish_installation?
+  # Skip the CSRF token for API requests
+  skip_before_action :verify_authenticity_token, if: :is_app_request?
 
   before_action do
     Rack::MiniProfiler.authorize_request if current_user&.is_admin?
@@ -50,6 +52,28 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in? && session[:current_profile_id].present?
 
     @current_profile ||= current_user.profiles.find_by(id: session[:current_profile_id])
+  end
+
+  def is_app_request?
+    request.format.json? && request.headers["X-Cinelar-Native"].present?
+  end
+
+  def authenticate_user!
+    if doorkeeper_token
+      doorkeeper_authorize!
+    else
+      super
+    end
+  end
+
+  def current_user
+    # Override current_user to use doorkeeper_token if present
+    # Otherwise, fallback to warden.authenticate
+    @current_user ||= if doorkeeper_token
+                        User.find(doorkeeper_token.resource_owner_id)
+                      else
+                        warden.authenticate(scope: :user)
+                      end
   end
 
   rescue_from CinelarTV::NotFound do |e|

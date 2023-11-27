@@ -3,6 +3,7 @@ import User from "../app/models/User";
 import { useCurrentUser } from "../app/services/current-user";
 import { useSiteSettings } from "../app/services/site-settings";
 import { PiniaStore } from "../app/lib/Pinia";
+import { green } from "console-log-colors"
 
 interface PreloadedData {
   currentUser: User | null;
@@ -71,13 +72,14 @@ setPreloadedData();
 
 const install = (app: App): void => {
   app.use(PiniaStore);
-  console.log("Installing preloaded data");
   Object.assign(app.config.globalProperties, preloaded);
 
   app.provide("currentUser", preloaded.currentUser);
   app.provide("SiteSettings", preloaded.SiteSettings);
   app.provide("isMobile", preloaded.isMobile);
   app.provide("homepageData", homepageData);
+
+  console.log(`${green.bold("[CinelarTV]")} Preloaded data installed`);
 };
 
 export default {

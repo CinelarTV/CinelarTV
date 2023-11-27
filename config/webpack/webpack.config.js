@@ -10,6 +10,8 @@ const webpackConfig = generateWebpackConfig({
 
 const vueConfig = require('./loaders/vue')
 
+
+
 const aliasConfig = {
   resolve: {
     alias: {
@@ -25,32 +27,45 @@ const aliasConfig = {
 }
 
 const sassLoaderConfig = {
-    module: {
-      rules: [
-        {
-          test: /\.s[ac]ss$/i,
-          use: [
-            // Creates `style` nodes from JS strings
-            "style-loader",
-            // Translates CSS into CommonJS
-            "css-loader",
-            // Compiles Sass to CSS
-            "sass-loader",
-          ],
-        },
-      ],
-    },
-  };
+  module: {
+    rules: [
+      {
+        test: /\.s[ac]ss$/i,
+        use: [
+          // Creates `style` nodes from JS strings
+          "style-loader",
+          // Translates CSS into CommonJS
+          "css-loader",
+          // Compiles Sass to CSS
+          "sass-loader",
+        ],
+      },
+    ],
+  },
+};
+
+// for read .d.ts files
+
+const rawLoaderConfig = {
+  module: {
+    rules: [
+      {
+        test: /\.d\.ts$/i,
+        use: 'raw-loader',
+      },
+    ],
+  },
+};
 
 const customConfig = {
-    resolve: {
-      extensions: ['.css']
-    }
+  resolve: {
+    extensions: ['.css']
   }
-  const options = {
-    resolve: {
-        extensions: ['.mjs', '.js', '.sass', ".scss", ".css", ".module.sass", ".module.scss", ".module.css", ".png", ".svg", ".gif", ".jpeg", ".jpg"]
-    }
+}
+const options = {
+  resolve: {
+    extensions: ['.mjs', '.js', '.sass', ".scss", ".css", ".module.sass", ".module.scss", ".module.css", ".png", ".svg", ".gif", ".jpeg", ".jpg"]
   }
+}
 
-module.exports = merge(vueConfig, sassLoaderConfig, customConfig, aliasConfig, options, webpackConfig)
+module.exports = merge(vueConfig, sassLoaderConfig, customConfig, aliasConfig, options, webpackConfig, rawLoaderConfig)

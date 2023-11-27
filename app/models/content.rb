@@ -7,6 +7,8 @@ class Content < ApplicationRecord
   has_many :categories, through: :content_categories
   has_many :seasons
 
+  enum :type, { TVSHOW: "TVSHOW", MOVIE: "MOVIE" }
+
   has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"
 
   include SimpleRecommender::Recommendable
@@ -54,5 +56,12 @@ class Content < ApplicationRecord
 
   def destroy_video_sources
     video_sources.destroy_all
+  end
+
+  def self.added_recently
+    where(available: true)
+      .where("created_at > ?", 3.week.ago)
+      .order(created_at: :desc)
+      .limit(15)
   end
 end

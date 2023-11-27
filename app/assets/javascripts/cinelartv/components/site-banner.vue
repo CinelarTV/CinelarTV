@@ -13,25 +13,25 @@
     </div>
 </template>
   
-<script setup>
+<script setup lang="ts">
 import { ref, getCurrentInstance, inject, onMounted, computed } from 'vue'
 import { compile, h } from 'vue/dist/vue.esm-bundler';
-import { useGlobalStore } from '../store/global'
+import { useBanners } from '../app/services/banner-store';
+import { useSiteSettings } from '../app/services/site-settings';
+import { useCurrentUser } from '../app/services/current-user';
 
-const globalStore = useGlobalStore()
+const { banners, addBanner } = useBanners()
+const { siteSettings } = useSiteSettings()
+const { currentUser } = useCurrentUser()
 
-const SiteSettings = inject('SiteSettings')
-const currentUser = inject('currentUser')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
-
-const banners = computed(() => globalStore.banners)
 
 onMounted(() => {
     // Add default banners
-    banners.value.push({
+    addBanner({
         id: 'site-unconfigured',
         content: `${$t("js.admin.wizard_required")} [${$t("js.admin.wizard_link")}](/wizard)`,
-        show: !SiteSettings.wizard_completed && currentUser?.admin
+        show: !siteSettings.wizard_completed && currentUser?.admin
     })
 })
 

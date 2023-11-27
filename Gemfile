@@ -137,3 +137,6 @@ gem "countries" # To get Countries information
 gem "serviceworker-rails" # To add service worker
 gem "pry", "~> 0.14.2"
 gem "pry-rails"
+
+gem 'doorkeeper'
+gem 'doorkeeper-jwt'

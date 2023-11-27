@@ -1,5 +1,7 @@
 import { ajax } from "../../lib/Ajax";
 import Season, { SeasonData } from "./Season";
+import ContinueWatching, { ContinueWatchingData } from "./ContinueWatching";
+
 
 export enum ContentType {
     Movie = "MOVIE",
@@ -22,6 +24,7 @@ interface ContentData {
     seasons?: SeasonData[];
     liked?: boolean;
     related_content?: ContentData[];
+    continue_watching?: ContinueWatchingData | null;
 }
 
 class Content {
@@ -40,6 +43,10 @@ class Content {
 
         if ('related_content' in data) {
             this.data.related_content = data.related_content;
+        }
+
+        if ('continue_watching' in data) {
+            this.data.continue_watching = data.continue_watching;
         }
     }
 
@@ -103,6 +110,10 @@ class Content {
         return this.data.related_content?.map((relatedContentData) => new Content(relatedContentData));
     }
 
+    get continueWatching(): ContinueWatching | null {
+        return this.data.continue_watching ? new ContinueWatching(this.data.continue_watching) : null;
+    }
+
     get isMovie(): boolean {
         return this.contentType === ContentType.Movie;
     }
@@ -114,7 +125,7 @@ class Content {
     static async getById(id: string): Promise<Content | null> {
         try {
             const response = await ajax.get(`/contents/${id}.json`);
-            return new Content(response.data.content);
+            return new Content(response.data);
         } catch (error) {
             console.error(error);
             return null;

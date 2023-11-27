@@ -5,7 +5,7 @@
         {{ currentUser?.current_profile?.name || currentUser.username || currentUser.email }}
       </p>
       <img class="avatar" :src="getProfileAvatar(currentUser?.current_profile?.avatar_id)"
-        :title="currentUser?.current_profile.name || currentUser.email" />
+        :title="currentUser?.current_profile?.name || currentUser.email" />
     </MenuButton>
 
     <transition enter-active-class="transition duration-100 ease-out" enter-from-class="transform scale-95 opacity-0"
@@ -14,25 +14,25 @@
       <MenuItems class="user-menu-items">
         <div class="py-1">
           <MenuItem v-slot="{ active }" as="li" v-for="i in menuItems" :key="i.text">
-          <template v-if="i.onClick">
-            <button @click="i.onClick" class="menu-item" :class='{ "bg-white bg-opacity-10": active }'>
-              <c-icon :icon="i.icon" :size="20" class="icon"></c-icon>
-              <span class="whitespace-nowrap">{{ i.text }}</span>
-            </button>
-          </template>
-          <template v-else-if="i.href">
-            <router-link v-if="i.visible" class="menu-item" :class='{ "bg-white bg-opacity-10": active }' :to="i.href">
-              <c-icon :icon="i.icon" :size="20" class="icon"></c-icon>
-              <span class="whitespace-nowrap">{{ i.text }}</span>
-            </router-link>
-          </template>
+            <template v-if="i.onClick">
+              <button @click="i.onClick" class="menu-item" :class='{ "bg-white bg-opacity-10": active }'>
+                <c-icon :icon="i.icon" :size="20" class="icon"></c-icon>
+                <span class="whitespace-nowrap">{{ i.text }}</span>
+              </button>
+            </template>
+            <template v-else-if="i.href">
+              <router-link v-if="i.visible" class="menu-item" :class='{ "bg-white bg-opacity-10": active }' :to="i.href">
+                <c-icon :icon="i.icon" :size="20" class="icon"></c-icon>
+                <span class="whitespace-nowrap">{{ i.text }}</span>
+              </router-link>
+            </template>
           </MenuItem>
 
           <MenuItem as="li">
-          <button @click="userLogout()" id="logout-button" class="menu-item">
-            <c-icon icon="log-out" :size="20" class="icon"></c-icon>
-            <span class="whitespace-nowrap">Cerrar sesión</span>
-          </button>
+            <button @click="userLogout()" id="logout-button" class="menu-item">
+              <c-icon icon="log-out" :size="20" class="icon"></c-icon>
+              <span class="whitespace-nowrap">Cerrar sesión</span>
+            </button>
           </MenuItem>
         </div>
       </MenuItems>
@@ -50,24 +50,24 @@
     </button>
   </div>
 </template>
-  
-<script setup>
-import { useCurrentUser } from '../app/services/current-user'
-import { useSiteSettings } from '../app/services/site-settings'
-import { inject, ref, onMounted } from 'vue'
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
-import LoginModal from './modals/login.modal.vue'
-import SignupModal from './modals/signup.modal.vue'
-import { ajax } from '../lib/Ajax';
-import { useRoute, useRouter } from 'vue-router'
 
-const route = useRoute()
-const router = useRouter()
+<script setup lang="ts">
+import { useSiteSettings } from '../../services/site-settings'
+import { ref, onMounted } from 'vue'
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import LoginModal from '../../../components/modals/login.modal.vue'
+import SignupModal from '../../../components/modals/signup.modal.vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useCurrentUser } from '../../services/current-user';
+import { ajax } from '../../../lib/Ajax'
 
 const { currentUser, isMainProfile } = useCurrentUser()
 const { siteSettings } = useSiteSettings()
 
-const getProfileAvatar = (avatar) => {
+const loginModal = ref<any>(null)
+const signupModal = ref<any>(null)
+
+const getProfileAvatar = (avatar: string | undefined) => {
   const defaultAvatarList = ['coolCat', 'cuteCat']
   const selectedAvatar = avatar || 'default'
   const randomAvatar = defaultAvatarList[Math.floor(Math.random() * defaultAvatarList.length)]
@@ -131,43 +131,48 @@ const menuItems = ref([
   },
 ])
 
-const loginModal = ref(null)
-const signupModal = ref(null)
+const { openLoginModal, openSignupModal, userLogout, checkRenderModal } = createMethods()
 
-const openLoginModal = () => {
-  loginModal.value.setIsOpen(true)
-}
-
-const openSignupModal = () => {
-  signupModal.value.setIsOpen(true)
-}
 onMounted(async () => {
   // Wait for route to be ready
   await checkRenderModal()
-
 })
 
-const checkRenderModal = async () => {
-  await router.isReady()
-  if (route.redirectedFrom) {
-    if(currentUser) return
-    if (route.redirectedFrom.path === '/login') {
-      openLoginModal()
-    }
-    if (route.redirectedFrom.path === '/signup') {
-      openSignupModal()
+function createMethods() {
+  const route = useRoute()
+  const router = useRouter()
+
+  const openLoginModal = () => {
+    loginModal.value.setIsOpen(true)
+  }
+
+  const openSignupModal = () => {
+    signupModal.value.setIsOpen(true)
+  }
+
+  const checkRenderModal = async () => {
+    await router.isReady()
+    if (route.redirectedFrom) {
+      if(currentUser) return
+      if (route.redirectedFrom.path === '/login') {
+        openLoginModal()
+      }
+      if (route.redirectedFrom.path === '/signup') {
+        openSignupModal()
+      }
     }
   }
-}
 
-const userLogout = () => {
-  ajax.delete('/logout.json')
-    .then(() => {
-      window.location.href = '/'
-    })
-    .catch((error) => {
-      console.log(error)
-    })
+  const userLogout = () => {
+    ajax.delete('/logout.json')
+      .then(() => {
+        window.location.href = '/'
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
+  return { openLoginModal, openSignupModal, userLogout, checkRenderModal }
 }
 </script>
-  ../lib/ajax

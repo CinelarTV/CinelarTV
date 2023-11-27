@@ -1,17 +1,21 @@
 # frozen_string_literal: true
 
 class SessionController < ApplicationController
+  before_action :authenticate_user!, only: %i[current_user_json profiles select_profile deassign_profile]
   def current_user_json
-    render json: current_user
+    render json: current_user,
+           serializer: CurrentUserSerializer,
+           include_profiles: true,
+           current_profile_id: session[:current_profile_id]
   end
 
   def profiles
     # Try to find the user profiles, if fails, return an empty array
     profiles = begin
-      current_user.profiles
-    rescue StandardError
-      []
-    end
+        current_user.profiles
+      rescue StandardError
+        []
+      end
     render json: profiles
   end
 

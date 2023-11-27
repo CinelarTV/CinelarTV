@@ -99,7 +99,7 @@
 
                         <template v-if="setting.type === 'code'" class="flex">
                             <vue-monaco-editor theme="vs-dark" @update:value="value => updateValue(setting.key, value)"
-                                :value="setting.value" :language="getLanguageByKey(setting.key)" height="350px"
+                                :value="setting.value" :language="getLanguageByKey(setting.key)" height="350px" @mount="MonacoTools.addTypes"
                                 width="100%">
                                 <template #loading>
                                     <c-spinner />
@@ -126,6 +126,7 @@
 <script setup>
 import { ref, onMounted, onUpdated } from 'vue';
 import { toast } from 'vue3-toastify';
+import MonacoTools from '../../../app/lib/MonacoTools';
 import CColorPicker from '../../../components/forms/c-color-picker.vue';
 import {
     Listbox,
@@ -151,7 +152,7 @@ const updateValue = (key, value) => {
 const getLanguageByKey = (key) => {
     const languageMap = {
         'custom_css': 'css',
-        'custom_js': 'javascript',
+        'custom_js': 'typescript',
         'custom_html': 'html',
         'custom_json': 'json',
         'additonal_player_settings': 'json',

@@ -40,7 +40,9 @@ class ContentsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.json { render json: @data }
+      format.json {
+        render json: ContentSerializer.new(@content, current_profile: current_profile).serializable_hash
+      }
     end
   end
 

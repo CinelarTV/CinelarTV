@@ -21,8 +21,11 @@
     "buffer": "^6.0.3",
     "chart.js": "^4.4.0",
     "compression-webpack-plugin": "9",
+    "console-log-colors": "^0.4.0",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
+    "esbuild": "^0.19.6",
+    "esbuild-loader": "^4.0.2",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "high-console": "^0.4.2",
     "howler": "^2.2.3",
@@ -68,13 +71,17 @@
   "version": "0.1.0",
   "babel": {
     "presets": [
-      "./node_modules/shakapacker/package/babel/preset.js"
+      "./node_modules/shakapacker/package/babel/preset.js",
+      "@babel/preset-typescript",
+      "babel-preset-typescript-vue3"
     ]
   },
   "browserslist": [
     "defaults"
   ],
   "devDependencies": {
+    "babel-preset-typescript-vue3": "^2.0.17",
+    "raw-loader": "^4.0.2",
     "vue-template-compiler": "^2.7.14",
     "webpack-dev-server": "4"
   },

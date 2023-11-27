@@ -16,6 +16,8 @@ Rails.application.routes.draw do
     post "/login" => "users/sessions#create"
     delete "/logout" => "users/sessions#destroy"
   end
+  use_doorkeeper
+
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
@@ -30,7 +32,7 @@ Rails.application.routes.draw do
   post "/user/deassign-profile", to: "session#deassign_profile"
   delete "/user/profiles/:id", to: "profiles#destroy"
 
-  get "/user/current", to: "session#current_user_json"
+  get "/session/current", to: "session#current_user_json"
   get "/session/csrf", to: "session#csrf"
 
   get "/user/default-avatars", to: "profiles#default_avatars"

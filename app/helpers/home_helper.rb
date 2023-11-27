@@ -6,16 +6,12 @@ module HomeHelper
 
     @homepage_data = {
       banner_content: load_banner_content(liked_contents_ids),
-      content: [
-        {
-          title: I18n.t("js.home.added_recently"),
-          content: load_added_recently(liked_contents_ids),
-        },
-      ],
+      content: [],
     }
 
     add_recommended_based_on_liked(liked_contents_ids)
     add_continue_watching(liked_contents_ids)
+    add_added_recently(liked_contents_ids)
 
     @homepage_data
   end
@@ -27,55 +23,48 @@ module HomeHelper
   end
 
   def load_banner_content(liked_contents_ids)
-    Content
-      .where(available: true)
-      .where.not(banner: nil)
-      .order("RANDOM()")
-      .limit(10)
-      .pluck(:id, :title, :description, :banner)
-      .map do |id, title, description, banner|
+    Content.where(available: true).where.not(banner: nil).order("RANDOM()").limit(10).map do |content|
       {
-        id: id,
-        title: title,
-        description: description,
-        banner: banner,
-        liked: liked_contents_ids.include?(id),
+        id: content.id,
+        title: content.title,
+        description: content.description,
+        banner: content.banner,
+        liked: liked_contents_ids.include?(content.id),
       }
     end
   end
 
-  def load_added_recently(liked_contents_ids)
-    Content
-      .where(available: true)
-      .where("created_at > ?", 3.week.ago)
-      .order(created_at: :desc)
-      .limit(15)
-      .pluck(:id, :title, :description, :banner)
-      .map do |id, title, description, banner|
+  def add_added_recently(liked_contents_ids)
+    added_recently = Content.added_recently.limit(15).pluck(:id, :title, :description, :banner).map do |content|
       {
-        id: id,
-        title: title,
-        description: description,
-        banner: banner,
-        liked: liked_contents_ids.include?(id),
+        id: content.id,
+        title: content.title,
+        description: content.description,
+        banner: content.banner,
+        liked: liked_contents_ids.include?(content.id),
       }
     end
+
+    @homepage_data[:content].insert(
+      1,
+      {
+        title: I18n.t("js.home.added_recently"),
+        content: added_recently.presence,
+      }
+    ) if added_recently.present?
   end
 
   def add_recommended_based_on_liked(liked_contents_ids)
-    random_content = liked_content_ids.sample
-    random_liked = Content.find_by(id: random_content)
+    random_liked = Content.find_by(id: liked_contents_ids.sample)
+
     if random_liked.present?
-      recommended_based_on_liked = random_liked
-        .similar_items
-        .pluck(:id, :title, :description, :banner)
-        .map do |id, title, description, banner|
+      recommended_based_on_liked = random_liked.similar_items.map do |content|
         {
-          id: id,
-          title: title,
-          description: description,
-          banner: banner,
-          liked: liked_contents_ids.include?(id),
+          id: content.id,
+          title: content.title,
+          description: content.description,
+          banner: content.banner,
+          liked: liked_contents_ids.include?(content.id),
         }
       end
 
@@ -90,70 +79,84 @@ module HomeHelper
   end
 
   def add_continue_watching(liked_contents_ids)
-    if current_profile.present?
-      continue_watching = ContinueWatching
-        .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner")
-        .where(profile_id: current_profile.id)
-        .joins(:content)
-        .includes(:episode)
-        .order("content_id, last_watched_at DESC")
-        .limit(20)
-        .map do |cw|
-        content = cw.content
-        episode = cw.episode
+    return unless current_profile.present?
 
+    continue_watching = ContinueWatching
+      .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner")
+      .joins(:content)
+      .where(profile_id: current_profile.id)
+      .order("content_id, last_watched_at DESC")
+      .limit(20)
+      .map do |cw|
+      content = cw.content
+      episode = cw.episode
+
+      {
+        id: content.id,
+        title: content.title,
+        description: content.description,
+        banner: content.banner,
+        liked: liked_contents_ids.include?(content.id),
+        progress: cw.progress,
+        duration: cw.duration,
+        last_watched_at: cw.last_watched_at,
+        episode: episode&.as_json(except: %i[created_at updated_at]),
+      }
+    end
+
+    if continue_watching.present?
+      # Now, sort the complete list by last_watched_at in descending order
+      continue_watching.sort_by! { |cw| cw[:last_watched_at] }.reverse!
+
+      @homepage_data[:content].insert(
+        0,
         {
-          id: content.id,
-          title: content.title,
-          description: content.description,
-          banner: content.banner,
-          liked: liked_contents_ids.include?(content.id),
-          progress: cw.progress,
-          duration: cw.duration,
-          last_watched_at: cw.last_watched_at,
-          episode: episode&.as_json(except: %i[created_at updated_at]),
+          title: I18n.t("js.home.continue_watching"),
+          content: continue_watching,
         }
-      end
+      )
+    end
+  end
 
-      if continue_watching.present?
-        # Ahora, ordenamos la lista completa por last_watched_at en orden descendente
-        continue_watching.sort_by! { |cw| cw[:last_watched_at] }.reverse!
+  def insert_continue_watching(continue_watching, liked_contents_ids)
+    if continue_watching.present?
+      @homepage_data[:content].insert(
+        0,
+        {
+          title: I18n.t("js.home.continue_watching"),
+          content: continue_watching,
+        }
+      )
+    end
+  end
 
+  def insert_top_10_content_by_country
+    ip_address = get_ip_address
+
+    if ip_address.present?
+      ip_info = IpInfo.lookup(ip_address)
+      top_10_content = CinelarTV.cache.read("top_10_content_#{ip_info[:country_code]}")
+
+      if top_10_content.present?
         @homepage_data[:content].insert(
-          0,
+          1,
           {
-            title: I18n.t("js.home.continue_watching"),
-            content: continue_watching,
+            title: I18n.t("js.home.top_10_content_by_country", country: ip_info[:country]),
+            content: top_10_content,
           }
         )
       end
-
-      ip_address = nil
-
-      if Rails.env.production?
-        ip_address = request.remote_ip
-      else
-        begin
-          ip_address = Net::HTTP.get(URI.parse("http://checkip.amazonaws.com/")).squish
-        rescue StandardError => e
-          Rails.logger.error "Error fetching IP address: #{e.message}"
-        end
-      end
-
-      if ip_address.present?
-        IpInfo.lookup(ip_address).tap do |ip_info|
-          if CinelarTV.cache.read("top_10_content_#{ip_info[:country_code]}").present?
-            # Merge the top 10 content by country with the homepage data
-            @homepage_data[:content].insert(
-              1,
-              {
-                title: I18n.t("js.home.top_10_content_by_country", country: ip_info[:country]),
-                content: CinelarTV.cache.read("top_10_content_#{ip_info[:country_code]}"),
-              }
-            )
-          end
-        end
-      end
     end
+  end
+
+  def get_ip_address
+    Rails.env.production? ? request.remote_ip : fetch_ip_address_locally
+  end
+
+  def fetch_ip_address_locally
+    Net::HTTP.get(URI.parse("http://checkip.amazonaws.com/")).squish
+  rescue StandardError => e
+    Rails.logger.error "Error fetching IP address: #{e.message}"
+    nil
   end
 end
