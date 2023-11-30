@@ -15,7 +15,7 @@
                 Add
             </c-button>
         </div>
-        <draggable tag="div" v-model="episodeList" class="episode-manager-list" handle=".handle" :group="episodeGroup"
+        <draggable tag="div" v-model="episodeList" class="episode-manager-list" handle=".handle" group="episodeGroup"
             ghost-class="opacity-50" @start="reorderingEpisodes = true" @end="reorderingEpisodes = false">
             <template #item="{ element, index }">
                 <div class="editor-episode-container">
@@ -41,19 +41,20 @@
             </template>
         </draggable>
 
-        <create-episode-modal ref="episodeModalRef" :season-id="route.params.seasonId" @episode-created="getEpisodeList()"
-            :content-id="route.params.contentId" />
+        <create-episode-modal ref="episodeModalRef" :season-id="route.params.seasonId.toString()" @episode-created="getEpisodeList()"
+            :content-id="route.params.contentId.toString()" />
 
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, defineProps, watch, onMounted, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import draggable from 'vuedraggable'
-import { toast } from 'vue3-toastify';
-import createEpisodeModal from '../../../components/modals/create-episode.modal.vue';
+import { toast } from 'vue3-toastify'
+import createEpisodeModal from '../../../app/components/modals/create-episode.modal.vue';
 import { ajax } from '../../../lib/Ajax';
+import Episode from '../../../app/models/Episode';
 
 const loadingEpisodeList = ref(true)
 const episodeList = ref([])
@@ -81,17 +82,22 @@ onMounted(async () => {
 const createEpisode = () => {
     episodeModalRef.value.setIsOpen(true)
 }
+const editEpisode = (episode: Episode) => {
+    router.push({
+        path: `/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes/${episode.id}/edit`
+    })
+}
 
 const reorderEpisodes = async () => {
     try {
         const response = await ajax.put(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/reorder-episodes.json`, {
             episode_order: episodeList.value.map((episode) => episode.id)
         });
-        toast.success(i18n.t('admin.content_manager.episode_manager.reorder_success'));
+        toast.success("i18n.t('admin.content_manager.episode_manager.reorder_success'");
         await getEpisodeList();
     } catch (error) {
         console.log(error);
-        toast.error(i18n.t('admin.content_manager.episode_manager.reorder_error', { error: error.message }));
+        toast.error("i18n.t('admin.content_manager.episode_manager.reorder_error', { error: error.message })");
     }
 };
 
@@ -107,7 +113,9 @@ const getEpisodeList = async () => {
     try {
         const response = await ajax.get(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes.json`);
         loadingEpisodeList.value = false;
-        episodeList.value = response.data.data.episodes;
+        response.data.data.episodes.forEach((episode) => {
+            episodeList.value.push(new Episode(episode));
+        });
     } catch (error) {
         loadingEpisodeList.value = false;
         // Manejar el error aquí, por ejemplo:
@@ -116,14 +124,14 @@ const getEpisodeList = async () => {
 };
 
 const deleteEpisode = async (episode) => {
-    if(confirm(i18n.t('admin.content_manager.episode_manager.delete_confirm'))) {
+    if(confirm("i18n.t('admin.content_manager.episode_manager.delete_confirm')")) {
         try {
             const response = await ajax.delete(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes/${episode.id}.json`);
-            toast.success(i18n.t('admin.content_manager.episode_manager.delete_success'));
+            toast.success("i18n.t('admin.content_manager.episode_manager.delete_success')");
             await getEpisodeList();
         } catch (error) {
             console.log(error);
-            toast.error(i18n.t('admin.content_manager.episode_manager.delete_error', { error: error.message }));
+            toast.error("i18n.t('admin.content_manager.episode_manager.delete_error', { error: error.message })");
         }
     }
 };

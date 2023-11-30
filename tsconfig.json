@@ -12,5 +12,9 @@
       "noEmit": true
     },
     "exclude": ["**/*.spec.ts", "node_modules", "vendor", "public"],
-    "compileOnSave": false
+    "compileOnSave": false,
+    "baseUrl": "./app/assets/javascripts",
+    "paths": {
+      "@/*": ["cinelartv/*"]
+    }
   }

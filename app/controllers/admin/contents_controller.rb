@@ -151,6 +151,25 @@ module Admin
       end
     end
 
+    def edit_episode
+      @episode = Episode.find(params[:episode_id])
+      @season = @episode.season
+      @content = @season.content
+
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: {
+            data: {
+              episode: @episode.as_json.merge({
+                thumbnail: @episode.thumbnail || @content.banner,
+              }),
+            },
+          }
+        end
+      end
+    end
+
     def reorder_seasons
       @content = Content.find(params[:id])
       season_order = params[:season_order]
@@ -176,6 +195,7 @@ module Admin
       @episode.update(episode_params)
       render json: { message: "Episode updated successfully", status: :ok }
     end
+
 
     def update
       @content = Content.find(params[:id])

@@ -5,7 +5,7 @@
         <OfflineIndicator />
         <main>
             <SiteBanner />
-            <router-view v-slot="{ Component, route }">
+            <router-view v-slot="{ Component, route }" :key="route.fullPath">
                 <transition :name="route.meta.transition">
                     <component :is="Component" />
                 </transition>

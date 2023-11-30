@@ -73,14 +73,34 @@
                       </div>
                     </template>
                   </div>
+
                 </div>
               </div>
             </div>
 
+
+          </div>
+          <div class="related-content">
+            <div class="text-2xl font-bold mb-4">Talvez te guste...</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <template v-for="content in contentData.relatedContent" :key="content.id">
+                <router-link :to="{ name: 'content.show', params: { id: content.id }, force: true }">
+                  <div class="content-card">
+                    <div class="content-card__image">
+                      <img :src="content.cover" alt="Cover Image" />
+                    </div>
+                    <div class="content-card__title">
+                      {{ content.title }}
+                    </div>
+                  </div>
+                </router-link>
+              </template>
+            </div>
           </div>
         </div>
 
       </div>
+
       <requireSignupModal ref="requireSignupModalRef" :content-name="contentData.title"
         @openSignupModal="console.log(0)" />
     </div>
@@ -95,6 +115,7 @@ import { useHead } from 'unhead'
 import requireSignupModal from '../components/modals/require-signup.modal.vue'
 import { ajax } from '../lib/Ajax'
 import Content from '../app/models/Content'
+import ContentCard from '../components/content-card.vue'
 
 const currentUser = inject('currentUser')
 
@@ -166,6 +187,15 @@ const playContent = () => {
     router.push(`/watch/${contentData.value.id}/${contentData.value.seasons[0].episodes[0].id}`)
   }
 }
+
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 120) {
+    document.body.classList.add('scrolled')
+  } else {
+    document.body.classList.remove('scrolled')
+  }
+})
+
 
 const playEpisode = (episodeId) => {
   if (!currentUser) {

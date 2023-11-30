@@ -30,12 +30,14 @@ class ContentSerializer < ApplicationSerializer
 
   def seasons
     return unless object.content_type == Content.types["TVSHOW"]
-    object.seasons.map do |season|
+
+    object.seasons
+          .sort_by(&:position) # Ordenar las temporadas por posición
+          .map do |season|
       {
         id: season.id,
         title: season.title,
         description: season.description,
-        position: season.position,
         episodes: season.episodes.map { |episode| episode_attributes(episode) },
       }
     end
@@ -48,7 +50,9 @@ class ContentSerializer < ApplicationSerializer
   private
 
   def episode_attributes(episode)
-    attibutes = episode.as_json(only: %i[id title description position thumbnail position])
+    attributes = episode.as_json(only: %i[id title description position thumbnail position])
+    attributes[:thumbnail] = episode.thumbnail || object.banner
+    attributes # Asegúrate de devolver el hash attributes
   end
 
   def similar_items
@@ -61,9 +65,9 @@ class ContentSerializer < ApplicationSerializer
 
   def continue_watching
     cw = ContinueWatching
-      .where(profile: @options[:current_profile], content: object)
-      .order(updated_at: :desc)
-      .first
+         .where(profile: @options[:current_profile], content: object)
+         .order(updated_at: :desc)
+         .first
 
     return unless cw.present?
 
@@ -71,19 +75,17 @@ class ContentSerializer < ApplicationSerializer
       continue_watching_attributes(cw)
     elsif object.content_type == Content.types["MOVIE"]
       continue_watching_attributes(cw)
-    else
-      nil
     end
   end
 
   def continue_watching_attributes(continue_watching)
     attributes_to_include = if object.content_type == Content.types[:TVSHOW]
-        %i[episode_id progress duration]
-      elsif object.content_type == Content.types[:MOVIE]
-        %i[progress duration]
-      else
-        []
-      end
+                              %i[episode_id progress duration]
+                            elsif object.content_type == Content.types[:MOVIE]
+                              %i[progress duration]
+                            else
+                              []
+                            end
 
     attributes = continue_watching.as_json(only: attributes_to_include) unless attributes_to_include.empty?
   end

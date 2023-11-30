@@ -68,6 +68,14 @@ const AdminRoutes = {
                     meta: {
                         requireAdmin: true
                     }
+                },
+                {
+                    name: 'admin.content.manager.manage-episodes.edit',
+                    path: ':contentId/seasons/:seasonId/episodes/:episodeId/edit',
+                    component: () => import('../views/admin/content-manager/episodes/edit-episode.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
                 }
             ]
         },

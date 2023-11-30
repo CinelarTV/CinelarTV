@@ -1,6 +1,7 @@
 import { ajax } from "../../lib/Ajax";
 import Season, { SeasonData } from "./Season";
 import ContinueWatching, { ContinueWatchingData } from "./ContinueWatching";
+import RestModel from "./RestModel";
 
 
 export enum ContentType {
@@ -27,10 +28,11 @@ interface ContentData {
     continue_watching?: ContinueWatchingData | null;
 }
 
-class Content {
+class Content extends RestModel {
     private data: ContentData;
 
     constructor(data: ContentData) {
+        super(`/contents/${data.id}.json`);
         this.data = data;
 
         if ('seasons' in data) {
@@ -72,10 +74,6 @@ class Content {
 
     get contentType(): string {
         return this.data.content_type;
-    }
-
-    get url(): string {
-        return this.data.url;
     }
 
     get year(): number {
@@ -131,6 +129,16 @@ class Content {
             return null;
         }
     }
+
+    async like(): Promise<void> {
+        try {
+            await ajax.post(`/contents/${this.id}/like.json`);
+            this.data.liked = true;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
 }
 
 export default Content;

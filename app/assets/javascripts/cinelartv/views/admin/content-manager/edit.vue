@@ -177,7 +177,10 @@ const saveContent = async (e) => {
     try {
         const formData = new FormData();
         Object.entries(editedData.value).forEach(([key, value]) => {
-            if (['id', 'created_at', 'updated_at'].includes(key)) {
+            if (['id', 'created_at', 'updated_at', 'seasons'].includes(key)) {
+                return;
+            }
+            if(!value) {
                 return;
             }
             formData.append(`content[${key}]`, value);
@@ -230,4 +233,3 @@ onMounted(() => {
     fetchContent();
 });
 </script>
-  ../../../lib/ajax

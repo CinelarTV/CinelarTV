@@ -5,6 +5,13 @@ body.content-route {
   }
 }
 
+body.content-route.scrolled {
+  #site-header {
+    background-color: var(--c-header-background-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+}
+
 body.content-route main {
   background-color: #121212;
 }

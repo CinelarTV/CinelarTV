@@ -1,4 +1,5 @@
 import { ajax } from "../../lib/Ajax";
+import RestModel from "./RestModel";
 
 export interface EpisodeData {
     id: string;
