@@ -9,7 +9,7 @@
 # enabled_site_setting :cinelar_watchparty_enabled
 
 module ::WatchParty
-  PLUGIN_NAME = "discourse-watch-party"
+  PLUGIN_NAME = "cinelartv-watch-party"
 end
 
 require_relative "lib/watch_party/engine"
