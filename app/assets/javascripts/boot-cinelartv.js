@@ -2,6 +2,10 @@ import { showPreloaderError } from './cinelartv/pre-initializers/essentials-prel
 import '../builds/cinelartv-wind.css'
 import loadScript from './cinelartv/lib/load-script';
 import { SafeMode } from './cinelartv/pre-initializers/safe-mode';
+import { useSiteSettings } from "./cinelartv/app/services/site-settings.ts";
+import { PiniaStore } from "./cinelartv/app/lib/Pinia.ts";
+
+const { siteSettings } = useSiteSettings();
 
 
 import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(module => {
@@ -31,8 +35,9 @@ import(/* webpackChunkName: "cinelartv" */ './cinelartv/application').then(modul
 
     try {
         // Load custom JavaScript after CinelarTV is mounted
-        if (SiteSettings.custom_js && SiteSettings.custom_js.length > 0) {
-            loadScript(null, SiteSettings.custom_js);
+        if (siteSettings.custom_js && siteSettings.custom_js.length > 0) {
+            console.log('Loading custom JavaScript');
+            loadScript(null, siteSettings.custom_js);
         }
     } catch (error) {
 

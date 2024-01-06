@@ -152,7 +152,7 @@ const updateValue = (key, value) => {
 const getLanguageByKey = (key) => {
     const languageMap = {
         'custom_css': 'css',
-        'custom_js': 'typescript',
+        'custom_js': 'javascript',
         'custom_html': 'html',
         'custom_json': 'json',
         'additonal_player_settings': 'json',
