@@ -1,10 +1,10 @@
 <template>
-  <li class="content-item" tabindex="0" @keydown.enter="$router.push(`/contents/${data.id}`)">
-    <article class="recyclerview-card-article">
+  <li class="content-item" tabindex="0">
+    <a :href="`/contents/${data.id}`" class="recyclerview-card-article aspect-video">
       <section class="recyclerview-card-article__section">
         <div class="recyclerview-card-article__element">
           <RouterLink :to="`/contents/${data.id}`" tabindex="-1">
-            <div class="recyclerview-card-article__image" style="aspect-ratio:16/9">
+            <div class="recyclerview-card-article__image aspect-video">
               <img :src="data.banner" alt="Cover Image" />
             </div>
             <div class="recyclerview-card-article__overlay"
@@ -32,10 +32,10 @@
           {{ data.description }}
         </div>
       </div>
-    </article>
+    </a>
   </li>
 </template>
-  
+
 <script setup>
 import { defineProps, ref } from 'vue'
 
@@ -49,4 +49,3 @@ const props = defineProps({
 const isHovering = ref(false)
 
 </script>
-  

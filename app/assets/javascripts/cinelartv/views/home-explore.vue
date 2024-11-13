@@ -46,7 +46,8 @@
 
                                                 <c-icon-button icon="info" @click="showInfo(item.id)" />
 
-                                                <c-icon-button icon="thumbs-up" :class="item.liked ? '!text-blue-500' : ''"
+                                                <c-icon-button icon="thumbs-up"
+                                                    :class="item.liked ? '!text-blue-500' : ''"
                                                     @click="toggleLike(item.id, true)" />
                                             </div>
                                         </section>
@@ -82,7 +83,7 @@
     </div>
 </template>
 
-  
+
 <script setup>
 import { ref, onMounted, getCurrentInstance, inject } from 'vue';
 import { useRouter } from 'vue-router';
@@ -90,6 +91,7 @@ import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
 import { ajax } from '../lib/Ajax';
 import ContentCard from '../components/content-card.vue';
+
 
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
