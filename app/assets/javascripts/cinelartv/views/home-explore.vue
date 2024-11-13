@@ -80,6 +80,13 @@
                 </template>
             </section>
         </div>
+
+        <div class="flex justify-center items-center mt-4 py-8">
+            <c-icon icon="award" class="text-4xl mr-2" size="24" />
+            <p>
+                Esto es todo por ahora. ¡Vuelve pronto para más contenido!
+            </p>
+        </div>
     </div>
 </template>
 

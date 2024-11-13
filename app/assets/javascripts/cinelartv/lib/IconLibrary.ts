@@ -8,6 +8,7 @@ const { siteSettings } = useSiteSettings(PiniaStore);
 const PLAYER_ICONS = ["play", "pause", "maximize", "minimize"]
 const ICON_MAP = [
     "activity",
+    "award",
     "airplay",
     "arrowRightLeft",
     "arrowRight",
@@ -93,7 +94,7 @@ export const generateSpriteSheet = () => {
         }
         iconCount++;
 
-        if(PLAYER_ICONS.includes(icon)) {
+        if (PLAYER_ICONS.includes(icon)) {
             // Add additional symbol with "vjs-icon" prefix
             svgSymbols.push(`<symbol id="vjs-icon-${dashCaseIcon}" viewBox="0 0 24 24">${symbol}</symbol>`);
         }
