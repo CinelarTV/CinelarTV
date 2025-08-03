@@ -3,6 +3,14 @@
 class ApplicationController < ActionController::Base
   include JsonError
 
+  SKIPPABLE_PATHS = [
+    '/finish-installation',
+    '/manifest.webmanifest',
+    '/capybara_spin',
+    '/capybara',
+    # Agrega aquí otros paths que quieras omitir
+  ].freeze
+
   before_action :reload_storage_config
   before_action :require_finish_installation?
   # Skip the CSRF token for API requests
@@ -119,7 +127,7 @@ class ApplicationController < ActionController::Base
   end
 
   def require_finish_installation?
-    return false unless SiteSetting.waiting_on_first_user && !request.path.start_with?("/finish-installation")
+    return false unless SiteSetting.waiting_on_first_user && SKIPPABLE_PATHS.none? { |path| request.path.start_with?(path) }
 
     redirect_to "/finish-installation", status: 302
     true

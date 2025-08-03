@@ -1,0 +1,26 @@
+# Configure compile options for dartsass-rails
+builds:
+  admin: app/assets/stylesheets/admin.scss
+  cinelartv: app/assets/stylesheets/cinelartv.scss
+  content: app/assets/stylesheets/content.scss
+  errors: app/assets/stylesheets/errors.scss
+  profiles: app/assets/stylesheets/profiles.scss
+  search: app/assets/stylesheets/search.scss
+  wizard: app/assets/stylesheets/wizard.scss
+
+default_config: &default
+  source_map: true
+  style: expanded
+  syntax: scss
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default
+  style: compressed
+  source_map: false
+

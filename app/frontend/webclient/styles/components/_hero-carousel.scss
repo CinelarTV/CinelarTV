@@ -1,0 +1,291 @@
+:root {
+    --dv-carousel-column-margin: 32px;
+    --dv-carousel-column-gap: 16px;
+    --dv-screen-width: 100vw;
+    --standard-hero-card-width: calc(var(--dv-screen-width) - var(--dv-carousel-column-margin)*2)
+}
+
+/* Estilos para el primer elemento <li> en el carrusel */
+.carousel-ul>li:first-child {
+    margin-right: 0;
+}
+
+/* Estilos para los demás elementos <li> en el carrusel */
+.carousel-ul>li:not(:first-child) {
+    margin-right: var(--dv-carousel-column-gap);
+}
+
+.carousel-banner-info {
+    align-items: flex-start;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    grid-column: 1/12;
+    justify-content: center;
+    max-width: calc(var(--standard-hero-card-width)/2.4);
+    opacity: 1;
+    position: relative;
+    -webkit-transform: translateY(30px);
+    transform: translateY(30px);
+    transition-duration: .6s;
+    transition-property: opacity, -webkit-transform;
+    transition-property: transform, opacity;
+    transition-property: transform, opacity, -webkit-transform;
+    transition-timing-function: cubic-bezier(.2, .45, 0, 1);
+    z-index: 1;
+}
+
+#home-carousel {
+    @apply relative;
+}
+
+.carousel-root {
+    display: grid;
+    grid-template-areas: "left right";
+    grid-template-columns: repeat(2, calc(var(--dv-carousel-column-margin) - var(--dv-carousel-column-gap)));
+    grid-template-rows: 1fr;
+    justify-content: space-between;
+    padding: 0 var(--dv-carousel-column-gap);
+    overflow: hidden;
+}
+
+.carousel-ul {
+    display: grid;
+    gap: 0 var(--dv-carousel-column-gap);
+    grid-auto-columns: var(--standard-hero-card-width);
+    grid-auto-flow: column;
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    grid-column: left-start/right-end;
+    grid-row: 1;
+    z-index: 1;
+    aspect-ratio: 3/1;
+}
+
+.carousel-ul>li {
+    scroll-snap-align: start;
+    flex-direction: column;
+    justify-content: center;
+    @apply aspect-video;
+}
+
+.standard-hero-card {
+    background-color: #1a1a1a;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: grid;
+    overflow: hidden;
+    width: var(--standard-hero-card-width);
+    transition: transform 0.3s ease;
+    will-change: transform;
+    position: relative;
+    --standard-hero-card-aspect-ratio: 3/1;
+    --border-radius: 8px;
+    aspect-ratio: var(--standard-hero-card-aspect-ratio);
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    opacity: 1;
+    position: relative;
+    transition-duration: .6s;
+    transition-property: opacity;
+    transition-timing-function: cubic-bezier(.2, .45, 0, 1);
+    @apply aspect-video;
+}
+
+.standard-hero-card::before {
+    background-position: 50%;
+    background-size: cover;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.standard-hero-card__image {
+    overflow: hidden;
+    aspect-ratio: 3/1;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+
+}
+
+.carousel-ul::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+/* Asegúrate de agregar también estas propiedades a .carousel-ul para que la scrollbar se oculte en otros navegadores */
+.carousel-ul {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.carousel-control-arrows {
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    position: absolute;
+    width: 100%;
+
+
+    .carousel-arrow {
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        position: relative;
+        justify-content: center;
+        align-items: center;
+        height: 40px;
+        width: 40px;
+        transition: background-color 0.3s ease;
+    }
+
+}
+
+.carousel-arrow .carousel-arrow-left {
+    left: 0;
+}
+
+.carousel-arrow .carousel-arrow-right {
+    right: 0;
+}
+
+
+
+.standard-hero-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    object-position: top center;
+    @apply aspect-video;
+}
+
+.standard-hero-card__content {
+    padding: 12px;
+    flex: 1;
+}
+
+.standard-hero-card__title {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.standard-hero-card__description {
+    color: #b0b0b0;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.standard-hero-card__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    @apply space-x-4 items-center
+}
+
+.carousel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.carousel-indicators {
+    left: 0;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    @apply bottom-5;
+}
+
+.carousel-indicators>li {
+    background: hsla(0, 0%, 100%, .3);
+    margin-right: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 8px;
+    list-style: none;
+    width: 8px;
+    transition: all .3s ease;
+    transform: scale(0.8);
+}
+
+.carousel-indicators>li.active {
+    background: white;
+    width: 40px;
+    border-radius: 16px;
+    height: 8px;
+    @apply my-auto;
+}
+
+.carousel-indicators>li::marker {
+    content: '';
+}
+
+/* Estilos específicos para pantallas más pequeñas (móviles) */
+@media screen and (max-width: 768px) {
+
+    /* Ajustar tamaños de fuente y espaciado */
+    .standard-hero-card__title {
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+
+    .standard-hero-card__description {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .standard-hero-card__actions {
+        margin-top: 8px;
+    }
+
+    /* Reducir anchos */
+    :root {
+        --standard-hero-card-width: 100%;
+        /* Ancho total en móvil */
+    }
+
+    /* Ajustar posición y tamaño de la imagen */
+    .standard-hero-card__image {
+        aspect-ratio: 2/1;
+        /* Cambiar el aspect ratio si es necesario */
+        height: auto;
+    }
+
+    .standard-hero-card__image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Reorganizar elementos si es necesario */
+    .carousel-banner-info {
+        max-width: 100%;
+        align-items: center;
+        text-align: center;
+    }
+}

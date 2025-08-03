@@ -10,30 +10,31 @@ const { siteSettings } = useSiteSettings(PiniaStore)
 
 
 const loadRoutes = () => {
-    const routes = require.context('./', true, /\.route\.js$/)
-
-    return routes.keys()
-        .map(routes)         // import module
+    // Carga todos los archivos .route.js en el directorio actual y subdirectorios
+    const modules = import.meta.glob('./**/*.route.js', { eager: true });
+    return Object.values(modules)
         .map(m => {
             if (!m.default?.path) {
-                console.warn(`Route ${m.default.name} has no path. Skipping...`)
-                return
+                console.warn(`Route ${m.default?.name} has no path. Skipping...`)
+                return;
             }
-            return m.default
-        })  // get `default` export from each resolved module
+            return m.default;
+        })
+        .filter(Boolean);
 }
 
 const loadPluginRoutes = () => {
-    const routes = require.context('pluginsDir', true, /routes\/.+\.route\.js$/);
-    return routes.keys()
-        .map(routes)         // import module
+    // Ajusta la ruta según la estructura real de tus plugins
+    const modules = import.meta.glob('/plugins/cinelar-watchparty/**/routes/*.route.js', { eager: true });
+    return Object.values(modules)
         .map(m => {
             if (!m.default?.path) {
-                console.warn(`Route ${m.default.name} has no path. Skipping...`)
-                return
+                console.warn(`Route ${m.default?.name} has no path. Skipping...`)
+                return;
             }
-            return m.default
-        })  // get `default` export from each resolved module
+            return m.default;
+        })
+        .filter(Boolean);
 }
 
 

@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
+ruby "3.4.4"
+
 # Bump this to issue a Rails update
-rails_version = "7.0.7.1"
+rails_version = "7.2.0"
 
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.6"
+gem 'dotenv', groups: [:development, :test]
+
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "actionmailer", rails_version
@@ -18,17 +21,17 @@ gem "activesupport", rails_version
 gem "rails", rails_version
 gem "railties", rails_version
 
-# Use SCSS for stylesheets
-gem "sass-rails"
+# Use Dart Sass for stylesheets
+#gem "dartsass-rails"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
-# Use sqlite3 as the database for Active Record
-gem "sqlite3", "~> 1.4"
+gem "ostruct"
+gem "csv"
 
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", "~> 5.6"
+gem "puma", "~> 6.0"
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
@@ -48,8 +51,7 @@ gem "tzinfo-data", platforms: %i[mingw mswin x64_mingw jruby]
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
-# Use Sass to process CSS
-# gem "sassc-rails"
+# Use Dart Sass to process CSS (installed by dartsass-rails)
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
@@ -60,12 +62,12 @@ group :development, :test do
   gem "debug", platforms: %i[mri mingw x64_mingw]
   gem "factory_bot_rails"
   gem "faker"
-  gem "rspec-rails", "~> 5.0"
-  gem "rubocop", "~> 1.30", require: false # Automatic Ruby code style checking tool
-  gem "rubocop-performance", "~> 1.14", require: false # A collection of RuboCop cops to check for performance optimizations in Ruby code
-  gem "rubocop-rails", "~> 2.14", require: false # Automatic Rails code style checking tool
-  gem "rubocop-rspec", "~> 2.11", require: false # Code style checking for RSpec files
   gem "rails-controller-testing"
+  gem "rspec-rails", "~> 5.0"
+  gem "rubocop", require: false # Automatic Ruby code style checking tool
+  gem "rubocop-performance", require: false # A collection of RuboCop cops to check for performance optimizations in Ruby code
+  gem "rubocop-rails", require: false # Automatic Rails code style checking tool
+  gem "rubocop-rspec", require: false # Code style checking for RSpec files
 end
 
 group :development do
@@ -78,9 +80,9 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 
-  gem "listen", require: false
   gem "better_errors"
   gem "binding_of_caller"
+  gem "listen", require: false
 end
 
 group :test do
@@ -90,7 +92,7 @@ group :test do
   gem "webdrivers"
 end
 
-gem "shakapacker", "= 7.0"
+gem "shakapacker", "= 8.0"
 
 gem "rails-settings-cached", "~> 2.9"
 
@@ -105,7 +107,7 @@ gem "message_bus"
 # For multi-lingual app
 gem "i18n-js", "~> 3"
 
-gem "rack-mini-profiler", "~> 2.0"
+gem "rack-mini-profiler", "~> 4.0"
 
 gem "logster"
 
@@ -125,18 +127,21 @@ gem "carrierwave-aws", "~> 1.6"
 gem "erb-formatter", "~> 0.4.3"
 
 gem "active_model_serializers", "~> 0.8.3"
-gem "httparty", "~> 0.21.0"
+gem "httparty"
 gem "wdm", ">= 0.1.0", platforms: %i[mingw mswin x64_mingw jruby]
 
 gem "sidekiq" # To run background jobs
 # gem 'mini_scheduler' # To schedule background jobs
 gem "sidekiq-scheduler"
 
-gem "maxminddb" # To get user's location
 gem "countries" # To get Countries information
-gem "serviceworker-rails" # To add service worker
+gem "maxminddb" # To get user's location
 gem "pry", "~> 0.14.2"
 gem "pry-rails"
 
-gem 'doorkeeper'
-gem 'doorkeeper-jwt'
+gem "doorkeeper"
+gem "doorkeeper-jwt"
+
+
+#### Migration to Vite Rails ####
+gem 'vite_rails'

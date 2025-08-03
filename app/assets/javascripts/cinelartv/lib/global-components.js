@@ -1,47 +1,47 @@
 const Components = [
     {
         name: 'c-input',
-        component: require('../components/forms/c-input.vue').default
+        component: () => import('../components/forms/c-input.vue')
     },
     {
         name: 'c-button',
-        component: require('../components/forms/c-button.vue').default
+        component: () => import('../components/forms/c-button.vue')
     },
     {
         name: 'c-spinner',
-        component: require('../components/c-spinner.js').default
+        component: () => import('../components/c-spinner.js')
     },
     {
         name: 'c-select',
-        component: require('../components/forms/c-select.vue').default
+        component: () => import('../components/forms/c-select.vue')
     },
     {
         name: 'c-textarea',
-        component: require('../components/forms/c-textarea.vue').default
+        component: () => import('../components/forms/c-textarea.vue')
     },
     {
         name: 'c-image-upload',
-        component: require('../components/forms/c-image-upload.vue').default
+        component: () => import('../components/forms/c-image-upload.vue')
     },
     {
         name: 'plugin-outlet',
-        component: require('../components/plugin-outlet.vue').default
+        component: () => import('../components/plugin-outlet.vue')
     },
     {
         name: 'c-icon-button',
-        component: require('../components/forms/c-icon-button.vue').default
+        component: () => import('../components/forms/c-icon-button.vue')
     },
     {
         name: 'c-icon',
-        component: require('../components/c-icon.vue').default
+        component: () => import('../components/c-icon.vue')
     }
 ]
 
 export default {
     install: (app) => {
-        Components.forEach(component => {
-            app.component(component.name, component.component)
+        Components.forEach(async component => {
+            const mod = await component.component();
+            app.component(component.name, mod.default || mod);
         })
-
     }
 }

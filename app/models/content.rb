@@ -7,7 +7,7 @@ class Content < ApplicationRecord
   has_many :categories, through: :content_categories
   has_many :seasons
 
-  enum :type, { TVSHOW: "TVSHOW", MOVIE: "MOVIE" }
+  enum :content_type, { TVSHOW: "TVSHOW", MOVIE: "MOVIE" }
 
   has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"
 

@@ -10,12 +10,12 @@ let VideoPlayerRoute =
     },
     children: [
         {
-            name: 'videoplayer.show',
+            name: 'videoplayer.episode', // Cambiado para evitar duplicidad
             path: ':episodeId',
             component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.vue'),
         },
     ]
-    
+
 }
 
 

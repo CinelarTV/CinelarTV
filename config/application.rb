@@ -5,6 +5,10 @@ require "pry"
 
 require "rails/all"
 
+
+# Load dotenv to manage environment variables
+require "dotenv/load" if File.exist?(File.expand_path("../.env", __dir__))
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -29,5 +33,14 @@ module CinelarTV
     require "cinelar_tv"
 
     config.active_job.queue_adapter = :sidekiq
+
+    # Print .env for debugging purposes
+    if Rails.env.development? || Rails.env.test?
+      puts "CINELAR_DB: #{ENV['CINELAR_DB']}"
+      puts "CINELAR_DB_HOSTNAME: #{ENV['CINELAR_DB_HOSTNAME']}"
+      puts "CINELAR_DB_USERNAME: #{ENV['CINELAR_DB_USERNAME']}"
+      puts "CINELAR_DB_PASSWORD: #{ENV['CINELAR_DB_PASSWORD']}"
+      puts "CINELAR_DB_PORT: #{ENV['CINELAR_DB_PORT']}"
+    end
   end
 end

@@ -1,13 +1,13 @@
 <template>
   <div id="wizard-main">
     <div class="c-installer-logo">
-      <img src="/assets/default/cinelartv_default_logo.svg" alt="CinelarTV" />
+      <img :src="'/assets/default/cinelartv_default_logo.svg'" alt="CinelarTV" />
     </div>
     <router-view v-if="currentStep" :id="step" :wizard-data="wizard" :current-step="currentStep"
       @update:step="updateCurrentStep"></router-view>
   </div>
 </template>
-  
+
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
@@ -57,4 +57,4 @@ onMounted(() => {
 })
 
 
-</script>../lib/ajax
+</script>

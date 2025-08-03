@@ -1,3 +1,2 @@
 web: bundle exec rails server -b 0.0.0.0
-pack: ruby bin/shakapacker-dev-server
-tailwind: yarn build:css --watch
+vite: bundle exec vite dev

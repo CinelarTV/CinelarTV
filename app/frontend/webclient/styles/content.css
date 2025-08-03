@@ -1,0 +1,147 @@
+body.content-route {
+  #site-header {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+body.content-route.scrolled {
+  #site-header {
+    background-color: var(--c-header-background-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+}
+
+body.content-route main {
+  background-color: #121212;
+}
+
+.content-overview {
+  margin-top: -4em;
+  /* On Content Overview, statusbar is transparent */
+}
+
+.content-overview .banner-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.5s;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(54deg, rgba(18, 18, 18, .8) 15%, transparent 60%), linear-gradient(333deg, rgba(18, 18, 18, .8) 10%, transparent 60%), linear-gradient(180deg, rgba(18, 18, 18, 0) 20%, #121212);
+  }
+}
+
+.content-overview .banner-wrapper.banner-loaded {
+  opacity: 1;
+}
+
+
+
+.content-overview .content-details {
+  @apply md:px-12 md:py-8 px-4 py-4;
+  margin-top: -420px;
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+
+  & .content-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--c-body-text-color, #fff);
+    @apply max-w-xl;
+  }
+
+  & .content-description {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--c-body-text-color, #fff);
+    @apply max-w-3xl;
+  }
+
+  & .content-actions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+
+
+  }
+}
+
+.season-episodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+
+  .episode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    border-radius: 5px;
+    background-color: #1f1f1f;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    @apply transition-shadow duration-150 ease-in-out;
+
+    .episode-thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    &:hover {
+      background-color: #2f2f2f;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .episode-metadata {
+      padding: 10px;
+
+     
+  
+      .episode-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--c-body-text-color, #fff);
+      }
+  
+      .episode-description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        text-align: left;
+        width: 100%;
+        color: var(--c-body-text-color, #fff);
+      }
+
+    }
+
+
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .content-overview .content-details {
+    @apply px-8;
+  }
+}

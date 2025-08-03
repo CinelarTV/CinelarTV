@@ -27,6 +27,6 @@
 #
 
 translations:
-  - file: "app/assets/javascripts/cinelartv/i18n/translations.js"
+  - file: "app/frontend/webclient/i18n/translations.js"
     only: '*.js.*'
     prefix: "import I18n from 'i18n-js';\n"

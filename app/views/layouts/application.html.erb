@@ -29,10 +29,14 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= render partial: "partials/opengraph" %>
+   
+  
+
   </head>
   <body class="app-body<% if device == "mobile" %> is-mobile<% end %>" data-current-path="<%= request.env["PATH_INFO"] %>">
     <cinelar-assets>
       <cinelar-assets-stylesheets>
+        <%= vite_stylesheet_tag 'application' %>
         <%= render partial: "partials/stylesheet" %>
       </cinelar-assets-stylesheets>
       <cinelar-assets-icons>
@@ -58,6 +62,20 @@
       </div>
     </noscript>
     <%= render_external_scripts %>
-    <%= javascript_pack_tag "boot-cinelartv" %>
+    <%= vite_client_tag %>
+    <%= vite_react_refresh_tag %>
+    <%= vite_typescript_tag 'webclient-bootstrap.tsx' %>
+
+    <%# On development, enable React Fast Refresh %>
+
+    <% if Rails.env.development? %>
+      <script type="module">
+        import RefreshRuntime from '/vite-dev/@react-refresh'
+        RefreshRuntime.injectIntoGlobalHook(window)
+        window.$RefreshReg$ = () => {}
+        window.$RefreshSig$ = () => (type) => type
+        window.__vite_plugin_react_preamble_installed__ = true
+      </script>
+    <% end %>
   </body>
 </html>

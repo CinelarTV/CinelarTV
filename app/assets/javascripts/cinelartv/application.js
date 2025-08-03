@@ -16,8 +16,7 @@ import Vue3Toasity from 'vue3-toastify';
 import Vue3Progress from "vue3-progress";
 import Axios from './lib/Ajax'
 import { addCompiledComponent } from './lib/componentManager';
-require('./lib/message-bus')
-require('./lib/register-service-worker')
+import './lib/message-bus'
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/IconLibrary';
 import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
@@ -27,7 +26,7 @@ const CinelarTV = createApp(App)
 
 CinelarTV.addComponent = addCompiledComponent
 
-let pluginMap = [    
+let pluginMap = [
     EssentialsPreloaded,
     metaManager,
     AppRouter,

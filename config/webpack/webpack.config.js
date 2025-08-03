@@ -68,4 +68,15 @@ const options = {
   }
 }
 
-module.exports = merge(vueConfig, sassLoaderConfig, customConfig, aliasConfig, options, webpackConfig, rawLoaderConfig)
+const postcssLoaderConfig = require('./loaders/postcss-loader');
+
+module.exports = merge(
+  vueConfig,
+  sassLoaderConfig,
+  postcssLoaderConfig,
+  customConfig,
+  aliasConfig,
+  options,
+  webpackConfig,
+  rawLoaderConfig
+)

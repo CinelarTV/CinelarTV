@@ -1,0 +1,109 @@
+.profile-card {
+    @apply flex flex-col;
+    @apply items-center;
+    @apply justify-center;
+    @apply rounded-lg;
+    @apply shadow-lg;
+    @apply bg-white/5 hover:bg-white;
+    @apply p-4;
+    @apply text-center;
+    @apply text-gray-800;
+    @apply transition-all duration-100 ease-in-out;
+    @apply hover:shadow-2xl;
+    @apply hover:scale-105;
+    @apply cursor-pointer;
+
+    &:hover .profile-avatar {
+        @apply border-2 border-black;
+    }
+
+    &:hover .icon {
+        @apply text-black;
+    }
+
+    &:hover .profile-name {
+        @apply text-black;
+    }
+
+    &:hover .button {
+        @apply bg-black;
+        @apply !text-white;
+    }
+
+    &:hover .icon {
+        @apply !text-white;
+    }
+
+
+
+
+    &:focus {
+        @apply outline-none;
+        @apply bg-opacity-100;
+        @apply shadow-2xl;
+        @apply scale-105;
+        @apply ring-2 ring-black/50;
+    }
+
+    &:focus .profile-avatar {
+        @apply border-2 border-black;
+    }
+
+    &:focus .icon {
+        @apply text-black;
+    }
+
+    &:focus .profile-name {
+        @apply text-black;
+    }
+
+
+}
+
+.profile-avatar {
+    @apply rounded-lg;
+    @apply h-24 w-24;
+    @apply object-cover;
+    @apply border-2 border-white;
+}
+
+.profile-name {
+    @apply text-lg;
+    @apply font-semibold;
+    @apply mt-2;
+    color: #FFFFFF
+}
+
+.avatar-list {
+    /* @apply grid tailwind */
+    @apply grid grid-cols-4 gap-4;
+    @apply justify-items-center;
+    @apply mt-4;
+
+    & .avatar {
+        @apply rounded-lg;
+        @apply h-16 w-16;
+        @apply border-2 border-white;
+        @apply cursor-pointer;
+
+        & img {
+            @apply rounded-md;
+        }
+
+    }
+
+    & .avatar:hover {
+        @apply border-2 border-black rounded-lg;
+    }
+
+    & .avatar:focus {
+        @apply border-2 border-black;
+    }
+
+    & .avatar.selected {
+        @apply border-2 border-black;
+    }
+
+
+
+}
