@@ -36,7 +36,6 @@
   <body class="app-body<% if device == "mobile" %> is-mobile<% end %>" data-current-path="<%= request.env["PATH_INFO"] %>">
     <cinelar-assets>
       <cinelar-assets-stylesheets>
-        <%= vite_stylesheet_tag 'application' %>
         <%= render partial: "partials/stylesheet" %>
       </cinelar-assets-stylesheets>
       <cinelar-assets-icons>
