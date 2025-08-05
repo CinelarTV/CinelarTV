@@ -5,7 +5,7 @@ let ProfilesRouter =
         {
             name: 'profile.select',
             path: '/profiles/select',
-            component: () => import('../views/profiles/profile-select.vue'),
+            component: () => import('../views/profiles/ProfileSelect.tsx'),
             meta: {
                 requiresAuth: true,
                 showHeader: false

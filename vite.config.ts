@@ -2,7 +2,8 @@ import { defineConfig } from "vite";
 import ViteRails from "vite-plugin-rails";
 import tailwindcss from "@tailwindcss/vite";
 import react from '@vitejs/plugin-react'
-
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 
 export default defineConfig({
   server: {
@@ -10,6 +11,8 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
+    vue(),
+    vueJsx(),
     ViteRails({
       envOptions: { defineOn: "import.meta.env" },
       fullReload: {
@@ -17,6 +20,6 @@ export default defineConfig({
         delay: 300,
       },
     }),
-    react(),
+    //react(),
   ],
 });

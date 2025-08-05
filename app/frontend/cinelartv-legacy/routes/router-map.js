@@ -1,7 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { query } from '../utils/query'
 import CinelarTV from '../application'
-import { SafeMode } from '../pre-initializers/safe-mode'
+//import { SafeMode } from '../pre-initializers/safe-mode'
 import { useSiteSettings } from '../app/services/site-settings'
 import { useCurrentUser } from '../app/services/current-user'
 import { PiniaStore } from '../app/lib/Pinia'
@@ -43,14 +43,14 @@ let routes = []
 
 routes = routes.concat(loadRoutes())
 
-if (siteSettings.enable_plugins) {
+/* if (siteSettings.enable_plugins) {
     if (SafeMode.enabled && SafeMode.noPlugins) { }
     else {
         routes = routes.concat(loadPluginRoutes())
     }
 
 }
-
+ */
 
 
 const AppRouter = createRouter({

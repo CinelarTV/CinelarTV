@@ -42,6 +42,7 @@ export default {
         Components.forEach(async component => {
             const mod = await component.component();
             app.component(component.name, mod.default || mod);
+            console.log(`Registered component: ${component.name}`);
         })
     }
 }

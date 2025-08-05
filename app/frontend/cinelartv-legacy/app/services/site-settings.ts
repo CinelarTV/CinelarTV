@@ -6,7 +6,7 @@ interface SiteSettingsState {
 
 export const useSiteSettings = defineStore('siteSettings', {
   state: (): SiteSettingsState => ({
-    siteSettings: null,
+    siteSettings: {},
   }),
 
   actions: {

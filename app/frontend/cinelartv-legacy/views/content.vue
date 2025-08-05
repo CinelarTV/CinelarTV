@@ -106,7 +106,7 @@
     </div>
   </div>
 </template>
-  
+
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -135,14 +135,14 @@ const getContent = async () => {
 
     console.log('Contenido:', contentData.value)
 
-    if (contentData.value.isTVShow) {
+    if (contentData.value?.isTVShow) {
       if (contentData.value.seasons?.length > 0) {
         activeSeason.value = contentData.value.seasons[0].id
       }
     }
     loading.value = false
     // Verificar si hay tráiler después de cargar el contenido
-    if (contentData.value.trailerUrl) {
+    if (contentData.value?.trailerUrl) {
       await preloadTrailer(contentData.value.trailerUrl)
       showTrailer.value = true
     }
@@ -261,4 +261,4 @@ onMounted(async () => {
     ]
   })
 })
-</script>../lib/ajax
+</script>

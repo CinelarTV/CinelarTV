@@ -25,7 +25,8 @@ class ContentSerializer < ApplicationSerializer
   # Agrega otras atributos según sea necesario
 
   def include_seasons?
-    object.content_type == Content.types["TVSHOW"]
+    false
+   # object.content_type == Content.types["TVSHOW"]
   end
 
   def seasons

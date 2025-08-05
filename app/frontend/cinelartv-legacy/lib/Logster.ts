@@ -27,7 +27,7 @@ let lastReport: Date | null = null;
 
 if (!window.Logster) {
   window.Logster = {
-    enabled: !!siteSettings.enable_js_error_reporting,
+    enabled: !!siteSettings?.enable_js_error_reporting,
   };
 }
 
@@ -63,7 +63,7 @@ export const reportError = (err: Error, severity: string): void => {
     reportData.line = parseInt(stacktraceMatches[2], 10);
   }
 
-  if (!siteSettings.enable_js_error_reporting) {
+  if (!siteSettings?.enable_js_error_reporting) {
     return;
   }
 

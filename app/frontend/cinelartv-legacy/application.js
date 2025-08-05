@@ -1,8 +1,7 @@
-import { createApp } from 'vue/dist/vue.esm-bundler'
+import { createApp } from 'vue'
 import App from './App.vue'
 import EssentialsPreloaded from './pre-initializers/essentials-preload';
-import preInitializers from './pre-initializers';
-import PluginComponents from './lib/plugin-components';
+//import PluginComponents from './lib/plugin-components';
 import { createHead } from 'unhead'
 import twemoji from './plugins/twemoji'
 import AppRouter from './routes/router-map';
@@ -15,7 +14,7 @@ import * as ConfirmDialog from 'vuejs-confirm-dialog'
 import Vue3Toasity from 'vue3-toastify';
 import Vue3Progress from "vue3-progress";
 import Axios from './lib/Ajax'
-import { addCompiledComponent } from './lib/componentManager';
+//import { addCompiledComponent } from './lib/componentManager';
 import './lib/message-bus'
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/IconLibrary';
@@ -24,7 +23,6 @@ import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
 
 const CinelarTV = createApp(App)
 
-CinelarTV.addComponent = addCompiledComponent
 
 let pluginMap = [
     EssentialsPreloaded,
@@ -38,7 +36,6 @@ let pluginMap = [
     ConfirmDialog,
     Axios,
     iconLibrary,
-    PluginComponents,
 ]
 
 CinelarTV.use(Vue3Progress, {

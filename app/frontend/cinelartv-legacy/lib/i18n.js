@@ -1,6 +1,6 @@
 import I18n from 'i18n-js'
 try {
-    require('../i18n/translations')
+    import('../i18n/translations')
 } catch (error) {
     console.warn("No translations found")
 }
@@ -10,7 +10,7 @@ import { PiniaStore } from '../app/lib/Pinia'
 const { siteSettings } = useSiteSettings(PiniaStore)
 
 // TODO: Locale should be set by the user using preferences
-I18n.locale = siteSettings.default_locale
+I18n.locale = siteSettings?.default_locale
 I18n.defaultLocale = 'en'
 I18n.fallbacks = true
 

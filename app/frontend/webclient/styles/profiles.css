@@ -1,0 +1,73 @@
+.profile-card {
+  @apply flex flex-col items-center justify-center text-center cursor-pointer;
+  @apply rounded-lg shadow-lg p-4 bg-white/5 text-gray-800;
+  @apply transition-all duration-100 ease-in-out hover:shadow-2xl hover:scale-105;
+  @apply hover:bg-white;
+
+  aspect-ratio: 142 / 164;
+
+  &:hover {
+    @apply bg-white;
+  }
+
+  &:hover .profile-avatar {
+    @apply border-black;
+  }
+
+  &:hover .profile-name,
+  &:hover .icon {
+    @apply text-black;
+  }
+
+  &:hover .button {
+    @apply bg-black !text-white;
+  }
+
+  &:focus {
+    @apply outline-none bg-white shadow-2xl scale-105 ring-2 ring-black/50;
+  }
+
+  &:focus .profile-avatar {
+    @apply border-black;
+  }
+
+  &:focus .profile-name,
+  &:focus .icon {
+    @apply text-black;
+  }
+}
+
+.profile-avatar {
+  @apply h-24 w-24 object-cover rounded-lg border-2 border-white;
+}
+
+.profile-name {
+  @apply mt-2 text-lg font-semibold text-white;
+}
+
+.avatar-list {
+  @apply grid grid-cols-4 gap-4 justify-items-center mt-4;
+
+  .avatar {
+    @apply h-16 w-16 rounded-lg border-2 border-white cursor-pointer;
+
+    img {
+      @apply rounded-md;
+    }
+
+    &.selected,
+    &:hover,
+    &:focus {
+      @apply border-black;
+    }
+  }
+}
+
+#profile-selector {
+    .loading-overlay {
+        @apply fixed inset-0 bg-black/95 flex items-center justify-center z-50;
+        .overlay-content {
+            @apply flex flex-col items-center justify-center;
+        }
+    }
+}

@@ -21,8 +21,8 @@ class SessionController < ApplicationController
 
   def select_profile
     if current_user.update(user_params)
-      if params[:user][:selected_profile_id].present?
-        selected_profile = current_user.profiles.find(params[:user][:selected_profile_id])
+      if params[:profile_id].present?
+        selected_profile = current_user.profiles.find(params[:profile_id])
         selected_profile.update(user_id: current_user.id)
         session[:current_profile_id] = selected_profile.id
       end
@@ -48,7 +48,7 @@ class SessionController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:email, :password, :password_confirmation,
-                                 profile_attributes: %i[display_name username biography selected_profile_id])
+    params.permit(:email, :password, :password_confirmation,
+                 profile_attributes: %i[display_name username biography profile_id])
   end
 end

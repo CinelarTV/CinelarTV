@@ -76,7 +76,12 @@
 }
 
 .user-menu-items {
-    @apply absolute right-0 mt-2 origin-top-right divide-y divide-gray-100 rounded-md bg-[var(--c-primary-50)] shadow-lg ring-1 ring-black/5 focus:outline-none list-none z-50
+    ::before {
+        content: "";
+        @apply absolute inset-0 -z-10 rounded-xl brightness-[1.025] backdrop-blur-[16px];
+    }
+    background-color: rgba(var(--c-primary-50), 0.8);
+    @apply absolute right-0 mt-2 origin-top divide-gray-500 rounded-md  shadow-lg ring-1 ring-black/5 focus:outline-none list-none z-50
 }
 
 .user-menu-items .menu-item {
@@ -94,9 +99,8 @@
 
 
 #current-user .avatar {
-    height: 40px;
-    width: 40px;
-    @apply rounded-md;
+   
+    @apply rounded-full size-8;
 }
 
 #current-user .user-name {

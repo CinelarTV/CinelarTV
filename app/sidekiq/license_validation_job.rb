@@ -14,6 +14,7 @@ class LicenseValidationJob
   def validate_license(license_key)
     validate_url = "https://api.lemonsqueezy.com/v1/licenses/validate"
 
+    Rails.logger.info("Validating license key of this CinelarTV instance: #{license_key}")
     if license_key.blank? || license_key == "YOUR_LICENSE_KEY"
       raise "License key is blank or not set. Please set your license key in the CinelarTV Wizard."
     end
@@ -22,10 +23,18 @@ class LicenseValidationJob
                                body: { license_key: }.to_json,
                                headers: { "Content-Type" => "application/json", "Accept" => "application/json" }
                              })
+                             
+    # Beautiful print (formatted) of JSON response
+    begin
+      parsed_response = JSON.parse(response.body)
+      Rails.logger.info("License validation response: #{JSON.pretty_generate(parsed_response)}")
+    rescue JSON::ParserError
+      Rails.logger.info("License validation response (raw): #{response.body}")
+    end
 
     if response.code == 200
       data = JSON.parse(response.body)
-      if data["valid"]
+      if data["valid"] && data["license_key"]["key"] == license_key && data["license_key"]["status"] == "active"
         # License is valid, you can process the response or update your database accordingly
         Rails.logger.info("License #{license_key} is valid.")
         CinelarTV.valid_license(true)

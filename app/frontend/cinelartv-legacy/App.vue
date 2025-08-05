@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import SiteHeader from './components/site-header.vue'
+import SiteHeader from './components/SiteHeader.tsx'
 import { useHead } from 'unhead'
 import { useRoute } from 'vue-router';
 import SiteBanner from './components/site-banner.vue';
