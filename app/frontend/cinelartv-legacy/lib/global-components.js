@@ -5,7 +5,7 @@ const Components = [
     },
     {
         name: 'c-button',
-        component: () => import('../components/forms/c-button.vue')
+        component: () => import('../components/forms/c-button.tsx')
     },
     {
         name: 'c-spinner',

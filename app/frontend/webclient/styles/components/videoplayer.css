@@ -1,0 +1,343 @@
+/* Prime Video Player Styles */
+body.prime-video-player {
+    height: 100%;
+    overflow: hidden;
+    
+    & div.profiler-results.profiler-top {
+        display: none !important;
+    }
+}
+
+body.prime-video-player main {
+    height: 100%;
+}
+
+body.prime-video-player #c-progress {
+    display: none !important;
+}
+
+/* Container */
+.prime-video-container {
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+}
+
+.prime-video-player {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Video Element */
+#prime-player {
+    height: 100%;
+    width: 100%;
+    background: #000;
+}
+
+/* Hide default VideoJS controls */
+#prime-player .vjs-control-bar {
+    display: none !important;
+}
+
+#prime-player .vjs-big-play-button {
+    display: none !important;
+}
+
+/* Prime Video Overlay */
+.prime-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.7) 0%,
+        transparent 15%,
+        transparent 85%,
+        rgba(0,0,0,0.8) 100%
+    );
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.prime-video-player.user-inactive .prime-overlay {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.prime-video-player.user-inactive .prime-overlay .prime-center-controls {
+    opacity: 0;
+}
+
+/* Header */
+.prime-header {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    backdrop-filter: blur(2px);
+}
+
+.prime-back-btn {
+    @apply flex items-center justify-center;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.prime-back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.prime-title-info h1 {
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Center Controls */
+.prime-center-controls {
+    transition: opacity 0.3s ease;
+}
+
+.prime-play-btn,
+.prime-seek-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    border-radius: 50% !important;
+    transition: all 0.2s ease !important;
+    backdrop-filter: blur(4px);
+    @apply flex items-center justify-center;
+}
+
+/* 
+    Center button content
+*/
+
+.prime-center-controls > button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.prime-play-btn {
+    width: 80px !important;
+    height: 80px !important;
+}
+
+.prime-seek-btn {
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.prime-play-btn:hover,
+.prime-seek-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: scale(1.05);
+}
+
+/* Bottom Controls */
+.prime-bottom-controls {
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+/* Progress Bar */
+.prime-progress-container {
+    position: relative;
+}
+
+.prime-progress-bar {
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.prime-progress-bg {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.prime-progress-fill {
+    height: 100%;
+    background: #00A8E1; /* Prime Video blue */
+    border-radius: 2px;
+    position: relative;
+    transition: width 0.1s ease;
+}
+
+.prime-progress-handle {
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: #00A8E1;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.prime-progress-bar:hover .prime-progress-handle {
+    opacity: 1;
+}
+
+.prime-progress-bar:hover .prime-progress-bg {
+    height: 6px;
+    transform: translateY(-1px);
+}
+
+/* Time Info */
+.prime-time-info {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+}
+
+/* Control Bar */
+.prime-control-bar {
+    margin-top: 16px;
+}
+
+.prime-control-small,
+.prime-control-btn {
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.prime-control-small:hover,
+.prime-control-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1);
+}
+
+/* Volume Controls */
+.prime-volume-controls {
+    position: relative;
+}
+
+.prime-volume-slider {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    height: 80px;
+    width: 4px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 2px;
+    padding: 4px 0;
+}
+
+.prime-volume-bg {
+    height: 100%;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.prime-volume-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #00A8E1;
+    border-radius: 2px;
+    transition: height 0.1s ease;
+}
+
+/* Skip Intro Button */
+.prime-skip-intro {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #000 !important;
+    border: none !important;
+    padding: 12px 20px !important;
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    backdrop-filter: blur(10px);
+}
+
+.prime-skip-intro:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    transform: scale(1.05);
+}
+
+/* Loading Spinner */
+.vjs-loading-spinner::after,
+.vjs-loading-spinner::before {
+    border-color: #00A8E1;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 768px) {
+    .prime-header {
+        padding: 1rem;
+    }
+    
+    .prime-title-info h1 {
+        font-size: 1rem;
+    }
+    
+    .prime-title-info span {
+        font-size: 0.8rem;
+    }
+    
+    .prime-bottom-controls {
+        padding: 1rem;
+    }
+    
+    .prime-play-btn {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .prime-seek-btn {
+        width: 45px !important;
+        height: 45px !important;
+    }
+    
+    .prime-center-controls {
+        gap: 1.5rem;
+    }
+    
+    .prime-control-bar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .prime-control-bar > div {
+        justify-content: center;
+    }
+}
+
+/* Focus states for accessibility */
+.prime-control-small:focus,
+.prime-control-btn:focus,
+.prime-play-btn:focus,
+.prime-seek-btn:focus {
+    outline: 2px solid #00A8E1;
+    outline-offset: 2px;
+}

@@ -4,7 +4,7 @@ import { useIconsStore } from "../store/icons";
 import { PiniaStore } from "../app/lib/Pinia";
 
 const { siteSettings } = useSiteSettings(PiniaStore);
-
+console.log({ icons })
 // Constantes optimizadas
 const PLAYER_ICONS = new Set(["play", "pause", "maximize", "minimize"]);
 
@@ -16,7 +16,7 @@ const BASE_ICONS = [
     "playCircle", "playSquare", "plus", "rotateCcw", "rotateCw", "search",
     "settings", "shieldQuestion", "sparkles", "thumbsUp", "user", "wrench", "x",
     "hardDrive", "circleDollarSign", "brush", "testTube2", "code2", "cpu",
-    "rocket", "trash2", "pencil", "layoutGrid"
+    "rocket", "trash2", "pencil", "layoutGrid", "bookmark"
 ] as const;
 
 // Cache para evitar regenerar el sprite innecesariamente
@@ -54,11 +54,11 @@ const getAllIcons = (): Set<string> => {
     const iconSet = new Set<string>(BASE_ICONS);
 
     // Agregar iconos adicionales de configuración
-    if (siteSettings.value?.additional_icons) {
-        siteSettings.value.additional_icons
+    if (siteSettings.additional_icons) {
+        siteSettings.additional_icons
             .split('|')
             .filter(Boolean)
-            .forEach(icon => iconSet.add(icon.trim()));
+            .forEach((icon: string) => iconSet.add(icon.trim()));
     }
 
     // Agregar iconos del store
@@ -77,7 +77,7 @@ const createIconSymbol = (iconName: string): string[] => {
     const symbol = icons[pascalCaseIcon];
 
     if (!symbol) {
-        console.warn(`[IconLibrary] Icon "${iconName}" (como ${pascalCaseIcon}) no encontrado en lucide-static. Se omite...`);
+        console.warn(`[IconLibrary] Icon "${iconName}" (as ${pascalCaseIcon}) not fund on lucide-static. Omitting...`);
         return [];
     }
 
@@ -163,18 +163,31 @@ export const isIconAvailable = (iconName: string): boolean => {
  */
 const iconLibrary = {
     install: (app: any) => {
-        // Generar sprite sheet de forma asíncrona para no bloquear el renderizado
-        requestAnimationFrame(() => {
-            generateSpriteSheet();
-        });
+        // Evitar múltiples inicializaciones
+        if ((window as any)._cinelarIconSheetInitialized) return;
+        (window as any)._cinelarIconSheetInitialized = true;
+
+        // requestAnimationFrame cross-browser y fallback seguro
+        const raf =
+            window.requestAnimationFrame ||
+            (window as any).webkitRequestAnimationFrame ||
+            (window as any).mozRequestAnimationFrame ||
+            (window as any).msRequestAnimationFrame;
+        if (typeof raf === 'function') {
+            raf(() => generateSpriteSheet());
+        } else {
+            setTimeout(() => generateSpriteSheet(), 0);
+        }
 
         // Exponer utilidades globalmente si es necesario
         app.config.globalProperties.$iconLibrary = {
             generateSpriteSheet,
             clearIconCache,
-            isIconAvailable
+            isIconAvailable,
+            getAllIcons
         };
     },
 };
 
 export default iconLibrary;
+

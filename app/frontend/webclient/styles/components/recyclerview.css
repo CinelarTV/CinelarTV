@@ -28,10 +28,9 @@
 
 .recyclerview:before,
 .recyclerview:after {
-    content: ".";
+    content: "";
     display: block;
     height: 0;
-    overflow: hidden;
 }
 
 .recyclerview:after {
@@ -100,7 +99,7 @@
 
 .recyclerview-card-article:hover {
     .blurred-shadow {
-        @apply opacity-100 scale-[1.15] saturate-200 brightness-150;
+        @apply opacity-100 scale-[.9] saturate-200 brightness-125;
     }
 }
 

@@ -13,7 +13,8 @@
                         leave-to="opacity-0 scale-95">
                         <DialogPanel
                             class="dialog create-episode w-full max-w-md transform overflow-hidden p-6 text-left align-middle shadow-xl transition-all">
-                            <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]" v-emoji>
+                            <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]"
+                                v-emoji>
                                 ¡Let's create an episode! ✅
                             </DialogTitle>
 
@@ -38,7 +39,7 @@
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     </div>
 
-                                   
+
                                     <label for="thumbnail" class="block text-sm font-medium mt-4">
                                         Thumbnail
                                     </label>
@@ -141,4 +142,3 @@ const submitCreateEpisode = (e) => {
         })
 }
 </script>
-../../lib/ajax

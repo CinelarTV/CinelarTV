@@ -25,12 +25,11 @@ class ContentSerializer < ApplicationSerializer
   # Agrega otras atributos según sea necesario
 
   def include_seasons?
-    false
-   # object.content_type == Content.types["TVSHOW"]
+    object.content_type == Content.content_types["TVSHOW"]
   end
 
   def seasons
-    return unless object.content_type == Content.types["TVSHOW"]
+    return unless object.content_type == Content.content_types["TVSHOW"]
 
     object.seasons
           .sort_by(&:position) # Ordenar las temporadas por posición
@@ -45,15 +44,18 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def liked
-    @options[:current_profile].liked_contents.include?(object)
+    profile = @options[:current_profile]
+    return false unless profile&.respond_to?(:liked_contents)
+
+    profile.liked_contents.include?(object)
   end
 
   private
 
   def episode_attributes(episode)
-    attributes = episode.as_json(only: %i[id title description position thumbnail position])
-    attributes[:thumbnail] = episode.thumbnail || object.banner
-    attributes # Asegúrate de devolver el hash attributes
+    attributes = episode.as_json(only: %i[id title description position thumbnail])
+    attributes[:thumbnail] ||= object.banner
+    attributes
   end
 
   def similar_items
@@ -61,33 +63,38 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def similar_items_attributes(related)
-    attibutes = related.as_json(only: %i[id title description banner cover])
+    related.as_json(only: %i[id title description banner cover])
   end
 
   def continue_watching
+    profile = @options[:current_profile]
+    return unless profile
+
     cw = ContinueWatching
-         .where(profile: @options[:current_profile], content: object)
+         .where(profile: profile, content: object)
          .order(updated_at: :desc)
          .first
 
     return unless cw.present?
 
-    if object.content_type == Content.types["TVSHOW"] && cw.episode_id.present?
+    if object.content_type == Content.content_types["TVSHOW"] && cw.episode_id.present?
       continue_watching_attributes(cw)
-    elsif object.content_type == Content.types["MOVIE"]
+    elsif object.content_type == Content.content_types["MOVIE"]
       continue_watching_attributes(cw)
     end
   end
 
   def continue_watching_attributes(continue_watching)
-    attributes_to_include = if object.content_type == Content.types[:TVSHOW]
+    attributes_to_include = if object.content_type == Content.content_types["TVSHOW"]
                               %i[episode_id progress duration]
-                            elsif object.content_type == Content.types[:MOVIE]
+                            elsif object.content_type == Content.content_types["MOVIE"]
                               %i[progress duration]
                             else
                               []
                             end
 
-    attributes = continue_watching.as_json(only: attributes_to_include) unless attributes_to_include.empty?
+    return unless attributes_to_include.any?
+
+    continue_watching.as_json(only: attributes_to_include)
   end
 end

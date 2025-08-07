@@ -43,13 +43,15 @@
                                     {{ item.id.slice(0, 8) }}...
                                 </td>
                                 <td class="px-4 py-2">{{ item.title }}</td>
-                                <td class="px-4 py-2">{{ $t(`js.admin.content_manager.content_types.${item.content_type}`)
-                                }}</td>
+                                <td class="px-4 py-2">{{
+                                    $t(`js.admin.content_manager.content_types.${item.content_type}`)
+                                    }}</td>
                                 <td class="px-4 py-2">
                                     <img :src="item.cover" class="w-24 rounded-lg" />
                                 </td>
                                 <td class="px-4 py-2">
-                                    <c-button @click="editContent(item)" class="bg-blue-500 hover:bg-blue-600 text-white">
+                                    <c-button @click="editContent(item)"
+                                        class="bg-blue-500 hover:bg-blue-600 text-white">
                                         {{ $t("js.admin.actions.edit") }}
                                     </c-button>
                                 </td>
@@ -62,7 +64,7 @@
         <CreateContentModal ref="createContentModal" @content-created="fetchContent" />
     </div>
 </template>
-  
+
 <script setup>
 import { ref, getCurrentInstance, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -105,4 +107,4 @@ onMounted(() => {
 })
 
 </script>
-  ../../../lib/ajax
+../../../lib/ajax

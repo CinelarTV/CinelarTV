@@ -1,6 +1,6 @@
 import I18n from 'i18n-js'
 try {
-    import('../i18n/translations')
+    await import('../i18n/translations')
 } catch (error) {
     console.warn("No translations found")
 }

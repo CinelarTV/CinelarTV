@@ -1,6 +1,6 @@
 <template>
   <li class="content-item" tabindex="0">
-    <a :href="`/contents/${data.id}`" class="recyclerview-card-article aspect-video">
+    <RouterLink :to="`/contents/${data.id}`" class="recyclerview-card-article aspect-video">
       <section class="recyclerview-card-article__section">
         <div class="recyclerview-card-article__element">
           <RouterLink :to="`/contents/${data.id}`" tabindex="-1">
@@ -32,7 +32,7 @@
           {{ data.description }}
         </div>
       </div>
-    </a>
+    </RouterLink>
   </li>
 </template>
 

@@ -18,6 +18,8 @@ en:
     sidekiq_warning: "Sidekiq is not running. Many tasks, like sending emails or processing recommendations, are executed asynchronously by Sidekiq. Please ensure at least one Sidekiq process is running. <a href='https://github.com/mperham/sidekiq' target='_blank'>Learn about Sidekiq here</a>."
     updates_available: "It seems that there are updates available for CinelarTV. <a href='/admin/updates'>Click here to update</a>."
   js:
+    errors:
+      chunk_loading_error: "An error ocurred when loading next page.\n Please reload"
     admin:
       actions:
         add: "Add"

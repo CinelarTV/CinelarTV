@@ -2,7 +2,7 @@ let VideoPlayerRoute =
 {
     path: '/watch/:id',
     name: 'videoplayer.show',
-    component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.vue'),
+    component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.tsx'),
     meta: {
         transition: 'slide-fade',
         requiresAuth: true,
@@ -12,7 +12,7 @@ let VideoPlayerRoute =
         {
             name: 'videoplayer.episode', // Cambiado para evitar duplicidad
             path: ':episodeId',
-            component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.vue'),
+            component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.tsx'),
         },
     ]
 

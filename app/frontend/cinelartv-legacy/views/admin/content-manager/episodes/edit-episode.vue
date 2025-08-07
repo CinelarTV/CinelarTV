@@ -4,7 +4,7 @@
             <c-spinner />
         </div>
 
-    </div>    
+    </div>
     <div class="flex flex-col mt-4" v-else>
         <div class="flex flex-row justify-between items-center">
             <div class="flex">
@@ -38,8 +38,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-// @ts-ignore
-import { ajax } from '@/lib/Ajax';
+import { ajax } from '../../../../lib/Ajax';
 import { CheckIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -81,7 +80,7 @@ const saveEpisode = async () => {
         const response = await ajax.put(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes/${route.params.episodeId}/edit.json`, {
             episode: episodeData.value,
         });
-        
+
         toast.success('Episodio guardado correctamente');
         fetchEpisodeData();
     } catch (error) {

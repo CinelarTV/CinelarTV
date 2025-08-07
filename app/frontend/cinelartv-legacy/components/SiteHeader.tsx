@@ -2,6 +2,8 @@ import { defineComponent } from 'vue';
 import { useSiteSettings } from '../app/services/site-settings';
 import LoginModal from './modals/login.modal.vue';
 import UserMenu from '../app/components/header/UserMenu';
+import CIcon from "./c-icon.vue";
+import { RouterLink } from "vue-router";
 
 const headerItems = [
     { to: '/', title: 'Explorar', icon: 'compass', showItem: true },
@@ -19,16 +21,16 @@ export default defineComponent({
             <header id="site-header">
                 <div class="site-header-wrap">
                     <div class="title">
-                        <router-link to="/">
+                        <RouterLink to="/">
                             <img id="site-logo" src={siteSettings.site_logo} alt={`${siteSettings.site_name} logo`} />
-                        </router-link>
+                        </RouterLink>
                     </div>
                     <div class="site-navigation--nav hidden-sm-and-down" role="navigation">
                         {filteredHeaderItems.map(item => (
-                            <router-link to={item.to} class="flex site-nav--btn" key={item.to}>
-                                <c-icon icon={item.icon} size={20} class="icon" />
+                            <RouterLink to={item.to} class="flex site-nav--btn" key={item.to}>
+                                <CIcon icon={item.icon} size={20} class="icon" />
                                 {item.title}
-                            </router-link>
+                            </RouterLink>
                         ))}
                     </div>
                     <div class="header-user-panel--nav">

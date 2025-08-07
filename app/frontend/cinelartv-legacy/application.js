@@ -13,6 +13,8 @@ import ColorPicker from './plugins/color-picker'
 import * as ConfirmDialog from 'vuejs-confirm-dialog'
 import Vue3Toasity from 'vue3-toastify';
 import Vue3Progress from "vue3-progress";
+import VueMobileDetection from "vue-mobile-detection";
+
 import Axios from './lib/Ajax'
 //import { addCompiledComponent } from './lib/componentManager';
 import './lib/message-bus'
@@ -36,6 +38,7 @@ let pluginMap = [
     ConfirmDialog,
     Axios,
     iconLibrary,
+    VueMobileDetection
 ]
 
 CinelarTV.use(Vue3Progress, {

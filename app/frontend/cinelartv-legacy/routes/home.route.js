@@ -1,11 +1,11 @@
-import Home from'../views/home-explore.vue'
+import Home from '../views/HomeExplore.tsx'
 
 let HomeRoute = {
     name: 'home.index',
     path: '/',
     alias: '/home',
     component: Home
- }
+}
 
- 
- export default HomeRoute
+
+export default HomeRoute

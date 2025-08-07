@@ -197,12 +197,10 @@ class PlayerController < ApplicationController
     continue_watching.update(
       progress: progress,
       duration: duration,
-      last_watched_at: Time.now,
+      last_watched_at: Time.current,
     )
 
-    continue_watching.save
-
-    render json: :ok
+    head :no_content
   end
 
   def render_content_not_found

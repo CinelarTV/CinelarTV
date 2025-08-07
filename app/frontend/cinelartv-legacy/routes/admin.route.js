@@ -37,6 +37,11 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.customization.iconmap',
+            path: 'icons',
+            component: () => import('../views/admin/IconLibrary.tsx')
+        },
+        {
             name: 'admin.content.manager',
             path: '/admin/content-manager',
             redirect: '/admin/content-manager/all',
