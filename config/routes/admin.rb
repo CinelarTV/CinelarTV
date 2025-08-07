@@ -36,4 +36,17 @@ namespace :admin do
 
   # Custom Pages related routes
   get "/custom-pages", to: "custom_pages#index"
+
+  # Video Sources related routes
+  # For listing and creating video sources associated with a content
+  get "/contents/:content_id/video_sources", to: "video_sources#index"
+  post "/contents/:content_id/video_sources", to: "video_sources#create"
+
+  # For listing and creating video sources associated with an episode
+  get "/episodes/:episode_id/video_sources", to: "video_sources#index"
+  post "/episodes/:episode_id/video_sources", to: "video_sources#create"
+
+  # For updating and deleting a specific video source
+  put "/video_sources/:id", to: "video_sources#update"
+  delete "/video_sources/:id", to: "video_sources#destroy"
 end
