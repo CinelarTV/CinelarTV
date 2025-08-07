@@ -2,7 +2,7 @@
     @apply my-4;
 
     .season-container {
-        @apply flex my-2 py-4 px-6 items-center bg-white rounded-md md:flex-row flex-col;
+        @apply flex my-2 py-4 px-6 items-center bg-white/5 rounded-md md:flex-row flex-col;
 
         .season-header {
             @apply flex items-center space-x-8;

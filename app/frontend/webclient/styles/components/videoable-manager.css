@@ -1,0 +1,23 @@
+.videoable-manager {
+    @apply flex my-2 py-4 px-6 items-center bg-white/5 rounded-md flex-col;
+
+    .video-sources-empty {
+        @apply flex flex-col items-center justify-center text-center py-4;
+
+        p {
+            @apply text-lg font-semibold;
+        }
+    }
+
+    .videoable-create {
+        @apply flex flex-col items-center justify-center text-center space-y-6 bg-white/5 rounded-md p-4 w-full mx-auto;
+
+        p {
+            @apply text-lg font-semibold;
+        }
+    }
+
+    .video-sources-footer {
+        @apply flex items-center mt-4;
+    }
+}

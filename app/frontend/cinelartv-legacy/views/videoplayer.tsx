@@ -282,7 +282,7 @@ export default defineComponent({
                                         onMouseenter={() => showVolumeSlider.value = true}
                                         onMouseleave={() => showVolumeSlider.value = false}>
                                         <CIconButton class="prime-control-small"
-                                            icon={isMuted.value ? 'volume-x' : volumeLevel.value < 0.5 ? 'volume-1' : 'volume-2'}
+                                            icon={isMuted.value ? 'volume-x' : volumeLevel.value < 0.5 ? 'volume1' : 'volume2'}
                                             size={20}
                                             onClick={toggleMute} />
                                         {showVolumeSlider.value && (

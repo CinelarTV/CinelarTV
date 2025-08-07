@@ -7,7 +7,10 @@ module.exports = {
     './app/views/**/*.html.erb',
     './app/helpers/**/*.rb',
     './app/assets/javascripts/cinelartv/**/*.vue',
+    './app/frontend/**/*.{js,ts,vue,jsx,tsx}',
+    './app/frontend/cinelartv-legacy/**/*.vue',
     './app/javascripts/**/*.js',
+    './app/assets/stylesheets/**/*.css',
   ],
   theme: {
     extend: {

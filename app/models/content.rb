@@ -60,4 +60,15 @@ class Content < ApplicationRecord
       .order(created_at: :desc)
       .limit(15)
   end
+
+  # Búsqueda robusta: insensible a acentos, mayúsculas, guiones y espacios
+  scope :search_by_title_and_description, ->(query) {
+    normalized_query = query.to_s.downcase.gsub(/[-\s]/, "")
+    where(
+      "available = true AND (" \
+      "regexp_replace(unaccent(lower(title)), '[-\\s]', '', 'g') LIKE ? OR " \
+      "regexp_replace(unaccent(lower(description)), '[-\\s]', '', 'g') LIKE ?)",
+      "%#{normalized_query}%", "%#{normalized_query}%"
+    )
+  }
 end

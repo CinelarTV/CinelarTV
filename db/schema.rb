@@ -10,11 +10,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2023_11_27_021842) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_07_134608) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+  enable_extension "unaccent"
 
   create_table "categories", force: :cascade do |t|
     t.string "name"
@@ -30,7 +31,6 @@ ActiveRecord::Schema[7.2].define(version: 2023_11_27_021842) do
     t.string "banner"
     t.string "cover"
     t.string "content_type"
-    t.string "url"
     t.integer "year"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -67,7 +67,6 @@ ActiveRecord::Schema[7.2].define(version: 2023_11_27_021842) do
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title"
     t.string "description"
-    t.string "url"
     t.bigint "season_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -265,6 +264,8 @@ ActiveRecord::Schema[7.2].define(version: 2023_11_27_021842) do
     t.uuid "videoable_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status"
+    t.string "temp_path"
     t.index ["videoable_type", "videoable_id"], name: "index_video_sources_on_videoable"
   end
 

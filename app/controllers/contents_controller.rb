@@ -1,24 +1,28 @@
 class ContentsController < ApplicationController
   def search
-    query = params[:q] || params[:query]
+    query = (params[:q] || params[:query]).to_s.strip
 
-    if query.blank?
+    if query.blank? || query.length < 2
       respond_to do |format|
         format.html
         format.json do
           render json: {
-            errors: ["Query is required"],
+            errors: ["Query is required or too short"],
             error_type: "query_required",
-          }
+          }, status: :unprocessable_entity
         end
       end
       return
     end
 
-    @contents = Content.search(query)
+    @contents = Content.search_by_title_and_description(query)
     respond_to do |format|
       format.html
-      format.json { render json: { data: @contents.as_json(only: %i[id title description banner]) } }
+      format.json {
+        render json: {
+          data: @contents.as_json(only: %i[id title description banner])
+        }
+      }
     end
   end
 

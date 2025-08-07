@@ -6,7 +6,7 @@ import { PiniaStore } from "../app/lib/Pinia";
 const { siteSettings } = useSiteSettings(PiniaStore);
 console.log({ icons })
 // Constantes optimizadas
-const PLAYER_ICONS = new Set(["play", "pause", "maximize", "minimize"]);
+const PLAYER_ICONS = new Set(["play", "pause", "maximize", "minimize", "volume2", "volumeX"]);
 
 const BASE_ICONS = [
     "activity", "award", "airplay", "arrowRightLeft", "arrowRight", "box", "check",
@@ -16,7 +16,7 @@ const BASE_ICONS = [
     "playCircle", "playSquare", "plus", "rotateCcw", "rotateCw", "search",
     "settings", "shieldQuestion", "sparkles", "thumbsUp", "user", "wrench", "x",
     "hardDrive", "circleDollarSign", "brush", "testTube2", "code2", "cpu",
-    "rocket", "trash2", "pencil", "layoutGrid", "bookmark"
+    "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume2", "volumeX"
 ] as const;
 
 // Cache para evitar regenerar el sprite innecesariamente
