@@ -206,9 +206,6 @@ module Admin
       @content.assign_attributes(content_params.except(:banner, :cover))
       # Ignore banner and cover because they are processed above
 
-      # Series can't have an url
-      @content.url = nil if @content.content_type == "TVSHOW" && @content.url?
-
       if @content.save
         render json: { message: "Content updated successfully", status: :ok }
       else
@@ -279,7 +276,7 @@ module Admin
     private
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :url, :year, :available,
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available,
                                       category_ids: [])
     end
 
@@ -288,7 +285,7 @@ module Admin
     end
 
     def episode_params
-      params.require(:episode).permit(:title, :description, :url, :duration, :position)
+      params.require(:episode).permit(:title, :description, :duration, :position)
     end
 
     def set_content

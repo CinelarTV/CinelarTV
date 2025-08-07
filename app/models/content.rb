@@ -2,7 +2,8 @@
 
 # app/models/content.rb
 class Content < ApplicationRecord
-  has_many :video_sources, as: :videoable
+  include Videoable
+
   has_many :content_categories
   has_many :categories, through: :content_categories
   has_many :seasons
@@ -22,7 +23,6 @@ class Content < ApplicationRecord
   # On destroy, delete the associated and continue watching
   before_destroy :delete_seasons
   before_destroy :delete_associated_continue_watching
-  before_destroy :destroy_video_sources
 
   def self.search(title)
     where("available = ? AND (LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?))", true, "%#{title}%",
@@ -52,10 +52,6 @@ class Content < ApplicationRecord
 
   def delete_associated_continue_watching
     ContinueWatching.where(content_id: id).destroy_all
-  end
-
-  def destroy_video_sources
-    video_sources.destroy_all
   end
 
   def self.added_recently
