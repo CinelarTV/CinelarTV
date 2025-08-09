@@ -27,6 +27,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'app/frontend/webclient'),
+      "@plugins": resolve(__dirname, 'plugins'),
     },
   }
 });

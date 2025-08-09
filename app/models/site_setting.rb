@@ -8,6 +8,20 @@ class SiteSetting < RailsSettings::Base
       return unless File.exist?(settings_yaml)
 
       settings = YAML.load_file(settings_yaml)
+
+      # Merge de settings de plugins
+      Dir.glob(Rails.root.join("plugins", "*", "config", "site_settings.yml")).each do |plugin_settings|
+        plugin_yaml = YAML.load_file(plugin_settings)
+        # Si el plugin no tiene categoría, lo mete bajo 'plugins'
+        if plugin_yaml.is_a?(Hash) && !plugin_yaml.keys.first.is_a?(String)
+          plugin_yaml = { 'plugins' => plugin_yaml }
+        elsif plugin_yaml.is_a?(Hash) && (plugin_yaml.keys & settings.keys).empty?
+          # Si no hay colisión de categorías, lo mete bajo 'plugins'
+          plugin_yaml = { 'plugins' => plugin_yaml } unless plugin_yaml.keys.include?('plugins')
+        end
+        settings.deep_merge!(plugin_yaml) if plugin_yaml
+      end
+
       settings.each do |category, settings_data|
         scope category.to_sym do
           settings_data.each do |key, options|

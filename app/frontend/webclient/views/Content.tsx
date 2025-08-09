@@ -7,6 +7,7 @@ import CButton from '../components/forms/c-button';
 
 import ContentCard from '../components/content-card.vue';
 import cSpinner from "../components/c-spinner";
+import EpisodesList from "@/components/content/EpisodesList";
 
 interface Episode {
     id: string;
@@ -176,36 +177,16 @@ export default defineComponent({
                                 )}
                             </div>
                             {contentData.value?.isTVShow && (
-                                <div class="relative mt-16">
-                                    <div class="panel-header flex flex-col">
-                                        <div class="w-full flex justify-center space-x-2">
-                                            {contentData.value.seasons?.map(season => (
-                                                <CButton key={season.id} onClick={() => toggleSeason(String(season.id))}>{season.title}</CButton>
-                                            ))}
-                                        </div>
-                                        <div class="panel-body">
-                                            <div class="episodes-list">
-                                                {contentData.value.seasons?.map(season => (
-                                                    <div key={season.id} style={{ display: String(season.id) === activeSeason.value ? 'block' : 'none' }}>
-                                                        {season.episodes.length === 0 ? (
-                                                            <p class="text-center">No hay episodios disponibles.</p>
-                                                        ) : (
-                                                            <div class="season-episodes">
-                                                                {season.episodes.map(episode => (
-                                                                    <div class="episode-container" key={episode.id} onClick={() => playEpisode(episode.id)}>
-                                                                        <img src={episode.thumbnail} class="episode-thumbnail" />
-                                                                        <div class="episode-metadata">
-                                                                            <h3 class="episode-title">{episode.title}</h3>
-                                                                            <p class="episode-description">{episode.description}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                <div class="relative">
+
+                                    <div class="episodes-list">
+                                        <EpisodesList
+                                            seasons={contentData.value.seasons}
+                                            activeSeason={activeSeason.value}
+                                            onUpdate:activeSeason={val => activeSeason.value = val}
+                                            onPlayEpisode={playEpisode}
+                                        />
+
                                     </div>
                                 </div>
                             )}

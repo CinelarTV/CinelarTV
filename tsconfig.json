@@ -20,11 +20,14 @@
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "noEmit": true,
-    "baseUrl": "./app/frontend",
+    "baseUrl": "./",
     "paths": {
       "@/*": [
-        "webclient/*"
-      ]
+        "app/frontend/webclient/*"
+      ],
+      "@plugins/*": [
+        "plugins/*"
+      ],
     }
   },
   "exclude": [

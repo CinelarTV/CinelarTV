@@ -10,7 +10,8 @@
         </c-button>
         <div class="flex flex-row">
             <section class="sidebar" :class="sidebarOpened ? 'visible' : 's-hidden'">
-                <c-button class="sidebar-toggle flex w-full rounded-none" icon="x" @click="toggleSidebar" v-if="isMobile">
+                <c-button class="sidebar-toggle flex w-full rounded-none" icon="x" @click="toggleSidebar"
+                    v-if="isMobile">
                     Close
                 </c-button>
                 <div class="sidebar-content">
@@ -117,7 +118,7 @@ onMounted(() => {
         filteredSettings.value = r.data.site_settings
         categories.value = getCategories()
 
-        if(route.params.category){
+        if (route.params.category) {
             currentCategory.value = route.params.category
         } else {
             currentCategory.value = categories.value[0].name
@@ -126,7 +127,7 @@ onMounted(() => {
     })
 })
 </script>
-  
+
 <script>
 
 
@@ -147,4 +148,4 @@ export default {
         }
     },
 }
-</script>../../../lib/ajax
+</script>

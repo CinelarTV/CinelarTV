@@ -120,7 +120,7 @@ const submitCreateEpisode = (e: Event) => {
   };
 
   for (const key in data) {
-    formData.append(`episode[${key}]`, data[key]);
+    formData.append(key, data[key]);
   }
 
   ajax

@@ -14,6 +14,8 @@ end
 
 require_relative "lib/watch_party/engine"
 
-after_initialize do
-  # Code to run after the application initialises
+if defined?(after_initialize)
+  after_initialize do
+    # Code to run after the application initialises
+  end
 end

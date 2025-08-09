@@ -117,7 +117,7 @@
 
 <script setup>
 import { ref, onMounted, onUpdated } from 'vue';
-import { toast } from 'vue3-toastify';
+import { toast } from 'vue-sonner';
 import MonacoTools from '../../../app/lib/MonacoTools';
 import CColorPicker from '../../../components/forms/c-color-picker.vue';
 import {

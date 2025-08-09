@@ -5,7 +5,8 @@
       "app/frontend/**/*",
       "app/assets/javascripts/**/*",
       "app/assets/stylesheets/**/*",
-      "app/assets/images/**/*"
+      "app/assets/images/**/*",
+      "plugins/**/*"
     ]
   },
   "development": {

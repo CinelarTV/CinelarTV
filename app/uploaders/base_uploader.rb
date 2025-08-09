@@ -34,7 +34,7 @@ class BaseUploader < CarrierWave::Uploader::Base
     end
   end
 
-  EXTENSION_ALLOWLIST = %w[jpg jpeg jpe gif png ico bmp dng].freeze
+  EXTENSION_ALLOWLIST = %w[jpg jpeg jpe gif png ico bmp dng webp].freeze
   FRAME_MAX = 500
   FRAME_STRIP_MAX = 150
 

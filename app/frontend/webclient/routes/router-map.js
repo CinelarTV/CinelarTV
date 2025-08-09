@@ -1,63 +1,191 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import { query } from '../utils/query'
 import CinelarTV from '../application'
-//import { SafeMode } from '../pre-initializers/safe-mode'
+import { SafeMode } from '../pre-initializers/safe-mode.ts'
 import { useSiteSettings } from '../app/services/site-settings'
 import { useCurrentUser } from '../app/services/current-user'
 import { PiniaStore } from '../app/lib/Pinia'
 
 const { siteSettings } = useSiteSettings(PiniaStore)
 
-
 const loadRoutes = () => {
-    // Carga todos los archivos .route.js en el directorio actual y subdirectorios
+    console.log('🔄 Cargando rutas principales...');
     const modules = import.meta.glob('./**/*.route.js', { eager: true });
-    return Object.values(modules)
-        .map(m => {
-            if (!m.default?.path) {
-                console.warn(`Route ${m.default?.name} has no path. Skipping...`)
-                return;
+    const routes = Object.entries(modules)
+        .map(([path, module]) => {
+            if (!module.default?.path) {
+                console.warn(`⚠️ Ruta ${module.default?.name || 'sin nombre'} no tiene path. Saltando...`);
+                return null;
             }
-            return m.default;
+            console.log(`✅ Ruta cargada: ${module.default.name} -> ${module.default.path}`);
+            return module.default;
         })
         .filter(Boolean);
+
+    console.log(`📊 Total rutas principales cargadas: ${routes.length}`);
+    return routes;
+}
+
+const getAvailablePlugins = () => {
+    // Usar cualquier archivo para detectar plugins
+    const allPluginFiles = import.meta.glob('@plugins/**/*', { eager: false });
+
+    const plugins = [...new Set(
+        Object.keys(allPluginFiles)
+            .map(path => {
+                const match = path.match(/@plugins\/([^\/]+)/);
+                return match ? match[1] : null;
+            })
+            .filter(Boolean)
+    )];
+
+    console.log('🔍 Plugins detectados:', plugins);
+    return plugins;
 }
 
 const loadPluginRoutes = () => {
-    // Ajusta la ruta según la estructura real de tus plugins
-    const modules = import.meta.glob('/plugins/cinelar-watchparty/**/routes/*.route.js', { eager: true });
-    return Object.values(modules)
-        .map(m => {
-            if (!m.default?.path) {
-                console.warn(`Route ${m.default?.name} has no path. Skipping...`)
-                return;
-            }
-            return m.default;
-        })
-        .filter(Boolean);
+    console.log('🔌 Iniciando carga de rutas de plugins...');
+
+    const plugins = getAvailablePlugins();
+    console.log(`🔌 Plugins habilitados: ${plugins.join(', ')}`);
+
+    try {
+        // Un solo patrón que capture todas las rutas de plugins
+        const allPluginModules = import.meta.glob('@plugins/**/*.route.js', { eager: true });
+
+        console.log('📦 Archivos de rutas encontrados:', Object.keys(allPluginModules));
+
+        if (Object.keys(allPluginModules).length === 0) {
+            console.log('❌ No se encontraron archivos .route.js en plugins');
+            return [];
+        }
+
+        const routes = Object.entries(allPluginModules)
+            .map(([path, module]) => {
+                if (!module.default?.path) {
+                    console.warn(`⚠️ Archivo ${path} no exporta una ruta válida`);
+                    return null;
+                }
+
+                // Extraer nombre del plugin del path
+                const pluginMatch = path.match(/@plugins\/([^\/]+)/);
+                const pluginName = pluginMatch ? pluginMatch[1] : 'unknown';
+
+                console.log(`✅ Ruta cargada [${pluginName}]: ${module.default.name || 'sin nombre'} -> ${module.default.path}`);
+
+                return {
+                    ...module.default,
+                    meta: {
+                        ...module.default.meta,
+                        plugin: pluginName
+                    }
+                };
+            })
+            .filter(Boolean);
+
+        // Remover duplicados por path
+        const uniqueRoutes = routes.filter((route, index, self) =>
+            index === self.findIndex(r => r.path === route.path)
+        );
+
+        if (uniqueRoutes.length !== routes.length) {
+            console.warn(`⚠️ Se removieron ${routes.length - uniqueRoutes.length} rutas duplicadas`);
+        }
+
+        console.log(`📊 Total rutas de plugins cargadas: ${uniqueRoutes.length}`);
+
+        // Mostrar resumen por plugin
+        const pluginSummary = uniqueRoutes.reduce((acc, route) => {
+            const plugin = route.meta.plugin;
+            acc[plugin] = (acc[plugin] || 0) + 1;
+            return acc;
+        }, {});
+
+        console.log('📋 Rutas por plugin:', pluginSummary);
+
+        return uniqueRoutes;
+
+    } catch (error) {
+        console.error('❌ Error cargando rutas de plugins:', error);
+        return [];
+    }
 }
 
+const processPluginModules = (modules, patternName) => {
+    const foundRoutes = Object.keys(modules);
 
+    if (foundRoutes.length > 0) {
+        console.log(`📦 Encontradas ${foundRoutes.length} rutas con ${patternName}:`);
+        foundRoutes.forEach(route => console.log(`  - ${route}`));
 
-let routes = []
+        return Object.entries(modules)
+            .map(([path, module]) => {
+                if (!module.default?.path) {
+                    console.warn(`⚠️ Plugin ruta ${module.default?.name || path} no tiene path. Saltando...`);
+                    return null;
+                }
 
-routes = routes.concat(loadRoutes())
+                // Extraer nombre del plugin desde la ruta
+                const pluginMatch = path.match(/@plugins\/([^\/]+)/);
+                const pluginName = pluginMatch ? pluginMatch[1] : 'unknown';
 
-/* if (siteSettings.enable_plugins) {
-    if (SafeMode.enabled && SafeMode.noPlugins) { }
-    else {
-        routes = routes.concat(loadPluginRoutes())
+                console.log(`✅ Plugin ruta cargada [${pluginName}]: ${module.default.name} -> ${module.default.path}`);
+
+                return {
+                    ...module.default,
+                    meta: {
+                        ...module.default.meta,
+                        plugin: pluginName
+                    }
+                };
+            })
+            .filter(Boolean);
     }
 
+    return [];
 }
- */
 
+const initializeRoutes = () => {
+    console.log('🚀 Inicializando sistema de rutas...');
+
+    let routes = loadRoutes();
+
+    // Cargar plugins si están habilitados
+    if (siteSettings.enable_plugins) {
+        console.log('🔌 Plugins habilitados en configuración');
+
+        if (SafeMode.enabled && SafeMode.noPlugins) {
+            console.log('🔒 Modo seguro activado - plugins deshabilitados');
+        } else {
+            console.log('✅ Cargando rutas de plugins...');
+            const pluginRoutes = loadPluginRoutes();
+            routes = routes.concat(pluginRoutes);
+        }
+    } else {
+        console.log('❌ Plugins deshabilitados en configuración');
+    }
+
+    console.log(`📊 Total rutas registradas: ${routes.length}`);
+
+    // Mostrar resumen de rutas
+    const routeSummary = routes.reduce((acc, route) => {
+        const source = route.meta?.plugin ? `plugin:${route.meta.plugin}` : 'core';
+        acc[source] = (acc[source] || 0) + 1;
+        return acc;
+    }, {});
+
+    console.log('📋 Resumen de rutas por fuente:', routeSummary);
+
+    return routes;
+}
+
+// Inicializar rutas
+const routes = initializeRoutes();
 
 const AppRouter = createRouter({
     history: createWebHistory(),
     routes
 });
-
 
 AppRouter.beforeEach((to, from, next) => {
     const { currentUser } = useCurrentUser();
@@ -104,6 +232,11 @@ AppRouter.beforeEach((to, from, next) => {
     if (to.path === '/login' || to.path === '/signup') {
         next({ name: 'home.index', replace: true });
         return;
+    }
+
+    // Log de navegación para rutas de plugins
+    if (to.meta?.plugin) {
+        console.log(`🔌 Navegando a ruta de plugin [${to.meta.plugin}]: ${to.path}`);
     }
 
     // Permite la navegación normal
