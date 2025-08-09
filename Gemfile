@@ -145,3 +145,8 @@ gem "doorkeeper-jwt"
 
 #### Migration to Vite Rails ####
 gem 'vite_rails'
+
+gem "js-routes", "~> 2.3"
+
+# Use FFMPEG for video processing
+gem 'ffmpeg', git: 'https://github.com/instructure/ruby-ffmpeg'

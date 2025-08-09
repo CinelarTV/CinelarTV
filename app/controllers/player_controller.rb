@@ -6,7 +6,10 @@ class PlayerController < ApplicationController
   before_action :check_content_availability, only: :watch
 
   def watch
-    return unless @content
+    return respond_to do |format|
+      format.html { render_content_not_available }
+      format.json { render_content_not_available }
+    end unless @content
 
     find_episode_and_season if @content.content_type == "TVSHOW"
 
@@ -159,10 +162,15 @@ class PlayerController < ApplicationController
   end
 
   def render_content_not_available
-    render json: {
-      errors: ["El contenido no está disponible para su reproducción."],
-      error_type: "content_not_available",
-    }, status: :unprocessable_entity
+    respond_to do |format|
+      format.html { render template: 'application/index', status: :unprocessable_entity }
+      format.json {
+        render json: {
+          errors: ["El contenido no está disponible para su reproducción."],
+          error_type: "content_not_available",
+        }, status: :unprocessable_entity
+      }
+    end
   end
 
   def handle_tvshow_update(profile)

@@ -25,11 +25,11 @@ module Admin
           error_type: "no_updates_available"
         }
       end
+    end
 
-      def restart_server
-        CinelarTV::Updater.restart_server
-        head :ok
-      end
+    def restart_server
+      CinelarTV::Updater.restart_server
+      head :ok
     end
 
     def check_progress

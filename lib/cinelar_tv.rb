@@ -49,19 +49,15 @@ module CinelarTV
   @@maintenance_enabled = false
 
   def self.cache
-    @cache ||= if ENV["REDIS_URL"].nil?
-        ActiveSupport::Cache::MemoryStore.new
-      else
-        Cache.new
-      end
+    @cache ||= ENV["REDIS_URL"].nil? ? ActiveSupport::Cache::MemoryStore.new : Cache.new
   end
 
   def self.maintenance_enabled
-    @@maintenance_enabled
+    cache.read("maintenance_enabled") || false
   end
 
   def self.maintenance_enabled=(value)
-    @@maintenance_enabled = value
+    cache.write("maintenance_enabled", value)
   end
 
   def self.valid_license?

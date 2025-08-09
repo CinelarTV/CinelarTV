@@ -195,3 +195,12 @@ img.emoji {
   transform: translateX(20px);
   opacity: 0;
 }
+
+
+/* 
+  Vue Transitions
+*/
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}

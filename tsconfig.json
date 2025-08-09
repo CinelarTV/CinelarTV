@@ -20,10 +20,10 @@
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "noEmit": true,
-    "baseUrl": "./app/frontend/webclient",
+    "baseUrl": "./app/frontend",
     "paths": {
       "@/*": [
-        "cinelartv/*"
+        "webclient/*"
       ]
     }
   },

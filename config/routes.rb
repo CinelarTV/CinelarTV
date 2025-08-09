@@ -43,7 +43,7 @@ Rails.application.routes.draw do
   post "/contents/:id/unlike", to: "likes#unlike"
 
   get "/contents/:id", to: "contents#show"
-  get "/t/:id", to: redirect("/contents/%<id>s")
+  get "/c/:id", to: redirect("/contents/%{id}"), as: :content_short_url
 
   # Player routes
   get "/watch/:id", to: "player#watch"

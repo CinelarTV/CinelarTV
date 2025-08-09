@@ -48,115 +48,85 @@ module CinelarTV
     end
 
     def self.restart_server
-      pid = Process.pid
+      restart_puma
+    end
 
+    def self.restart_puma
+      pid = Process.pid
       log("")
       log("********************************************************")
-      log("***  CinelarTV Restart - This may take a few minutes  ***")
+      log("***  CinelarTV Restart - This may take un par de minutos  ***")
       log("********************************************************")
       log("")
       log("=> Puma PID: #{pid}")
       log("")
+      percent(100)
+      sleep 1 # Espera para asegurar que el frontend reciba el mensaje
+      publish("status", "restarted")
       FileUtils.touch(Rails.root.join("tmp/restart.txt"))
       system("kill -USR2 #{pid}")
     end
 
     def self.run_update
       pid = Process.pid
-
       CinelarTV.maintenance_enabled = true
+      begin
+        if Rails.env.production?
+          log("Stashing local changes to avoid conflicts...")
+          run("git reset --hard")
+        end
 
-      # Stash all local changes before upgrading to avoid conflicts (Except on development)
-      if Rails.env.production?
-        log("Stashing local changes to avoid conflicts...")
-        run("git reset --hard")
-      end
-
-      percent(0)
-
-      log("")
-      log("")
-      log("********************************************************")
-      log("***  CinelarTV Update - This may take a few minutes  ***")
-      log("********************************************************")
-      log("")
-
-      log("=> Puma PID: #{pid}")
-      log("=> Current git hash: #{CinelarTV.git_version}")
-      log("=> Current git branch: #{CinelarTV.git_branch}")
-      log("=> Remote git hash: #{remote_version}")
-      log("=> Commit message: #{last_commit_message}")
-      log("=> Versions diff: #{versions_diff}")
-      log("")
-
-      percent(5)
-      log("")
-      log("************** Enabling Maintenance Mode ***************")
-      log("")
-      percent(10)
-
-      # Fetch the latest code from the repo
-      run("git fetch origin test-passed")
-      percent(25)
-
-      log("*** Installing Ruby Gems ***")
-      run("bundle install --retry 3 --jobs 4")
-
-      run("bundle config set --local without 'development test'")
-
-      percent(30)
-      log("*** Installing node modules ***")
-      run("yarn install --production")
-
-      percent(50)
-
-      log("*** Running Database Migrations ***")
-      run("rake db:migrate")
-
-      percent(65)
-
-      percent(80)
-
-      log("*** Bundling assets. This will take a while *** ")
-
-      run("rake assets:precompile")
-
-      percent(92)
-
-      # Update the last updated at time
-
-      self.last_updated_at = Time.now
-
-      percent(95)
-
-      log("************** Disabling Maintenance Mode ***************")
-
-      percent(100)
-
-      log("DONE")
-      log("")
-      log("********************************************************")
-      log("***  CinelarTV Update - Complete!  ***")
-      log("********************************************************")
-      log("")
-      log("")
-      log("***  Restarting Puma  ***")
-      publish("status", "complete")
-      CinelarTV.maintenance_enabled = false
-
-      FileUtils.touch(Rails.root.join("tmp/restart.txt"))
-      system("kill -USR2 #{pid}")
-    rescue StandardError => e
-      publish("status", "failed")
-      CinelarTV.maintenance_enabled = false
-
-      [
-        "FAILED TO UPGRADE",
-        e.inspect,
-        e.backtrace.join("\n"),
-      ].each do |message|
-        warn(message)
-        log(message)
+        percent(0)
+        log("")
+        log("")
+        log("********************************************************")
+        log("***  CinelarTV Update - This may take a few minutes  ***")
+        log("********************************************************")
+        log("")
+        log("=> Puma PID: #{pid}")
+        log("=> Current git hash: #{CinelarTV.git_version}")
+        log("=> Current git branch: #{CinelarTV.git_branch}")
+        log("=> Remote git hash: #{remote_version}")
+        log("=> Commit message: #{last_commit_message}")
+        log("=> Versions diff: #{versions_diff}")
+        log("")
+        percent(5)
+        log("")
+        log("************** Enabling Maintenance Mode ***************")
+        log("")
+        percent(10)
+        run("git fetch origin test-passed")
+        percent(25)
+        log("*** Installing Ruby Gems ***")
+        run("bundle install --retry 3 --jobs 4")
+        run("bundle config set --local without 'development test'")
+        percent(30)
+        log("*** Installing node modules ***")
+        run("pnpm install --prefer-offline --no-audit")
+        percent(50)
+        log("*** Running Database Migrations ***")
+        run("rake db:migrate")
+        percent(65)
+        percent(80)
+        log("*** Bundling assets. This may take a while *** ")
+        run("rake assets:precompile")
+        percent(92)
+        self.last_updated_at = Time.now
+        percent(95)
+        log("************** Disabling Maintenance Mode ***************")
+        percent(100)
+        log("DONE\n********************************************************\n***  CinelarTV Update - Complete!  ***\n********************************************************\n\n***  Restarting Puma  ***")
+        publish("status", "complete")
+        CinelarTV.maintenance_enabled = false
+        restart_puma
+      rescue StandardError => e
+        publish("status", "failed")
+        CinelarTV.maintenance_enabled = false
+        [
+          "FAILED TO UPGRADE",
+          e.inspect,
+          e.backtrace.join("\n"),
+        ].each { |message| warn(message); log(message) }
       end
     end
 

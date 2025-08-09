@@ -1,38 +1,31 @@
-# frozen_string_literal: true
-
 class Reproduction < ApplicationRecord
   belongs_to :profile
   belongs_to :content
-  # Otras relaciones...
 
-  validates :played_at, presence: true
-  validates :country_code, presence: true
+  validates :played_at, :country_code, presence: true
 
-  def set_country_code(ip_address = nil)
-    raise "No IP address provided" unless ip_address
+  def set_country_code(ip_address)
+    raise ArgumentError, "No IP address provided" unless ip_address.present?
 
-    ip_info = IpInfo.lookup(ip_address)
-    self.country_code = ip_info[:country_code] if ip_info[:country_code].present?
+    if (ip_info = IpInfo.lookup(ip_address)) && ip_info[:country_code].present?
+      self.country_code = ip_info[:country_code]
+    end
   end
 
-  def self.top_10_content_by_country(country_code)
-    raise "No country code provided" unless country_code
+  scope :by_country, ->(code) { where(country_code: code) }
 
-    sql = <<-SQL
-    SELECT contents.*, COUNT(reproductions.id) AS reproduction_count
-    FROM contents
-    LEFT JOIN reproductions ON contents.id = reproductions.content_id AND reproductions.country_code = '#{country_code}'
-    GROUP BY contents.id
-    ORDER BY reproduction_count DESC
-    LIMIT 10
-    SQL
+  def self.top_content_by_country(country_code, limit: 10)
+  raise ArgumentError, "No country code provided" if country_code.blank?
 
-    top_10_content = Content.find_by_sql(sql)
+  Content
+    .joins("LEFT JOIN reproductions ON reproductions.content_id = contents.id AND reproductions.country_code = #{ActiveRecord::Base.connection.quote(country_code)}")
+    .select('contents.*, COUNT(reproductions.id) AS reproduction_count')
+    .group('contents.id')
+    .order('reproduction_count DESC')
+    .limit(limit)
+rescue => e
+  Rails.logger.error("Error fetching top #{limit} content for country #{country_code}: #{e.message}")
+  []
+end
 
-    return nil if top_10_content.count != 10
-    top_10_content
-  rescue StandardError => e
-    Rails.logger.error("Error fetching top 10 content for country #{country_code}: #{e.message}")
-    nil
-  end
 end

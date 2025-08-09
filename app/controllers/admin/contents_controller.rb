@@ -240,12 +240,13 @@ module Admin
           # Process TMDB reference here
           tmdb_id = @content.banner.sub("tmdb://", "")
           banner_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-          uploader = ContentImageUploader.new
+          uploader = ContentImageUploader.new(type: :banner)
           uploader.download!(banner_url)
+          uploader.store!
           @content.banner = uploader.url
         else
           # Process uploaded banner image here
-          banner_uploader = ContentImageUploader.new
+          banner_uploader = ContentImageUploader.new(type: :banner)
           banner_uploader.store!(params[:content][:banner])
           @content.banner = banner_uploader.url
           Rails.logger.info("Banner URL: #{banner_uploader.url}")
@@ -258,12 +259,13 @@ module Admin
           # Process TMDB reference here
           tmdb_id = @content.cover.sub("tmdb://", "")
           cover_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-          uploader = ContentImageUploader.new
+          uploader = ContentImageUploader.new(type: :cover)
           uploader.download!(cover_url)
+          uploader.store!
           @content.cover = uploader.url
         else
           # Process uploaded cover image here
-          cover_uploader = ContentImageUploader.new
+          cover_uploader = ContentImageUploader.new(type: :cover)
           cover_uploader.store!(params[:content][:cover])
           @content.cover = cover_uploader.url
           Rails.logger.info("Cover URL: #{cover_uploader.url}")
@@ -285,7 +287,7 @@ module Admin
     end
 
     def episode_params
-      params.require(:episode).permit(:title, :description, :duration, :position)
+      params.permit(:title, :description, :duration, :position)
     end
 
     def set_content

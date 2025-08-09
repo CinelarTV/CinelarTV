@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import react from '@vitejs/plugin-react'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { resolve } from 'path'
+
 
 export default defineConfig({
   server: {
@@ -22,4 +24,9 @@ export default defineConfig({
     }),
     //react(),
   ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'app/frontend/webclient'),
+    },
+  }
 });

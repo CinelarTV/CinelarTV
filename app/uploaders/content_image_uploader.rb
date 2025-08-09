@@ -2,13 +2,23 @@
 
 class ContentImageUploader < BaseUploader
   MAX_FILE_SIZE = 5.megabytes
-  STORE_DIRECTORY = "uploads/content_images/"
+  STORE_DIRECTORY = "uploads/content_images"
   EXTENSION_ALLOWLIST = %w[png jpg jpeg].freeze
   IMAGE_TYPE_ALLOWLIST = %i[png jpg jpeg].freeze
   CONTENT_TYPE_ALLOWLIST = %w[image/png image/jpg image/jpeg].freeze
 
+  def initialize(*args, type: nil, **kwargs)
+    super(*args)
+    @image_type = type # :banner o :cover
+  end
+
   def store_dir
-    STORE_DIRECTORY
+    subfolder = case @image_type
+                when :banner then "banners"
+                when :cover then "covers"
+                else "other"
+                end
+    File.join(STORE_DIRECTORY, subfolder)
   end
 
   def extension_allowlist
@@ -28,14 +38,15 @@ class ContentImageUploader < BaseUploader
   end
 
   def filename
-    "content_image_#{random_string}.#{file.extension}"
+    prefix = @image_type ? @image_type.to_s : "content_image"
+    "#{prefix}_#{random_string}.#{file.extension}"
   end
 
   version :resized_image do
     process resize_to_limit: [800, nil]
 
     def full_filename(_for_file = file)
-      "resized_content_image_#{random_string}.#{file.extension}"
+      "resized_#{@image_type || "content_image"}_#{random_string}.#{file.extension}"
     end
   end
 

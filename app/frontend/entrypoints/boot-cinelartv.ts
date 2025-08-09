@@ -1,13 +1,13 @@
 
-import loadScript from '../cinelartv-legacy/lib/load-script.js';
+import loadScript from '../webclient/lib/load-script.js';
 //import { SafeMode } from '../cinelartv-legacy/pre-initializers/safe-mode.js';
-import { useSiteSettings } from "../cinelartv-legacy/app/services/site-settings";
-import { PiniaStore } from "../cinelartv-legacy/app/lib/Pinia";
+import { useSiteSettings } from "../webclient/app/services/site-settings.js";
+import { PiniaStore } from "../webclient/app/lib/Pinia.js";
 //import { showPreloaderError } from "../ pre-initializers/essentials-preload.js";
 
 
 
-import(/* webpackChunkName: "cinelartv" */ '../cinelartv-legacy/application.js').then(async module => {
+import(/* webpackChunkName: "cinelartv" */ '../webclient/application.js').then(async module => {
     const CinelarTV = module.default;
     CinelarTV.mount('#cinelartv');
     document.querySelector("noscript")?.remove();
@@ -18,7 +18,7 @@ import(/* webpackChunkName: "cinelartv" */ '../cinelartv-legacy/application.js')
         const { siteSettings } = useSiteSettings();
 
         // Carga PluginAPI de forma dinámica
-        const pluginApiModule = await import('../cinelartv-legacy/lib/PluginAPI');
+        const pluginApiModule = await import('../webclient/lib/PluginAPI.js');
         window.PluginAPI = new pluginApiModule.default('1.0.0', CinelarTV);
 
         /*  if (SafeMode.enabled) {

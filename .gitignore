@@ -55,3 +55,7 @@ node_modules
 *.local
 
 .env
+
+# Ignore automatically generated js-routes files.
+/home/alexander/Dev/CinelarTV/app/assets/routes.js
+/home/alexander/Dev/CinelarTV/app/assets/routes.d.ts
