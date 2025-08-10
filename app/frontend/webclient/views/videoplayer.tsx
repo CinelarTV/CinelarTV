@@ -5,14 +5,17 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
-
-
+import "videojs-youtube/dist/Youtube.min.js";
 
 import CIconButton from '../components/forms/c-icon-button.vue';
 import CIcon from "../components/c-icon.vue";
 import cButton from "../components/forms/c-button";
 import { getGoogleDriveVideoInfo } from "@/app/utils/GoogleDriveParser";
 import { useSiteSettings } from "@/app/services/site-settings";
+
+// Constantes
+const PROGRESS_UPDATE_INTERVAL = 5000;
+const INACTIVITY_TIMEOUT = 3000;
 
 export default defineComponent({
     name: 'PrimeVideoPlayer',
@@ -21,331 +24,531 @@ export default defineComponent({
         const currentUser = inject('currentUser');
         const i18n = inject('I18n');
         const isMobile = inject('isMobile');
-        const data = ref<any>(null);
-        const videoPlayer = ref<any>(null);
-        const videoPlayerRef = ref<any>(null);
-        const userActive = ref(true);
-        const isPlaying = ref(false);
-        const loading = ref(true);
-        const lastDataSent = ref(0);
-        const fullscreen = ref(false);
-        const currentPlayback = ref({ currentTime: 0, duration: 0 });
-        const showSkipIntro = ref(false);
-        const vplayerOverlay = ref<any>(null);
-        const skippersRef = ref<any>(null);
-        const isDragging = ref(false);
-        const volumeLevel = ref(1);
-        const isMuted = ref(false);
-        const showVolumeSlider = ref(false);
         const route = useRoute();
         const router = useRouter();
-        const videoId = route.params.id;
-        const episodeId = route.params.episodeId;
-        const notAvailable = ref(false);
 
-
-
-        // Computed para el progreso
-        const progressPercentage = computed(() => {
-            if (!currentPlayback.value.duration) return 0;
-            return (currentPlayback.value.currentTime / currentPlayback.value.duration) * 100;
+        // Reactive refs agrupados por funcionalidad
+        const playerState = ref({
+            data: null,
+            loading: true,
+            notAvailable: false
         });
 
-        // Formatear tiempo
-        const formatTime = (seconds: number) => {
+        const playbackState = ref({
+            isPlaying: false,
+            currentTime: 0,
+            duration: 0,
+            volumeLevel: 1,
+            isMuted: false,
+            fullscreen: false
+        });
+
+        const uiState = ref({
+            userActive: true,
+            showSkipIntro: false,
+            showVolumeSlider: false,
+            isDragging: false
+        });
+
+        // Refs del DOM
+        const videoPlayer = ref(null);
+        const videoPlayerRef = ref(null);
+        const vplayerOverlay = ref(null);
+        const skippersRef = ref(null);
+
+        // Variables de control
+        const lastDataSent = ref(0);
+        const { id: videoId, episodeId } = route.params;
+
+        // Computed properties
+        const progressPercentage = computed(() => {
+            if (!playbackState.value.duration) return 0;
+            return (playbackState.value.currentTime / playbackState.value.duration) * 100;
+        });
+
+        const volumeIcon = computed(() => {
+            if (playbackState.value.isMuted) return 'volume-x';
+            return playbackState.value.volumeLevel < 0.5 ? 'volume1' : 'volume2';
+        });
+
+        const isShow = computed(() => playerState.value.data?.content.content_type === 'TVSHOW');
+
+        // Utility functions
+        const formatTime = (seconds) => {
             if (!seconds || isNaN(seconds)) return '0:00';
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = Math.floor(seconds % 60);
+
             if (h > 0) {
                 return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             }
             return `${m}:${s.toString().padStart(2, '0')}`;
         };
 
+        const getVideoType = (url) => {
+            const extension = url.split('.').pop();
+            const types = {
+                mp4: 'video/mp4',
+                m3u8: 'application/x-mpegURL'
+            };
+            return types[extension] || 'video/mp4';
+        };
+
+        // Data fetching
         const fetchData = async () => {
             try {
-                let url = episodeId ? `/watch/${videoId}/${episodeId}.json` : `/watch/${videoId}.json`;
+                const url = episodeId ? `/watch/${videoId}/${episodeId}.json` : `/watch/${videoId}.json`;
                 const response = await ajax.get(url);
-                data.value = response.data.data;
-                // Redirección si es necesario
-                if (data.value.content.content_type === 'TVSHOW' && !(route.params.episodeId || data.value.episode?.id)) {
-                    const firstEpisode = data.value.season.episodes[0];
-                    if (firstEpisode) return router.replace(`/watch/${videoId}/${firstEpisode.id}`);
-                } else if (!route.params.episodeId && data.value.episode?.id) {
-                    return router.replace(`/watch/${videoId}/${data.value.episode.id}`);
-                }
-            } catch (error: any) {
-                if (error.response?.errors?.[0]?.error_type === 'content_not_available') {
-                    notAvailable.value = true;
-                    toast.error('Contenido no disponible');
-                    return;
-                }
-                toast.error('Error al cargar el video.');
+                const data = response.data.data;
+
+                // Validar y redirigir si es necesario
+                if (shouldRedirect(data)) return;
+
+                playerState.value.data = data;
+                useHead({ title: data.content?.title });
+
+            } catch (error) {
+                handleFetchError(error);
             }
         };
 
-        const getVideoType = (url: string) => {
-            const extension = url.split('.').pop();
-            switch (extension) {
-                case 'mp4': return 'video/mp4';
-                case 'm3u8': return 'application/x-mpegURL';
-                default: return 'video/mp4';
+        const shouldRedirect = (data) => {
+            if (isShow.value && !episodeId && !data.episode?.id) {
+                const firstEpisode = data.season?.episodes?.[0];
+                if (firstEpisode) {
+                    router.replace(`/watch/${videoId}/${firstEpisode.id}`);
+                    return true;
+                }
+            } else if (!episodeId && data.episode?.id) {
+                router.replace(`/watch/${videoId}/${data.episode.id}`);
+                return true;
             }
+            return false;
         };
 
-        onMounted(async () => {
-            document.body.classList.add('prime-video-player');
-            await fetchData();
-            useHead({ title: data.value?.content?.title });
+        const handleFetchError = (error) => {
+            if (error.response?.errors?.[0]?.error_type === 'content_not_available') {
+                playerState.value.notAvailable = true;
+                toast.error('Contenido no disponible');
+                return;
+            }
+            toast.error('Error al cargar el video.');
+        };
 
-            // Google Drive integration
-            let sources = data.value.sources || [];
-            if (siteSettings?.enable_google_drive_parser && Array.isArray(sources)) {
+        // Video source processing
+        const processVideoSources = (sources) => {
+            if (!Array.isArray(sources)) return [];
+
+            // Procesar fuentes de Google Drive si está habilitado
+            if (siteSettings?.enable_google_drive_parser) {
                 const driveSources = sources
-                    .filter((src) => typeof src.url === 'string' && src.url.includes('drive.google.com'))
-                    .map((src) => getGoogleDriveVideoInfo(src.url))
+                    .filter(src => src.url?.includes('drive.google.com'))
+                    .map(src => getGoogleDriveVideoInfo(src.url))
                     .filter(Boolean);
-                // Añadir los video sources parseados
 
-                console.log('Parsed Google Drive sources:', driveSources);
                 sources = [
-                    ...sources.filter((src) => !(typeof src.url === 'string' && src.url.includes('drive.google.com'))),
-                    ...driveSources.map((info) => ({ src: info.videourl, type: 'video/mp4' }))
+                    ...sources.filter(src => !src.url?.includes('drive.google.com')),
+                    ...driveSources.map(info => ({ src: info.videourl, type: 'video/mp4' }))
                 ];
             }
 
+            // Procesar fuentes de YouTube
+            const hasYoutube = sources.some(src => src.url?.includes('youtube.com'));
+            if (hasYoutube) {
+                return sources.map(src => ({
+                    src: src.url,
+                    type: "video/youtube"
+                }));
+            }
+
+            return sources.map(source => ({
+                src: source.src || source.url,
+                type: getVideoType(source.src || source.url)
+            }));
+        };
+
+        // Video player setup
+        const initializePlayer = () => {
+            const sources = processVideoSources(playerState.value.data.sources || []);
+
             videoPlayer.value = videojs(videoPlayerRef.value, {
                 autoplay: true,
+                techOrder: ['youtube', 'html5'],
                 preload: 'auto',
                 responsive: true,
                 fill: true,
-                inactivityTimeout: route.query.debug ? 0 : 3000,
-                poster: data.value.content.banner,
+                inactivityTimeout: route.query.debug ? 0 : INACTIVITY_TIMEOUT,
+                poster: playerState.value.data.content.banner,
                 experimentalSvgIcons: true,
                 bigPlayButton: false,
                 errorDisplay: false,
                 userActions: { hotkeys: true },
-                controlBar: { playToggle: false, pictureInPictureToggle: false, volumePanel: false, fullscreenToggle: false },
-                sources: sources.map((source: any) => ({
-                    src: source.src || source.url,
-                    type: getVideoType(source.src || source.url)
-                }))
+                controlBar: {
+                    playToggle: false,
+                    pictureInPictureToggle: false,
+                    volumePanel: false,
+                    fullscreenToggle: false
+                },
+                sources
             });
 
-            // Restaurar progreso
-            const { progress } = data.value.continue_watching || {};
-            if (progress > 0) videoPlayer.value.currentTime(progress);
+            setupPlayerEvents();
+            setupPlayerUI();
+            restoreProgress();
+        };
 
-            // Overlay y skippers
-            videoPlayer.value.el().appendChild(vplayerOverlay.value);
-            if (skippersRef.value) videoPlayer.value.el().appendChild(skippersRef.value);
+        const setupPlayerEvents = () => {
+            const player = videoPlayer.value;
 
-            // Eventos
-            videoPlayer.value.on('userinactive', () => userActive.value = false);
-            videoPlayer.value.on('useractive', () => userActive.value = true);
-            videoPlayer.value.on('play', () => isPlaying.value = true);
-            videoPlayer.value.on('pause', () => isPlaying.value = false);
-            videoPlayer.value.on('waiting', () => loading.value = true);
-            videoPlayer.value.on('playing', () => loading.value = false);
-            videoPlayer.value.on('fullscreenchange', () => fullscreen.value = !fullscreen.value);
-            videoPlayer.value.on('volumechange', () => {
-                volumeLevel.value = videoPlayer.value.volume();
-                isMuted.value = videoPlayer.value.muted();
+            // UI events
+            player.on('userinactive', () => uiState.value.userActive = false);
+            player.on('useractive', () => uiState.value.userActive = true);
+
+            // Playback events
+            player.on('play', () => playbackState.value.isPlaying = true);
+            player.on('pause', () => playbackState.value.isPlaying = false);
+            player.on('waiting', () => playerState.value.loading = true);
+            player.on('playing', () => playerState.value.loading = false);
+
+            // Volume events
+            player.on('volumechange', () => {
+                playbackState.value.volumeLevel = player.volume();
+                playbackState.value.isMuted = player.muted();
             });
-            videoPlayer.value.on('timeupdate', async () => {
-                currentPlayback.value.currentTime = videoPlayer.value?.currentTime();
-                currentPlayback.value.duration = videoPlayer.value?.duration();
-                if (Date.now() - lastDataSent.value > 5000) {
-                    lastDataSent.value = Date.now();
-                    if (videoPlayer.value.currentTime() > 1) await sendCurrentPosition();
+
+            // Fullscreen events
+            player.on('fullscreenchange', () => {
+                playbackState.value.fullscreen = player.isFullscreen();
+            });
+
+            // Time update with throttling
+            player.on('timeupdate', handleTimeUpdate);
+        };
+
+        const handleTimeUpdate = async () => {
+            playbackState.value.currentTime = videoPlayer.value.currentTime();
+            playbackState.value.duration = videoPlayer.value.duration();
+
+            // Throttle progress updates
+            if (Date.now() - lastDataSent.value > PROGRESS_UPDATE_INTERVAL) {
+                lastDataSent.value = Date.now();
+                if (playbackState.value.currentTime > 1) {
+                    await sendCurrentPosition();
                 }
-            });
+            }
+        };
 
-            window.videojs = videoPlayer.value;
+        const setupPlayerUI = () => {
+            if (vplayerOverlay.value) {
+                videoPlayer.value.el().appendChild(vplayerOverlay.value);
+            }
+            if (skippersRef.value) {
+                videoPlayer.value.el().appendChild(skippersRef.value);
+            }
 
-            // Modo móvil
+            // Mobile fullscreen
             if (isMobile) {
-                try {
-                    videoPlayer.value.requestFullscreen();
-                    if (screen?.orientation?.lock) screen.orientation.lock('landscape-primary');
-                } catch { }
+                requestMobileFullscreen();
             }
-        });
 
-        watch(currentPlayback, (newVal) => {
-            console.log('Current playback:', newVal);
-            if (data.value?.episode?.skip_intro_start && data.value?.episode?.skip_intro_end) {
-                console.log('Checking skip intro:', newVal.currentTime, data.value.episode.skip_intro_start, data.value.episode.skip_intro_end);
-                showSkipIntro.value = newVal.currentTime >= data.value.episode.skip_intro_start && newVal.currentTime <= data.value.episode.skip_intro_end;
+            // Global access for debugging
+            window.videojs = videoPlayer.value;
+        };
+
+        const restoreProgress = () => {
+            const progress = playerState.value.data.continue_watching?.progress;
+            if (progress > 0) {
+                videoPlayer.value.currentTime(progress);
             }
-        });
+        };
 
-        onBeforeUnmount(() => {
-            document.body.classList.remove('prime-video-player');
-            if (videoPlayer.value?.isFullscreen()) videoPlayer.value.exitFullscreen();
-            try { screen.orientation.unlock(); } catch { }
-            videoPlayer.value?.dispose();
-            videoPlayer.value = null;
-        });
+        const requestMobileFullscreen = () => {
+            try {
+                videoPlayer.value.requestFullscreen();
+                screen?.orientation?.lock?.('landscape-primary');
+            } catch (error) {
+                console.warn('Failed to set mobile fullscreen:', error);
+            }
+        };
 
-        // Métodos de control
-        const handleOverlayClick = (e: MouseEvent) => {
-            if (e.target === vplayerOverlay.value) togglePlayPause();
+        // Control methods
+        const togglePlayPause = () => {
+            if (playbackState.value.isPlaying) {
+                videoPlayer.value.pause();
+            } else {
+                videoPlayer.value.play();
+            }
         };
 
         const toggleFullscreen = () => {
-            if (videoPlayer.value.isFullscreen()) videoPlayer.value.exitFullscreen();
-            else videoPlayer.value.requestFullscreen();
-        };
-
-        const togglePlayPause = () => {
-            if (isPlaying.value) videoPlayer.value.pause();
-            else videoPlayer.value.play();
-        };
-
-        const sendCurrentPosition = async () => {
-            try {
-                await ajax.put(`/watch/${videoId}/progress.json`, {
-                    progress: videoPlayer.value.currentTime(),
-                    duration: videoPlayer.value.duration(),
-                    episode_id: episodeId
-                });
-            } catch { }
-        };
-
-        const skipIntro = () => {
-            videoPlayer.value.currentTime(data.value.episode.skip_intro_end);
-        };
-
-        const seekBy = (seconds: number) => {
-            videoPlayer.value.currentTime(videoPlayer.value.currentTime() + seconds);
-        };
-
-        const handleProgressClick = (e: MouseEvent) => {
-            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            const newTime = percent * currentPlayback.value.duration;
-            videoPlayer.value.currentTime(newTime);
+            if (playbackState.value.fullscreen) {
+                videoPlayer.value.exitFullscreen();
+            } else {
+                videoPlayer.value.requestFullscreen();
+            }
         };
 
         const toggleMute = () => {
-            if (isMuted.value) {
+            if (playbackState.value.isMuted) {
                 videoPlayer.value.muted(false);
-                videoPlayer.value.volume(volumeLevel.value || 0.5);
+                videoPlayer.value.volume(playbackState.value.volumeLevel || 0.5);
             } else {
                 videoPlayer.value.muted(true);
             }
         };
 
-        const handleVolumeChange = (e: MouseEvent) => {
-            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const seekBy = (seconds) => {
+            const currentTime = videoPlayer.value.currentTime();
+            videoPlayer.value.currentTime(currentTime + seconds);
+        };
+
+        const skipIntro = () => {
+            const skipTime = playerState.value.data.episode.skip_intro_end;
+            videoPlayer.value.currentTime(skipTime);
+        };
+
+        // Event handlers
+        const handleOverlayClick = (e) => {
+            if (e.target === vplayerOverlay.value) {
+                togglePlayPause();
+            }
+        };
+
+        const handleProgressClick = (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            const newTime = percent * playbackState.value.duration;
+            videoPlayer.value.currentTime(newTime);
+        };
+
+        const handleVolumeChange = (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
             const percent = Math.max(0, Math.min(1, (rect.bottom - e.clientY) / rect.height));
             videoPlayer.value.volume(percent);
             videoPlayer.value.muted(false);
         };
 
-        // Render
+        // API calls
+        const sendCurrentPosition = async () => {
+            try {
+                await ajax.put(`/watch/${videoId}/progress.json`, {
+                    progress: playbackState.value.currentTime,
+                    duration: playbackState.value.duration,
+                    episode_id: episodeId
+                });
+            } catch (error) {
+                console.warn('Failed to save progress:', error);
+            }
+        };
+
+        // Watchers
+        watch(() => playbackState.value.currentTime, (currentTime) => {
+            const episode = playerState.value.data?.episode;
+            if (episode?.skip_intro_start && episode?.skip_intro_end) {
+                uiState.value.showSkipIntro = currentTime >= episode.skip_intro_start &&
+                    currentTime <= episode.skip_intro_end;
+            }
+        });
+
+        // Lifecycle
+        onMounted(async () => {
+            document.body.classList.add('prime-video-player');
+            await fetchData();
+            if (playerState.value.data && !playerState.value.notAvailable) {
+                initializePlayer();
+            }
+        });
+
+        onBeforeUnmount(() => {
+            document.body.classList.remove('prime-video-player');
+
+            if (videoPlayer.value) {
+                if (videoPlayer.value.isFullscreen()) {
+                    videoPlayer.value.exitFullscreen();
+                }
+                videoPlayer.value.dispose();
+                videoPlayer.value = null;
+            }
+
+            try {
+                screen.orientation?.unlock?.();
+            } catch (error) {
+                console.warn('Failed to unlock orientation:', error);
+            }
+        });
+
+        // Render helpers
+        const renderNotAvailable = () => (
+            <div class="flex flex-col items-center justify-center h-full text-white text-xl p-8">
+                <CIcon icon="alert-triangle" size={48} class="mb-4 text-red-500" />
+                <span>El contenido no está disponible para su reproducción.</span>
+            </div>
+        );
+
+        const renderHeader = () => (
+            <div class="prime-header flex items-center justify-between p-6">
+                <div class="flex items-center gap-4">
+                    <router-link to={`/contents/${playerState.value.data.content.id}`} class="prime-back-btn">
+                        <CIcon icon="chevron-left" size={24} />
+                    </router-link>
+                    <div class="prime-title-info">
+                        <h1 class="text-xl font-semibold text-white">
+                            {playerState.value.data.content.title}
+                        </h1>
+                        {playerState.value.data.episode && (
+                            <span class="text-sm text-white/70">
+                                {playerState.value.data.season.title} • {playerState.value.data.episode.title}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <CIconButton class="prime-control-btn" icon="settings" size={20} />
+                    <CIconButton class="prime-control-btn" icon="more-horizontal" size={20} />
+                </div>
+            </div>
+        );
+
+        const renderCenterControls = () => (
+            <div class="flex-1 flex items-center justify-center">
+                <div class="prime-center-controls flex items-center gap-8">
+                    <CIconButton
+                        class="prime-seek-btn"
+                        icon="rotate-ccw"
+                        size={32}
+                        onClick={() => seekBy(-10)}
+                    />
+                    <CIconButton
+                        class="prime-play-btn"
+                        icon={playbackState.value.isPlaying ? 'pause' : 'play'}
+                        size={48}
+                        onClick={togglePlayPause}
+                    />
+                    <CIconButton
+                        class="prime-seek-btn"
+                        icon="rotate-cw"
+                        size={32}
+                        onClick={() => seekBy(10)}
+                    />
+                </div>
+            </div>
+        );
+
+        const renderProgressBar = () => (
+            <div class="prime-progress-container mb-4">
+                <div class="prime-progress-bar" onClick={handleProgressClick}>
+                    <div class="prime-progress-bg">
+                        <div
+                            class="prime-progress-fill"
+                            style={{ width: `${progressPercentage.value}%` }}
+                        >
+                            <div class="prime-progress-handle"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="prime-time-info flex justify-between text-sm text-white/80 mt-2">
+                    <span>{formatTime(playbackState.value.currentTime)}</span>
+                    <span>{formatTime(playbackState.value.duration)}</span>
+                </div>
+            </div>
+        );
+
+        const renderVolumeControls = () => (
+            <div
+                class="prime-volume-controls flex items-center gap-2"
+                onMouseenter={() => uiState.value.showVolumeSlider = true}
+                onMouseleave={() => uiState.value.showVolumeSlider = false}
+            >
+                <CIconButton
+                    class="prime-control-small"
+                    icon={volumeIcon.value}
+                    size={20}
+                    onClick={toggleMute}
+                />
+                {uiState.value.showVolumeSlider && (
+                    <div class="prime-volume-slider" onClick={handleVolumeChange}>
+                        <div class="prime-volume-bg">
+                            <div
+                                class="prime-volume-fill"
+                                style={{
+                                    height: `${(playbackState.value.isMuted ? 0 : playbackState.value.volumeLevel) * 100}%`
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+
+        const renderControlBar = () => (
+            <div class="prime-control-bar flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <CIconButton
+                        class="prime-control-small"
+                        icon={playbackState.value.isPlaying ? 'pause' : 'play'}
+                        size={20}
+                        onClick={togglePlayPause}
+                    />
+                    {renderVolumeControls()}
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <CIconButton class="prime-control-small" icon="subtitles" size={20} />
+                    <CIconButton class="prime-control-small" icon="settings" size={20} />
+                    <CIconButton
+                        class="prime-control-small"
+                        icon={playbackState.value.fullscreen ? 'minimize' : 'maximize'}
+                        size={20}
+                        onClick={toggleFullscreen}
+                    />
+                </div>
+            </div>
+        );
+
+        const renderSkipIntro = () => (
+            playerState.value.data?.episode && uiState.value.showSkipIntro && (
+                <div class="absolute right-6 bottom-32">
+                    <cButton class="prime-skip-intro" onClick={skipIntro}>
+                        {i18n.t('js.video_player.skip_intro') || 'Saltar intro'}
+                    </cButton>
+                </div>
+            )
+        );
+
+        // Main render
         return () => (
             <div class="prime-video-container">
-                {notAvailable.value ? (
-                    <div class="flex flex-col items-center justify-center h-full text-white text-xl p-8">
-                        <CIcon icon="alert-triangle" size={48} class="mb-4 text-red-500" />
-                        <span>El contenido no está disponible para su reproducción.</span>
-                    </div>
+                {playerState.value.notAvailable ? (
+                    renderNotAvailable()
                 ) : (
-                    <div class="h-full" v-show={!!data.value}>
-                        <div class={['prime-video-player', userActive.value ? 'user-active' : 'user-inactive']}>
-                            <video ref={videoPlayerRef} id="prime-player" controls preload="auto" class="video-js vjs-default-skin vjs-big-play-centered relative" />
+                    <div class="h-full" v-show={!!playerState.value.data}>
+                        <div class={[
+                            'prime-video-player',
+                            uiState.value.userActive ? 'user-active' : 'user-inactive'
+                        ]}>
+                            <video
+                                ref={videoPlayerRef}
+                                id="prime-player"
+                                controls
+                                preload="auto"
+                                class="video-js vjs-default-skin vjs-big-play-centered relative"
+                            />
 
-                            {/* Prime Video Overlay */}
                             <div
                                 class="prime-overlay absolute inset-0 flex flex-col"
                                 ref={vplayerOverlay}
                                 onClick={handleOverlayClick}
                             >
-                                {/* Header */}
-                                <div class="prime-header flex items-center justify-between p-6">
-                                    <div class="flex items-center gap-4">
-                                        <router-link to={`/contents/${data.value?.content.id}`} class="prime-back-btn">
-                                            <CIcon icon="chevron-left" size={24} />
-                                        </router-link>
-                                        <div class="prime-title-info">
-                                            <h1 class="text-xl font-semibold text-white">{data.value?.content?.title}</h1>
-                                            {data.value?.episode && (
-                                                <span class="text-sm text-white/70">{data.value.season.title} • {data.value.episode.title}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <CIconButton class="prime-control-btn" icon="settings" size={20} />
-                                        <CIconButton class="prime-control-btn" icon="more-horizontal" size={20} />
-                                    </div>
-                                </div>
+                                {renderHeader()}
+                                {renderCenterControls()}
 
-                                {/* Center Play Controls */}
-                                <div class="flex-1 flex items-center justify-center">
-                                    <div class="prime-center-controls flex items-center gap-8">
-                                        <CIconButton class="prime-seek-btn" icon="rotate-ccw" size={32} onClick={() => seekBy(-10)} />
-                                        <CIconButton class="prime-play-btn" icon={isPlaying.value ? 'pause' : 'play'} size={48} onClick={togglePlayPause} />
-                                        <CIconButton class="prime-seek-btn" icon="rotate-cw" size={32} onClick={() => seekBy(10)} />
-                                    </div>
-                                </div>
-
-                                {/* Bottom Controls */}
                                 <div class="prime-bottom-controls p-6">
-                                    {/* Progress Bar */}
-                                    <div class="prime-progress-container mb-4">
-                                        <div class="prime-progress-bar" onClick={handleProgressClick}>
-                                            <div class="prime-progress-bg">
-                                                <div class="prime-progress-fill" style={{ width: `${progressPercentage.value}%` }}>
-                                                    <div class="prime-progress-handle"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="prime-time-info flex justify-between text-sm text-white/80 mt-2">
-                                            <span>{formatTime(currentPlayback.value.currentTime)}</span>
-                                            <span>{formatTime(currentPlayback.value.duration)}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Control Bar */}
-                                    <div class="prime-control-bar flex items-center justify-between">
-                                        <div class="flex items-center gap-4">
-                                            <CIconButton class="prime-control-small" icon={isPlaying.value ? 'pause' : 'play'} size={20} onClick={togglePlayPause} />
-                                            <div class="prime-volume-controls flex items-center gap-2"
-                                                onMouseenter={() => showVolumeSlider.value = true}
-                                                onMouseleave={() => showVolumeSlider.value = false}>
-                                                <CIconButton class="prime-control-small"
-                                                    icon={isMuted.value ? 'volume-x' : volumeLevel.value < 0.5 ? 'volume1' : 'volume2'}
-                                                    size={20}
-                                                    onClick={toggleMute} />
-                                                {showVolumeSlider.value && (
-                                                    <div class="prime-volume-slider" onClick={handleVolumeChange}>
-                                                        <div class="prime-volume-bg">
-                                                            <div class="prime-volume-fill" style={{ height: `${(isMuted.value ? 0 : volumeLevel.value) * 100}%` }}></div>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div class="flex items-center gap-4">
-                                            <CIconButton class="prime-control-small" icon="subtitles" size={20} />
-                                            <CIconButton class="prime-control-small" icon="settings" size={20} />
-                                            <CIconButton class="prime-control-small" icon={fullscreen.value ? 'minimize' : 'maximize'} size={20} onClick={toggleFullscreen} />
-                                        </div>
-                                    </div>
+                                    {renderProgressBar()}
+                                    {renderControlBar()}
                                 </div>
 
-                                {/* Skip Intro Button */}
-                                {data.value?.episode && showSkipIntro.value && (
-                                    <div class="absolute right-6 bottom-32">
-                                        <cButton class="prime-skip-intro" onClick={skipIntro}>
-                                            {i18n.t('js.video_player.skip_intro') || 'Saltar intro'}
-                                        </cButton>
-                                    </div>
-                                )}
+                                {renderSkipIntro()}
                             </div>
                         </div>
                     </div>

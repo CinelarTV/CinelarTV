@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { resolve } from 'path'
+import { vite as vidstack } from 'vidstack/plugins';
+
 
 
 export default defineConfig({
@@ -13,7 +15,13 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith('media-'),
+        }
+      }
+    }),
     vueJsx(),
     ViteRails({
       envOptions: { defineOn: "import.meta.env" },
@@ -22,6 +30,7 @@ export default defineConfig({
         delay: 300,
       },
     }),
+    vidstack(),
     //react(),
   ],
   resolve: {
