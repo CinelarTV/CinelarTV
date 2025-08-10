@@ -6,14 +6,18 @@ import 'video.js/dist/video-js.css';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
 
+
+
 import CIconButton from '../components/forms/c-icon-button.vue';
 import CIcon from "../components/c-icon.vue";
 import cButton from "../components/forms/c-button";
+import { getGoogleDriveVideoInfo } from "@/app/utils/GoogleDriveParser";
+import { useSiteSettings } from "@/app/services/site-settings";
 
 export default defineComponent({
     name: 'PrimeVideoPlayer',
     setup() {
-        const SiteSettings = inject('SiteSettings');
+        const { siteSettings } = useSiteSettings();
         const currentUser = inject('currentUser');
         const i18n = inject('I18n');
         const isMobile = inject('isMobile');
@@ -38,6 +42,8 @@ export default defineComponent({
         const videoId = route.params.id;
         const episodeId = route.params.episodeId;
         const notAvailable = ref(false);
+
+
 
         // Computed para el progreso
         const progressPercentage = computed(() => {
@@ -92,6 +98,23 @@ export default defineComponent({
             document.body.classList.add('prime-video-player');
             await fetchData();
             useHead({ title: data.value?.content?.title });
+
+            // Google Drive integration
+            let sources = data.value.sources || [];
+            if (siteSettings?.enable_google_drive_parser && Array.isArray(sources)) {
+                const driveSources = sources
+                    .filter((src) => typeof src.url === 'string' && src.url.includes('drive.google.com'))
+                    .map((src) => getGoogleDriveVideoInfo(src.url))
+                    .filter(Boolean);
+                // Añadir los video sources parseados
+
+                console.log('Parsed Google Drive sources:', driveSources);
+                sources = [
+                    ...sources.filter((src) => !(typeof src.url === 'string' && src.url.includes('drive.google.com'))),
+                    ...driveSources.map((info) => ({ src: info.videourl, type: 'video/mp4' }))
+                ];
+            }
+
             videoPlayer.value = videojs(videoPlayerRef.value, {
                 autoplay: true,
                 preload: 'auto',
@@ -104,9 +127,9 @@ export default defineComponent({
                 errorDisplay: false,
                 userActions: { hotkeys: true },
                 controlBar: { playToggle: false, pictureInPictureToggle: false, volumePanel: false, fullscreenToggle: false },
-                sources: data.value.sources.map((source: any) => ({
-                    src: source.url,
-                    type: getVideoType(source.url)
+                sources: sources.map((source: any) => ({
+                    src: source.src || source.url,
+                    type: getVideoType(source.src || source.url)
                 }))
             });
 
@@ -151,7 +174,9 @@ export default defineComponent({
         });
 
         watch(currentPlayback, (newVal) => {
+            console.log('Current playback:', newVal);
             if (data.value?.episode?.skip_intro_start && data.value?.episode?.skip_intro_end) {
+                console.log('Checking skip intro:', newVal.currentTime, data.value.episode.skip_intro_start, data.value.episode.skip_intro_end);
                 showSkipIntro.value = newVal.currentTime >= data.value.episode.skip_intro_start && newVal.currentTime <= data.value.episode.skip_intro_end;
             }
         });

@@ -31,7 +31,7 @@ const AdminRoutes = {
         {
             name: 'admin.users',
             path: 'users',
-            component: () => import('../views/admin/users.vue'),
+            component: () => import('../views/admin/Users.tsx'),
             meta: {
                 requireAdmin: true
             }

@@ -4,12 +4,19 @@
 module Admin
   class UsersController < Admin::BaseController
     def index
-      @users = User.all
+      users = User.all
+      if params[:query].present?
+        q = params[:query].downcase
+        users = users.where('LOWER(email) LIKE ? OR LOWER(username) LIKE ?', "%#{q}%", "%#{q}%")
+      end
+      page = params[:page].to_i > 0 ? params[:page].to_i : 1
+      per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 30
+      users = users.order(created_at: :desc).offset((page - 1) * per_page).limit(per_page)
       respond_to do |format|
         format.html
         format.json do
           render json: {
-            data: @users.as_json(only: %i[id email username created_at updated_at]),
+            data: users.as_json(only: %i[id email username created_at updated_at]),
           }
         end
       end

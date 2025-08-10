@@ -177,29 +177,33 @@ export default defineComponent({
                                 )}
                             </div>
                             {contentData.value?.isTVShow && (
-                                <div class="relative">
+                                contentData.value.seasons && contentData.value.seasons.length > 0 ? (
+                                    <div class="relative">
 
-                                    <div class="episodes-list">
-                                        <EpisodesList
-                                            seasons={contentData.value.seasons}
-                                            activeSeason={activeSeason.value}
-                                            onUpdate:activeSeason={val => activeSeason.value = val}
-                                            onPlayEpisode={playEpisode}
-                                        />
+                                        <div class="episodes-list">
+                                            <EpisodesList
+                                                seasons={contentData.value.seasons}
+                                                activeSeason={activeSeason.value}
+                                                onUpdate:activeSeason={val => activeSeason.value = val}
+                                                onPlayEpisode={playEpisode}
+                                            />
 
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <p class="my-4 text-yellow-500">No hay temporadas disponibles para este programa.</p>
+                                )
                             )}
-                            <div class="related-content">
-                                <div class="text-2xl font-bold mb-4">Quizá te guste...</div>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div class="related-content w-full">
+                                <div class="text-2xl font-bold mb-4 text-white">Quizá te guste...</div>
+                                <div class="related-content-horizontal overflow-x-auto flex gap-4 pb-2">
                                     {contentData.value?.relatedContent?.map(content => (
-                                        <router-link to={{ name: 'content.show', params: { id: content.id }, force: true }} key={content.id}>
-                                            <div class="content-card">
-                                                <div class="content-card__image h-32">
-                                                    <img src={content.cover} alt="Cover Image" />
+                                        <router-link to={{ name: 'content.show', params: { id: content.id }, force: true }} key={content.id} class="block min-w-[9rem] max-w-[9rem]">
+                                            <div class="content-card flex flex-col items-center bg-[#23232a] rounded-lg shadow hover:bg-[#18181b] transition p-2">
+                                                <div class="content-card__image w-32 h-48 flex-shrink-0 overflow-hidden rounded-md bg-gray-800 mb-2">
+                                                    <img src={content.cover} alt="Cover Image" class="object-cover w-full h-full rounded-md" />
                                                 </div>
-                                                <div class="content-card__title">{content.title}</div>
+                                                <div class="content-card__title text-base font-semibold text-white text-center truncate w-full">{content.title}</div>
                                             </div>
                                         </router-link>
                                     ))}

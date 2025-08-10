@@ -129,6 +129,9 @@ en:
         enable_js_error_reporting:
           description: "Enables the reporting of JavaScript errors, this will send the errors to the server and will be displayed in the console. You can see the reports in <a href='/logs'>/logs</a>"
           title: "Enable JavaScript error reporting"
+        enable_google_drive_parser:
+          description: "Enables the Google Drive parser, this will allow you to parse Google Drive links and play the videos directly from Google Drive"
+          title: "Enable Google Drive parser"
         enable_metadata_recommendation:
           description: "Allow to fetch metadata from TheMovieDB at the moment of adding a new content, this will help you to fill the fields of the content automatically"
           title: "Enable metadata recommendation"

@@ -307,6 +307,11 @@ experimental:
     refresh: true
     default: false
     type: 'boolean'
+  enable_google_drive_parser:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
 
 internal:
   license_key:

@@ -163,6 +163,7 @@ module Admin
             data: {
               episode: @episode.as_json.merge({
                 thumbnail: @episode.thumbnail || @content.banner,
+                video_sources: @episode.video_sources.as_json(only: %i[id url quality format storage_location status])
               }),
             },
           }
@@ -192,6 +193,11 @@ module Admin
 
     def update_episode
       @episode = Episode.find(params[:episode_id])
+      if params[:thumbnail].present?
+        uploader = ContentImageUploader.new(type: :episode_thumbnail)
+        uploader.store!(params[:thumbnail])
+        @episode.thumbnail = uploader.url
+      end
       @episode.update(episode_params)
       render json: { message: "Episode updated successfully", status: :ok }
     end

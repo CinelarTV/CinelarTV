@@ -4,6 +4,7 @@ import { toast } from "vue3-toastify";
 import CImageUpload from "@/components/forms/CImageUpload";
 import { ajax } from "@/lib/Ajax";
 import Episode, { EpisodeData } from "@/app/models/Episode";
+import CVideoableManager from "@/components/CVideoableManager";
 
 // Extend Episode type to include timing fields
 type ExtendedEpisode = Episode & {
@@ -208,8 +209,18 @@ export default defineComponent({
                                             value={formatTime(episodeData.value.skip_intro_end)}
                                             onInput={e => handleTimeChange("skip_intro_end", (e.target as HTMLInputElement).value)}
                                         />
+
                                     </div>
 
+
+                                </div>
+                                <div>
+                                    <CVideoableManager
+                                        initialVideoSources={episodeData.value.video_sources || []}
+                                        contentId={route.params.contentId?.toString()}
+                                        seasonId={route.params.seasonId?.toString()}
+                                        episodeId={route.params.episodeId?.toString()}
+                                    />
                                 </div>
                             </div>
                         </div>

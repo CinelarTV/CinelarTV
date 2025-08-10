@@ -7,13 +7,17 @@ interface Episode {
     description: string
     thumbnail: string
     duration: number | null
-    position: number
+    position: number,
+    continue_watching?: {
+        progress: number
+        duration: number
+    }
 }
 
 interface Season {
     id: string
     title?: string
-    episodes: Episode[]
+    episodes: { data: Episode }[]
 }
 
 export default defineComponent({
@@ -122,7 +126,7 @@ export default defineComponent({
                                             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                                             onScroll={handleScroll}
                                         >
-                                            {season.episodes.map((episode, index) => (
+                                            {season.episodes.map(({ data: episode }, index) => (
                                                 <div
                                                     key={episode.id}
                                                     class="episode-card flex-shrink-0 w-[90vw] sm:w-[350px] max-w-[350px] min-w-[260px] cursor-pointer group/card snap-center"
@@ -151,6 +155,17 @@ export default defineComponent({
                                                                 {episode.duration}
                                                             </div>
                                                         )}
+
+
+                                                        {/* Barra de progreso de continue watching */}
+                                                        {episode.continue_watching && episode.continue_watching.duration > 0 && (
+                                                            <div class="absolute left-0 right-0 bottom-0 h-2 bg-black/40">
+                                                                <div
+                                                                    class="h-2 bg-blue-500 transition-all"
+                                                                    style={{ width: `${Math.min(100, Math.round((episode.continue_watching.progress / episode.continue_watching.duration) * 100))}%` }}
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* Episode Info */}
@@ -162,6 +177,8 @@ export default defineComponent({
                                                             {episode.description}
                                                         </p>
                                                     </div>
+
+
                                                 </div>
                                             ))}
                                         </div>

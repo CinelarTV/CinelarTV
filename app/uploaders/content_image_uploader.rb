@@ -3,9 +3,9 @@
 class ContentImageUploader < BaseUploader
   MAX_FILE_SIZE = 5.megabytes
   STORE_DIRECTORY = "uploads/content_images"
-  EXTENSION_ALLOWLIST = %w[png jpg jpeg].freeze
-  IMAGE_TYPE_ALLOWLIST = %i[png jpg jpeg].freeze
-  CONTENT_TYPE_ALLOWLIST = %w[image/png image/jpg image/jpeg].freeze
+  EXTENSION_ALLOWLIST = %w[png jpg jpeg webp].freeze
+  IMAGE_TYPE_ALLOWLIST = %i[png jpg jpeg webp].freeze
+  CONTENT_TYPE_ALLOWLIST = %w[image/png image/jpg image/jpeg image/webp].freeze
 
   def initialize(*args, type: nil, **kwargs)
     super(*args)
@@ -16,6 +16,7 @@ class ContentImageUploader < BaseUploader
     subfolder = case @image_type
                 when :banner then "banners"
                 when :cover then "covers"
+                when :episode_thumbnail then "episode_thumbnails"
                 else "other"
                 end
     File.join(STORE_DIRECTORY, subfolder)

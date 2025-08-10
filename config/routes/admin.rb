@@ -46,6 +46,7 @@ namespace :admin do
   get "/episodes/:episode_id/video_sources", to: "video_sources#index"
   post "/episodes/:episode_id/video_sources", to: "video_sources#create"
 
+  
   # For updating and deleting a specific video source
   put "/video_sources/:id", to: "video_sources#update"
   delete "/video_sources/:id", to: "video_sources#destroy"

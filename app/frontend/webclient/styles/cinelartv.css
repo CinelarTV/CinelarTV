@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@plugin "@midudev/tailwind-animations";
+
 @import "./admin.css";
 @import "./components/header.css";
 @import "./wizard.css";
@@ -12,7 +15,10 @@
 @import "./components/banners.css";
 @import "./common/components/offline-indicator.css";
 @import "./components/videoable-manager.css";
-@import "tailwindcss";
+
+@utility animate-spin{
+  animation: rotate-forever 1s infinite linear;
+}
 
 :root {
   --dialog-background-color: #181818;

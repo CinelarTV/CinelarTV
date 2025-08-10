@@ -78,6 +78,52 @@
     @apply aspect-video;
 }
 
+.related-content .content-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    background: #23232a;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px 0 #0003;
+    transition: background 0.2s;
+    padding: 0.75rem;
+}
+
+.related-content .content-card:hover {
+    background: #18181b;
+}
+
+.related-content .content-card__image {
+    width: 6rem;
+    height: 8rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: #222;
+}
+
+.related-content .content-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+.related-content .content-card__title {
+    color: #fff;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.related-content.flex.flex-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
 .recyclerview-card-article {
     --ctv-packshot-width: calc((var(--ctv-screen-width) - var(--ctv-carousel-column-margin)*2 - var(--ctv-carousel-column-gap)*var(--ctv-card-gap-number))/var(--ctv-card-number)*1);
     display: flex;
@@ -245,5 +291,18 @@ li.content-item {
     .recyclerview-card-article {
         --ctv-card-number: 4;
         --ctv-card-gap-number: 5;
+    }
+}
+
+@media (max-width: 600px) {
+    .related-content .content-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.5rem;
+    }
+    .related-content .content-card__image {
+        width: 100%;
+        height: 10rem;
+        margin-bottom: 0.5rem;
     }
 }

@@ -22,8 +22,6 @@ class ContentSerializer < ApplicationSerializer
   attribute :similar_items, key: "related_content"
   attribute :continue_watching, key: "continue_watching"
 
-  # Agrega otras atributos según sea necesario
-
   def include_seasons?
     object.content_type == Content.content_types["TVSHOW"]
   end
@@ -31,14 +29,19 @@ class ContentSerializer < ApplicationSerializer
   def seasons
     return unless object.content_type == Content.content_types["TVSHOW"]
 
+    # Optimización: una sola consulta para todos los continue_watching de los episodios
+    continue_watching_by_episode = fetch_episodes_continue_watching
+
     object.seasons
-          .sort_by(&:position) # Ordenar las temporadas por posición
+          .sort_by(&:position)
           .map do |season|
       {
         id: season.id,
         title: season.title,
         description: season.description,
-        episodes: season.episodes.map { |episode| episode_attributes(episode) },
+        episodes: season.episodes.map { |episode| 
+          episode_attributes(episode, continue_watching_by_episode[episode.id]) 
+        },
       }
     end
   end
@@ -52,9 +55,27 @@ class ContentSerializer < ApplicationSerializer
 
   private
 
-  def episode_attributes(episode)
+  def fetch_episodes_continue_watching
+    profile = @options[:current_profile]
+    return {} unless profile
+
+    # Una sola consulta para obtener todos los continue_watching de los episodios del contenido
+    episode_ids = object.seasons.flat_map { |season| season.episodes.pluck(:id) }
+    
+    ContinueWatching
+      .where(profile: profile, episode_id: episode_ids)
+      .index_by(&:episode_id)
+  end
+
+  def episode_attributes(episode, continue_watching_data = nil)
     attributes = episode.as_json(only: %i[id title description position thumbnail])
-    attributes[:thumbnail] ||= object.banner
+    attributes[:thumbnail] = episode.thumbnail.presence || object.banner
+    
+    # Agregar continue_watching si existe
+    if continue_watching_data
+      attributes[:continue_watching] = continue_watching_data.as_json(only: %i[progress duration])
+    end
+    
     attributes
   end
 

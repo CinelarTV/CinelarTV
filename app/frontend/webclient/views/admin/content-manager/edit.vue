@@ -37,7 +37,8 @@
                                 <SwitchLabel class="mr-4">
                                     Disponible para usuarios
                                 </SwitchLabel>
-                                <Switch v-model="editedData.available" :class='editedData.available ? "bg-blue-600" : "bg-gray-200"'
+                                <Switch v-model="editedData.available"
+                                    :class='editedData.available ? "bg-blue-600" : "bg-gray-200"'
                                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                                     <span :class='editedData.available ? "translate-x-6" : "translate-x-1"'
                                         class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
@@ -45,8 +46,8 @@
                             </div>
                         </SwitchGroup>
 
-                        <c-videoable-manager :content-id="content.id" v-if="content.content_type === 'MOVIE'" :initial-video-sources="content.video_sources" />
-
+                        <CVideoableManager :content-id="content.id" :season-id="seasonId" :episode-id="episodeId"
+                            :initial-video-sources="content.video_sources" @video-source-added="fetchContent" />
 
                         <c-button @click="saveContent" :loading="loadingButton" :icon="SaveIcon">
                             Save
@@ -70,8 +71,9 @@
                         </c-button>
                     </div>
 
-                    <draggable tag="div" v-model="content.seasons" class="season-list" :group="seasonGroup" handle=".handle"
-                        ghost-class="opacity-50" @start="reorderingSeasons = true" @end="reorderingSeasons = false">
+                    <draggable tag="div" v-model="content.seasons" class="season-list" :group="seasonGroup"
+                        handle=".handle" ghost-class="opacity-50" @start="reorderingSeasons = true"
+                        @end="reorderingSeasons = false">
                         <template #item="{ element, index }">
                             <div class="season-container">
                                 <c-icon-button class="handle" icon="grip-vertical" />
@@ -109,7 +111,7 @@
             @season-created="fetchContent" />
     </div>
 </template>
-  
+
 <script setup>
 import { Trash2Icon } from 'lucide-vue-next';
 import { SaveIcon, PlusIcon } from 'lucide-vue-next';
@@ -117,10 +119,11 @@ import { onMounted, ref, inject, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
-import cVideoableManager from '../../../components/c-videoable-manager.vue';
+
 import draggable from 'vuedraggable';
 import { ajax } from '../../../lib/Ajax';
 import { Switch } from '@headlessui/vue';
+import CVideoableManager from "@/components/CVideoableManager";
 
 const SiteSettings = inject('SiteSettings');
 const i18n = inject('I18n');
@@ -180,7 +183,7 @@ const saveContent = async (e) => {
             if (['id', 'created_at', 'updated_at', 'seasons'].includes(key)) {
                 return;
             }
-            if(!value) {
+            if (!value) {
                 return;
             }
             formData.append(`content[${key}]`, value);
