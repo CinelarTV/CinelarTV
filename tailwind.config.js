@@ -1,3 +1,4 @@
+import miduAnimations from "@midudev/tailwind-animations"
 const colors = require('tailwindcss/colors')
 
 
@@ -19,6 +20,8 @@ module.exports = {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    miduAnimations
+  ],
 }
 

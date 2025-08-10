@@ -32,6 +32,9 @@ importers:
       '@melloware/coloris':
         specifier: ^0.21.0
         version: 0.21.1
+      '@midudev/tailwind-animations':
+        specifier: ^0.2.0
+        version: 0.2.0(tailwindcss@4.1.11)
       '@silvermine/videojs-chromecast':
         specifier: ^1.4.1
         version: 1.5.0(video.js@8.23.3)
@@ -1519,6 +1522,11 @@ packages:
 
   '@melloware/coloris@0.21.1':
     resolution: {integrity: sha512-0yKUKTrS1wHjcyDSWzcm2Y0ZYm5GORsru5o+Oyut99/qK5hgzm5bJFjjWbfjSPnX8ijx73g9lRksVIDfbDjG6Q==}
+
+  '@midudev/tailwind-animations@0.2.0':
+    resolution: {integrity: sha512-4mktb060dA7SZz0LjMfhBT30HWPmQENwF4AJC7/etESWohe4pukST0ohC2yAePS5GNinhY3MXmZZ8//2ywafOQ==}
+    peerDependencies:
+      tailwindcss: ^3.0.0 || ^4.0.0
 
   '@monaco-editor/loader@1.4.0':
     resolution: {integrity: sha512-00ioBig0x642hytVspPl7DbQyaSWRaolYie/UFNjoTdvoKPzo6xrXLhTk9ixgIKcLH5b5vDOjVNiGyY+uDCUlg==}
@@ -6350,6 +6358,10 @@ snapshots:
   '@leichtgewicht/ip-codec@2.0.5': {}
 
   '@melloware/coloris@0.21.1': {}
+
+  '@midudev/tailwind-animations@0.2.0(tailwindcss@4.1.11)':
+    dependencies:
+      tailwindcss: 4.1.11
 
   '@monaco-editor/loader@1.4.0(monaco-editor@0.52.2)':
     dependencies:

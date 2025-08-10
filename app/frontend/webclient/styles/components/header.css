@@ -72,16 +72,16 @@
 }
 
 #current-user {
-    @apply rounded-md transition-all flex items-center cursor-pointer bg-white/5 hover:bg-white/10;
+    @apply rounded-full transition-all flex items-center cursor-pointer bg-white/5 hover:bg-white/10;
 }
 
 .user-menu-items {
     ::before {
         content: "";
-        @apply absolute inset-0 -z-10 rounded-xl brightness-[1.025] backdrop-blur-[16px];
+        @apply absolute inset-0 -z-10 rounded-xl;
+        background: linear-gradient(135deg, rgba(60,60,60,0.5) 0%, rgba(30,30,30,0.5) 100%);
     }
-    background-color: rgba(var(--c-primary-50), 0.8);
-    @apply absolute right-0 mt-2 origin-top divide-gray-500 rounded-md  shadow-lg ring-1 ring-black/5 focus:outline-none list-none z-50
+    @apply absolute right-0 mt-2 origin-top divide-gray-500 rounded-md  shadow-lg ring-1 ring-black/5 focus:outline-none list-none
 }
 
 .user-menu-items .menu-item {

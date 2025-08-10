@@ -3,6 +3,7 @@ import loadScript from '../webclient/lib/load-script.js';
 //import { SafeMode } from '../cinelartv-legacy/pre-initializers/safe-mode.js';
 import { useSiteSettings } from "../webclient/app/services/site-settings.js";
 import { PiniaStore } from "../webclient/app/lib/Pinia.js";
+import { showPreloaderError } from "@/pre-initializers/essentials-preload.js";
 //import { showPreloaderError } from "../ pre-initializers/essentials-preload.js";
 
 
@@ -47,6 +48,6 @@ import(/* webpackChunkName: "cinelartv" */ '../webclient/application.js').then(a
 
 }).catch(error => {
     console.error(error);
-    // showPreloaderError(error);
+    showPreloaderError(error);
     throw `CinelarTV failed to load: ${error}`;
 });

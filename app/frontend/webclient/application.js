@@ -11,7 +11,6 @@ import globalComponents from './lib/global-components';
 import I18n from './lib/i18n'
 import ColorPicker from './plugins/color-picker'
 import * as ConfirmDialog from 'vuejs-confirm-dialog'
-import Vue3Toasity from 'vue3-toastify';
 import Vue3Progress from "vue3-progress";
 import VueMobileDetection from "vue-mobile-detection";
 
@@ -47,10 +46,6 @@ CinelarTV.use(Vue3Progress, {
     height: '4px'
 })
 
-CinelarTV.use(Vue3Toasity, {
-    duration: 5000,
-    position: 'bottom-center',
-})
 
 CinelarTV.use(VueMonacoEditorPlugin, {
     paths: {

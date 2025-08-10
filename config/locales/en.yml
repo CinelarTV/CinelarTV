@@ -93,6 +93,7 @@ en:
           player: "Player"
           security: "Security"
           storage: "Storage"
+          plugins: "Plugins"
         cdn_enabled:
           description: "Enables the CDN, this will be used to serve the media files of your site"
           title: "CDN enabled"

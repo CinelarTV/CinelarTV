@@ -21,7 +21,7 @@ class PluginAPI {
     public version: string;
     public vueInstance: any;
     constructor(version: string, vueInstance: any) {
-        
+
         if (!instance) {
             this.version = version;
             this.vueInstance = vueInstance;

@@ -2,6 +2,7 @@ import AppRouter from "../routes/router-map";
 import { useSiteSettings } from "../app/services/site-settings";
 import { ajax } from "./Ajax";
 import { PiniaStore } from "../app/lib/Pinia";
+
 const { siteSettings } = useSiteSettings(PiniaStore);
 
 
@@ -17,75 +18,54 @@ interface ErrorReportData {
 
 declare global {
   interface Window {
-    Logster?: {
-      enabled: boolean;
-    };
+    Logster?: { enabled: boolean };
   }
 }
 
-let lastReport: Date | null = null;
+let lastReport: number = 0;
 
 if (!window.Logster) {
-  window.Logster = {
-    enabled: !!siteSettings?.enable_js_error_reporting,
-  };
+  window.Logster = { enabled: !!siteSettings?.enable_js_error_reporting };
 }
 
-if (!window.Logster.enabled) {
-  if (process.env.NODE_ENV === 'development') {
-    console.warn("DEV: JS error reporting is disabled.\nThis message is only shown in development mode.");
-  }
+if (!window.Logster.enabled && process.env.NODE_ENV === 'development') {
+  console.warn("DEV: JS error reporting is disabled.\nThis message is only shown in development mode.");
 }
 
-export const reportError = (err: Error, severity: string): void => {
+export const reportError = (err: Error, severity: 'error' | 'warning'): void => {
   if (!err) return;
+  const now = Date.now();
 
-  if (lastReport && new Date().getTime() - lastReport.getTime() < 1000 * 60) {
-    return;
-  }
+  // Mostrar SIEMPRE por consola
+  severity === 'error' ? console.error(err) : console.warn(err);
 
-  lastReport = new Date();
+  // Solo enviar por ajax si han pasado 30s
+  if (lastReport && now - lastReport < 30_000) return;
+  lastReport = now;
+
+  const stack = err.stack || err.message || String(err);
+  const stacktraceMatches = /(?:at\s.*?[(@])(.*):(\d+):(\d+)/.exec(stack);
+  const column = stacktraceMatches ? parseInt(stacktraceMatches[3], 10) : 0;
+  const line = stacktraceMatches ? parseInt(stacktraceMatches[2], 10) : 0;
 
   const reportData: ErrorReportData = {
-    message: err.message ? err.message : err + "",
+    message: err.message || String(err),
     url: AppRouter.currentRoute.value.fullPath,
-    window_location: window.location && (window.location + ""),
-    stacktrace: err.stack ? err.stack : err.message ? err.message : err + "",
-    // error object doesn't have column and line properties, maybe it's possible to get them from the stacktrace?
-    column: 0,
-    line: 0,
+    window_location: String(window.location),
+    stacktrace: stack,
+    column,
+    line,
     severity,
   };
 
-  const stacktraceMatches = /(?:at\s.*?[(@])(.*):(\d+):(\d+)/.exec(err.stack || "");
-  if (stacktraceMatches && stacktraceMatches.length === 4) {
-    reportData.column = parseInt(stacktraceMatches[3], 10);
-    reportData.line = parseInt(stacktraceMatches[2], 10);
-  }
+  if (!siteSettings?.enable_js_error_reporting) return;
 
-  if (!siteSettings?.enable_js_error_reporting) {
-    return;
-  }
-
-  if (severity === 'error') {
-    console.error(err);
-  } else {
-    console.warn(err);
-  }
-
-  ajax.post("/logs/report_js_error", reportData).catch(() => {
-    // Do nothing, we don't want to report errors about reporting errors
-  });
+  ajax.post("/logs/report_js_error", reportData).catch(() => { });
 };
 
 export default {
   install: (app: any): void => {
-    app.config.errorHandler = (err: Error, vm: any, info: string): void => {
-      reportError(err, 'error');
-    };
-
-    app.config.warnHandler = (err: Error, vm: any, info: string): void => {
-      reportError(err, 'warning');
-    };
+    app.config.errorHandler = (err: Error) => reportError(err, 'error');
+    app.config.warnHandler = (err: Error) => reportError(err, 'warning');
   },
 };

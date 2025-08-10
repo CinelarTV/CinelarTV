@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
-import { query } from '../utils/query'
+
 import CinelarTV from '../application'
 import { SafeMode } from '../pre-initializers/safe-mode.ts'
 import { useSiteSettings } from '../app/services/site-settings'

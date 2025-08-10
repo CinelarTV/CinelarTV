@@ -13,6 +13,7 @@
     "@guolao/vue-monaco-editor": "^1.3.0",
     "@headlessui/vue": "^1.7.23",
     "@melloware/coloris": "^0.21.0",
+    "@midudev/tailwind-animations": "^0.2.0",
     "@silvermine/videojs-chromecast": "^1.4.1",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/vite": "^4.1.11",
