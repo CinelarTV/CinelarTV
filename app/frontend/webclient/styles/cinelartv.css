@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "@midudev/tailwind-animations";
-
+@config "../../../../tailwind.config.mjs";
 @import "./admin.css";
 @import "./components/header.css";
 @import "./wizard.css";

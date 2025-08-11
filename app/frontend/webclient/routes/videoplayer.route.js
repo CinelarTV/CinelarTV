@@ -1,6 +1,6 @@
 let VideoPlayerRoute =
 {
-    path: '/watch/:id',
+    path: '/watch/:contentId',
     name: 'videoplayer.show',
     component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.tsx'),
     meta: {

@@ -18,6 +18,7 @@ Rails.application.reloader.to_prepare do
     Logster.config.enable_custom_patterns_via_ui = true
     Logster.config.application_version = CinelarTV.git_version
     Logster.config.web_title = "🍿 Log Viewer - CinelarTV AIO"
+    Logster.config.rate_limit_error_reporting = false 
 
     Logster.config.project_directories = [
       {
@@ -26,6 +27,6 @@ Rails.application.reloader.to_prepare do
         main_app: true,
       },
     ]
-    Logster.set_environments([:production])
+Logster.set_environments([:development, :production])
   end
 end

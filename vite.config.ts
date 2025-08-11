@@ -22,7 +22,9 @@ export default defineConfig({
         }
       }
     }),
-    vueJsx(),
+    vueJsx({
+      isCustomElement: (tag) => tag.startsWith('media-'),
+    }),
     ViteRails({
       envOptions: { defineOn: "import.meta.env" },
       fullReload: {

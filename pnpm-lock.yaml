@@ -95,6 +95,9 @@ importers:
       high-console:
         specifier: ^0.4.2
         version: 0.4.2
+      hls.js:
+        specifier: ^1.6.9
+        version: 1.6.9
       howler:
         specifier: ^2.2.3
         version: 2.2.4
@@ -3163,6 +3166,9 @@ packages:
 
   high-console@0.4.2:
     resolution: {integrity: sha512-7xczMlQSRMoXNPO9PIyUGfl1FFwjeG0/FSKuJDW9S5zinWI0oqEEFqSIMXgZ09vqsnjSpWueEg2qoU1RVSB2uA==}
+
+  hls.js@1.6.9:
+    resolution: {integrity: sha512-q7qPrri6GRwjcNd7EkFCmhiJ6PBIxeUsdxKbquBkQZpg9jAnp6zSAeN9eEWFlOB09J8JfzAQGoXL5ZEAltjO9g==}
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
@@ -8196,6 +8202,8 @@ snapshots:
   he@1.2.0: {}
 
   high-console@0.4.2: {}
+
+  hls.js@1.6.9: {}
 
   hookable@5.5.3: {}
 

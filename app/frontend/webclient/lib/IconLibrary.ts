@@ -16,8 +16,8 @@ const BASE_ICONS = [
     "playCircle", "playSquare", "plus", "rotateCcw", "rotateCw", "search",
     "settings", "shieldQuestion", "sparkles", "thumbsUp", "user", "wrench", "x",
     "hardDrive", "circleDollarSign", "brush", "testTube2", "code2", "cpu",
-    "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume2", "volumeX",
-    "home", "packageOpen", "webhook"
+    "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2", "volumeX",
+    "home", "packageOpen", "webhook", "cast", "shrink"
 ] as const;
 
 // Cache para evitar regenerar el sprite innecesariamente
