@@ -4,7 +4,7 @@ let VideoPlayerRoute =
     name: 'videoplayer.show',
     component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.tsx'),
     meta: {
-        transition: 'slide-fade',
+        transition: 'fade',
         requiresAuth: true,
         showHeader: false
     },

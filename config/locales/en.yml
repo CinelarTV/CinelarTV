@@ -147,6 +147,9 @@ en:
         enable_subscription:
           description: "Enables the subscription system, this will allow you to charge your users for access to your site"
           title: "Enable subscription"
+        enable_transcoding:
+          description: "Enables the transcoding of videos, this will allow you to transcode the videos to different formats and resolutions"
+          title: "Enable transcoding"
         enable_web_updater:
           description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
           title: "Experimental web updater"

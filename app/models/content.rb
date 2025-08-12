@@ -24,6 +24,11 @@ class Content < ApplicationRecord
   before_destroy :delete_seasons
   before_destroy :delete_associated_continue_watching
 
+  # By default, new content is unavailable
+  after_initialize do
+    self.available = false if new_record? && available.nil?
+  end
+
   def self.search(title)
     where("available = ? AND (LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?))", true, "%#{title}%",
           "%#{title}%")

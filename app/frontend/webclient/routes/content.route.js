@@ -4,7 +4,7 @@ let ContentRoute = {
     path: '/contents/:id',
     component: () => import(/* webpackChunkName: "content" */ '../views/Content.tsx'),
     meta: {
-        transition: 'slide-fade',
+        transition: 'fade',
     }
 }
 

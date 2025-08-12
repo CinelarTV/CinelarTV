@@ -36,7 +36,11 @@ module Admin
 
     def create
       @content = Content.new(content_params)
+      # Await the uploaded images
       handle_uploaded_images
+
+      # By default, new content is unavailable
+      @content.available = false
 
       if @content.save
         render json: { message: "Content created successfully", status: :ok }

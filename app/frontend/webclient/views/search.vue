@@ -46,7 +46,7 @@ import ContentCard from '../components/content-card.vue';
 
 
 import CInput from "../components/forms/c-input.vue";
-import cSpinner from "../components/c-spinner";
+import cSpinner from "../components/c-spinner.tsx";
 import CIcon from "../components/c-icon.vue";
 
 const searchQuery = ref('');

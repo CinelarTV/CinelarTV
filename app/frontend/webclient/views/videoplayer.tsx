@@ -74,7 +74,6 @@ function handleFetchError(error) {
     }
 }
 
-// ---------- Componente ----------
 export default defineComponent({
     name: "VideoPlayer",
     setup() {
@@ -129,17 +128,34 @@ export default defineComponent({
                 player.currentTime = watchData.value.continue_watching.progress;
             }
 
-            player.addEventListener('time-update', () => {
-                updateProgress(player.currentTime || 0, player.duration || 0);
+            const unsubscribeCurrentTime = player.subscribe(({ paused, playing, currentTime }) => {
+                if (paused || !playing) return;
+                updateProgress(currentTime, player.duration || 0);
             });
 
-            player.addEventListener('error', () => {
-                toast.error('Error al reproducir el video. Por favor, inténtalo más tarde.');
+            return () => {
+                unsubscribeCurrentTime();
+            };
+
+
+
+            // Escucha a todos los cambios del elemento <media-player>
+            // para depuración, es decir, si cambia un data-*
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes') {
+                        console.log(`[VideoPlayer] Attribute changed: ${mutation.attributeName}`, player.getAttribute(mutation.attributeName!));
+                        // Puedes loggear o manejar cambios en atributos/data-*
+                        // console.log('Atributo cambiado:', mutation.attributeName, player.getAttribute(mutation.attributeName!));
+                    }
+                });
+            });
+            observer.observe(player, {
+                attributes: true,
+                attributeFilter: undefined, // O especifica ['data-*'] si quieres filtrar
+                subtree: false
             });
 
-            player.addEventListener('play-fail', () => {
-                toast.error('Error al reproducir el video. Por favor, inténtalo más tarde.');
-            });
         });
 
         const backToContent = () => {
@@ -190,9 +206,12 @@ export default defineComponent({
                             >
                                 Cargando
                             </media-spinner>
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 media-buffering:opacity-100">
+                                <CSpinner class="w-16 h-16 text-white" />
+                            </div>
                         </div>
 
-                        <media-controls class="pointer-events-none absolute inset-0 z-99 flex h-full w-full flex-col opacity-0 transition-opacity data-[visible]:opacity-100">
+                        <media-controls class="pointer-events-none absolute inset-0 z-99 flex h-full w-full flex-col opacity-0 transition-opacity data-[visible]:opacity-100 media-buffering:opacity-100 in-media-buffering:opacity-100">
                             <PlayerTopControls
                                 googleCastEnabled={googleCastEnabled.value}
                                 backToContent={backToContent}

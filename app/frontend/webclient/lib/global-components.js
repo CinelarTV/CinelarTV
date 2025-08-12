@@ -9,7 +9,7 @@ const Components = [
     },
     {
         name: 'c-spinner',
-        component: () => import('../components/c-spinner.js')
+        component: () => import('../components/c-spinner.tsx')
     },
     {
         name: 'c-select',
