@@ -17,7 +17,7 @@ const BASE_ICONS = [
     "settings", "shieldQuestion", "sparkles", "thumbsUp", "user", "wrench", "x",
     "hardDrive", "circleDollarSign", "brush", "testTube2", "code2", "cpu",
     "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2", "volumeX",
-    "home", "packageOpen", "webhook", "cast", "shrink"
+    "home", "packageOpen", "webhook", "cast", "shrink", "messageCircleMore", "messageCircleOff"
 ] as const;
 
 // Cache para evitar regenerar el sprite innecesariamente

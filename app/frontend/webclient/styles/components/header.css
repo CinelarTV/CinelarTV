@@ -1,13 +1,34 @@
 #site-header {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    z-index: 100;
-    backface-visibility: hidden;
-    left: 0;
-    height: 4em;
-    @apply !sticky top-0 bg-[var(--c-header-background-color)]/60 transition-all duration-150 ease-in-out;
+    @apply backdrop-blur-xs w-full overflow-visible z-[99999] mb-10 header-animate;
+
 }
+
+@utility header-animate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  animation: reduce-header linear both;
+  animation-timeline: scroll();
+  animation-range: 0 150px;
+  background-color: var(--color-brand-black);
+}
+
+@media (width > 768px) {
+  .header-animate {
+    background-color: transparent;
+  }
+}
+
+@keyframes reduce-header {
+  to {
+    box-shadow: 0 5px 50px -5px #ffffff1a, 0 0 0 1px #ffffff1a;
+    background: #0000004d;
+    padding-block: 0rem;
+    backdrop-filter: blur(10px);
+  }
+}
+
 
 .site-header-wrap {
     max-width: 1110px;

@@ -1,5 +1,6 @@
 import { defineComponent } from "vue";
 import CIcon from "../c-icon.vue";
+import PluginOutlet from "../PluginOutlet";
 
 export default defineComponent({
     name: "PlayerTopControls",
@@ -22,8 +23,8 @@ export default defineComponent({
 
         const { episode, season } = props.content;
 
-        const seasonTitle = season?.title || "Temporada desconocida";
-        const episodeTitle = episode?.title || "Episodio desconocido";
+        const seasonTitle = season?.title || null;
+        const episodeTitle = episode?.title || null;
 
         return () => (
             <media-controls-group class="pointer-events-auto h-20 flex w-full items-center px-4 bg-gradient-to-b from-black/50 to-transparent">
@@ -82,7 +83,7 @@ export default defineComponent({
                         }
 
 
-
+                        <PluginOutlet name="player:top-controls:right" />
 
                         <hr class="h-6 border-l border-white/10" />
                         <button

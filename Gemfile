@@ -8,8 +8,7 @@ rails_version = "7.2.0"
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem 'dotenv', groups: [:development, :test]
-
+gem "dotenv", groups: %i[development test]
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "actionmailer", rails_version
@@ -22,13 +21,13 @@ gem "rails", rails_version
 gem "railties", rails_version
 
 # Use Dart Sass for stylesheets
-#gem "dartsass-rails"
+# gem "dartsass-rails"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
-gem "ostruct"
 gem "csv"
+gem "ostruct"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 6.0"
@@ -140,13 +139,15 @@ gem "pry", "~> 0.14.2"
 gem "pry-rails"
 
 gem "doorkeeper"
+
+# Enable the Device Authorization Grant flow
+gem "doorkeeper-device_authorization_grant"
 gem "doorkeeper-jwt"
 
-
 #### Migration to Vite Rails ####
-gem 'vite_rails'
+gem "vite_rails"
 
 gem "js-routes", "~> 2.3"
 
 # Use FFMPEG for video processing
-gem 'ffmpeg', git: 'https://github.com/instructure/ruby-ffmpeg'
+gem "ffmpeg", git: "https://github.com/instructure/ruby-ffmpeg"

@@ -11,6 +11,7 @@ class VideoSource < ApplicationRecord
   enum storage_location: {
     local: "local",
     s3: "cloud",
+    external_url: "external_url",
   }
 
   enum format: {

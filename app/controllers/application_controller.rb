@@ -4,15 +4,16 @@ class ApplicationController < ActionController::Base
   include JsonError
 
   SKIPPABLE_PATHS = [
-    '/finish-installation',
-    '/manifest.webmanifest',
-    '/capybara_spin',
-    '/capybara',
+    "/finish-installation",
+    "/manifest.webmanifest",
+    "/capybara_spin",
+    "/capybara",
     # Agrega aquí otros paths que quieras omitir
   ].freeze
 
   before_action :reload_storage_config
   before_action :require_finish_installation?
+  before_action :check_maintenance_mode
   # Skip the CSRF token for API requests
   skip_before_action :verify_authenticity_token, if: :is_app_request?
 
@@ -21,7 +22,7 @@ class ApplicationController < ActionController::Base
   end
 
   # Crea un before_action, si el usuario está logueado, pero no tiene un perfil seleccionado, lo redirige a la página de selección de perfil.
-  # before_action :check_profile_if_signed_in
+  before_action :check_profile_if_signed_in
 
   def index; end
 
@@ -89,14 +90,14 @@ class ApplicationController < ActionController::Base
       :not_found,
       e.status,
       original_path: e.original_path,
-      custom_message: e.custom_message,
+      custom_message: e.custom_message
     )
   end
 
   def rescue_actions(type, status_code, opts = nil)
     opts ||= {}
     show_json_errors =
-      (request.format && request.format.json?) || (request.xhr?)
+      request.format&.json? || request.xhr?
 
     if show_json_errors
       render json: create_errors_json(type, opts), status: status_code
@@ -127,9 +128,27 @@ class ApplicationController < ActionController::Base
   end
 
   def require_finish_installation?
-    return false unless SiteSetting.waiting_on_first_user && SKIPPABLE_PATHS.none? { |path| request.path.start_with?(path) }
+    return false unless SiteSetting.waiting_on_first_user && SKIPPABLE_PATHS.none? do |path|
+      request.path.start_with?(path)
+    end
 
     redirect_to "/finish-installation", status: 302
+    true
+  end
+
+  def check_maintenance_mode # rubocop:disable Naming/PredicateMethod
+    # Solo admins pueden evitar el modo mantenimiento
+    # Si es html, renderiza, si es json devuelve error json
+    # Skippable paths no aplica aqui
+    return false unless CinelarTV.maintenance_enabled
+    return false if current_user&.is_admin?
+
+    if request.format.json? || request.xhr?
+      render json: { error: "El sitio está en mantenimiento. Por favor, inténtalo más tarde." },
+             status: :service_unavailable
+    else
+      render template: "exceptions/maintenance", layout: "maintenance", status: :service_unavailable
+    end
     true
   end
 end

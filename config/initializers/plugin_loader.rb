@@ -4,7 +4,7 @@
 require Rails.root.join('lib', 'plugin_manager')
 
 module PluginLoader
-  @loaded_plugins = []
+  @loaded_plugins = []  
 
   def self.load_plugins
     @loaded_plugins.clear

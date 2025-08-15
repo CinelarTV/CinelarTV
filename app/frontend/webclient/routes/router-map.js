@@ -67,9 +67,13 @@ const loadPluginRoutes = () => {
                     return null;
                 }
 
-                // Extraer nombre del plugin del path
-                const pluginMatch = path.match(/@plugins\/([^\/]+)/);
-                const pluginName = pluginMatch ? pluginMatch[1] : 'unknown';
+                // Extraer nombre del plugin del path (soporta rutas relativas y absolutas)
+                let pluginName = module.default?.meta?.plugin;
+                if (!pluginName) {
+                    // Busca /plugins/ o @plugins/ y toma el siguiente segmento
+                    const match = path.match(/[\\/@]plugins[\\/](.*?)[\\/]/i);
+                    pluginName = match ? match[1] : 'unknown';
+                }
 
                 console.log(`✅ Ruta cargada [${pluginName}]: ${module.default.name || 'sin nombre'} -> ${module.default.path}`);
 
@@ -96,7 +100,7 @@ const loadPluginRoutes = () => {
 
         // Mostrar resumen por plugin
         const pluginSummary = uniqueRoutes.reduce((acc, route) => {
-            const plugin = route.meta.plugin;
+            const plugin = route.meta.plugin || ''
             acc[plugin] = (acc[plugin] || 0) + 1;
             return acc;
         }, {});

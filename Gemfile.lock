@@ -167,6 +167,8 @@ GEM
     domain_name (0.6.20240107)
     doorkeeper (5.8.2)
       railties (>= 5)
+    doorkeeper-device_authorization_grant (1.0.3)
+      doorkeeper (~> 5.5)
     doorkeeper-jwt (0.4.2)
       jwt (>= 2.1)
     dotenv (3.1.8)
@@ -526,6 +528,7 @@ DEPENDENCIES
   devise (~> 4.9)
   devise_uid (~> 0.1.1)
   doorkeeper
+  doorkeeper-device_authorization_grant
   doorkeeper-jwt
   dotenv
   erb-formatter (~> 0.4.3)

@@ -20,6 +20,10 @@
   animation: rotate-forever 1s infinite linear;
 }
 
+body:not(.video-player) main {
+  @apply mt-20;
+}
+
 :root {
   --dialog-background-color: #181818;
 }
@@ -39,7 +43,10 @@ body {
 #cinelartv,
 #mountpoint,
 #profile-selector {
-  @apply h-full
+  @apply h-full;
+  main {
+    @apply h-full
+  }
 }
 
 main {

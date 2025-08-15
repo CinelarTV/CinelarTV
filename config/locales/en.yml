@@ -256,6 +256,9 @@ en:
         dashboard: "Dashboard"
         settings: "Settings"
         subscriptions: "Subscriptions"
+      added_to_favorites: "\"{{title}}\" added to your favorites"
+      removed_from_favorites: "\"{{title}}\" removed from your favorites"
+
     video_player:
       back: "Back"
       next_episode: "Next episode"

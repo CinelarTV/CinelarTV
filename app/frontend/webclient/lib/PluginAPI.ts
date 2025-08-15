@@ -11,6 +11,9 @@ import deprecated from "./deprecated";
 import { useSiteSettings } from "../app/services/site-settings";
 import { useCurrentUser } from "../app/services/current-user";
 import { Banner, useBanners } from "../app/services/banner-store";
+import { PLUGIN_OUTLET_NAMES, PluginOutletName } from "@/stores/pluginOutletNames";
+import { registerPluginOutlet } from "@/components/PluginOutlet";
+import { compileTemplate } from "vue/compiler-sfc";
 const iconsStore = useIconsStore();
 const { currentUser } = useCurrentUser();
 const { siteSettings } = useSiteSettings();
@@ -33,6 +36,15 @@ class PluginAPI {
 
     public static getInstance() {
         return instance || null;
+    }
+
+    addOutletComponent(outlet: PluginOutletName, component: any) {
+        if (PLUGIN_OUTLET_NAMES.indexOf(outlet) === -1) {
+            console.log(`⚠️ Outlet "${outlet}" not found`)
+            return
+        }
+
+        console.log(``)
     }
 
     addGlobalBanner(banner: Banner) {

@@ -366,7 +366,7 @@ Doorkeeper.configure do
   #   https://datatracker.ietf.org/doc/html/rfc6819#section-4.4.2
   #   https://datatracker.ietf.org/doc/html/rfc6819#section-4.4.3
   #
-  grant_flows %w[authorization_code client_credentials password]
+  grant_flows %w[device_code authorization_code client_credentials password]
 
   # Allows to customize OAuth grant flows that +each+ application support.
   # You can configure a custom block (or use a class respond to `#call`) that must
@@ -529,29 +529,25 @@ end
 
 
 Doorkeeper::JWT.configure do
-  # Set the payload for the JWT token. This should contain unique information
-  # about the user. Defaults to a randomly generated token in a hash:
-  #     { token: "RANDOM-TOKEN" }
   token_payload do |opts|
-    Rails.logger.info("opts: #{opts.inspect}")
-    user = User.find(opts[:resource_owner_id])
+    user = User.find_by(id: opts[:resource_owner_id])
+    iss = Rails.application.config.x.cinelartv_base_url || 'CinelarTV'
 
-    {
-      iss: 'My App',
+    payload = {
+      iss: iss,
       iat: Time.current.utc.to_i,
-      aud: opts[:application][:uid],
-
-      # @see JWT reserved claims - https://tools.ietf.org/html/draft-jones-json-web-token-07#page-7
-      jti: SecureRandom.uuid,
-      sub: user.id,
-
-      user: {
-        id: user.id,
-        email: user.email
-      }
+      aud: opts[:application]&.uid,
+      jti: SecureRandom.uuid
     }
+
+    if user
+      payload[:sub] = user.id
+      payload[:user] = { id: user.id, email: user.email }
+    end
+
+    payload
   end
 
-
-  use_application_secret true
+  secret_key Rails.application.credentials.dig(:jwt_secret) || 'fallback_secret'
+  encryption_method :hs256
 end

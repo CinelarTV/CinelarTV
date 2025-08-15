@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_07_134608) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -127,6 +127,21 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_134608) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
+  end
+
+  create_table "oauth_device_grants", force: :cascade do |t|
+    t.bigint "resource_owner_id"
+    t.uuid "application_id", null: false
+    t.string "device_code", null: false
+    t.string "user_code"
+    t.integer "expires_in", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "last_polling_at", precision: nil
+    t.string "scopes", default: "", null: false
+    t.index ["application_id"], name: "index_oauth_device_grants_on_application_id"
+    t.index ["device_code"], name: "index_oauth_device_grants_on_device_code", unique: true
+    t.index ["resource_owner_id"], name: "index_oauth_device_grants_on_resource_owner_id"
+    t.index ["user_code"], name: "index_oauth_device_grants_on_user_code", unique: true
   end
 
   create_table "preferences", force: :cascade do |t|
@@ -284,6 +299,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_07_134608) do
   add_foreign_key "likes", "profiles"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
+  add_foreign_key "oauth_device_grants", "oauth_applications", column: "application_id"
   add_foreign_key "preferences", "profiles"
   add_foreign_key "profiles", "users"
   add_foreign_key "reproductions", "contents"

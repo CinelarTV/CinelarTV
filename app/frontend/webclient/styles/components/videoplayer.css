@@ -1,5 +1,4 @@
-/* Prime Video Player Styles */
-body.prime-video-player {
+body.video-player {
     height: 100%;
     overflow: hidden;
     
@@ -8,29 +7,31 @@ body.prime-video-player {
     }
 }
 
-body.prime-video-player main {
+body.video-player main {
     height: 100%;
 }
 
-body.prime-video-player #c-progress {
+body.video-player #c-progress {
     display: none !important;
 }
 
 /* Container */
 .video-container {
-    height: 100vh;
-    width: 100vw;
-    position: relative;
-    background: #000;
-    overflow: hidden;
-}
-
-.prime-video-player {
     height: 100%;
     width: 100%;
     position: relative;
+    background: #000;
     overflow: hidden;
+    display: flex;
+
+
+
+    [data-media-provider] {
+        align-items: inherit;
+    }
 }
+
+
 
 /* Video Element */
 #prime-player {

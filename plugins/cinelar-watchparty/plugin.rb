@@ -14,8 +14,12 @@ end
 
 require_relative "lib/watch_party/engine"
 
-if defined?(after_initialize)
-  after_initialize do
-    # Code to run after the application initialises
+# Usar el hook estándar de Rails para inicialización de plugins
+Rails.application.config.after_initialize do
+  # Añadir rutas del engine si no están ya montadas
+  unless Rails.application.routes.named_routes.key?(:watch_party)
+    WatchParty::Engine.routes.draw do
+      get "watch_party", to: "watch_party#index"
+    end
   end
 end

@@ -1,0 +1,13 @@
+@reference "@/styles/cinelartv.css";
+
+.watchparty-chat {
+    @apply relative h-full transition-all duration-300 ease-in-out overflow-hidden w-0 pointer-events-none;
+}
+.watchparty-chat.opened {
+    @apply w-[300px] pointer-events-auto;
+}
+
+.watchparty-chat-inner {
+    @apply absolute top-0 left-0 h-full w-full transition-transform duration-300 ease-in-out pointer-events-none;
+}
+

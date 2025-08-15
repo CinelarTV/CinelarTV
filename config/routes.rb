@@ -16,8 +16,10 @@ Rails.application.routes.draw do
     post "/login" => "users/sessions#create"
     delete "/logout" => "users/sessions#destroy"
   end
-  use_doorkeeper
 
+  use_doorkeeper
+  # Enable the Device Authorization Grant flow
+  use_doorkeeper_device_authorization_grant
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
@@ -43,7 +45,7 @@ Rails.application.routes.draw do
   post "/contents/:id/unlike", to: "likes#unlike"
 
   get "/contents/:id", to: "contents#show"
-  get "/c/:id", to: redirect("/contents/%{id}"), as: :content_short_url
+  get "/c/:id", to: redirect("/contents/%<id>s"), as: :content_short_url
 
   # Player routes
   get "/watch/:id", to: "player#watch"

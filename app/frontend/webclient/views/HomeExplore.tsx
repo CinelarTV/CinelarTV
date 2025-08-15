@@ -6,6 +6,7 @@ import { ajax } from '../lib/Ajax';
 import ContentCard from '../components/content-card.vue';
 import CIconButton from '../components/forms/c-icon-button.vue';
 import HomeCarousel from '../components/HomeCarousel';
+import PluginOutlet from "@/components/PluginOutlet";
 
 export default defineComponent({
     name: 'HomeExplore',
@@ -81,7 +82,7 @@ export default defineComponent({
                 const endpoint = content.liked ? 'unlike' : 'like';
                 await ajax.post(`/contents/${id}/${endpoint}.json`);
                 content.liked = !content.liked;
-                toast.success(content.liked ? $t('js.user.added_to_favorites') : $t('js.user.removed_from_favorites'));
+                toast.success(content.liked ? $t('js.user.added_to_favorites', { title: content.title }) : $t('js.user.removed_from_favorites', { title: content.title }));
             } catch (error) {
                 console.error('Error toggling like:', error);
                 toast.error($t('js.user.like_error'));
@@ -125,6 +126,7 @@ export default defineComponent({
                 {/* Main content */}
                 {!loading.value && homepage.value && (
                     <div class="mx-auto mt-4">
+                        <PluginOutlet name="home:before-carousel" />
                         {/* Carousel section */}
                         {shouldShowCarousel.value && (
                             <HomeCarousel
@@ -136,6 +138,7 @@ export default defineComponent({
                                 onToggleLike={id => toggleLike(id, true)}
                             />
                         )}
+                        <PluginOutlet name="home:after-carousel" />
                         {/* Content sections */}
                         <section id="main-content">
                             {contentCategories.value.map((category: any) => (

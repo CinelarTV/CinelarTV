@@ -112,5 +112,8 @@
   },
   "scripts": {
     "build:css": "tailwindcss -i ./app/assets/stylesheets/cinelartv.scss -o ./app/assets/builds/cinelartv-wind.css --minify"
-  }
+  },
+  "workspaces": [
+    "plugins/*"
+  ]
 }

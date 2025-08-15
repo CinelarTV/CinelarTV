@@ -1,6 +1,6 @@
-import { computed, defineComponent, onMounted, ref } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useSiteSettings } from '@/app/services/site-settings';
-import { useRoute, useRouter } from "vue-router";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { ajax } from "@/lib/Ajax";
 import { useHead } from "unhead";
 import { toast } from "vue-sonner";
@@ -19,6 +19,8 @@ import PlayerSlider from "@/components/videoplayer/PlayerSlider";
 import PlayerVolumeSlider from "@/components/videoplayer/PlayerVolumeSlider";
 import PlayerTopControls from "@/components/videoplayer/PlayerTopControls";
 import { useContinueWatching } from "@/composables/useContinueWatching";
+import { AxiosError } from "axios";
+import PluginOutlet from "@/components/PluginOutlet";
 
 // ---------- Funciones puras ----------
 function shouldRedirect(data, isShow, episodeId, contentId, replaceRoute) {
@@ -66,11 +68,21 @@ function processVideoSources(sources, enableGoogleDriveParser) {
         : processedSources;
 }
 
-function handleFetchError(error) {
-    if (error.response?.errors?.[0]?.error_type === 'content_not_available') {
-        toast.error('Contenido no disponible');
+function handleFetchError(response: AxiosError['response']['data']) {
+    const responseData = response as any;
+    console.log({ responseData });
+    const errorType =
+        responseData?.errors?.[0]?.error_type ||
+        responseData?.error_type;
+    const errorMsg =
+        (Array.isArray(responseData?.errors) && responseData.errors[0]) ||
+        responseData?.message ||
+        'Error al cargar el video.';
+
+    if (errorType === 'content_not_available') {
+        toast.error(errorMsg || 'Contenido no disponible');
     } else {
-        toast.error('Error al cargar el video.');
+        toast.error(errorMsg);
     }
 }
 
@@ -114,7 +126,17 @@ export default defineComponent({
             }
         }
 
+        /* 
+            Mientras esté en este componente
+            El body debe tener la clase video-player
+            para aplicar estilos específicos
+        */
+
+
+
         onMounted(async () => {
+            document.body.classList.add('video-player');
+
             await fetchData();
 
             const player = videoPlayer.value;
@@ -139,24 +161,12 @@ export default defineComponent({
 
 
 
-            // Escucha a todos los cambios del elemento <media-player>
-            // para depuración, es decir, si cambia un data-*
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'attributes') {
-                        console.log(`[VideoPlayer] Attribute changed: ${mutation.attributeName}`, player.getAttribute(mutation.attributeName!));
-                        // Puedes loggear o manejar cambios en atributos/data-*
-                        // console.log('Atributo cambiado:', mutation.attributeName, player.getAttribute(mutation.attributeName!));
-                    }
-                });
-            });
-            observer.observe(player, {
-                attributes: true,
-                attributeFilter: undefined, // O especifica ['data-*'] si quieres filtrar
-                subtree: false
-            });
-
         });
+
+        onBeforeUnmount(() => {
+            document.body.classList.remove('video-player');
+        });
+
 
         const backToContent = () => {
             if (!contentId) return;
@@ -182,7 +192,7 @@ export default defineComponent({
                 <div class="video-container">
                     <media-player
                         ref={videoPlayer}
-                        class="w-full h-full"
+                        class="w-full h-full grow min-w-0"
                         autoplay
                         title={watchData.value.content?.title || "Video"}
                     >
@@ -230,9 +240,9 @@ export default defineComponent({
                                     <PlayerSlider />
                                     <div class="flex items-center text-sm font-medium gap-x-4">
                                         <div class="flex items-center">
-                                            <media-time class="time" type="current"></media-time>
+                                            <media-time class="time tabular-nums" type="current"></media-time>
                                             <div class="mx-1 text-white/50">/</div>
-                                            <media-time class="time text-white/50" type="duration"></media-time>
+                                            <media-time class="time tabular-nums text-white/50" type="duration"></media-time>
                                         </div>
                                         <PlayerVolumeSlider playerElement={videoPlayer.value as MediaPlayer} />
                                     </div>
@@ -240,6 +250,7 @@ export default defineComponent({
                             </media-controls-group>
                         </media-controls>
                     </media-player>
+                    <PluginOutlet name="player:after-media-player" />
                 </div>
             );
         };
