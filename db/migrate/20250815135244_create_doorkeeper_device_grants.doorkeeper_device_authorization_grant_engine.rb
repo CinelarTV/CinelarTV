@@ -4,8 +4,8 @@
 class CreateDoorkeeperDeviceGrants < ActiveRecord::Migration[6.0]
   def change
     create_table :oauth_device_grants do |t|
-      t.references :resource_owner, null: true
-t.references :application, null: false, type: :uuid
+      t.references :resource_owner, null: true, type: :uuid
+      t.references :application, null: false, type: :uuid
       t.string :device_code, null: false
       t.string :user_code, null: true
       t.integer :expires_in, null: false
@@ -23,7 +23,6 @@ t.references :application, null: false, type: :uuid
       column: :application_id
     )
 
-    # Uncomment below to ensure a valid reference to the resource owner's table
-    # add_foreign_key :oauth_device_grants, <model>, column: :resource_owner_id
+    add_foreign_key :oauth_device_grants, :users, column: :resource_owner_id
   end
 end

@@ -76,12 +76,24 @@ class ApplicationController < ActionController::Base
   end
 
   def current_user
-    # Override current_user to use doorkeeper_token if present
-    # Otherwise, fallback to warden.authenticate
-    @current_user ||= if doorkeeper_token
-                        User.find(doorkeeper_token.resource_owner_id)
+    Rails.logger.info "DEBUG current_user: doorkeeper_token=#{doorkeeper_token.inspect}"
+
+    if doorkeeper_token
+      Rails.logger.info "DEBUG Token ID: #{doorkeeper_token.id}"
+      Rails.logger.info "DEBUG Token resource_owner_id: #{doorkeeper_token.resource_owner_id}"
+      Rails.logger.info "DEBUG Token created_at: #{doorkeeper_token.created_at}"
+      Rails.logger.info "DEBUG Token expires_in: #{doorkeeper_token.expires_in}"
+      Rails.logger.info "DEBUG Token revoked?: #{doorkeeper_token.revoked?}"
+      Rails.logger.info "DEBUG Token application: #{doorkeeper_token.application_id}"
+    end
+
+    @current_user ||= if doorkeeper_token&.resource_owner_id.present?
+                        user = User.find_by(id: doorkeeper_token.resource_owner_id)
+                        Rails.logger.info "DEBUG Usuario encontrado: #{user&.id} - #{user&.email}"
+                        user
                       else
-                        warden.authenticate(scope: :user)
+                        Rails.logger.error "ERROR: Token válido pero sin resource_owner_id!"
+                        super
                       end
   end
 

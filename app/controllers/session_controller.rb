@@ -12,10 +12,10 @@ class SessionController < ApplicationController
   def profiles
     # Try to find the user profiles, if fails, return an empty array
     profiles = begin
-        current_user.profiles
-      rescue StandardError
-        []
-      end
+      current_user.profiles
+    rescue StandardError
+      []
+    end
     render json: profiles
   end
 
@@ -49,6 +49,6 @@ class SessionController < ApplicationController
 
   def user_params
     params.permit(:email, :password, :password_confirmation,
-                 profile_attributes: %i[display_name username biography profile_id])
+                  profile_attributes: %i[display_name username biography profile_id])
   end
 end

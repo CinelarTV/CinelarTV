@@ -67,6 +67,17 @@ security:
     default: false
     hidden: true
     type: 'boolean'  
+  enable_cors:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
+  cors_allowed_origins:
+    client: true
+    refresh: true
+    default: ""
+    type: 'list'
+  
 content:
   enable_metadata_recommendation:
     client: true

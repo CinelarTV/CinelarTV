@@ -130,7 +130,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
   end
 
   create_table "oauth_device_grants", force: :cascade do |t|
-    t.bigint "resource_owner_id"
+    t.uuid "resource_owner_id"
     t.uuid "application_id", null: false
     t.string "device_code", null: false
     t.string "user_code"
@@ -300,6 +300,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_device_grants", "oauth_applications", column: "application_id"
+  add_foreign_key "oauth_device_grants", "users", column: "resource_owner_id"
   add_foreign_key "preferences", "profiles"
   add_foreign_key "profiles", "users"
   add_foreign_key "reproductions", "contents"

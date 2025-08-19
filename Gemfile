@@ -20,6 +20,8 @@ gem "activesupport", rails_version
 gem "rails", rails_version
 gem "railties", rails_version
 
+gem "rack-cors"
+
 # Use Dart Sass for stylesheets
 # gem "dartsass-rails"
 
@@ -138,7 +140,7 @@ gem "maxminddb" # To get user's location
 gem "pry", "~> 0.14.2"
 gem "pry-rails"
 
-gem "doorkeeper"
+gem "doorkeeper", "~> 5.5", ">= 5.5.1"
 
 # Enable the Device Authorization Grant flow
 gem "doorkeeper-device_authorization_grant"
