@@ -63,7 +63,7 @@ export default defineComponent({
             loadingProfile.value = true;
             buttonClickedSound.play();
             setTimeout(() => {
-                ajax.post('/user/select-profile.json', {
+                ajax.post('/session/select-profile.json', {
                     profile_id: profile.id
                 }).then(() => {
                     window.location.href = '/';

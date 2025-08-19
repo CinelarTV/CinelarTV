@@ -45,7 +45,7 @@ export default defineComponent({
 
     const handleProfileSwitch = async () => {
       try {
-        await ajax.post('/user/deassign-profile.json', {
+        await ajax.post('/session/deassign-profile.json', {
           user: { selected_profile_id: null }
         });
         window.location.href = '/profiles/select';

@@ -55,16 +55,30 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def using_doorkeeper?
+    defined?(doorkeeper_token) && doorkeeper_token&.resource_owner_id.present?
+  end
+
   def current_profile
     return @current_profile if defined?(@current_profile)
 
-    return unless user_signed_in? && session[:current_profile_id].present?
+    profile_id = if using_doorkeeper?
+                   CinelarTV.cache.read("profile_#{doorkeeper_token.token}")
+                 else
+                   session[:current_profile_id]
+                 end
 
-    @current_profile ||= current_user.profiles.find_by(id: session[:current_profile_id])
+    Rails.logger.debug "DEBUG current_profile_id: \\#{profile_id} (doorkeeper: \\#{using_doorkeeper?})"
+
+    if current_user && profile_id.present?
+      @current_profile = current_user.profiles.find_by(id: profile_id)
+    end
+
+    @current_profile
   end
 
   def is_app_request?
-    request.format.json? && request.headers["X-Cinelar-Native"].present?
+    request.format.json?
   end
 
   def authenticate_user!
