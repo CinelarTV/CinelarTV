@@ -20,7 +20,7 @@
   animation: rotate-forever 1s infinite linear;
 }
 
-body:not(.video-player) main {
+body:not(.video-player) main:not([class]) {
   @apply mt-20;
 }
 

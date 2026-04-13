@@ -2,8 +2,6 @@ const AdminBase = () => import( /* webpackChunkName: "admin-base" */ '../views/a
 const AdminDashboard = () => import( /* webpackChunkName: "admin-dashboard" */ '../views/admin/dashboard.vue');
 const AdminSettingsLayout = () => import('../views/admin/settings/base.vue');
 
-import SettingsView from '../views/admin/settings/index.vue';
-
 import Updater from "../views/admin/updater.vue";
 
 
@@ -96,7 +94,7 @@ const AdminRoutes = {
                 {
                     name: 'admin.settings.general',
                     path: '/admin/site_settings',
-                    component: SettingsView,
+                    component: () => import('../views/admin/settings/SettingsPanel.tsx'),
                     meta: {
                         requireAdmin: true
                     },
@@ -104,7 +102,7 @@ const AdminRoutes = {
                         {
                             name: 'admin.settings.general.category',
                             path: ':category',
-                            component: SettingsView,
+                            component: () => import('../views/admin/settings/SettingsPanel.tsx'),
                             meta: {
                                 requireAdmin: true
                             }

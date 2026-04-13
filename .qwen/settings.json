@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(rails *)",
-      "Bash(findstr *)"
+      "Bash(findstr *)",
+      "Bash(del *)"
     ]
   },
   "$version": 3
