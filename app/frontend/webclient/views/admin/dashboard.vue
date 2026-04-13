@@ -13,13 +13,14 @@
           <span class="text-base px-4">
             Conoce las novedades de esta versión
           </span>
-          <a href="https://foro-cinelar.yanquisalexander.me/tag/release-notes" target="_blank" rel="noopener noreferrer">
+          <a href="https://foro-cinelar.yanquisalexander.me/tag/release-notes" target="_blank"
+            rel="noopener noreferrer">
             <c-button class="bg-black bg-opacity-60 mt-4" icon="arrow-right">Novedades</c-button>
           </a>
         </div>
-          
 
-        
+
+
       </section>
       <section id="problems" class="flex flex-col py-2 w-full mb-8" v-if="dashboardData.problems.length > 0">
         <template v-for="problem in dashboardData.problems">
@@ -129,7 +130,7 @@
 
   </div>
 </template>
-  
+
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
 import { UploadCloud } from 'lucide-vue-next'
@@ -141,6 +142,8 @@ Chart.register(...registerables);
 
 const SiteSettings = inject('SiteSettings')
 const i18n = inject('I18n');
+
+const error = ref(false)
 
 
 useHead({
@@ -276,7 +279,7 @@ const fetchDashboard = async () => {
     fetchStatistics()
   } catch (error) {
     console.log(error)
-    this.error = true
+
   }
 }
 

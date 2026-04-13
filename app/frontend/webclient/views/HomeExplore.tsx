@@ -4,6 +4,7 @@ import { useHead } from 'unhead';
 import { toast } from 'vue-sonner';
 import { ajax } from '../lib/Ajax';
 import ContentCard from '../components/content-card.vue';
+import ContentRow from '../components/content-row.vue';
 import CIconButton from '../components/forms/c-icon-button.vue';
 import HomeCarousel from '../components/HomeCarousel';
 import PluginOutlet from "@/components/PluginOutlet";
@@ -116,17 +117,22 @@ export default defineComponent({
 
         // Render
         return () => (
-            <div id="home-explore">
+            <div id="home-explore" class="min-h-screen bg-[#0a0a0a]">
                 {/* Loading state */}
                 {loading.value && (
-                    <div class="mx-auto mt-4">
-                        <c-spinner />
+                    <div class="flex items-center justify-center min-h-screen">
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-[#00A8E1]"></div>
+                            <p class="text-white/60 text-sm font-medium">Cargando...</p>
+                        </div>
                     </div>
                 )}
+
                 {/* Main content */}
                 {!loading.value && homepage.value && (
-                    <div class="mx-auto mt-4">
+                    <div>
                         <PluginOutlet name="home:before-carousel" />
+
                         {/* Carousel section */}
                         {shouldShowCarousel.value && (
                             <HomeCarousel
@@ -138,39 +144,60 @@ export default defineComponent({
                                 onToggleLike={id => toggleLike(id, true)}
                             />
                         )}
+
                         <PluginOutlet name="home:after-carousel" />
+
                         {/* Content sections */}
-                        <section id="main-content">
-                            {contentCategories.value.map((category: any) => (
-                                <div key={category.title}>
-                                    <h3 class="text-2xl font-bold mt-8 mb-2 ml-6">{category.title}</h3>
-                                    {category.content?.length ? (
-                                        <div class="recyclerview">
-                                            <ul>
-                                                {category.content.map((item: any) => (
-                                                    <ContentCard key={item.id} data={item} class="content-item" />
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ) : (
-                                        <div class="ml-6 text-gray-500">No hay contenido disponible en esta categoría.</div>
-                                    )}
-                                </div>
-                            ))}
+                        <section id="main-content" class="pb-8">
+                            {contentCategories.value.map((category: any) => {
+                                if (!category.content?.length) return null;
+
+                                return (
+                                    <div key={category.title}>
+                                        {category.title === 'Continuar viendo' ? (
+                                            <ContentRow
+                                                title={category.title}
+                                                items={category.content}
+                                                itemType="landscape"
+                                            />
+                                        ) : (
+                                            <ContentRow
+                                                title={category.title}
+                                                items={category.content}
+                                                itemType="landscape"
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </section>
-                        <div class="flex justify-center items-center mt-4 py-8">
-                            <c-icon icon="award" class="text-4xl mr-2" size="24" />
-                            <p>Esto es todo por ahora. ¡Vuelve pronto para más contenido!</p>
+
+                        {/* End of content */}
+                        <div class="flex justify-center items-center mt-8 py-12 text-white/40">
+                            <div class="text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 mx-auto mb-3 opacity-60">
+                                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9" />
+                                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9" />
+                                    <path d="M4 22h16" />
+                                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                                </svg>
+                                <p class="text-sm">Esto es todo por ahora. ¡Vuelve pronto para más contenido!</p>
+                            </div>
                         </div>
                     </div>
                 )}
+
                 {/* Empty state */}
                 {!loading.value && !homepage.value && (
-                    <div class="flex justify-center items-center mt-8">
-                        <p>No se pudo cargar el contenido. Intenta recargar la página.</p>
+                    <div class="flex items-center justify-center min-h-screen">
+                        <div class="text-center text-white/60">
+                            <p class="text-lg font-medium mb-2">No se pudo cargar el contenido</p>
+                            <p class="text-sm">Intenta recargar la página.</p>
+                        </div>
                     </div>
                 )}
-
             </div>
         );
     },

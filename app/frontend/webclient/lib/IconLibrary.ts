@@ -10,6 +10,7 @@ const PLAYER_ICONS = new Set(["play", "pause", "maximize", "minimize", "volume2"
 
 const BASE_ICONS = [
     "activity", "award", "airplay", "arrowRightLeft", "arrowRight", "box", "check",
+    "compass", "copy",
     "checkCircle", "chevronDown", "chevronLeft", "chevronRight", "chevronUp",
     "clapperboard", "creditCard", "gripVertical", "helpCircle", "info", "loader",
     "logOut", "pause", "maximize", "minimize", "play", "frown", "fastForward",

@@ -91,6 +91,36 @@ Rails.application.routes.draw do
 
   get "site_info" => "site#info"
 
+  # API V1 Authentication Routes (for mobile/native clients)
+  namespace :api do
+    namespace :v1 do
+      post "auth/login", to: "auth#login"
+      post "auth/refresh", to: "auth#refresh"
+      get "auth/me", to: "auth#me"
+      get "auth/profile-status", to: "auth#profile_status"
+      post "auth/select-profile", to: "auth#select_profile"
+      post "auth/deassign-profile", to: "auth#deassign_profile"
+      delete "auth/logout", to: "auth#logout"
+    end
+  end
+
+  # =====================================================
+  # Plugin Routes - Auto-discovered from plugins/
+  # =====================================================
+  # Register plugin autoload paths so controllers can be resolved
+  # Must happen before routes are drawn
+  Dir.glob(Rails.root.join("plugins", "*", "app", "controllers")).each do |plugin_controllers_dir|
+    Rails.autoloaders.main.push_dir(plugin_controllers_dir)
+  end
+  Dir.glob(Rails.root.join("plugins", "*", "app", "models")).each do |plugin_models_dir|
+    Rails.autoloaders.main.push_dir(plugin_models_dir)
+  end
+
+  # Load plugin routes
+  Dir.glob(Rails.root.join("plugins", "*", "config", "routes.rb")).each do |plugin_routes_file|
+    instance_eval(File.read(plugin_routes_file))
+  end
+
   # This is the catch-all route for custom pages, but also for the Single Page Application (For now)
   # TODO: Create a route for each route in the SPA to avoid this catch-all
   get "*path", to: "custom_pages#show", as: :custom_page_catch_all

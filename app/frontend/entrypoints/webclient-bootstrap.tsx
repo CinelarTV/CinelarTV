@@ -5,14 +5,14 @@
     Ensure that any changes here are thoroughly tested.
 */
 
-import { createRoot } from 'react-dom/client';
+/* import { createRoot } from 'react-dom/client';
 import { showPreloaderError, usePreloadedStore } from "../webclient/pre-initializers/essentials-preload.ts";
 import { App } from "../webclient/App.tsx";
-
+ */
 
 console.log('CinelarTV frontend bootstrap initialized');
 
-try {
+/* try {
     // Elimina <noscript> si existe
     document.querySelector('noscript')?.remove();
 
@@ -42,4 +42,4 @@ try {
     console.error(error);
     showPreloaderError(error instanceof Error ? error : new Error(String(error)));
 }
-
+ */

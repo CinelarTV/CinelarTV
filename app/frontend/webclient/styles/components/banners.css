@@ -1,27 +1,41 @@
+/* ─── Route exclusions ─────────────────────────────────────────────────────── */
 body[data-current-path="/profiles/select"] #global-alerts,
 body[data-current-path^="/watch/"] #global-alerts,
 body[data-current-path^="/contents/"] #global-alerts {
     display: none;
 }
 
-
+/* ─── Wrapper spacing ──────────────────────────────────────────────────────── */
 #global-alerts {
-    @apply mt-8
+    @apply mt-6;
 }
 
+/* ─── Base notice (non-scoped, for customHtml banners) ─────────────────────── */
 .global-notice {
-    max-width: 1150px !important;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 1150px;
+    margin: 0 auto 4px;
+    padding: 12px 16px;
+    border-left: 3px solid transparent;
     border-radius: 0;
-    max-height: 30vh;
-    overflow: auto;
-    background-color: var(--c-primary-50);
-    @apply px-4 py-4 mx-auto mt-4
+    font-size: 13px;
+    line-height: 1.55;
 }
 
 .global-notice a {
-    @apply text-blue-500
+    @apply underline opacity-80 hover:opacity-100 transition-opacity;
 }
 
+/* ─── Semantic variants (global, for external HTML injection) ──────────────── */
+.global-notice--info    { background: #E6F1FB; border-color: #185FA5; color: #0C447C; }
+.global-notice--warning { background: #FAEEDA; border-color: #854F0B; color: #633806; }
+.global-notice--danger  { background: #FCEBEB; border-color: #A32D2D; color: #791F1F; }
+.global-notice--success { background: #EAF3DE; border-color: #3B6D11; color: #27500A; }
+.global-notice--default { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); color: #fff; }
+
+/* ─── Legacy: #site-banner ─────────────────────────────────────────────────── */
 #site-banner {
-    background-color: var(--c-tertiary-50)
+    background-color: var(--c-tertiary-50);
 }

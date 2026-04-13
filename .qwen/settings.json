@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rails *)",
+      "Bash(findstr *)"
+    ]
+  },
+  "$version": 3
+}

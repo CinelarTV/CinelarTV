@@ -59,3 +59,6 @@ node_modules
 # Ignore automatically generated js-routes files.
 /home/alexander/Dev/CinelarTV/app/assets/routes.js
 /home/alexander/Dev/CinelarTV/app/assets/routes.d.ts
+
+# Ignore vite timestamp file
+vite.config.ts.timestamp-*

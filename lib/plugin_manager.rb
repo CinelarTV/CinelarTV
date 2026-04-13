@@ -28,19 +28,28 @@ class PluginManager
   end
 
   # Determina si el plugin está habilitado según SiteSetting
+  # During boot, SiteSetting may not have plugin settings merged yet,
+  # so we default to enabled. Each plugin should check its own setting internally.
   def self.plugin_enabled?(meta)
-    # Asegura que SiteSetting esté cargado
-    require_dependency Rails.root.join('app', 'models', 'site_setting') unless defined?(::SiteSetting)
     # Busca enabled_site_setting en el plugin.rb
     setting = nil
     File.foreach(meta[:path]) do |line|
-      if line =~ /enabled_site_setting\s*:(\w+)/
-        setting = $1
+      if line =~ /enabled_site_setting\s+:(\w+)/
+        setting = $1.strip
         break
       end
     end
-    return false unless setting
-    ::SiteSetting.respond_to?(setting) ? ::SiteSetting.send(setting) : false
+    return true unless setting
+
+    # Check if SiteSetting is available and has the setting
+    begin
+      return true unless defined?(::SiteSetting)
+      return true unless ::SiteSetting.respond_to?(setting)
+      ::SiteSetting.send(setting)
+    rescue => e
+      Rails.logger.debug("[PluginManager] Could not check setting #{setting}: #{e.message}, defaulting to enabled")
+      true
+    end
   end
 
   # Devuelve solo los plugins activos

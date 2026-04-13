@@ -36,6 +36,7 @@ export default defineComponent({
         const showTrailer = ref(false);
         const activeSeason = ref<string | null>(null);
         const requireSignupModalRef = ref<any>(null);
+        const relatedContentScroll = ref<HTMLElement | null>(null);
 
         const getContent = async () => {
             try {
@@ -194,21 +195,46 @@ export default defineComponent({
                                     <p class="my-4 text-yellow-500">No hay temporadas disponibles para este programa.</p>
                                 )
                             )}
-                            <div class="related-content w-full">
-                                <div class="text-2xl font-bold mb-4 text-white">Quizá te guste...</div>
-                                <div class="related-content-horizontal overflow-x-auto flex gap-4 pb-2">
-                                    {contentData.value?.relatedContent?.map(content => (
-                                        <router-link to={{ name: 'content.show', params: { id: content.id }, force: true }} key={content.id} class="block min-w-[9rem] max-w-[9rem]">
-                                            <div class="content-card flex flex-col items-center bg-[#23232a] rounded-lg shadow hover:bg-[#18181b] transition p-2">
-                                                <div class="content-card__image w-32 h-48 flex-shrink-0 overflow-hidden rounded-md bg-gray-800 mb-2">
-                                                    <img src={content.cover} alt="Cover Image" class="object-cover w-full h-full rounded-md" />
-                                                </div>
-                                                <div class="content-card__title text-base font-semibold text-white text-center truncate w-full">{content.title}</div>
-                                            </div>
-                                        </router-link>
-                                    ))}
+                            {contentData.value?.relatedContent && contentData.value.relatedContent.length > 0 && (
+                                <div class="mt-12">
+                                    <div class="px-4 sm:px-6 md:px-8 lg:px-12 mb-3 md:mb-4">
+                                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                                            Quizás te guste...
+                                        </h3>
+                                    </div>
+                                    <div class="relative group">
+                                        <div
+                                            ref={relatedContentScroll}
+                                            class="flex overflow-x-auto scrollbar-hide px-4 sm:px-6 md:px-8 lg:px-12 gap-3 md:gap-4 scroll-smooth snap-x snap-mandatory py-3 -my-3"
+                                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                        >
+                                            {contentData.value.relatedContent.map(content => (
+                                                <router-link
+                                                    to={{ name: 'content.show', params: { id: content.id }, force: true }}
+                                                    key={content.id}
+                                                    class="flex-shrink-0 snap-start group/card w-[22vw] min-w-[280px] max-w-[380px] aspect-video"
+                                                >
+                                                    <div class="relative h-full rounded-lg overflow-hidden shadow-lg bg-[#1a1a1a] ring-1 ring-white/5 transition-all duration-200 ease-out group-hover/card:ring-white/20 group-hover/card:shadow-2xl group-hover/card:scale-105">
+                                                        <img
+                                                            src={content.banner || content.cover}
+                                                            alt={content.title}
+                                                            class="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
+                                                            <div class="absolute bottom-0 left-0 right-0 p-3">
+                                                                <h4 class="text-sm font-semibold text-white line-clamp-2">
+                                                                    {content.title}
+                                                                </h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </router-link>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                         <requireSignupModal ref={requireSignupModalRef} content-name={contentData.value?.title} onOpenSignupModal={() => { }} />
                     </div>

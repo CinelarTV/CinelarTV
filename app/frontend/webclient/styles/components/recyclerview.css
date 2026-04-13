@@ -1,3 +1,55 @@
+/* Modern RecyclerView Styles */
+
+/* Hide scrollbar utilities */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Content row base styles */
+.content-row {
+    @apply mb-8 md:mb-12;
+}
+
+/* Card styles */
+.content-card {
+    @apply relative rounded-lg overflow-hidden transition-all duration-200;
+    background: #1a1a1a;
+}
+
+.content-card:hover {
+    @apply shadow-2xl transform scale-105;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Card image */
+.content-card__image {
+    @apply w-full h-full object-cover rounded-lg;
+}
+
+.content-card__image img {
+    @apply w-full h-full object-cover rounded-lg;
+    transition: transform 0.3s ease;
+}
+
+.content-card:hover .content-card__image img {
+    transform: scale(1.05);
+}
+
+/* Progress bar */
+.content-card__progress {
+    @apply absolute bottom-0 left-0 right-0 h-1 bg-black/40;
+}
+
+.content-card__progress__bar {
+    @apply h-full bg-[#00A8E1] transition-all duration-300;
+}
+
+/* Legacy recyclerview styles (for backward compatibility) */
 :root {
     --ctv-packshot-width: calc((var(--ctv-screen-width) - var(--ctv-carousel-column-margin)*2 - var(--ctv-carousel-column-gap)*var(--ctv-card-gap-number))/var(--ctv-card-number)*1);
     --ctv-carousel-column-margin: 1rem;
@@ -18,275 +70,92 @@
 }
 
 .recyclerview {
-    display: grid;
-    grid-template-areas: "left right";
-    grid-template-columns: repeat(2, calc(var(--ctv-carousel-column-margin) - var(--ctv-carousel-column-gap)));
-    grid-template-rows: 1fr;
-    justify-content: space-between;
-    align-items: center;
+    @apply relative;
 }
-
-.recyclerview:before,
-.recyclerview:after {
-    content: "";
-    display: block;
-    height: 0;
-}
-
-.recyclerview:after {
-    clear: both;
-}
-
 
 .recyclerview>ul {
-    grid-column-start: left-start;
-    grid-column-end: right-end;
-    grid-row: 1;
-    z-index: 1;
-    align-items: center;
-    display: flex;
-    flex-direction: row;
-    -webkit-scroll-snap-type: x proximity;
-    -ms-scroll-snap-type: x proximity;
-    scroll-snap-type: x proximity;
-    overflow-x: scroll;
-    -ms-overflow-style: none;
-    list-style: none;
-    overflow-x: scroll;
-    display: flex;
-    flex-direction: row;
-    -webkit-scroll-snap-type: x proximity;
-    -ms-scroll-snap-type: x proximity;
-    scroll-snap-type: x proximity;
+    @apply flex overflow-x-auto snap-x snap-mandatory items-center;
     padding: 0 var(--ctv-carousel-column-margin);
     scroll-behavior: smooth;
     scrollbar-width: none;
-    height: 140%;
+    -ms-overflow-style: none;
 }
 
 .recyclerview>ul::-webkit-scrollbar {
     display: none;
-    /* Oculta la barra de desplazamiento en navegadores Webkit (Chrome, Safari, etc.) */
-}
-
-
-.content-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 100%;
-    @apply aspect-video;
-}
-
-.related-content .content-card {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-    background: #23232a;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 8px 0 #0003;
-    transition: background 0.2s;
-    padding: 0.75rem;
-}
-
-.related-content .content-card:hover {
-    background: #18181b;
-}
-
-.related-content .content-card__image {
-    width: 6rem;
-    height: 8rem;
-    flex-shrink: 0;
-    overflow: hidden;
-    border-radius: 0.5rem;
-    background: #222;
-}
-
-.related-content .content-card__image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 0.5rem;
-}
-
-.related-content .content-card__title {
-    color: #fff;
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.related-content.flex.flex-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
 }
 
 .recyclerview-card-article {
     --ctv-packshot-width: calc((var(--ctv-screen-width) - var(--ctv-carousel-column-margin)*2 - var(--ctv-carousel-column-gap)*var(--ctv-card-gap-number))/var(--ctv-card-number)*1);
-    display: flex;
-    position: relative;
-    flex-direction: column;
-    width: var(--ctv-packshot-width);
-    @apply aspect-video;
-
-
-    .blurred-shadow {
-        position: absolute;
-        bottom: 0;
-        z-index: -1;
-        @apply inset-0 opacity-0 transition-all aspect-video transform object-cover rounded-md blur-xl;
-    }
-
-
-}
-
-.recyclerview-card-article:hover {
-    .blurred-shadow {
-        @apply opacity-100 scale-[.9] saturate-200 brightness-125;
-    }
-}
-
-.content-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    aspect-ratio: 16/9;
-}
-
-li.content-item {
-    margin-right: var(--ctv-carousel-column-gap);
-    scroll-snap-align: start;
-    aspect-ratio: 16/9;
+    @apply relative flex flex-col aspect-video;
 }
 
 .recyclerview-card-article__section {
     --border-radius: 8px;
+    @apply flex items-center aspect-video;
     background-color: #33373d;
-    border-bottom-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    align-items: center;
-    aspect-ratio: 16/9;
+    border-radius: var(--border-radius);
 }
 
 .recyclerview-card-article__element {
-    position: relative;
-    aspect-ratio: 16/9;
-}
-
-.content-item {
-    scale: 1;
-    @apply transition-all border-2 border-transparent border-solid aspect-video;
-    transition-duration: 0.2s;
-    border-radius: 8px;
-
-    .expanded-info {
-        background-color: black;
-        color: white;
-    }
-}
-
-
-.content-item:hover {
-    scale: 1.05;
-    @apply border-2 border-white border-solid;
-}
-
-.content-item:focus {
-    scale: 1.05;
-    @apply border-2 border-white border-solid;
-
-    .recyclerview-card-article {
-        .blurred-shadow {
-            opacity: 1;
-        }
-    }
+    @apply relative aspect-video;
 }
 
 .recyclerview-card-article__image img {
     --border-radius: 8px;
-    border-bottom-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    @apply aspect-video object-cover;
-}
-
-.recyclerview-card-article__progress {
-    padding: 8px;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1;
-
+    @apply object-cover rounded-md;
+    border-radius: var(--border-radius);
 }
 
 .recyclerview-card-article__overlay {
+    @apply absolute bottom-0 left-0 right-0 z-10 h-full w-full rounded-md;
     background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1;
-    height: 100%;
-    width: 100%;
-    --border-radius: 8px;
-    border-bottom-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
+    border-radius: var(--border-radius);
 }
 
-.recyclerview-card-article__overlay.with-progress {
-    .recyclerview-card-article__title {
-        bottom: 24px;
-    }
+.recyclerview-card-article__overlay.with-progress .recyclerview-card-article__title {
+    bottom: 24px;
 }
-
-
 
 .recyclerview-card-article__title {
-    color: var(--c-body-text-color, #fff);
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 1.5;
-    margin: 0;
-    padding: 0 8px;
-    text-align: left;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 100%;
-    bottom: 8px;
-    position: absolute;
+    @apply absolute bottom-2 left-0 right-0 px-2 m-0 text-white text-base font-bold leading-relaxed text-left truncate w-full;
+}
+
+.recyclerview-card-article__progress {
+    @apply absolute bottom-0 left-0 right-0 z-10 p-2;
 }
 
 .recyclerview-card-article__progress__bar {
     --border-radius: 8px;
+    @apply h-1.5 w-full;
     background-color: #33373d;
-    border-bottom-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    height: 6px;
-    width: 100%;
+    border-radius: var(--border-radius);
 }
 
 .recyclerview-card-article__progress__bar__progress {
     --border-radius: 8px;
+    @apply h-1.5;
     background-color: var(--c-tertiary-200, rgb(0, 140, 255));
-    border-bottom-left-radius: var(--border-radius);
-    border-bottom-right-radius: var(--border-radius);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    height: 6px;
+    border-radius: var(--border-radius);
 }
 
+.content-item {
+    @apply flex flex-col justify-center aspect-video transition-all border-2 border-transparent border-solid;
+    transition-duration: 0.2s;
+    border-radius: 8px;
+}
+
+.content-item:hover,
+.content-item:focus {
+    @apply scale-105 border-2 border-white border-solid;
+}
+
+li.content-item {
+    @apply snap-start;
+    margin-right: var(--ctv-carousel-column-gap);
+}
+
+/* Responsive card sizing */
 @media (min-width: 55em) and (max-width: 90em) {
     .recyclerview-card-article {
         --ctv-card-number: 4;
@@ -294,15 +163,40 @@ li.content-item {
     }
 }
 
+/* Related content card styles */
+.related-content .content-card {
+    @apply flex flex-row items-center gap-4 rounded-xl p-3 transition-colors;
+    background: #23232a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.related-content .content-card:hover {
+    background: #18181b;
+}
+
+.related-content .content-card__image {
+    @apply w-24 h-32 flex-shrink-0 overflow-hidden rounded-lg;
+    background: #222;
+}
+
+.related-content .content-card__image img {
+    @apply w-full h-full object-cover rounded-lg;
+}
+
+.related-content .content-card__title {
+    @apply text-white text-lg font-semibold mb-1;
+}
+
+.related-content.flex.flex-col {
+    @apply flex flex-col gap-5 mb-8;
+}
+
 @media (max-width: 600px) {
     .related-content .content-card {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 0.5rem;
+        @apply flex-col items-start p-2;
     }
+    
     .related-content .content-card__image {
-        width: 100%;
-        height: 10rem;
-        margin-bottom: 0.5rem;
+        @apply w-full h-40 mb-2;
     }
 }

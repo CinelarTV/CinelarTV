@@ -1,52 +1,117 @@
 <template>
     <TransitionRoot appear :show="isOpen" as="template">
-        <Dialog as="div" @close="setIsOpen(false)" class="modal">
+        <Dialog as="div" @close="handleClose" class="relative z-50">
+            <!-- Backdrop -->
             <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100"
                 leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
-                <div class="fixed inset-0 bg-black bg-opacity-95 z-[200]" />
+                <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click.stop />
             </TransitionChild>
 
-            <div class="fixed inset-0 overflow-y-auto z-[201]">
-                <div class="flex min-h-full items-center justify-center p-4 text-center">
-                    <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
-                        enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
-                        leave-to="opacity-0 scale-95">
-                        <DialogPanel
-                            class="dialog create-content w-full max-w-md transform overflow-hidden p-6 text-left align-middle shadow-xl transition-all">
-                            <DialogTitle as="h3" class="text-lg font-medium leading-6 text-[var(--primary-600)]" v-emoji>
-                                Recommended Metadata ✨
+            <!-- Modal container -->
+            <div class="fixed inset-0 flex items-center justify-center p-4">
+                <TransitionChild as="template" enter="duration-300 ease-out"
+                    enter-from="opacity-0 scale-95 translate-y-2" enter-to="opacity-100 scale-100 translate-y-0"
+                    leave="duration-200 ease-in" leave-from="opacity-100 scale-100 translate-y-0"
+                    leave-to="opacity-0 scale-95 translate-y-2">
+                    <DialogPanel
+                        class="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl ring-1 ring-[var(--c-primary-200)] bg-[var(--c-primary-100)]"
+                        @click.stop>
+                        <!-- Header -->
+                        <div
+                            class="bg-[var(--c-primary-color)] px-8 pt-8 pb-6 text-center border-b border-[var(--c-primary-200)]">
+                            <DialogTitle as="h2"
+                                class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
+                                <SparklesIcon :size="20" class="inline-block mr-2 -mt-0.5" />
+                                Recommended Metadata
                             </DialogTitle>
+                            <p class="mt-1 text-sm text-[var(--c-primary-900)]">
+                                Select the best match for your content
+                            </p>
+                        </div>
 
-                           <!-- Grid with Recommended Contents -->
-
-                           <div class="grid grid-cols-3 gap-4 mt-6">
-                                <template v-for="content in props.content.data.results">
-                                    <div class="flex flex-col rounded-lg shadow-lg overflow-hidden cursor-pointer" @click="selectContent(content.table)">
-                                        <div class="flex-shrink-0">
-                                            <img :src="`https://image.tmdb.org/t/p/w780${content.table.poster_path}`" :alt="content.table.name" class="h-48 w-full object-cover">
-                                        </div>
-                                        <div class="flex-1 bg-black py-2 flex flex-col justify-center items-center">
-                                            <div class="flex-1">
-                                                <p class="text-sm font-medium text-center">
-                                                    <a :href="`https://themoviedb.org/${content.table.media_type}/${content.table.id}`" class="hover:underline" target="_blank">
-                                                        {{ content.table.name || content.table.title || content.table.original_name }}
-                                                    </a>
-                                                </p>
-                                                
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
+                        <!-- Content grid -->
+                        <div class="px-6 py-4">
+                            <!-- Loading state -->
+                            <div v-if="!props.content?.data?.results?.length" class="text-center py-12">
+                                <Loader2 :size="32" class="animate-spin mx-auto mb-4 text-[var(--c-tertiary-color)]" />
+                                <p class="text-sm text-[var(--c-primary-900)]">
+                                    Loading recommendations...
+                                </p>
                             </div>
 
-                        </DialogPanel>
-                    </TransitionChild>
-                </div>
+                            <!-- Results grid -->
+                            <div v-else class="grid grid-cols-3 gap-3">
+                                <button v-for="item in props.content.data.results" :key="item.table.id" type="button"
+                                    @click="selectContent(item.table)"
+                                    class="group relative rounded-lg overflow-hidden shadow-lg ring-2 ring-transparent hover:ring-[var(--c-tertiary-color)] transition-all duration-200 hover:scale-105 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--c-tertiary-color)]">
+                                    <!-- Poster image -->
+                                    <div class="aspect-[2/3] overflow-hidden">
+                                        <img :src="`https://image.tmdb.org/t/p/w342${item.table.poster_path || item.table.profile_path}`"
+                                            :alt="item.table.name || item.table.title || item.table.original_name"
+                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                            loading="lazy" />
+                                    </div>
+
+                                    <!-- Overlay on hover -->
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
+                                    <!-- Title overlay -->
+                                    <div class="absolute bottom-0 left-0 right-0 p-2">
+                                        <p class="text-xs font-semibold text-white line-clamp-2">
+                                            {{ item.table.name || item.table.title || item.table.original_name }}
+                                        </p>
+                                        <div class="flex items-center gap-1.5 mt-1">
+                                            <span class="text-[10px] text-gray-300 capitalize">
+                                                {{ item.table.media_type || item.table.type }}
+                                            </span>
+                                            <span v-if="item.table.release_date || item.table.first_air_date"
+                                                class="text-[10px] text-gray-300">
+                                                •
+                                            </span>
+                                            <span v-if="item.table.release_date || item.table.first_air_date"
+                                                class="text-[10px] text-gray-300">
+                                                {{ (item.table.release_date || item.table.first_air_date)?.substring(0,
+                                                    4) }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Selection indicator -->
+                                    <div
+                                        class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div class="bg-[var(--c-tertiary-color)] rounded-full p-1.5">
+                                            <CheckCircle2 :size="16" class="text-white" />
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- No results -->
+                            <div v-if="props.content?.data?.results?.length === 0" class="text-center py-12">
+                                <SearchX :size="48" class="mx-auto mb-4 text-[var(--c-primary-400)]" />
+                                <p class="text-sm font-medium text-[var(--c-primary-900)]">
+                                    No recommendations found
+                                </p>
+                                <p class="text-xs text-[var(--c-primary-700)] mt-1">
+                                    Try a different search term
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div v-if="props.content?.data?.results?.length" class="px-6 pb-4 pt-2 text-center">
+                            <p class="text-xs text-[var(--c-primary-700)]">
+                                Click a poster to select it
+                            </p>
+                        </div>
+                    </DialogPanel>
+                </TransitionChild>
             </div>
         </Dialog>
     </TransitionRoot>
 </template>
-  
+
 <script setup>
 import { ref } from 'vue'
 import {
@@ -54,16 +119,18 @@ import {
     Dialog,
     TransitionChild,
     DialogPanel,
-    DialogTitle
+    DialogTitle,
 } from '@headlessui/vue'
+import {
+    SparklesIcon,
+    CheckCircle2,
+    Loader2,
+    SearchX,
+} from 'lucide-vue-next'
 
 const isOpen = ref(false)
 
-const setIsOpen = (value) => {
-    isOpen.value = value
-}
-
-const emit = defineEmits(['selectContent'])
+const emit = defineEmits(['selectContent', 'close'])
 
 const props = defineProps({
     content: {
@@ -72,19 +139,27 @@ const props = defineProps({
     }
 })
 
+const setIsOpen = (value) => {
+    isOpen.value = value
+}
+
+const handleClose = () => {
+    isOpen.value = false
+    emit('close')
+}
+
+// Cuando se selecciona un contenido, se cierra el modal y se envía el contenido seleccionado
+const selectContent = (content) => {
+    // Evitar propagación del evento
+    event?.stopPropagation()
+    isOpen.value = false
+    emit('selectContent', content)
+    emit('close')
+}
 
 defineExpose({
     open() {
         setIsOpen(true)
     }
 })
-
-// Cuando se selecciona un contenido, se cierra el modal y se envía el contenido seleccionado
-const selectContent = (content) => {
-    setIsOpen(false)
-    emit('selectContent', content)
-}
-
-
 </script>
-  

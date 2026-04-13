@@ -1,109 +1,155 @@
 .profile-card {
-    @apply flex flex-col;
-    @apply items-center;
-    @apply justify-center;
-    @apply rounded-lg;
-    @apply shadow-lg;
-    @apply bg-white/5 hover:bg-white;
-    @apply p-4;
-    @apply text-center;
-    @apply text-gray-800;
-    @apply transition-all duration-100 ease-in-out;
-    @apply hover:shadow-2xl;
-    @apply hover:scale-105;
+    @apply flex flex-col items-center justify-center;
+    @apply transition-all duration-200 ease-out;
     @apply cursor-pointer;
+    @apply text-center;
 
-    &:hover .profile-avatar {
-        @apply border-2 border-black;
+    &:hover {
+        @apply scale-105;
+
+        .profile-avatar {
+            @apply border-2 border-[var(--c-tertiary-color)];
+        }
+
+        .profile-name {
+            @apply text-[var(--c-tertiary-color)];
+        }
     }
-
-    &:hover .icon {
-        @apply text-black;
-    }
-
-    &:hover .profile-name {
-        @apply text-black;
-    }
-
-    &:hover .button {
-        @apply bg-black;
-        @apply !text-white;
-    }
-
-    &:hover .icon {
-        @apply !text-white;
-    }
-
-
-
 
     &:focus {
-        @apply outline-none;
-        @apply bg-opacity-100;
-        @apply shadow-2xl;
-        @apply scale-105;
-        @apply ring-2 ring-black/50;
+        @apply outline-none scale-105;
+
+        .profile-avatar {
+            @apply border-2 border-[var(--c-tertiary-color)];
+        }
     }
 
-    &:focus .profile-avatar {
-        @apply border-2 border-black;
+    &.editing {
+        @apply opacity-60 hover:opacity-100;
+
+        &:hover {
+            @apply scale-100;
+        }
     }
 
-    &:focus .icon {
-        @apply text-black;
+    &.create-profile {
+        @apply opacity-70 hover:opacity-100;
+
+        .create-profile-icon {
+            @apply text-white transition-colors duration-200;
+
+            &:hover {
+                @apply text-[var(--c-tertiary-color)];
+            }
+        }
     }
+}
 
-    &:focus .profile-name {
-        @apply text-black;
-    }
-
-
+.profile-card-wrapper {
+    @apply flex flex-col items-center;
 }
 
 .profile-avatar {
-    @apply rounded-lg;
-    @apply h-24 w-24;
+    @apply rounded-xl w-24 h-24;
     @apply object-cover;
-    @apply border-2 border-white;
+    @apply border-2 border-white/50;
+    @apply transition-all duration-200;
+}
+
+.profile-avatar-lg {
+    @apply rounded-2xl w-32 h-32;
+    @apply object-cover;
+    @apply border-3 border-white/30;
+    @apply shadow-2xl;
 }
 
 .profile-name {
-    @apply text-lg;
-    @apply font-semibold;
-    @apply mt-2;
-    color: #FFFFFF
+    @apply text-base font-medium;
+    @apply mt-3;
+    @apply text-white;
+    @apply transition-colors duration-200;
+}
+
+.profile-name-lg {
+    @apply text-xl md:text-2xl font-semibold mt-4;
+    @apply text-white;
+}
+
+.profile-edit-btn {
+    @apply flex items-center justify-center gap-2;
+    @apply px-4 py-2 rounded-lg;
+    @apply text-sm font-medium;
+    @apply transition-all duration-200;
+    @apply cursor-pointer;
+    @apply w-full;
+    @apply mt-3;
+
+    &.delete {
+        @apply bg-red-500/10 text-red-400 hover:bg-red-500/20;
+        @apply border border-red-500/30 hover:border-red-500/50;
+    }
+}
+
+.profile-footer-btn {
+    @apply px-6 py-2.5 rounded-xl;
+    @apply text-sm font-medium;
+    @apply bg-white/10 text-white/80 border border-white/20;
+    @apply hover:bg-white/20 hover:text-white;
+    @apply transition-all duration-200;
+    @apply cursor-pointer;
+
+    &.edit {
+        @apply bg-[var(--c-tertiary-color)]/20 text-[var(--c-tertiary-color)];
+        @apply border-[var(--c-tertiary-color)]/30 hover:border-[var(--c-tertiary-color)]/50;
+        @apply hover:bg-[var(--c-tertiary-color)]/30;
+    }
+}
+
+#profile-selector {
+    @apply relative overflow-hidden;
+}
+
+.loading-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    @apply bg-black/80 backdrop-blur-sm;
+}
+
+.overlay-content {
+    @apply flex flex-col items-center justify-center;
+    @apply text-white;
+
+    .profile-avatar-lg {
+        @apply mb-2;
+    }
+
+    .profile-name-lg {
+        @apply mb-6;
+    }
 }
 
 .avatar-list {
-    /* @apply grid tailwind */
-    @apply grid grid-cols-4 gap-4;
-    @apply justify-items-center;
-    @apply mt-4;
+    @apply grid grid-cols-4 gap-4 justify-items-center mt-4;
 
-    & .avatar {
-        @apply rounded-lg;
-        @apply h-16 w-16;
-        @apply border-2 border-white;
+    .avatar {
+        @apply rounded-lg w-16 h-16;
+        @apply border-2 border-white/50;
         @apply cursor-pointer;
+        @apply transition-all duration-200;
 
-        & img {
-            @apply rounded-md;
+        img {
+            @apply rounded-md w-full h-full object-cover;
         }
 
+        &:hover {
+            @apply border-2 border-[var(--c-tertiary-color)] scale-105;
+        }
+
+        &:focus {
+            @apply outline-none border-2 border-[var(--c-tertiary-color)];
+        }
+
+        &.selected {
+            @apply border-2 border-[var(--c-tertiary-color)];
+        }
     }
-
-    & .avatar:hover {
-        @apply border-2 border-black rounded-lg;
-    }
-
-    & .avatar:focus {
-        @apply border-2 border-black;
-    }
-
-    & .avatar.selected {
-        @apply border-2 border-black;
-    }
-
-
-
 }

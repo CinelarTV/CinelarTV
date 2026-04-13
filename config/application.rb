@@ -30,6 +30,25 @@ module CinelarTV
 
     config.autoload_paths << "#{root}/lib"
 
+    # =====================================================
+    # Plugin autoload paths - registered early so controllers
+    # can be resolved when routes are drawn
+    # =====================================================
+    Dir.glob(Rails.root.join("plugins", "*", "app", "controllers")).each do |plugin_controllers_dir|
+      config.autoload_paths << plugin_controllers_dir
+    end
+    Dir.glob(Rails.root.join("plugins", "*", "app", "models")).each do |plugin_models_dir|
+      config.autoload_paths << plugin_models_dir
+    end
+
+    # =====================================================
+    # Plugin migration paths - so they run with db:migrate
+    # =====================================================
+    Dir.glob(Rails.root.join("plugins", "*", "db", "migrate")).each do |plugin_migrate_dir|
+      $LOAD_PATH.unshift(plugin_migrate_dir.to_s)
+      config.paths["db/migrate"] << plugin_migrate_dir.to_s
+    end
+
     require "cinelar_tv"
 
     config.active_job.queue_adapter = :sidekiq

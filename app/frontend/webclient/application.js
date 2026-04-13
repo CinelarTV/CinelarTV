@@ -20,7 +20,7 @@ import Axios from './lib/Ajax'
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/IconLibrary';
 import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
-import { messageBus } from "./lib/MessageBus";
+import MessageBus from "./lib/MessageBus";
 
 
 const CinelarTV = createApp(App)
@@ -61,13 +61,14 @@ pluginMap.forEach(plugin => {
 
 document.querySelector("noscript")?.remove();
 
-messageBus.start();
 
+const bus = new MessageBus();
 
+bus.start();
 
 
 CinelarTV.destroy = () => {
-    messageBus.stop()
+    bus.stop()
     CinelarTV.unmount()
 }
 

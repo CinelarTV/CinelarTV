@@ -1,13 +1,114 @@
-@reference "@/styles/cinelartv.css";
-
-.watchparty-chat {
-    @apply relative h-full transition-all duration-300 ease-in-out overflow-hidden w-0 pointer-events-none;
+/* WatchParty Chat Panel */
+.watchparty-chat-panel {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    width: 320px;
+    background-color: #0a0a0a;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(100%);
 }
+
+.watchparty-chat-panel--open {
+    transform: translateX(0);
+}
+
+body.video-player .video-container {
+    transition: padding-right 0.3s ease-in-out;
+}
+
+body.video-player.watchparty-chat-open .video-container {
+    padding-right: 320px;
+}
+
+@media (max-width: 1024px) {
+    body.video-player.watchparty-chat-open .video-container {
+        padding-right: 0;
+    }
+
+    .watchparty-chat-panel {
+        width: min(100vw, 360px);
+    }
+}
+
+/* Messages container */
+.watchparty-chat-panel__messages {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.watchparty-chat-panel__messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.watchparty-chat-panel__messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.watchparty-chat-panel__messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.watchparty-chat-panel__messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Message animations */
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.watchparty-chat-panel__messages > div > div {
+    animation: messageSlideIn 0.2s ease-out;
+}
+
+/* Input styling */
+.watchparty-chat-panel__input input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.watchparty-chat-panel__input input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 168, 225, 0.5);
+}
+
+/* Legacy styles (backward compatibility) */
+.watchparty-chat {
+    position: relative;
+    height: 100%;
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+    width: 0;
+    pointer-events: none;
+}
+
 .watchparty-chat.opened {
-    @apply w-[300px] pointer-events-auto;
+    width: 300px;
+    pointer-events: auto;
 }
 
 .watchparty-chat-inner {
-    @apply absolute top-0 left-0 h-full w-full transition-transform duration-300 ease-in-out pointer-events-none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    transition: transform 0.3s ease-in-out;
+    pointer-events: none;
 }
-

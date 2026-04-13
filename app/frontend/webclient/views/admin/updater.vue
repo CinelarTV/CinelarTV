@@ -78,7 +78,6 @@ import { AlertTriangle } from 'lucide-vue-next';
 import { useHead } from 'unhead';
 import { toast } from 'vue3-toastify';
 import { ajax } from '../../lib/Ajax';
-import { messageBus } from "../../lib/MessageBus";
 
 
 var updating = ref(false)
@@ -104,7 +103,7 @@ window.onbeforeunload = function () {
 
 const handleFailed = () => {
     let expandableLogs = getElementById("expandable-logs")
-    messageBus.unsubscribe('/admin/upgrade')
+    MessageBus.unsubscribe('/admin/upgrade')
     currentLine.value = 'Failed to update CinelarTV. Please check the logs for more information.';
     expandableLogs.setAttribute("open", "true");
 }
@@ -119,7 +118,7 @@ onMounted(() => {
             console.log(error)
         })
 
-    messageBus.subscribe("/admin/upgrade", (data) => {
+    MessageBus.subscribe("/admin/upgrade", (data) => {
         if (data) {
             updating.value = true
         }
@@ -170,6 +169,6 @@ const restartServer = () => {
 }
 
 onUnmounted(() => {
-    messageBus.unsubscribe('/admin/upgrade')
+    MessageBus.unsubscribe('/admin/upgrade')
 })
 </script>

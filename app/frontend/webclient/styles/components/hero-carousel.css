@@ -1,116 +1,285 @@
-/* Variables CSS personalizadas */
+/* Modern Hero Carousel Styles */
+
+/* Hero Crossfade Transitions - Vue Transition */
+.hero-fade-enter-active,
+.hero-fade-leave-active {
+    transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-fade-enter-from,
+.hero-fade-leave-to {
+    opacity: 0;
+}
+
+.hero-fade-enter-to,
+.hero-fade-leave-from {
+    opacity: 1;
+}
+
+/* Content Crossfade Transitions */
+.hero-content-enter-active,
+.hero-content-leave-active {
+    transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content-enter-from {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hero-content-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.hero-content-enter-to,
+.hero-content-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Variables */
 :root {
-    --carousel-padding: 1rem;
-    --carousel-gap: 1rem;
-    --carousel-border-radius: 0.5rem;
-    --carousel-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --carousel-transition-duration: 300ms;
+    --carousel-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Contenedor principal del carousel */
+/* Main carousel container */
 #home-carousel {
-    @apply relative w-full;
-    min-height: 300px;
+    @apply relative w-full overflow-hidden;
+    background-color: #0a0a0a;
 }
 
-.carousel-root {
-    @apply relative flex flex-col items-center justify-center w-full;
+/* Background image transitions */
+#home-carousel > div:first-child {
+    transition: opacity var(--carousel-transition-duration) var(--carousel-transition-timing);
 }
 
-/* Lista del carousel */
-.carousel-ul {
-    @apply flex overflow-x-auto snap-x snap-mandatory w-full;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-    will-change: transform;
+/* Content animations */
+#home-carousel h2 {
+    animation: slideUpFadeIn 0.6s var(--carousel-transition-timing) both;
 }
 
-/* Ocultar scrollbars en todos los navegadores */
-.carousel-ul::-webkit-scrollbar {
-    display: none;
+#home-carousel p {
+    animation: slideUpFadeIn 0.6s var(--carousel-transition-timing) 0.1s both;
 }
 
-.carousel-ul {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+#home-carousel .flex.gap-3,
+#home-carousel .flex.gap-4 {
+    animation: slideUpFadeIn 0.6s var(--carousel-transition-timing) 0.2s both;
 }
 
-/* Items del carousel */
-.carousel-li {
-    @apply snap-center flex-shrink-0 transition-all duration-300;
-    scroll-snap-stop: always;
+/* Keyframes */
+@keyframes slideUpFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Tarjetas del hero */
-.prime-hero-card {
-    @apply relative w-full h-full flex flex-col overflow-hidden bg-black;
-    border-radius: var(--carousel-border-radius);
-    box-shadow: var(--carousel-shadow);
-    will-change: transform;
+/* Progress bar animation */
+@keyframes progressFill {
+    from {
+        width: 0%;
+    }
+    to {
+        width: 100%;
+    }
 }
 
-.prime-hero-card img {
-    @apply w-full h-full object-cover;
-    object-position: center top;
+/* Indicator styles */
+.carousel-indicator {
+    @apply rounded-full transition-all duration-300 cursor-pointer;
+    background: rgba(255, 255, 255, 0.4);
 }
 
-/* Indicadores */
-.carousel-indicators {
-    @apply flex items-center justify-center;
-    gap: 0.5rem;
+.carousel-indicator--active {
+    @apply bg-white;
+    background: white;
 }
 
-/* Flechas de navegación */
-.carousel-arrow {
-    @apply flex items-center justify-center;
-    min-width: 48px;
-    min-height: 48px;
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Button styles */
+.carousel-button-primary {
+    @apply flex items-center gap-2 font-semibold rounded-lg shadow-xl transition-all duration-200;
+    background: white;
+    color: black;
 }
 
-.carousel-arrow:focus {
-    @apply outline-none ring-2 ring-white/50;
+.carousel-button-primary:hover {
+    @apply transform scale-105;
+    background: rgba(255, 255, 255, 0.9);
 }
 
-/* Botones personalizados */
-.c-btn {
-    @apply transition-all duration-200;
-    backdrop-filter: blur(8px);
+.carousel-button-secondary {
+    @apply flex items-center gap-2 font-semibold rounded-lg shadow-xl transition-all duration-200;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.c-btn--primary {
-    @apply bg-white text-black font-semibold;
+.carousel-button-secondary:hover {
+    @apply transform scale-105;
+    background: rgba(255, 255, 255, 0.3);
 }
 
-.c-btn--primary:hover {
-    @apply bg-white/90 transform scale-105;
+.carousel-button-icon {
+    @apply flex items-center justify-center rounded-lg shadow-xl transition-all duration-200;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.c-btn--secondary {
-    @apply bg-black/60 text-white border border-white/30;
+.carousel-button-icon:hover {
+    @apply transform scale-110;
+    background: rgba(255, 255, 255, 0.3);
 }
 
-.c-btn--secondary:hover {
-    @apply bg-black/80 border-white/50 transform scale-105;
+.carousel-button-icon--liked {
+    @apply text-blue-400;
+    border-color: rgba(59, 130, 246, 0.5);
 }
 
-.c-btn--ghost {
-    @apply bg-black/40 text-white border border-white/20;
+/* Navigation arrows */
+.carousel-nav-arrow {
+    @apply flex items-center justify-center rounded-full transition-all duration-200;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.c-btn--ghost:hover {
-    @apply bg-black/60 border-white/40 transform scale-105;
+.carousel-nav-arrow:hover {
+    @apply transform scale-110;
+    background: rgba(0, 0, 0, 0.6);
 }
 
-/* Utilidades responsivas */
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.carousel-nav-arrow:disabled {
+    @apply opacity-30 cursor-not-allowed;
 }
 
+.carousel-nav-arrow:disabled:hover {
+    @apply transform-none;
+}
+
+/* Loading spinner */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.carousel-loading-spinner {
+    @apply animate-spin rounded-full border-2 border-white/30;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive utilities */
+@media screen and (max-width: 640px) {
+    #home-carousel {
+        min-height: 50vh;
+    }
+
+    #home-carousel h2 {
+        @apply text-2xl leading-tight;
+    }
+
+    #home-carousel p {
+        @apply text-sm leading-relaxed;
+    }
+
+    .carousel-button-primary,
+    .carousel-button-secondary {
+        @apply px-5 py-2.5 text-sm;
+    }
+
+    .carousel-button-icon {
+        @apply w-10 h-10;
+    }
+
+    .carousel-nav-arrow {
+        @apply w-10 h-10;
+    }
+}
+
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+    #home-carousel {
+        min-height: 55vh;
+    }
+
+    #home-carousel h2 {
+        @apply text-3xl md:text-4xl;
+    }
+
+    #home-carousel p {
+        @apply text-base md:text-lg;
+    }
+}
+
+@media screen and (min-width: 1025px) {
+    #home-carousel {
+        min-height: 65vh;
+    }
+
+    #home-carousel h2 {
+        @apply text-4xl lg:text-5xl leading-tight;
+    }
+
+    #home-carousel p {
+        @apply text-lg leading-relaxed;
+    }
+
+    .carousel-button-primary,
+    .carousel-button-secondary {
+        @apply px-6 py-3 text-base;
+    }
+
+    .carousel-button-icon {
+        @apply w-11 h-11;
+    }
+
+    .carousel-nav-arrow {
+        @apply w-12 h-12;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    #home-carousel h2,
+    #home-carousel p,
+    #home-carousel .flex.gap-3,
+    #home-carousel .flex.gap-4 {
+        animation: none;
+    }
+
+    .carousel-nav-arrow,
+    .carousel-button-primary,
+    .carousel-button-secondary,
+    .carousel-button-icon {
+        @apply transition-none;
+    }
+
+    #home-carousel > div:first-child {
+        transition: none;
+    }
+}
+
+/* Focus states for accessibility */
+.carousel-indicator:focus,
+.carousel-nav-arrow:focus,
+.carousel-button-primary:focus,
+.carousel-button-secondary:focus,
+.carousel-button-icon:focus {
+    @apply outline-none ring-2 ring-white ring-offset-2 ring-offset-black;
+}
+
+/* Line clamp utilities */
 .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -118,143 +287,7 @@
     overflow: hidden;
 }
 
-/* Estilos móviles */
-@media screen and (max-width: 768px) {
-    :root {
-        --carousel-padding: 0;
-        --carousel-gap: 0;
-        --carousel-border-radius: 0;
-    }
-
-    .carousel-ul {
-        @apply gap-0;
-    }
-
-    .carousel-li {
-        @apply w-full;
-        min-width: 100vw;
-        max-width: 100vw;
-    }
-
-    .prime-hero-card {
-        @apply rounded-none;
-        aspect-ratio: 16/10;
-    }
-
-    /* Ajustes de texto móvil */
-    .prime-hero-card h2 {
-        @apply text-xl leading-tight;
-    }
-
-    .prime-hero-card p {
-        @apply text-sm leading-relaxed;
-    }
-
-    /* Botones en móvil */
-    .c-btn {
-        @apply w-full justify-center py-3 px-6 text-base font-semibold;
-    }
-
-    /* Contenido centrado en móvil */
-    .prime-hero-card .relative.z-20 {
-        @apply text-center items-center;
-    }
-}
-
-/* Estilos para tablets */
-@media screen and (min-width: 769px) and (max-width: 1024px) {
-    .carousel-li {
-        min-width: 90vw;
-        max-width: 900px;
-    }
-}
-
-/* Estilos para desktop */
-@media screen and (min-width: 1025px) {
-    .carousel-ul {
-        @apply gap-6 px-8;
-    }
-
-    .carousel-li {
-        min-width: 85vw;
-        max-width: 1200px;
-        aspect-ratio: 21/9;
-    }
-
-    .prime-hero-card {
-        @apply rounded-lg;
-    }
-
-    /* Contenido alineado a la izquierda en desktop */
-    .prime-hero-card .relative.z-20 {
-        @apply text-left items-start;
-        max-width: 50%;
-    }
-}
-
-/* Animaciones mejoradas */
-@keyframes slideIn {
-    from {
-        transform: translateX(100px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.prime-hero-card .relative.z-20 {
-    animation: slideIn 0.6s ease-out;
-}
-
-
-/* Estados de carga */
-.carousel-loading {
-    @apply flex items-center justify-center h-96;
-}
-
-.carousel-loading .spinner {
-    @apply animate-spin rounded-full h-12 w-12 border-b-2 border-white;
-}
-
-/* Mejoras de accesibilidad */
-@media (prefers-reduced-motion: reduce) {
-    .carousel-ul {
-        scroll-behavior: auto;
-    }
-    
-    .carousel-li,
-    .c-btn,
-    .carousel-arrow {
-        @apply transition-none;
-    }
-    
-    .prime-hero-card .relative.z-20 {
-        animation: none;
-    }
-}
-
-/* Focus states mejorados */
-.carousel-arrow:focus,
-.c-btn:focus {
-    @apply outline-none ring-2 ring-white/50 ring-offset-2 ring-offset-black;
-}
-
-/* Estados disabled */
-.carousel-arrow:disabled {
-    @apply opacity-50 cursor-not-allowed;
-}
-
-.carousel-arrow:disabled:hover {
-    @apply transform-none bg-black/50;
+/* Drop shadows for text readability */
+.drop-shadow-2xl {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }

@@ -284,6 +284,34 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
     t.index ["videoable_type", "videoable_id"], name: "index_video_sources_on_videoable"
   end
 
+  create_table "watch_party_session_users", force: :cascade do |t|
+    t.integer "watch_party_session_id", null: false
+    t.integer "user_id", null: false
+    t.boolean "is_host", default: false
+    t.datetime "joined_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_watch_party_session_users_on_user_id"
+    t.index ["watch_party_session_id", "user_id"], name: "idx_on_watch_party_session_id_user_id_46fa650fed", unique: true
+    t.index ["watch_party_session_id"], name: "index_watch_party_session_users_on_watch_party_session_id"
+  end
+
+  create_table "watch_party_sessions", force: :cascade do |t|
+    t.string "content_id", null: false
+    t.integer "host_id", null: false
+    t.integer "user_id", null: false
+    t.float "current_time", default: 0.0
+    t.boolean "is_playing", default: false
+    t.datetime "started_at"
+    t.datetime "ended_at"
+    t.datetime "last_sync_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_watch_party_sessions_on_content_id"
+    t.index ["host_id"], name: "index_watch_party_sessions_on_host_id"
+    t.index ["user_id"], name: "index_watch_party_sessions_on_user_id"
+  end
+
   create_table "webhook_logs", force: :cascade do |t|
     t.string "event_name"
     t.text "payload"

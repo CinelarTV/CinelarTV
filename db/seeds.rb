@@ -1,8 +1,21 @@
 # frozen_string_literal: true
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Examples:
-#
-#   movies = Movie.create([{ name: "Star Wars" }, { name: "Lord of the Rings" }])
-#   Character.create(name: "Luke", movie: movies.first)
+
+# db/seeds.rb - Seed script for CinelarTV
+# Run with: rails db:seed
+
+puts "Seeding database..."
+
+# Create default Doorkeeper application for API auth
+unless Doorkeeper::Application.exists?(name: "Default API Client")
+  Doorkeeper::Application.create!(
+    name: "Default API Client",
+    redirect_uri: "urn:ietf:wg:oauth:2.0:oob",
+    scopes: "read write",
+    confidential: false
+  )
+  puts "✓ Created default Doorkeeper application"
+else
+  puts "✓ Default Doorkeeper application already exists"
+end
+
+puts "Seeding complete!"

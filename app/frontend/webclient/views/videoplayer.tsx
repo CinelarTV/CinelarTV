@@ -1,4 +1,4 @@
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref, provide } from 'vue';
 import { useSiteSettings } from '@/app/services/site-settings';
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { ajax } from "@/lib/Ajax";
@@ -96,6 +96,10 @@ export default defineComponent({
         const route = useRoute();
         const { replace: replaceRoute } = useRouter();
         const { contentId, episodeId } = route.params as { contentId: string; episodeId?: string };
+
+        // Provide contentId for plugins (like WatchParty)
+        provide('playerContentId', contentId);
+        provide('playerEpisodeId', episodeId || null);
 
         const watchData = ref<any>(null);
         const googleCastEnabled = computed(() => siteSettings?.enable_chromecast || false);

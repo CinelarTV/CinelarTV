@@ -1,6 +1,6 @@
 import { defineComponent } from 'vue';
 import { useSiteSettings } from '../app/services/site-settings';
-import LoginModal from './modals/login.modal.vue';
+import LoginModal from './modals/login.modal.tsx';
 import UserMenu from '../app/components/header/UserMenu';
 import CIcon from "./c-icon.vue";
 import { RouterLink } from "vue-router";
