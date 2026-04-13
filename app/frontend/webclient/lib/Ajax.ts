@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestCo
 import CinelarTV from '../application';
 
 const getCsrfToken = (): string => {
-    return document.querySelector('meta[name="csrf-token"]').getAttribute('content') || '';
+  return document?.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 };
 
 export const ajax = axios.create({
@@ -35,7 +35,7 @@ ajax.interceptors.response.use(
       return response;
     }
   },
-  (error : AxiosError) => {
+  (error: AxiosError) => {
     CinelarTV.config.globalProperties.$progress.finish();
     document.body.classList.remove('ajax-loading');
     if (error.response?.status === 404) {

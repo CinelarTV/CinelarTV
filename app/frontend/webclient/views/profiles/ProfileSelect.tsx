@@ -24,7 +24,7 @@ export default defineComponent({
         const profileSelected = ref<Profile | null>(null);
 
         const buttonClickedSound = new Howl({
-            src: ['/assets/audio/profile-selected.mp3'],
+            src: ['/assets/audio/profile-select.mp3'],
             volume: 0.5,
         });
 

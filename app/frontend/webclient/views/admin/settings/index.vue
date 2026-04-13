@@ -84,9 +84,7 @@
                                 :style="`background-color: ${settings[setting.key] || settingsModel[index].value}`">
                                 &nbsp;
                             </span>
-                            <c-input @input="e => settings[setting.key] = e.target.value" type="text"
-                                v-model="settings[setting.key]" class="setting-value input"
-                                :label="$t(`js.admin.settings.${setting.key}.title`)" data-coloris />
+                            <CColorPicker v-model="settings[setting.key]" class="setting-value input" />
                         </template>
 
                         <template v-if="setting.type === 'code'" class="flex">
@@ -116,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUpdated } from 'vue';
+import { ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import MonacoTools from '../../../app/lib/MonacoTools';
 import CColorPicker from '../../../components/forms/c-color-picker.vue';
@@ -223,12 +221,25 @@ function handleImageChange(e) {
     const preview = document.getElementById(e.target.id.replace('upload-', 'preview-'));
 }
 
-onMounted(onDataLoaded);
-onUpdated(onDataLoaded);
+watch(
+    () => props.settingsData,
+    () => {
+        onDataLoaded();
+    },
+    { immediate: true }
+);
+
+watch(
+    () => props.category,
+    (newCategory) => {
+        category.value = newCategory;
+    },
+    { immediate: true }
+);
 
 function onDataLoaded() {
     settingsModel.value = props.settingsData;
-    category.value = props.category;
+    if (!settingsModel.value) return;
 
     settingsModel.value.forEach((setting) => {
         settings.value[setting.key] = setting.value;

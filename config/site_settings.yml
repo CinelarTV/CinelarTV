@@ -259,6 +259,11 @@ customization:
     refresh: true
     default: rgba(255, 255, 255, 0.2)
     type: color
+  player_accent_color:
+    client: true
+    refresh: true
+    default: "#0084F0FF"
+    type: color
   custom_css:
     client: false # Javascript don't need to read it, because it's rendered on a <style> tag
     refresh: true

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onUnmounted, PropType, getCurrentInstance } from 'vue';
 import { RouterLink } from 'vue-router';
+import ExpandableContentCard from './ExpandableContentCard.tsx';
 
 interface ContentItem {
     id: number | string;
@@ -25,6 +26,9 @@ declare module 'vue' {
 
 export default defineComponent({
     name: 'ContentRow',
+    components: {
+        ExpandableContentCard,
+    },
     props: {
         title: {
             type: String,
@@ -42,15 +46,30 @@ export default defineComponent({
             type: Boolean,
             default: true,
         },
+        expandable: {
+            type: Boolean,
+            default: true,
+        },
     },
     emits: ['see-all'],
     setup(props, { emit }) {
         const scrollContainer = ref<HTMLElement | null>(null);
         const canScrollLeft = ref(false);
         const canScrollRight = ref(false);
+        const expandedItemId = ref<number | string | null>(null);
         const instance = getCurrentInstance();
 
         const isMobile = () => instance?.proxy?.$isMobile?.() ?? window.innerWidth < 768;
+
+        const handleCardExpand = (itemId: number | string) => {
+            expandedItemId.value = itemId;
+        };
+
+        const handleCardClose = (itemId: number | string) => {
+            if (expandedItemId.value === itemId) {
+                expandedItemId.value = null;
+            }
+        };
 
         const cardClass = computed(() => {
             if (props.itemType === 'portrait') {
@@ -105,6 +124,10 @@ export default defineComponent({
             scroll,
             progressPercent,
             emit,
+            expandable: props.expandable,
+            expandedItemId,
+            handleCardExpand,
+            handleCardClose,
         };
     },
 });
@@ -150,52 +173,69 @@ export default defineComponent({
             <!-- Scroll area -->
             <div ref="scrollContainer"
                 class="flex overflow-x-auto gap-2 md:gap-3 px-4 sm:px-6 md:px-8 lg:px-12 py-3 -my-3 scroll-smooth snap-x snap-mandatory"
+                :class="{ 'expandable-row-container': expandable }"
                 style="scrollbar-width: none; -ms-overflow-style: none;" @scroll="checkScrollability">
-                <RouterLink v-for="item in items" :key="item.id" :to="`/contents/${item.id}`"
-                    :class="['flex-shrink-0 snap-start group/card', cardClass, aspectClass]">
-                    <!-- Card -->
-                    <div
-                        class="relative w-full h-full rounded-lg overflow-hidden bg-white/5 border border-white/[0.06] transition-all duration-200 ease-out group-hover/card:scale-[1.04] group-hover/card:border-white/20 group-hover/card:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+                <!-- Expandable cards -->
+                <template v-if="expandable">
+                    <ExpandableContentCard
+                        v-for="item in items"
+                        :key="item.id"
+                        :item="item"
+                        :item-type="itemType"
+                        :expanded="expandedItemId === item.id"
+                        @expand="handleCardExpand"
+                        @close="handleCardClose"
+                    />
+                </template>
 
-                        <!-- Thumbnail -->
-                        <img :src="item.banner" :alt="item.title" class="w-full h-full object-cover" loading="lazy" />
-
-                        <!-- Hover overlay -->
+                <!-- Fallback: simple cards when expandable is disabled -->
+                <template v-else>
+                    <RouterLink v-for="item in items" :key="`simple-${item.id}`" :to="`/contents/${item.id}`"
+                        :class="['flex-shrink-0 snap-start group/card', cardClass, aspectClass]">
+                        <!-- Card -->
                         <div
-                            class="overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-                            <p class="text-[11px] font-medium text-white leading-tight line-clamp-2">
-                                {{ item.title }}
-                            </p>
-                            <p v-if="item.year || item.rating" class="text-[10px] text-white/60 mt-1">
-                                <span v-if="item.year">{{ item.year }}</span>
-                                <span v-if="item.year && item.rating"> · </span>
-                                <span v-if="item.rating">{{ item.rating }}</span>
-                                <span v-if="item.progress && item.duration"> · {{ progressPercent(item) }}% visto</span>
-                            </p>
-                        </div>
+                            class="relative w-full h-full rounded-lg overflow-hidden bg-white/5 border border-white/[0.06] transition-all duration-200 ease-out group-hover/card:scale-[1.04] group-hover/card:border-white/20 group-hover/card:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
 
-                        <!-- Progress bar -->
-                        <div v-if="item.progress && item.duration"
-                            class="absolute bottom-0 left-0 right-0 h-[2px] bg-white/15">
-                            <div class="h-full bg-[#0095d9]" :style="{ width: `${progressPercent(item)}%` }" />
-                        </div>
+                            <!-- Thumbnail -->
+                            <img :src="item.banner" :alt="item.title" class="w-full h-full object-cover" loading="lazy" />
 
-                        <!-- Badges -->
-                        <div class="absolute top-2 left-2 flex gap-1">
-                            <!-- NEW badge -->
-                            <span v-if="item.isNew"
-                                class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-white/15 text-white border border-white/25 backdrop-blur-sm leading-none">
-                                NUEVO
-                            </span>
-                            <!-- PRIME badge -->
-                            <span v-else-if="item.isPrime !== false"
-                                class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#0095d9] text-white leading-none">
-                                PRIME
-                            </span>
-                        </div>
+                            <!-- Hover overlay -->
+                            <div
+                                class="overlay absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                                <p class="text-[11px] font-medium text-white leading-tight line-clamp-2">
+                                    {{ item.title }}
+                                </p>
+                                <p v-if="item.year || item.rating" class="text-[10px] text-white/60 mt-1">
+                                    <span v-if="item.year">{{ item.year }}</span>
+                                    <span v-if="item.year && item.rating"> · </span>
+                                    <span v-if="item.rating">{{ item.rating }}</span>
+                                    <span v-if="item.progress && item.duration"> · {{ progressPercent(item) }}% visto</span>
+                                </p>
+                            </div>
 
-                    </div>
-                </RouterLink>
+                            <!-- Progress bar -->
+                            <div v-if="item.progress && item.duration"
+                                class="absolute bottom-0 left-0 right-0 h-[2px] bg-white/15">
+                                <div class="h-full bg-[#0095d9]" :style="{ width: `${progressPercent(item)}%` }" />
+                            </div>
+
+                            <!-- Badges -->
+                            <div class="absolute top-2 left-2 flex gap-1">
+                                <!-- NEW badge -->
+                                <span v-if="item.isNew"
+                                    class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-white/15 text-white border border-white/25 backdrop-blur-sm leading-none">
+                                    NUEVO
+                                </span>
+                                <!-- PRIME badge -->
+                                <span v-else-if="item.isPrime !== false"
+                                    class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#0095d9] text-white leading-none">
+                                    PRIME
+                                </span>
+                            </div>
+
+                        </div>
+                    </RouterLink>
+                </template>
             </div>
 
             <Transition name="fade-arrow">

@@ -30,7 +30,7 @@ export default defineComponent({
             <media-controls-group class="pointer-events-auto h-20 flex w-full items-center px-4 bg-gradient-to-b from-black/50 to-transparent">
                 <div class="max-w-7xl mx-auto w-full flex items-center py-4 justify-between">
                     <div class="flex flex-col">
-                        <media-title class="text-white text-2xl font-semibold" />
+                        <media-title class="text-white text-2xl font-semibold truncate" />
                         {episodeTitle && seasonTitle && (
                             <div class="text-white text-sm">
                                 {seasonTitle} - {episodeTitle}
@@ -41,7 +41,7 @@ export default defineComponent({
                     <div class="flex items-center gap-2">
                         <media-menu>
                             <media-menu-button
-                                class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 data-[focus]:ring-4"
+                                class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4"
                                 aria-label="Settings"
                             >
                                 <CIcon icon="settings" class="transform transition-transform duration-200 ease-out group-data-[open]:rotate-90" />
@@ -55,7 +55,7 @@ export default defineComponent({
                         </media-menu>
 
                         <media-fullscreen-button
-                            class="group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 aria-hidden:hidden data-[focus]:ring-4"
+                            class="group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 aria-hidden:hidden data-[focus]:ring-4"
                         >
                             <CIcon icon="maximize" class=" group-data-[active]:hidden" />
                             <CIcon icon="shrink" class="hidden group-data-[active]:block" />
@@ -66,7 +66,7 @@ export default defineComponent({
                                 <media-tooltip class="contents">
                                     <media-tooltip-trigger>
                                         <media-google-cast-button
-                                            class="group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 data-[focus]:ring-4"
+                                            class="group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4"
                                         >
                                             <CIcon icon="airplay" />
                                         </media-google-cast-button>
@@ -88,7 +88,7 @@ export default defineComponent({
                         <hr class="h-6 border-l border-white/10" />
                         <button
                             onClick={() => backToContent()}
-                            class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 data-[focus]:ring-4">
+                            class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4">
                             <CIcon icon="x" />
                         </button>
                     </div>

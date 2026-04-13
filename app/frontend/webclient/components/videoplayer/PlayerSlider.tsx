@@ -8,13 +8,13 @@ export default defineComponent({
                 class="group relative inline-flex h-10 w-full cursor-pointer touch-none select-none items-center outline-none aria-hidden:hidden"
             >
                 <div
-                    class="relative z-0 h-[5px] w-full rounded-sm bg-white/30 ring-sky-400 group-data-[focus]:ring-[3px]"
+                    class="relative z-0 h-[5px] w-full rounded-sm bg-white/30 ring-[var(--c-player-accent-50)] group-data-[focus]:ring-[3px]"
                 >
                     <div
-                        class="absolute h-full w-[var(--slider-fill)] rounded-sm bg-indigo-400 will-change-[width]"
+                        class="absolute h-full w-[var(--slider-fill)] rounded-sm bg-[var(--c-player-accent-color)] will-change-[width]"
                     ></div>
                     <div
-                        class="absolute z-10 h-full w-[var(--slider-progress)] rounded-sm bg-black/40 will-change-[width]"
+                        class="absolute  h-full w-[var(--slider-progress)] -z-1 rounded-sm bg-black/40 will-change-[width]"
                     ></div>
                 </div>
                 <div

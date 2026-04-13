@@ -1,68 +1,92 @@
 <template>
     <div class="updater panel">
         <template v-if="loading">
-            <c-spinner />
+            <div class="flex justify-center items-center py-24">
+                <c-spinner />
+            </div>
         </template>
 
         <template v-else>
-            <div class="admin-update-manager sm:p-8 p-2">
-                <div v-if="!SiteSettings.enable_web_updater">
+            <div class="sm:p-8 p-4">
+
+                <div v-if="!SiteSettings.enable_web_updater" class="text-center py-12 text-white/50">
                     {{ js.admin.updater.web_updater_disabled }}
                 </div>
 
-                <div v-else class="">
+                <div v-else class="max-w-2xl mx-auto">
 
-                    <section id="web-updater-landing" class="text-center">
-
-                        <div id="ready-for-update-banner"
-                            class="flex flex-col mb-8 py-8 w-full rounded-md bg-[var(--c-primary-50)]">
-                            <h2 class="text-2xl font-medium">
-                                {{ $t('js.admin.updater.ready_title') }}
-                            </h2>
-                        </div>
-
-                        <span class="bg-blue-100 rounded-full px-2 py-1 text-blue-700 text-sm font-medium">
+                    <!-- Banner -->
+                    <div id="ready-for-update-banner"
+                        class="relative overflow-hidden rounded-xl mb-8 px-8 py-10 bg-[var(--c-primary-50)] flex flex-col items-center text-center gap-3">
+                        <span
+                            class="text-xs font-semibold uppercase tracking-widest text-[var(--c-primary-300)] bg-[var(--c-primary-100)] px-3 py-1 rounded-full">
                             Experimental
                         </span>
-
-
-                        <p class="max-w-2xl text-center mx-auto mt-2">
+                        <h2 class="text-2xl font-semibold text-white">
+                            {{ $t('js.admin.updater.ready_title') }}
+                        </h2>
+                        <p class="text-white/60 text-sm max-w-md leading-relaxed">
                             {{ $t('js.admin.updater.ready_description') }}
                         </p>
+                    </div>
 
-                    </section>
-
-                    <div class="updater-footer flex mt-8 justify-center space-x-4">
-
-                        <c-button @click="runUpdate" :disabled="updating"
-                            class="button dark px-4 py-2 mt-4 flex justify-center"
-                            :class="[updating ? '!bg-gray-700' : '']">
-                            {{ updating ? "Updating..." : "Update now" }}
+                    <!-- Acciones -->
+                    <div class="flex items-center justify-center gap-3 mb-6">
+                        <c-button @click="runUpdate" :disabled="updating" class="!px-6 !py-2.5 !text-sm !font-semibold"
+                            :class="updating ? '!bg-white/10 !text-white/40 cursor-not-allowed' : ''">
+                            <span v-if="updating" class="flex items-center gap-2">
+                                <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="3" />
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                </svg>
+                                Actualizando...
+                            </span>
+                            <span v-else>Actualizar ahora</span>
                         </c-button>
 
                         <c-button @click="restartServer" :disabled="updating"
-                            class="button dark px-4 py-2 mt-4 flex justify-center !bg-red-500"
-                            :class="[updating ? '!bg-gray-700' : '']">
-                            Restart server
+                            class="!px-6 !py-2.5 !text-sm !font-semibold !bg-red-500/10 !text-red-400 !border-red-500/20 hover:!bg-red-500/20"
+                            :class="updating ? 'opacity-40 cursor-not-allowed' : ''">
+                            Reiniciar servidor
                         </c-button>
                     </div>
 
-                    <section id="update-failed" class="mx-2 bg-red-500 px-4 py-2" v-if="updateStatus === 'failed'">
-
-                    </section>
-                    <div class="w-full bg-gray-200 mt-4" v-if="updating">
-                        <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-1 leading-none transition-all"
-                            :style="`width: ${updateProgress}%`"> {{ updateProgress }}%</div>
+                    <!-- Barra de progreso -->
+                    <div v-if="updating" class="mb-4">
+                        <div class="flex justify-between text-xs text-white/40 mb-1.5">
+                            <span>Progreso</span>
+                            <span>{{ updateProgress }}%</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-[var(--c-primary-300)] rounded-full transition-all duration-300"
+                                :style="`width: ${updateProgress}%`" />
+                        </div>
                     </div>
 
-                    <details id="expandable-logs" v-if="outputMessage.length > 0">
-                        <summary>{{ currentLine }}</summary>
-                        <div v-if="outputMessage.length > 0" class="terminal-updating">
-                            <template v-for="line in outputMessage">
-                                {{ line }}
-                            </template>
+                    <!-- Error -->
+                    <div v-if="updateStatus === 'failed'"
+                        class="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-4">
+                        <AlertTriangle class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p class="text-sm font-semibold text-red-400">Falló la actualización</p>
+                            <p class="text-xs text-red-400/70 mt-0.5">Revisá los logs para más información.</p>
+                        </div>
+                    </div>
 
-
+                    <!-- Logs -->
+                    <details v-if="outputMessage.length > 0" id="expandable-logs" class="group">
+                        <summary
+                            class="flex items-center justify-between cursor-pointer select-none px-4 py-3 rounded-xl bg-white/5 border border-white/8 text-sm text-white/60 hover:text-white/90 hover:bg-white/8 transition-colors list-none">
+                            <span class="truncate max-w-sm font-mono text-xs">{{ currentLine }}</span>
+                            <svg class="w-4 h-4 flex-shrink-0 ml-2 transition-transform group-open:rotate-180"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </summary>
+                        <div class="terminal-updating mt-2 rounded-xl">
+                            <template v-for="line in outputMessage">{{ line }}</template>
                         </div>
                     </details>
 

@@ -1,5 +1,11 @@
 <template>
-  <input class="c-input" v-bind="$attrs" :value="modelValue" @input="updateValue($event.target.value)" />
+  <input
+    class="c-input"
+    v-bind="$attrs"
+    :value="modelValue"
+    @input="updateValue($event.target.value)"
+    @change="updateValue($event.target.value)"
+  />
 </template>
 
 <script setup>

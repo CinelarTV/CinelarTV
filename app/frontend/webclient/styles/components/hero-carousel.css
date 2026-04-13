@@ -1,293 +1,298 @@
-/* Modern Hero Carousel Styles */
-
-/* Hero Crossfade Transitions - Vue Transition */
-.hero-fade-enter-active,
-.hero-fade-leave-active {
-    transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+#home-carousel,
+.home-carousel {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+    overflow: hidden; /* oculta el overflow del track para que se vean cortados */
 }
 
-.hero-fade-enter-from,
-.hero-fade-leave-to {
-    opacity: 0;
+@media (min-width: 640px)  { .home-carousel { height: 55vh; } }
+@media (min-width: 768px)  { .home-carousel { height: 65vh; } }
+@media (min-width: 1024px) { .home-carousel { height: 75vh; } }
+
+/* ── Track ─────────────────────────────────────────────────────── */
+.home-carousel__track {
+    display: flex;
+    height: 100%;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    /* El scroll va hasta el borde pero el último slide
+       se ve ligeramente cortado gracias al padding-right */
+    padding-right: 8vw;
+    box-sizing: content-box;
+
+    &::-webkit-scrollbar { display: none; }
 }
 
-.hero-fade-enter-to,
-.hero-fade-leave-from {
-    opacity: 1;
+/* ── Slide ──────────────────────────────────────────────────────── */
+.home-carousel__slide {
+    position: relative;
+    flex-shrink: 0;
+    /* 92vw: deja ~8vw del siguiente slide visible, estilo Prime Video */
+    width: 92vw;
+    height: 100%;
+    scroll-snap-align: start;
+    border-radius: 0;
+    overflow: hidden;
+
+    /* Pequeño gap entre slides */
+    margin-right: 12px;
+
+    &:first-child { margin-left: 0; }
 }
 
-/* Content Crossfade Transitions */
-.hero-content-enter-active,
-.hero-content-leave-active {
-    transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hero-content-enter-from {
-    opacity: 0;
-    transform: translateY(20px);
-}
-
-.hero-content-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
-}
-
-.hero-content-enter-to,
-.hero-content-leave-from {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Variables */
-:root {
-    --carousel-transition-duration: 300ms;
-    --carousel-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Main carousel container */
-#home-carousel {
-    @apply relative w-full overflow-hidden;
-    background-color: #0a0a0a;
-}
-
-/* Background image transitions */
-#home-carousel > div:first-child {
-    transition: opacity var(--carousel-transition-duration) var(--carousel-transition-timing);
-}
-
-/* Content animations */
-#home-carousel h2 {
-    animation: slideUpFadeIn 0.6s var(--carousel-transition-timing) both;
-}
-
-#home-carousel p {
-    animation: slideUpFadeIn 0.6s var(--carousel-transition-timing) 0.1s both;
-}
-
-#home-carousel .flex.gap-3,
-#home-carousel .flex.gap-4 {
-    animation: slideUpFadeIn 0.6s var(--carousel-transition-timing) 0.2s both;
-}
-
-/* Keyframes */
-@keyframes slideUpFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+/* En desktop el primer slide ocupa el ancho completo */
+@media (min-width: 1024px) {
+    .home-carousel__slide:first-child {
+        width: 100vw;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .home-carousel__slide {
+        width: 88vw;
     }
 }
 
-/* Progress bar animation */
-@keyframes progressFill {
-    from {
-        width: 0%;
-    }
-    to {
+/* ── Imagen de fondo ────────────────────────────────────────────── */
+.home-carousel__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+}
+
+/* ── Gradientes ─────────────────────────────────────────────────── */
+.home-carousel__gradient-left {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(13,13,13,0.92) 0%, rgba(13,13,13,0.5) 50%, transparent 100%);
+}
+
+.home-carousel__gradient-bottom {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(13,13,13,0.95) 0%, transparent 50%);
+}
+
+/* ── Contenido ──────────────────────────────────────────────────── */
+.home-carousel__content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 0 5vw;
+}
+
+.home-carousel__poster {
+    display: none;
+    flex-shrink: 0;
+    width: 130px;
+
+    img {
         width: 100%;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
     }
 }
 
-/* Indicator styles */
-.carousel-indicator {
-    @apply rounded-full transition-all duration-300 cursor-pointer;
-    background: rgba(255, 255, 255, 0.4);
+@media (min-width: 640px) {
+    .home-carousel__poster { display: block; }
+}
+@media (min-width: 1024px) {
+    .home-carousel__poster { width: 160px; }
 }
 
-.carousel-indicator--active {
-    @apply bg-white;
-    background: white;
+.home-carousel__info {
+    flex: 1;
+    min-width: 0;
+    max-width: 560px;
 }
 
-/* Button styles */
-.carousel-button-primary {
-    @apply flex items-center gap-2 font-semibold rounded-lg shadow-xl transition-all duration-200;
-    background: white;
-    color: black;
+.home-carousel__title {
+    font-size: clamp(1.6rem, 4vw, 3.2rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
-.carousel-button-primary:hover {
-    @apply transform scale-105;
-    background: rgba(255, 255, 255, 0.9);
+/* ── Metadata ───────────────────────────────────────────────────── */
+.home-carousel__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.75);
 }
 
-.carousel-button-secondary {
-    @apply flex items-center gap-2 font-semibold rounded-lg shadow-xl transition-all duration-200;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(12px);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.home-carousel__meta-rating {
+    padding: 1px 6px;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 3px;
+    font-size: 0.78rem;
+    font-weight: 600;
 }
 
-.carousel-button-secondary:hover {
-    @apply transform scale-105;
-    background: rgba(255, 255, 255, 0.3);
+.home-carousel__meta-dot {
+    color: rgba(255,255,255,0.4);
 }
 
-.carousel-button-icon {
-    @apply flex items-center justify-center rounded-lg shadow-xl transition-all duration-200;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(12px);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.carousel-button-icon:hover {
-    @apply transform scale-110;
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.carousel-button-icon--liked {
-    @apply text-blue-400;
-    border-color: rgba(59, 130, 246, 0.5);
-}
-
-/* Navigation arrows */
-.carousel-nav-arrow {
-    @apply flex items-center justify-center rounded-full transition-all duration-200;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(12px);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.carousel-nav-arrow:hover {
-    @apply transform scale-110;
-    background: rgba(0, 0, 0, 0.6);
-}
-
-.carousel-nav-arrow:disabled {
-    @apply opacity-30 cursor-not-allowed;
-}
-
-.carousel-nav-arrow:disabled:hover {
-    @apply transform-none;
-}
-
-/* Loading spinner */
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.carousel-loading-spinner {
-    @apply animate-spin rounded-full border-2 border-white/30;
-    border-top-color: white;
-    animation: spin 1s linear infinite;
-}
-
-/* Responsive utilities */
-@media screen and (max-width: 640px) {
-    #home-carousel {
-        min-height: 50vh;
-    }
-
-    #home-carousel h2 {
-        @apply text-2xl leading-tight;
-    }
-
-    #home-carousel p {
-        @apply text-sm leading-relaxed;
-    }
-
-    .carousel-button-primary,
-    .carousel-button-secondary {
-        @apply px-5 py-2.5 text-sm;
-    }
-
-    .carousel-button-icon {
-        @apply w-10 h-10;
-    }
-
-    .carousel-nav-arrow {
-        @apply w-10 h-10;
-    }
-}
-
-@media screen and (min-width: 641px) and (max-width: 1024px) {
-    #home-carousel {
-        min-height: 55vh;
-    }
-
-    #home-carousel h2 {
-        @apply text-3xl md:text-4xl;
-    }
-
-    #home-carousel p {
-        @apply text-base md:text-lg;
-    }
-}
-
-@media screen and (min-width: 1025px) {
-    #home-carousel {
-        min-height: 65vh;
-    }
-
-    #home-carousel h2 {
-        @apply text-4xl lg:text-5xl leading-tight;
-    }
-
-    #home-carousel p {
-        @apply text-lg leading-relaxed;
-    }
-
-    .carousel-button-primary,
-    .carousel-button-secondary {
-        @apply px-6 py-3 text-base;
-    }
-
-    .carousel-button-icon {
-        @apply w-11 h-11;
-    }
-
-    .carousel-nav-arrow {
-        @apply w-12 h-12;
-    }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    #home-carousel h2,
-    #home-carousel p,
-    #home-carousel .flex.gap-3,
-    #home-carousel .flex.gap-4 {
-        animation: none;
-    }
-
-    .carousel-nav-arrow,
-    .carousel-button-primary,
-    .carousel-button-secondary,
-    .carousel-button-icon {
-        @apply transition-none;
-    }
-
-    #home-carousel > div:first-child {
-        transition: none;
-    }
-}
-
-/* Focus states for accessibility */
-.carousel-indicator:focus,
-.carousel-nav-arrow:focus,
-.carousel-button-primary:focus,
-.carousel-button-secondary:focus,
-.carousel-button-icon:focus {
-    @apply outline-none ring-2 ring-white ring-offset-2 ring-offset-black;
-}
-
-/* Line clamp utilities */
-.line-clamp-3 {
+/* ── Descripción ────────────────────────────────────────────────── */
+.home-carousel__description {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 24px;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    max-width: 480px;
 }
 
-/* Drop shadows for text readability */
-.drop-shadow-2xl {
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+/* ── Acciones ───────────────────────────────────────────────────── */
+.home-carousel__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.home-carousel__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px 22px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, transform 0.1s;
+
+    &:active { transform: scale(0.97); }
+
+    &--primary {
+        background: #fff;
+        color: #000;
+        &:hover { background: #e0e0e0; }
+    }
+
+    &--secondary {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.25);
+        backdrop-filter: blur(6px);
+        &:hover { background: rgba(255,255,255,0.25); }
+    }
+
+    &--icon {
+        padding: 10px;
+        width: 44px;
+        height: 44px;
+        justify-content: center;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.25);
+        backdrop-filter: blur(6px);
+        &:hover { background: rgba(255,255,255,0.25); }
+    }
+
+    &--liked {
+        color: var(--c-primary-300);
+        border-color: var(--c-primary-300);
+    }
+}
+
+/* ── Flechas ────────────────────────────────────────────────────── */
+.home-carousel__arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background 0.15s, transform 0.15s;
+
+    &:hover { background: rgba(0,0,0,0.8); transform: translateY(-50%) scale(1.08); }
+    &:disabled { opacity: 0.25; cursor: default; pointer-events: none; }
+
+    &--prev { left: 16px; }
+    &--next { right: 16px; }
+}
+
+/* ── Indicadores ────────────────────────────────────────────────── */
+.home-carousel__indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.home-carousel__dot {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.35);
+    border: none;
+    cursor: pointer;
+    transition: width 0.3s, background 0.3s;
+    width: 8px;
+
+    &--active {
+        width: 28px;
+        background: #fff;
+    }
+
+    &:hover:not(.home-carousel__dot--active) {
+        background: rgba(255,255,255,0.6);
+    }
+}
+
+/* ── Loading ────────────────────────────────────────────────────── */
+.home-carousel__loading {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.home-carousel__spinner {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: var(--c-primary-300, #fff);
+    animation: carousel-spin 0.8s linear infinite;
+}
+
+@keyframes carousel-spin {
+    to { transform: rotate(360deg); }
 }
