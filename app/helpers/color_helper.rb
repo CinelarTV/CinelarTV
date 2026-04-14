@@ -2,33 +2,22 @@
 
 module ColorHelper
   def generate_color_variants(base_color, name)
-    variants = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]
-
-    css_variables = variants.map do |variant|
+    [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].map do |variant|
       generate_variant_color(base_color, variant, name)
-    end
-
-    css_variables.join("\n").html_safe
+    end.join("\n").html_safe
   end
 
   def generate_variant_color(base_color, variant, name)
-    base_color_hex = base_color.delete("#")
-    base_color_rgb = [base_color_hex[0..1], base_color_hex[2..3], base_color_hex[4..5]].map(&:hex)
-    adjusted_rgb = base_color_rgb.map { |c| adjust_color_channel(c, variant) }
+    rgb = base_color.delete("#").scan(/../).map(&:hex)
+    hex = rgb.map { |c| adjust_color_channel(c, variant).to_s(16).rjust(2, "0") }.join
 
-    "--c-#{name}-#{variant}: #" + adjusted_rgb.map { |c| c.to_s(16).rjust(2, "0") }.join + ";"
+    "--c-#{name}-#{variant}: ##{hex};"
   end
 
   private
 
-  def adjust_color_channel(channel_value, variant)
-    # Convert channel_value to a number
-    channel_value = channel_value.to_i
-    # Adjust the color channel
-    adjusted_value = channel_value - (variant * 0.1 * (channel_value < 128 ? -1 : 1)) # Inverted adjustment for darker variants
-    # Round the result
-    adjusted_value = adjusted_value.round
-    # Clamp the result to the valid range
-    [0, adjusted_value, 255].sort[1]
+  def adjust_color_channel(channel, variant)
+    direction = channel < 128 ? 1 : -1
+    [[0, (channel + direction * variant * 0.1).round, 255].sort[1], 255].min
   end
 end

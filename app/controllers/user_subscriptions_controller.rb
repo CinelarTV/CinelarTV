@@ -2,24 +2,35 @@
 
 class UserSubscriptionsController < ApplicationController
   before_action :authenticate_user!
+  before_action :set_provider
   before_action :set_subscription
 
   def index
     @subscriptions = UserSubscription.where(user_id: current_user.id)
 
-    subscription_data = get_subscription_details
-
-    @subscriptions[:api_response] = subscription_data if subscription_data
-
     respond_to do |format|
       format.html
       format.json do
         render json: {
-          data: @subscriptions.as_json
-
+          data: @subscriptions.as_json,
+          provider: @provider.provider_key
         }
       end
     end
+  end
+
+  def checkout
+    checkout = @provider.create_checkout!(
+      user: current_user,
+      success_url: params[:success_url],
+      failure_url: params[:failure_url],
+      pending_url: params[:pending_url]
+    )
+
+    render json: { data: checkout }, status: :ok
+  rescue StandardError => e
+    Rails.logger.error("Checkout creation failed for user #{current_user.id}: #{e.message}")
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   def destroy
@@ -34,32 +45,15 @@ class UserSubscriptionsController < ApplicationController
 
   private
 
+  def set_provider
+    @provider = Subscriptions::Providers::Registry.current
+  end
+
   def set_subscription
     @subscription = UserSubscription.find_by(user_id: current_user.id)
   end
 
   def subscription_params
     params.require(:user_subscription).permit(:plan_id)
-  end
-
-  def get_subscription_details
-    data = nil
-    if SiteSetting.lemon_api_key.blank?
-      Rails.logger.error("LemonSqueezy API key is not set")
-      return nil
-    end
-
-    # Fetch with headers
-    response = HTTParty.get("https://api.lemonsqueezy.com/v1/subscriptions/#{@subscription.order_id}", headers: {
-                              "Authorization" => "Bearer #{SiteSetting.lemon_api_key}"
-                            })
-
-    data = JSON.parse(response.body) if response.code == 200
-
-    data
-  rescue StandardError => e
-    # Handle other exceptions
-    Rails.logger.error("Error while getting subscription details for user #{current_user.id}: #{e.message}")
-    nil
   end
 end

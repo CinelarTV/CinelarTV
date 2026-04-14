@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "uri"
+
 module ApplicationHelper
   def device
     agent = request.user_agent
@@ -29,7 +31,6 @@ module ApplicationHelper
 
   def render_external_scripts
     scripts = (SiteSetting.external_scripts || "").split("|")
-    scripts << "https://app.lemonsqueezy.com/js/lemon.js" if SiteSetting.enable_subscription
     scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" if SiteSetting.enable_chromecast
 
     scripts.map { |s| javascript_include_tag(s, defer: true) }.join.html_safe
@@ -41,7 +42,23 @@ module ApplicationHelper
     end.join.html_safe
   end
 
+  def resolve_stream_url(url)
+    return url if url.blank?
+    return url unless SiteSetting.live_tv_proxy_mode.to_s == "internal"
+    return url unless request.ssl?
+    return url if https_url?(url)
+
+    live_proxy_path(url: url)
+  end
+
   private
+
+  def https_url?(url)
+    parsed = URI.parse(url)
+    parsed.is_a?(URI::HTTPS)
+  rescue URI::InvalidURIError
+    false
+  end
 
   def build_user_data
     return nil unless current_user

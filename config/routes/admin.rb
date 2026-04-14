@@ -14,6 +14,13 @@ namespace :admin do
 
   get "webhooks/logs" => "dashboard#webhook_logs"
 
+  get "subscriptions" => "subscriptions#index"
+  get "subscriptions/logs" => "subscriptions#logs"
+  get "subscriptions/:id" => "subscriptions#show"
+  post "subscriptions/:id/cancel" => "subscriptions#cancel"
+  post "subscriptions/:id/sync" => "subscriptions#sync"
+  post "subscriptions/:id/grant" => "subscriptions#grant"
+
   # Content Management related routes
   get "/content-manager/all", to: "contents#index"
   get "/content-manager/:id", to: "contents#show"

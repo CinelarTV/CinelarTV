@@ -38,7 +38,13 @@ const adminLinks = [
     to: '/admin/users'
   },
   {
+    title: $t("js.admin.nav.subscriptions") || 'Subscriptions',
+    to: '/admin/subscriptions',
+    enabled: SiteSettings.enable_subscription || false
+  },
+  {
     title: $t("js.admin.nav.live_tv") || 'Live TV',
+    icon: 'satellite-dish',
     to: '/admin/live-tv',
     enabled: SiteSettings.enable_live_tv || false // Only show if Live TV is enabled
   },
@@ -58,11 +64,6 @@ const adminLinks = [
     to: '/admin/updates',
     enabled: SiteSettings.enable_web_updater || false
   },
-  {
-    title: "Webhooks",
-    icon: 'webhook',
-    to: '/admin/webhooks/logs'
-  }
 ].filter(link => link.enabled !== false)
 
 useHead({

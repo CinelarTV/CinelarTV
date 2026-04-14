@@ -35,6 +35,14 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.subscriptions',
+            path: 'subscriptions',
+            component: () => import('../views/admin/subscriptions.vue'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.live_tv',
             path: 'live-tv',
             component: () => import('../views/admin/live-tv.vue'),

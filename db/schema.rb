@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_14_000003) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_14_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -272,6 +272,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_14_000003) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean "test_mode"
+    t.string "provider", default: "mercado_pago", null: false
+    t.string "provider_subscription_id"
+    t.string "provider_customer_id"
+    t.string "provider_plan_id"
+    t.string "checkout_reference"
+    t.string "external_status"
+    t.boolean "granted_by_admin", default: false, null: false
+    t.datetime "granted_until"
+    t.datetime "cancelled_at"
+    t.jsonb "metadata", default: {}, null: false
+    t.index ["provider", "provider_subscription_id"], name: "idx_user_subscriptions_provider_external_id", unique: true, where: "(provider_subscription_id IS NOT NULL)"
+    t.index ["provider"], name: "index_user_subscriptions_on_provider"
     t.index ["user_id"], name: "index_user_subscriptions_on_user_id", unique: true
   end
 

@@ -59,6 +59,7 @@ Rails.application.routes.draw do
   get "/live_tv/:id", to: "live_tv#show"
   get "/live_tv/:id/guide", to: "live_tv#guide"
   get "/live/:id", to: "live_tv#watch", as: :watch_live
+  get "/live_proxy", to: "live_proxy#stream"
 
   # Dev route to refresh the settings
   get "/r", to: "application#refresh_settings" if Rails.env.development?
@@ -87,13 +88,14 @@ Rails.application.routes.draw do
   # Sitemap
   get "sitemap.xml" => "sitemap#index", format: "xml", as: :sitemap
 
-  # Lemon Squeezy Webhooks
+  # Subscription provider webhooks
 
-  post "lemon/webhooks/callback" => "webhooks#callback"
+  post "subscriptions/webhooks/:provider" => "webhooks#subscription"
 
   # User Subscriptions
 
   get "account/billing" => "user_subscriptions#index"
+  post "account/billing/checkout" => "user_subscriptions#checkout"
 
   get "/404-content" => "exceptions#not_found_body"
 

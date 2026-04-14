@@ -121,6 +121,19 @@ live_tv:
     refresh: true
     default: "Live TV"
     type: 'string'
+  live_tv_proxy_mode:
+    client: true
+    refresh: true
+    default: none
+    type: 'enum'
+    allowed_values:
+      - none
+      - internal
+  live_tv_proxy_allowed_stream_hosts:
+    client: false
+    refresh: true
+    default: "provider.com|cdn.provider.com"
+    type: 'list'
 
 monetization:
   enable_subscription:
@@ -129,19 +142,87 @@ monetization:
     default: false
     type: 'boolean'
 
-  lemon_api_key:
+  subscription_provider_primary:
+    client: true
+    refresh: true
+    default: mercado_pago
+    type: 'enum'
+    allowed_values:
+      - mercado_pago
+
+  subscription_provider_secondary:
+    client: true
+    refresh: true
+    default: ""
+    type: 'enum'
+    allowed_values:
+      - ""
+      - mercado_pago
+
+  mercadopago_access_token:
     client: false
     refresh: true
     default: ""
     type: 'string'
     secret: true
 
-  lemon_webhook_secret:
+  mercadopago_webhook_secret:
     client: false
     refresh: true
     default: ""
     type: 'string'
     secret: true
+
+  mercadopago_plan_id:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+
+  mercadopago_plan_title:
+    client: true
+    refresh: true
+    default: "CinelarTV Subscription"
+    type: 'string'
+
+  mercadopago_plan_interval:
+    client: true
+    refresh: true
+    default: monthly
+    type: 'enum'
+    allowed_values:
+      - monthly
+      - yearly
+
+  mercadopago_plan_currency:
+    client: true
+    refresh: true
+    default: USD
+    type: 'string'
+
+  mercadopago_plan_price:
+    client: true
+    refresh: true
+    default: "9.99"
+    type: 'string'
+
+  mercadopago_success_url:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+
+  mercadopago_failure_url:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+
+  mercadopago_pending_url:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
 
 storage:
   storage_provider:

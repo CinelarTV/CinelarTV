@@ -1,14 +1,14 @@
 <template>
     <div class="live-tv-admin">
         <header class="live-tv-admin__hero">
-            <div>
-                <p class="live-tv-admin__eyebrow">Admin Console</p>
+            <div class="live-tv-admin__hero-copy">
                 <h1 class="live-tv-admin__title">Live TV Manager</h1>
                 <p class="live-tv-admin__subtitle">
-                    Administra canales y fuentes XMLTV desde un solo lugar.
+                    Administra canales, streams y fuentes XMLTV desde un solo lugar.
                 </p>
             </div>
-            <c-button @click="refreshAll" :loading="loadingChannels || loadingSources">
+            <c-button class="live-tv-admin__refresh-btn" @click="refreshAll"
+                :loading="loadingChannels || loadingSources">
                 Actualizar
             </c-button>
         </header>
@@ -36,7 +36,7 @@
             <div class="live-tv-admin__section-header">
                 <div>
                     <h2>Canales</h2>
-                    <p>Configura streams, formato y orden de visualizacion.</p>
+                    <p>Configura streams, formato y orden de visualizacion. {{ channels.length }} total.</p>
                 </div>
                 <c-button @click="startCreateChannel">
                     <PlusIcon :size="16" />
@@ -133,7 +133,8 @@
             <div class="live-tv-admin__section-header">
                 <div>
                     <h2>Fuentes XMLTV</h2>
-                    <p>Conecta guias EPG y ejecuta fetch/parsing manual cuando lo necesites.</p>
+                    <p>Conecta guias EPG y ejecuta fetch/parsing manual cuando lo necesites. {{ sources.length }} total.
+                    </p>
                 </div>
                 <c-button @click="startCreateSource">
                     <PlusIcon :size="16" />

@@ -56,7 +56,7 @@ class LiveTvController < ApplicationController
           live_tv_channel: {
             id: @channel.id,
             name: @channel.name,
-            stream_url: @channel.stream_url,
+            stream_url: helpers.resolve_stream_url(@channel.stream_url),
             stream_format: @channel.stream_format,
             logo_url: @channel.logo_url,
             current_program: @channel.current_program&.as_json(only: %i[id title description start_time end_time icon_url category]),
@@ -113,7 +113,7 @@ class LiveTvController < ApplicationController
       name: channel.name,
       description: channel.description,
       logo_url: channel.logo_url,
-      stream_url: channel.stream_url,
+      stream_url: helpers.resolve_stream_url(channel.stream_url),
       stream_format: channel.stream_format,
       is_active: channel.is_active,
       xmltv_channel_id: channel.xmltv_channel_id,

@@ -114,7 +114,7 @@ export default defineComponent({
                                     onClick={backToChannels}
                                     class="rounded bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
                                 >
-                                    <CIcon icon="arrow-left" size={20} />
+                                    <CIcon icon="chevron-left" size={20} />
                                 </button>
                                 <div>
                                     <h1 class="text-2xl font-bold text-white">{guide.value.channel_name}</h1>
@@ -144,8 +144,8 @@ export default defineComponent({
                                         <div
                                             key={program.id}
                                             class={`rounded-lg border p-4 transition-colors ${isPlaying
-                                                    ? 'border-red-600 bg-red-600/10'
-                                                    : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                                ? 'border-red-600 bg-red-600/10'
+                                                : 'border-white/10 bg-white/5 hover:bg-white/10'
                                                 }`}
                                         >
                                             <div class="flex items-start gap-4">
