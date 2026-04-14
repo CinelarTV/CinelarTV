@@ -44,7 +44,7 @@ export default defineComponent({
                 currentProgram.value = data.live_tv_channel.current_program;
 
                 if (channelData.value) {
-                    useHead({ title: `${channelData.value.name} - Live TV` });
+                    useHead({ title: `${channelData.value.name}` });
                 }
             } catch (error: any) {
                 const errorMsg = error?.response?.data?.error || 'Error al cargar el canal en vivo.';
@@ -100,7 +100,7 @@ export default defineComponent({
                         ref={videoPlayer}
                         class="w-full h-full grow min-w-0"
                         autoplay
-                        title={`${channelData.value.name} - Live TV`}
+                        title={`${channelData.value.name}`}
                         live
                     >
                         <media-provider>

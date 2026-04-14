@@ -20,16 +20,21 @@ export default defineComponent({
         const requireSignupModalRef = ref<any>(null);
         const relatedContentScroll = ref<HTMLElement | null>(null);
 
+        const onScroll = () => {
+            document.body.classList.toggle('scrolled', window.scrollY > 120);
+        };
+
         const getContent = async () => {
             try {
                 const data = await Content.getById($route.params.id.toString());
                 contentData.value = data;
-                if (data?.isTVShow && data.seasons?.length > 0) {
-                    activeSeason.value = String(data.seasons[0].id);
+                const seasons = ((data as any)?.seasons ?? []) as any[];
+                if ((data as any)?.isTVShow && seasons.length > 0) {
+                    activeSeason.value = String(seasons[0].id);
                 }
                 loading.value = false;
-                if (data?.trailerUrl) {
-                    await preloadTrailer(data.trailerUrl);
+                if ((data as any)?.trailerUrl) {
+                    await preloadTrailer((data as any).trailerUrl);
                     showTrailer.value = true;
                 }
             } catch (error: any) {
@@ -42,10 +47,6 @@ export default defineComponent({
         const openRequireSignupModal = () => {
             requireSignupModalRef.value?.setIsOpen(true);
         };
-
-        onBeforeUnmount(() => {
-            document.body.classList.remove('content-route');
-        });
 
         const playContent = async () => {
             if (!currentUser) {
@@ -78,20 +79,24 @@ export default defineComponent({
         onMounted(async () => {
             await getContent();
             document.body.classList.add('content-route');
+            window.addEventListener('scroll', onScroll);
+            onScroll();
 
             const bannerWrapper = document.querySelector('.banner-wrapper') as HTMLElement;
-            const image = new window.Image();
-            image.src = contentData.value?.banner || '';
-            image.addEventListener('load', () => {
-                bannerWrapper.style.backgroundImage = `url(${image.src})`;
-                bannerWrapper.classList.add('banner-loaded');
-            });
-            image.addEventListener('error', () => {
-                bannerWrapper.style.backgroundImage = contentData.value?.cover
-                    ? `url(${contentData.value.cover})`
-                    : 'url(/assets/images/content_no_media.png)';
-                bannerWrapper.classList.add('banner-loaded');
-            });
+            if (bannerWrapper) {
+                const image = new window.Image();
+                image.src = contentData.value?.banner || '';
+                image.addEventListener('load', () => {
+                    bannerWrapper.style.backgroundImage = `url(${image.src})`;
+                    bannerWrapper.classList.add('banner-loaded');
+                });
+                image.addEventListener('error', () => {
+                    bannerWrapper.style.backgroundImage = contentData.value?.cover
+                        ? `url(${contentData.value.cover})`
+                        : 'url(/assets/images/content_no_media.png)';
+                    bannerWrapper.classList.add('banner-loaded');
+                });
+            }
 
             if (contentData.value) {
                 useHead({
@@ -101,12 +106,10 @@ export default defineComponent({
             }
         });
 
-        onMounted(() => {
-            const onScroll = () => {
-                document.body.classList.toggle('scrolled', window.scrollY > 120);
-            };
-            window.addEventListener('scroll', onScroll);
-            onBeforeUnmount(() => window.removeEventListener('scroll', onScroll));
+        onBeforeUnmount(() => {
+            document.body.classList.remove('content-route');
+            document.body.classList.remove('scrolled');
+            window.removeEventListener('scroll', onScroll);
         });
 
         return () => (
@@ -116,127 +119,148 @@ export default defineComponent({
                         <cSpinner />
                     </div>
                 ) : (
-                    <div
-                        class="content-overview"
-                        data-content-id={contentData.value?.id}
-                        data-content-type={contentData.value?.isMovie ? 'movie' : 'tvshow'}
-                    >
-                        {/* Banner full-bleed */}
-                        <div class="banner-wrapper">
-                            <div class="banner-wrapper__side-fade" />
-                            <div class="banner-wrapper__bottom-fade" />
-                        </div>
+                    (() => {
+                        const content = contentData.value as any;
+                        const seasons = (content?.seasons ?? []) as any[];
+                        const relatedContent = (content?.relatedContent ?? []) as any[];
 
-                        {/* Detalles superpuestos */}
-                        <div class="content-details">
-
-                            {/* Metadata */}
-                            <div class="content-meta">
-                                {contentData.value?.isNew && (
-                                    <span class="content-meta__badge content-meta__badge--new">Nuevo</span>
-                                )}
-                                {contentData.value?.year && (
-                                    <>
-                                        <span class="content-meta__dot" />
-                                        <span class="content-meta__text">{contentData.value.year}</span>
-                                    </>
-                                )}
-                                {contentData.value?.rating && (
-                                    <>
-                                        <span class="content-meta__dot" />
-                                        <span class="content-meta__rating">
-                                            <span class="content-meta__star">★</span>
-                                            {contentData.value.rating}
-                                        </span>
-                                    </>
-                                )}
-                                {contentData.value?.isTVShow && contentData.value.seasons?.length > 0 && (
-                                    <>
-                                        <span class="content-meta__dot" />
-                                        <span class="content-meta__text">
-                                            {contentData.value.seasons.length} temporada{contentData.value.seasons.length !== 1 ? 's' : ''}
-                                        </span>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* Título */}
-                            <h1 class="content-title">{contentData.value?.title}</h1>
-
-                            {/* Descripción */}
-                            <p class="content-description">{contentData.value?.description}</p>
-
-                            {/* Acciones — se mantienen CButton con su icon prop */}
-                            <div class="content-actions">
-                                {contentData.value?.available ? (
-                                    <>
-                                        <CButton
-                                            icon="play-circle"
-                                            class="content-actions__btn--primary"
-                                            onClick={playContent}
-                                        >
-                                            {contentData.value?.continueWatching ? 'Continuar viendo' : 'Reproducir'}
-                                        </CButton>
-
-                                    </>
-                                ) : (
-                                    <p class="content-actions__unavailable">
-                                        Este contenido no está disponible en este momento.
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Episodios */}
-                            {contentData.value?.isTVShow && (
-                                contentData.value.seasons?.length > 0 ? (
-                                    <div class="content-episodes">
-                                        <EpisodesList
-                                            seasons={contentData.value.seasons}
-                                            activeSeason={activeSeason.value}
-                                            onUpdate:activeSeason={val => activeSeason.value = val}
-                                            onPlayEpisode={playEpisode}
-                                        />
-                                    </div>
-                                ) : (
-                                    <p class="content-episodes__empty">
-                                        No hay temporadas disponibles para este programa.
-                                    </p>
-                                )
-                            )}
-
-                            {/* Contenido relacionado */}
-                            {contentData.value?.relatedContent?.length > 0 && (
-                                <div class="content-related">
-                                    <h3 class="content-related__title">Quizás te guste...</h3>
-                                    <div ref={relatedContentScroll} class="content-related__scroll">
-                                        {contentData.value.relatedContent.map(content => (
-                                            <router-link
-                                                key={content.id}
-                                                to={{ name: 'content.show', params: { id: content.id }, force: true }}
-                                                class="content-related__card"
-                                            >
-                                                <img
-                                                    src={content.banner || content.cover}
-                                                    alt={content.title}
-                                                    class="content-related__card-img"
-                                                    loading="lazy"
-                                                />
-                                                <div class="content-related__card-overlay">
-                                                    <span class="content-related__card-title">{content.title}</span>
-                                                </div>
-                                            </router-link>
-                                        ))}
-                                    </div>
+                        return (
+                            <div
+                                class="content-overview"
+                                data-content-id={content?.id}
+                                data-content-type={content?.isMovie ? 'movie' : 'tvshow'}
+                            >
+                                {/* Banner full-bleed */}
+                                <div class="banner-wrapper">
+                                    <div class="banner-wrapper__side-fade" />
+                                    <div class="banner-wrapper__bottom-fade" />
                                 </div>
-                            )}
-                        </div>
 
-                        <RequireSignupModal
-                            ref={requireSignupModalRef}
-                            content-name={contentData.value?.title}
-                            onOpenSignupModal={() => { }}
-                        />
-                    </div>
+                                {/* Detalles superpuestos */}
+                                <div class="content-details">
+                                    {(() => {
+                                        const metaItems: any[] = [];
+
+                                        if (content?.isNew) {
+                                            metaItems.push(
+                                                <span class="content-meta__badge content-meta__badge--new">Nuevo</span>
+                                            );
+                                        }
+
+                                        if (content?.year) {
+                                            metaItems.push(
+                                                <span class="content-meta__text">{content.year}</span>
+                                            );
+                                        }
+
+                                        if (content?.rating) {
+                                            metaItems.push(
+                                                <span class="content-meta__rating">
+                                                    <span class="content-meta__star">★</span>
+                                                    {content.rating}
+                                                </span>
+                                            );
+                                        }
+
+                                        if (content?.isTVShow && seasons.length > 0) {
+                                            metaItems.push(
+                                                <span class="content-meta__text">
+                                                    {seasons.length} temporada{seasons.length !== 1 ? 's' : ''}
+                                                </span>
+                                            );
+                                        }
+
+                                        return (
+                                            <div class="content-meta">
+                                                {metaItems.map((item, index) => (
+                                                    <>
+                                                        {index > 0 && <span class="content-meta__dot" />}
+                                                        {item}
+                                                    </>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Título */}
+                                    <h1 class="content-title">{content?.title}</h1>
+
+                                    {/* Descripción */}
+                                    <p class="content-description">{content?.description}</p>
+
+                                    {/* Acciones — se mantienen CButton con su icon prop */}
+                                    <div class="content-actions">
+                                        {contentData.value?.available ? (
+                                            <>
+                                                <CButton
+                                                    icon="play-circle"
+                                                    class="content-actions__btn--primary"
+                                                    onClick={playContent}
+                                                >
+                                                    {content?.continueWatching ? 'Continuar viendo' : 'Reproducir'}
+                                                </CButton>
+
+                                            </>
+                                        ) : (
+                                            <p class="content-actions__unavailable">
+                                                Este contenido no está disponible en este momento.
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Episodios */}
+                                    {content?.isTVShow && (
+                                        seasons.length > 0 ? (
+                                            <div class="content-episodes">
+                                                <EpisodesList
+                                                    seasons={seasons}
+                                                    activeSeason={activeSeason.value || ''}
+                                                    onUpdate:activeSeason={val => activeSeason.value = val}
+                                                    onPlayEpisode={playEpisode}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <p class="content-episodes__empty">
+                                                No hay temporadas disponibles para este programa.
+                                            </p>
+                                        )
+                                    )}
+
+                                    {/* Contenido relacionado */}
+                                    {relatedContent.length > 0 && (
+                                        <div class="content-related">
+                                            <h3 class="content-related__title">Quizás te guste...</h3>
+                                            <div ref={relatedContentScroll} class="content-related__scroll">
+                                                {relatedContent.map(content => (
+                                                    <router-link
+                                                        key={content.id}
+                                                        to={{ name: 'content.show', params: { id: content.id }, force: true }}
+                                                        class="content-related__card"
+                                                    >
+                                                        <img
+                                                            src={content.banner || content.cover}
+                                                            alt={content.title}
+                                                            class="content-related__card-img"
+                                                            loading="lazy"
+                                                        />
+                                                        <div class="content-related__card-overlay">
+                                                            <span class="content-related__card-title">{content.title}</span>
+                                                        </div>
+                                                    </router-link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <RequireSignupModal
+                                    ref={requireSignupModalRef}
+                                    content-name={content?.title}
+                                    onOpenSignupModal={() => { }}
+                                />
+                            </div>
+                        );
+                    })()
                 )}
             </div>
         );

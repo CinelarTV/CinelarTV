@@ -1,0 +1,10 @@
+<% @title = @channel&.name ? "Ver en vivo - #{@channel.name}" : "Ver en vivo" %>
+
+<main class="live-tv-watch" style="padding: 2rem; color: #fff;">
+  <h1>Live TV</h1>
+  <p>
+    Estás viendo:
+    <strong><%= @channel&.name || "Canal" %></strong>
+  </p>
+  <p>La reproducción en vivo está disponible desde el cliente web.</p>
+</main>
