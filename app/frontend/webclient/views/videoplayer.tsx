@@ -9,7 +9,7 @@ import { getGoogleDriveVideoInfo } from "@/app/utils/GoogleDriveParser";
 import 'vidstack/player/styles/base.css';
 import 'vidstack/player';
 import 'vidstack/player/ui';
-import { defineCustomElement, MediaTitleElement, MediaSpinnerElement } from "vidstack/elements";
+import { defineCustomElement, MediaTitleElement, MediaSpinnerElement, MediaQualityRadioGroupElement } from "vidstack/elements";
 import { MediaPlayer } from "vidstack";
 
 import CSpinner from "@/components/c-spinner";
@@ -91,6 +91,7 @@ export default defineComponent({
     setup() {
         defineCustomElement(MediaTitleElement);
         defineCustomElement(MediaSpinnerElement);
+        defineCustomElement(MediaQualityRadioGroupElement);
 
         const { siteSettings } = useSiteSettings();
         const route = useRoute();
@@ -196,7 +197,7 @@ export default defineComponent({
                 <div class="video-container">
                     <media-player
                         ref={videoPlayer}
-                        class="w-full h-full grow min-w-0"
+                        class="video-shell w-full h-full min-w-0 min-h-0"
                         autoplay
                         title={watchData.value.content?.title || "Video"}
                     >

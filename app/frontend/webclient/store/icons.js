@@ -1,21 +1,16 @@
 // store/icons.js
-
 import { defineStore } from 'pinia'
 import { generateSpriteSheet } from '../lib/IconLibrary'
 
-
 export const useIconsStore = defineStore('icons', {
     state: () => ({
-        icons: [],
+        icons: new Set(),
     }),
     actions: {
         addIcon(icon) {
-            if(this.icons.find(i => i.id === icon.id)) {
-                return // Icon already exists
-            }
-            this.icons.push(icon)
+            if (this.icons.has(icon)) return
+            this.icons.add(icon)
             generateSpriteSheet()
         },
-        // Otras acciones relacionadas con el estado global
     },
 })

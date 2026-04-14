@@ -78,9 +78,9 @@ export default defineComponent({
         return () => {
             if (isLoading.value) {
                 return (
-                    <div class="min-h-screen bg-[#0a0a0a]">
-                        <div class="flex h-[60vh] items-center justify-center">
-                            <CSpinner class="w-12 h-12 text-white" />
+                    <div class="live-tv-index live-tv-index--loading">
+                        <div class="live-tv-index__state live-tv-index__state--loading">
+                            <CSpinner class="live-tv-index__spinner" />
                         </div>
                     </div>
                 );
@@ -88,13 +88,13 @@ export default defineComponent({
 
             if (error.value && channels.value.length === 0) {
                 return (
-                    <div class="min-h-screen bg-[#0a0a0a]">
-                        <div class="flex h-[60vh] flex-col items-center justify-center gap-4">
-                            <CIcon icon="broadcast-off" size={48} class="text-white/30" />
-                            <p class="text-lg text-white/60">{error.value}</p>
+                    <div class="live-tv-index live-tv-index--error">
+                        <div class="live-tv-index__state live-tv-index__state--error">
+                            <CIcon icon="broadcast-off" size={48} class="live-tv-index__state-icon" />
+                            <p class="live-tv-index__state-text">{error.value}</p>
                             <button
                                 onClick={() => router.push('/')}
-                                class="rounded bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+                                class="live-tv-index__back-btn"
                             >
                                 Volver al inicio
                             </button>
@@ -104,72 +104,72 @@ export default defineComponent({
             }
 
             return (
-                <div class="min-h-screen bg-[#0a0a0a]">
-                    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                        <div class="mb-8 flex items-center gap-3">
-                            <div class="flex items-center gap-2">
-                                <div class="h-3 w-3 animate-pulse rounded-full bg-red-600"></div>
-                                <CIcon icon="broadcast" size={24} class="text-red-500" />
+                <div class="live-tv-index">
+                    <div class="live-tv-index__container">
+                        <div class="live-tv-index__header">
+                            <div class="live-tv-index__header-mark">
+                                <div class="live-tv-index__pulse"></div>
+                                <CIcon icon="satellite-dish" size={22} class="live-tv-index__header-icon" />
                             </div>
-                            <h1 class="text-3xl font-bold text-white">{sectionTitle.value}</h1>
+                            <h1 class="live-tv-index__title">{sectionTitle.value}</h1>
                         </div>
 
                         {channels.value.length === 0 ? (
-                            <div class="flex flex-col items-center justify-center py-16 text-center">
-                                <CIcon icon="broadcast-off" size={64} class="mb-4 text-white/20" />
-                                <h2 class="mb-2 text-xl font-semibold text-white">No hay canales disponibles</h2>
-                                <p class="text-white/60">
+                            <div class="live-tv-index__state live-tv-index__state--empty">
+                                <CIcon icon="broadcast-off" size={64} class="live-tv-index__state-icon" />
+                                <h2 class="live-tv-index__state-title">No hay canales disponibles</h2>
+                                <p class="live-tv-index__state-text">
                                     No se han configurado canales de televisión en vivo.
                                 </p>
                             </div>
                         ) : (
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div class="live-tv-index__grid">
                                 {channels.value.map((channel) => (
                                     <div
                                         key={channel.id}
-                                        class="group relative cursor-pointer overflow-hidden rounded-lg bg-white/5 transition-all hover:bg-white/10 hover:shadow-lg hover:shadow-black/50"
+                                        class="live-tv-index__card group"
                                         onClick={() => watchChannel(channel.id)}
                                     >
                                         {/* Channel Logo & Banner */}
-                                        <div class="relative aspect-video overflow-hidden bg-gradient-to-br from-white/10 to-white/5">
+                                        <div class="live-tv-index__card-media">
                                             {channel.logo_url ? (
                                                 <img
                                                     src={channel.logo_url}
                                                     alt={channel.name}
-                                                    class="h-full w-full object-contain p-6 transition-transform group-hover:scale-105"
+                                                    class="live-tv-index__logo"
                                                     loading="lazy"
                                                 />
                                             ) : (
-                                                <div class="flex h-full items-center justify-center">
-                                                    <CIcon icon="broadcast" size={48} class="text-white/30" />
+                                                <div class="live-tv-index__logo-fallback">
+                                                    <CIcon icon="tv" size={44} class="live-tv-index__logo-fallback-icon" />
                                                 </div>
                                             )}
 
                                             {/* Live Badge */}
-                                            <div class="absolute right-3 top-3 flex items-center gap-1.5 rounded bg-red-600 px-2.5 py-1 text-xs font-bold uppercase text-white">
-                                                <div class="h-1.5 w-1.5 animate-pulse rounded-full bg-white"></div>
+                                            <div class="live-tv-index__live-badge">
+                                                <div class="live-tv-index__live-dot"></div>
                                                 LIVE
                                             </div>
                                         </div>
 
                                         {/* Channel Info */}
-                                        <div class="p-4">
-                                            <h3 class="mb-1 text-lg font-semibold text-white">{channel.name}</h3>
+                                        <div class="live-tv-index__card-body">
+                                            <h3 class="live-tv-index__channel-name">{channel.name}</h3>
 
                                             {/* Current Program */}
                                             {channel.current_program ? (
-                                                <div class="space-y-1">
-                                                    <p class="text-sm font-medium text-white/80">
-                                                        <span class="text-red-400">Ahora:</span>{' '}
+                                                <div class="live-tv-index__program">
+                                                    <p class="live-tv-index__program-title">
+                                                        <span class="live-tv-index__program-kicker">Ahora:</span>{' '}
                                                         {channel.current_program.title}
                                                     </p>
                                                     {channel.current_program.description && (
-                                                        <p class="line-clamp-2 text-xs text-white/50">
+                                                        <p class="live-tv-index__program-description line-clamp-2">
                                                             {channel.current_program.description}
                                                         </p>
                                                     )}
-                                                    <div class="mt-2 flex items-center gap-2 text-xs text-white/40">
-                                                        <CIcon icon="clock" size={12} />
+                                                    <div class="live-tv-index__program-time">
+                                                        <CIcon icon="clock" size={12} class="live-tv-index__program-time-icon" />
                                                         <span>
                                                             {new Date(channel.current_program.start_time).toLocaleTimeString('es-ES', {
                                                                 hour: '2-digit',
@@ -184,17 +184,17 @@ export default defineComponent({
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <p class="text-sm text-white/40">Sin programación actual</p>
+                                                <p class="live-tv-index__program-empty">Sin programación actual</p>
                                             )}
 
                                             {/* Action Buttons */}
-                                            <div class="mt-4 flex gap-2">
+                                            <div class="live-tv-index__actions">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         watchChannel(channel.id);
                                                     }}
-                                                    class="flex flex-1 items-center justify-center gap-1.5 rounded bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                                                    class="live-tv-index__watch-btn"
                                                 >
                                                     <CIcon icon="play" size={14} />
                                                     Ver ahora
@@ -205,7 +205,7 @@ export default defineComponent({
                                                             e.stopPropagation();
                                                             viewGuide(channel.id);
                                                         }}
-                                                        class="rounded bg-white/10 px-3 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                                                        class="live-tv-index__guide-btn"
                                                     >
                                                         <CIcon icon="calendar" size={14} />
                                                     </button>

@@ -98,7 +98,7 @@ export default defineComponent({
                 <div class="video-container">
                     <media-player
                         ref={videoPlayer}
-                        class="w-full h-full grow min-w-0"
+                        class="video-shell w-full h-full min-w-0 min-h-0"
                         autoplay
                         title={`${channelData.value.name}`}
                         live

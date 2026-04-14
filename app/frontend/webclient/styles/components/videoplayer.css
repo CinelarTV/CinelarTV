@@ -1,14 +1,20 @@
 body.video-player {
     height: 100%;
+    min-height: 100dvh;
     overflow: hidden;
+    margin: 0;
     
     & div.profiler-results.profiler-top {
         display: none !important;
     }
 }
 
+body.video-player #mountpoint,
+body.video-player cinelar-main,
 body.video-player main {
     height: 100%;
+    min-height: 100dvh;
+    overflow: hidden;
 }
 
 body.video-player #c-progress {
@@ -17,18 +23,38 @@ body.video-player #c-progress {
 
 /* Container */
 .video-container {
-    height: 100%;
-    width: 100%;
-    position: relative;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    width: 100dvw;
+    height: 100dvh;
+    min-height: 100dvh;
     background: #000;
     overflow: hidden;
     display: flex;
+}
 
+.video-container .video-shell {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
 
-
-    [data-media-provider] {
-        align-items: inherit;
-    }
+.video-container .video-shell media-provider,
+.video-container .video-shell [data-media-provider],
+.video-container .video-shell [data-media-provider] > video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
 }
 
 
