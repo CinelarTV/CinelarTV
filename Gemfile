@@ -29,6 +29,7 @@ gem "rack-cors"
 gem "sprockets-rails"
 
 gem "csv"
+gem "fiddle"
 gem "ostruct"
 
 # Use the Puma web server [https://github.com/puma/puma]

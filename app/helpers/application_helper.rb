@@ -10,38 +10,17 @@ module ApplicationHelper
   end
 
   def preloaded_json
-    exposed_settings = SiteSetting.exposed_settings
+    user_data = build_user_data
 
-    @current_user = current_user
-    @current_profile = current_profile
-    user_with_profile = @current_user.as_json(include: {
-                                                profiles: {
-                                                  include: :preferences,
-                                                },
-                                              })
-
-    if @current_user
-      user_with_profile = user_with_profile.merge({
-                                                    admin: @current_user.has_role?(:admin),
-                                                  })
-    end
-
-    user_with_profile = user_with_profile.merge(current_profile: @current_profile) if @current_profile
-
-    subscription_data = UserSubscription.find_by(user_id: @current_user.id) if @current_user
-
-    user_with_profile = user_with_profile.merge(subscription: subscription_data) if subscription_data
-
-    @preloaded_json = {
-      SiteSettings: exposed_settings,
+    preloaded = {
+      SiteSettings: SiteSetting.exposed_settings,
       isMobile: device == "mobile",
-      currentUser: user_with_profile,
+      currentUser: user_data,
     }
 
-    # If path is /, we are on the homepage, so we can preload content
-    @preloaded_json[:homepageData] = homepage_data if request.path == "/"
+    preloaded[:homepageData] = homepage_data if request.path == "/"
 
-    @preloaded_json.to_json.html_safe
+    preloaded.to_json.html_safe
   end
 
   def include_splash?
@@ -49,26 +28,30 @@ module ApplicationHelper
   end
 
   def render_external_scripts
-    external_scripts = SiteSetting.external_scripts || ""
-    scripts = external_scripts.split("|")
-
+    scripts = (SiteSetting.external_scripts || "").split("|")
     scripts << "https://app.lemonsqueezy.com/js/lemon.js" if SiteSetting.enable_subscription
+    scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" if SiteSetting.enable_chromecast
 
-    if SiteSetting.enable_chromecast
-      scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
-    end
-
-    scripts.map do |script|
-      javascript_include_tag(script, defer: true)
-    end.join.html_safe
+    scripts.map { |s| javascript_include_tag(s, defer: true) }.join.html_safe
   end
 
   def render_external_stylesheets
-    external_stylesheets = SiteSetting.external_stylesheets || ""
-    stylesheets = external_stylesheets.split("|")
-
-    stylesheets.map do |stylesheet|
+    (SiteSetting.external_stylesheets || "").split("|").map do |stylesheet|
       stylesheet_link_tag(stylesheet)
     end.join.html_safe
+  end
+
+  private
+
+  def build_user_data
+    return nil unless current_user
+
+    user_json = current_user.as_json(include: { profiles: { include: :preferences } })
+
+    extras = { admin: current_user.has_role?(:admin) }
+    extras[:current_profile] = current_profile if current_profile
+    extras[:subscription] = UserSubscription.find_by(user_id: current_user.id)
+
+    user_json.merge(extras.compact)
   end
 end

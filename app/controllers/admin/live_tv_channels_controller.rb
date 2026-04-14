@@ -35,6 +35,8 @@ module Admin
 
     def update
       if @channel.update(channel_params)
+        handle_xmltv_channel_change
+
         respond_to do |format|
           format.html { redirect_to admin_live_tv_channels_path, notice: "Channel updated successfully." }
           format.json { render json: @channel }
@@ -99,6 +101,26 @@ module Admin
         created_at: channel.created_at,
         updated_at: channel.updated_at,
       }
+    end
+
+    def handle_xmltv_channel_change
+      return unless @channel.previous_changes.key?("xmltv_channel_id")
+
+      previous_xmltv_id = @channel.previous_changes.dig("xmltv_channel_id", 0).to_s.strip
+      current_xmltv_id = @channel.xmltv_channel_id.to_s.strip
+
+      if current_xmltv_id.blank?
+        @channel.tv_programs.delete_all
+      elsif previous_xmltv_id.present? && previous_xmltv_id != current_xmltv_id
+        @channel.tv_programs.where(xmltv_id: previous_xmltv_id).delete_all
+      end
+
+      return if current_xmltv_id.blank?
+
+      # Reparse active sources so the channel gets its guide right after remapping.
+      XmltvSource.active.find_each do |source|
+        XmltvParseJob.perform_async(source.id)
+      end
     end
 
     def render_error(message, status)

@@ -30,6 +30,9 @@ export default defineComponent({
 
         const channelData = ref<any>(null);
         const currentProgram = ref<any>(null);
+        const epgOpen = ref(false);
+        const epgLoading = ref(false);
+        const epgPrograms = ref<any[]>([]);
         const videoPlayer = ref<MediaPlayer | null>(null);
         const isOnFullscreen = ref(false);
         const isLoading = ref(true);
@@ -77,6 +80,44 @@ export default defineComponent({
         };
 
         const backToContent = backToLiveTv;
+        const loadGuide = async () => {
+            try {
+                epgLoading.value = true;
+                const nowIso = new Date().toISOString();
+                const { data } = await ajax.get(`/live_tv/${channelId}/guide.json?start_time=${encodeURIComponent(nowIso)}`);
+                epgPrograms.value = data.programs || [];
+            } catch (_error: any) {
+                epgPrograms.value = [];
+                toast.error('No se pudo cargar la guia EPG.');
+            } finally {
+                epgLoading.value = false;
+            }
+        };
+
+        const toggleEpgPanel = async () => {
+            epgOpen.value = !epgOpen.value;
+            if (epgOpen.value && epgPrograms.value.length === 0) {
+                await loadGuide();
+            }
+        };
+
+        const formatProgramTime = (value: string) => {
+            const date = new Date(value);
+            if (Number.isNaN(
+                date.getTime())) return '--:--';
+
+            return date.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+
+        const isProgramLive = (program: any) => {
+            const now = new Date().getTime();
+            const start = new Date(program.start_time).getTime();
+            const end = new Date(program.end_time).getTime();
+            return !Number.isNaN(start) && !Number.isNaN(end) && start <= now && end >= now;
+        };
 
         return () => {
             if (isLoading.value || !channelData.value) {
@@ -93,6 +134,14 @@ export default defineComponent({
             if (channelData.value.stream_format === 'dash') {
                 streamType = 'application/dash+xml';
             }
+
+            const displayPrograms = epgPrograms.value
+                .filter((program) => {
+                    const endTime = new Date(program.end_time).getTime();
+                    return !Number.isNaN(endTime) && endTime >= Date.now();
+                })
+                .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+                .slice(0, 20);
 
             return (
                 <div class="video-container">
@@ -126,6 +175,56 @@ export default defineComponent({
                                 <CSpinner class="w-16 h-16 text-white" />
                             </div>
                         </div>
+
+                        {epgOpen.value && (
+                            <aside class="pointer-events-auto absolute bottom-28 left-2 right-2 z-[120] w-auto overflow-hidden rounded-xl border border-white/15 bg-black/85 shadow-2xl backdrop-blur sm:bottom-auto sm:left-auto sm:right-4 sm:top-16 sm:w-[min(92vw,380px)]">
+                                <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                                    <div>
+                                        <p class="text-[11px] uppercase tracking-wide text-white/60">Programacion</p>
+                                        <h3 class="text-sm font-semibold text-white">EPG {channelData.value.name}</h3>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="rounded-md border border-white/15 px-2.5 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10"
+                                        onClick={toggleEpgPanel}
+                                    >
+                                        Cerrar
+                                    </button>
+                                </div>
+
+                                <div class="max-h-[58vh] overflow-y-auto p-3">
+                                    {epgLoading.value ? (
+                                        <div class="flex items-center justify-center py-8">
+                                            <CSpinner class="h-8 w-8 text-white" />
+                                        </div>
+                                    ) : displayPrograms.length === 0 ? (
+                                        <p class="text-sm text-white/70">Sin programa actual o proximo disponible.</p>
+                                    ) : (
+                                        <div class="space-y-2">
+                                            {displayPrograms.map((program) => (
+                                                <div
+                                                    key={`${program.id}-${program.start_time}`}
+                                                    class={`rounded-lg border px-3 py-2 ${isProgramLive(program)
+                                                            ? 'border-red-400/60 bg-red-500/15'
+                                                            : 'border-white/10 bg-white/5'
+                                                        }`}
+                                                >
+                                                    <div class="mb-1 flex items-center justify-between">
+                                                        <span class="text-xs text-white/70">
+                                                            {formatProgramTime(program.start_time)} - {formatProgramTime(program.end_time)}
+                                                        </span>
+                                                        {isProgramLive(program) && (
+                                                            <span class="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">En emision</span>
+                                                        )}
+                                                    </div>
+                                                    <p class="text-sm font-semibold text-white">{program.title}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </aside>
+                        )}
 
                         <media-controls class="pointer-events-none absolute inset-0 z-99 flex h-full w-full flex-col opacity-0 transition-opacity data-[visible]:opacity-100 media-buffering:opacity-100 in-media-buffering:opacity-100">
                             <PlayerTopControls
@@ -178,11 +277,23 @@ export default defineComponent({
                                             )}
                                         </div>
                                     )}
-                                    <div class="flex items-center text-sm font-medium gap-x-4">
-                                        <div class="flex items-center text-red-500 font-bold">
+                                    <div class="flex flex-wrap items-center gap-2 text-sm font-medium sm:gap-x-4">
+                                        <div class="flex items-center text-red-500 font-bold shrink-0">
                                             <span class="uppercase">EN VIVO</span>
                                         </div>
                                         <PlayerVolumeSlider playerElement={videoPlayer.value as MediaPlayer} />
+                                        <button
+                                            type="button"
+                                            class={`inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-xs font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${epgOpen.value
+                                                ? 'border-white/40 bg-white/20'
+                                                : 'border-white/20 bg-black/40 hover:bg-black/60'
+                                                }`}
+                                            onClick={toggleEpgPanel}
+                                            aria-label="Mostrar EPG"
+                                        >
+                                            <CIcon icon="calendar" size={14} />
+                                            <span class="hidden sm:inline">EPG</span>
+                                        </button>
                                     </div>
                                 </div>
                             </media-controls-group>
