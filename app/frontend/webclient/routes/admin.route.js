@@ -35,6 +35,14 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.live_tv',
+            path: 'live-tv',
+            component: () => import('../views/admin/live-tv.vue'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.customization.iconmap',
             path: 'icons',
             component: () => import('../views/admin/IconLibrary')

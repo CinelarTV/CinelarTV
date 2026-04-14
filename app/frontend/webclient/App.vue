@@ -3,14 +3,14 @@
         <vue3-progress id="c-progress" />
         <SiteHeader v-if="$route.meta.showHeader !== false" />
         <OfflineIndicator />
-        <main>
+        <cinelar-main :class="{ 'with-header-offset': $route.meta.showHeader !== false }">
             <SiteBanner />
             <router-view v-slot="{ Component, route }">
                 <transition :name="route.meta.transition">
                     <component :is="Component" />
                 </transition>
             </router-view>
-        </main>
+        </cinelar-main>
         <Toaster theme="dark" />
     </div>
 </template>

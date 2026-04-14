@@ -51,8 +51,9 @@
                 {{ $t("js.admin.content_manager.no_content") || "No content yet" }}
             </h3>
             <p class="content-manager-empty__subtitle">
-                {{ $t("js.admin.content_manager.no_content_description") || "Start by adding your first piece of" }}
-                content" }}
+                {{
+                    $t("js.admin.content_manager.no_content_description")
+                    || "Start by adding your first piece of content" }}
             </p>
             <c-button @click="createContent" class="content-manager-empty__btn">
                 <PlusIcon :size="16" />

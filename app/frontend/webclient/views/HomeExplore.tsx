@@ -7,6 +7,7 @@ import ContentCard from '../components/content-card.vue';
 import ContentRow from '../components/content-row.vue';
 import CIconButton from '../components/forms/c-icon-button.vue';
 import HomeCarousel from '../components/HomeCarousel';
+import LiveTvSection from '../components/LiveTvSection';
 import PluginOutlet from "@/components/PluginOutlet";
 
 export default defineComponent({
@@ -146,6 +147,9 @@ export default defineComponent({
                         )}
 
                         <PluginOutlet name="home:after-carousel" />
+
+                        {/* Live TV Section */}
+                        <LiveTvSection />
 
                         {/* Content sections */}
                         <section id="main-content" class="pb-8">

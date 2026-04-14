@@ -1,5 +1,5 @@
 import { defineComponent, ref, computed, PropType, watch, getCurrentInstance } from 'vue';
-import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import { Switch, SwitchGroup } from '@headlessui/vue';
 import { UploadCloud, X } from 'lucide-vue-next';
 import { ajax } from '../../../lib/Ajax';
 import { toast } from 'vue-sonner';
@@ -58,6 +58,17 @@ export default defineComponent({
                 'api_custom_data': 'json',
             };
             return languageMap[key] || 'plaintext';
+        };
+
+        const toBoolean = (value: any): boolean => {
+            if (typeof value === 'boolean') return value;
+            if (typeof value === 'number') return value === 1;
+            if (typeof value === 'string') {
+                const normalized = value.trim().toLowerCase();
+                if (['true', '1', 'yes', 'on'].includes(normalized)) return true;
+                if (['false', '0', 'no', 'off', ''].includes(normalized)) return false;
+            }
+            return !!value;
         };
 
         const updateValue = (key: string, value: any) => {
@@ -159,7 +170,8 @@ export default defineComponent({
                     settings.value[setting.key] = setting.value;
                     // Initialize switch values as proper booleans
                     if (setting.type === 'boolean') {
-                        switchValues.value[setting.key] = !!setting.value;
+                        switchValues.value[setting.key] = toBoolean(setting.value);
+                        settings.value[setting.key] = switchValues.value[setting.key];
                     }
                 });
             },
@@ -232,11 +244,11 @@ export default defineComponent({
                                                         'settings-panel__toggle',
                                                         switchValues.value[setting.key] ? 'settings-panel__toggle--on' : 'settings-panel__toggle--off',
                                                     ]}
-                                                    onChange={(val: boolean) => {
+                                                    onUpdate:modelValue={(val: boolean) => {
                                                         switchValues.value[setting.key] = val;
                                                         settings.value[setting.key] = val;
                                                         const original = settingsModel.value.find(s => s.key === setting.key);
-                                                        if (original && original.value !== val) {
+                                                        if (original && toBoolean(original.value) !== val) {
                                                             modifiedKeys.value.add(setting.key);
                                                         } else {
                                                             modifiedKeys.value.delete(setting.key);

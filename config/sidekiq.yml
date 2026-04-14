@@ -11,3 +11,8 @@
       class: Top10ContentJob
       queue: 'default'
       description: 'Get the top 10 movies for each country'
+    fetch_xmltv:
+      every: '1h'
+      class: XmltvFetchJob
+      queue: 'xmltv'
+      description: 'Fetch and parse XMLTV sources for Live TV program guide'

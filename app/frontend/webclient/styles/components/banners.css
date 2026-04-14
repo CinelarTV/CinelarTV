@@ -25,7 +25,7 @@ body[data-current-path^="/contents/"] #global-alerts {
 }
 
 .global-notice a {
-    @apply underline opacity-80 hover:opacity-100 transition-opacity;
+    @apply underline opacity-80 hover:opacity-100 transition-opacity text-[var(--c-tertiary-color)];
 }
 
 /* ─── Semantic variants (global, for external HTML injection) ──────────────── */

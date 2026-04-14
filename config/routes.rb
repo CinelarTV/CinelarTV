@@ -52,6 +52,12 @@ Rails.application.routes.draw do
   get "/watch/:id/:episode_id", to: "player#watch"
   put "/watch/:id/progress", to: "player#update_current_progress"
 
+  # Live TV routes
+  get "/live_tv", to: "live_tv#index"
+  get "/live_tv/:id", to: "live_tv#show"
+  get "/live_tv/:id/guide", to: "live_tv#guide"
+  get "/live/:id", to: "live_tv#watch", as: :watch_live
+
   # Dev route to refresh the settings
   get "/r", to: "application#refresh_settings" if Rails.env.development?
 

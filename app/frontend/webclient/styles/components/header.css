@@ -4,7 +4,7 @@
    ============================================ */
 
 #site-header {
-  @apply w-full overflow-visible z-[99999] mb-10 header-animate;
+  @apply w-full overflow-visible z-[10] mb-10 header-animate;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   letter-spacing: -0.3px;
 }

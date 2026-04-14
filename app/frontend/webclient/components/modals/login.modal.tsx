@@ -66,7 +66,7 @@ export default defineComponent({
 
     return () => (
       <TransitionRoot appear show={isOpen.value} as="template">
-        <Dialog as="div" onClose={() => setIsOpen(false)} class="relative z-50">
+        <Dialog as="div" onClose={() => setIsOpen(false)} class="relative z-100">
 
           {/* Backdrop */}
           <TransitionChild

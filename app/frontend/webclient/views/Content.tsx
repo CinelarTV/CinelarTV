@@ -1,7 +1,7 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from 'unhead';
-import requireSignupModal from '../components/modals/require-signup.modal.vue';
+import RequireSignupModal from '../components/modals/require-signup.modal.vue';
 import Content from '../app/models/Content';
 import CButton from '../components/forms/c-button';
 import cSpinner from "../components/c-spinner";
@@ -231,7 +231,7 @@ export default defineComponent({
                             )}
                         </div>
 
-                        <requireSignupModal
+                        <RequireSignupModal
                             ref={requireSignupModalRef}
                             content-name={contentData.value?.title}
                             onOpenSignupModal={() => { }}

@@ -56,14 +56,17 @@ class AdminDashboardData
   end
 
   def check_sidekiq
-    # rubocop:disable Style/ZeroLengthPredicate
-    return unless Sidekiq::ProcessSet.new.size.zero?
+  # rubocop:disable Style/ZeroLengthPredicate
+    begin
+      return unless Sidekiq::ProcessSet.new.size.zero?
 
-    add_problem(
-      content: I18n.t("dashboard.sidekiq_warning"),
-      type: "critical",
-      icon: "frown",
-    )
+      add_problem(
+        content: I18n.t("dashboard.sidekiq_warning"),
+        type: "critical",
+        icon: "frown",
+      )
+    rescue StandardError => e
+    Rails.logger.error("Error checking Sidekiq status: #{e.message}\n#{e.backtrace.join("\n")}")    end
   end
 
   def check_ffmpeg_present

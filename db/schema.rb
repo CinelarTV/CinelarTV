@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_14_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -85,6 +85,22 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
     t.datetime "updated_at", null: false
     t.index ["content_id"], name: "index_likes_on_content_id"
     t.index ["profile_id"], name: "index_likes_on_profile_id"
+  end
+
+  create_table "live_tv_channels", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "logo_url"
+    t.string "stream_url", null: false
+    t.string "stream_format", default: "hls", null: false
+    t.boolean "is_active", default: true, null: false
+    t.integer "position", default: 0
+    t.string "xmltv_channel_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_active"], name: "index_live_tv_channels_on_is_active"
+    t.index ["position"], name: "index_live_tv_channels_on_position"
+    t.index ["xmltv_channel_id"], name: "index_live_tv_channels_on_xmltv_channel_id"
   end
 
   create_table "oauth_access_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -217,6 +233,23 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
     t.index ["var"], name: "index_settings_on_var", unique: true
   end
 
+  create_table "tv_programs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "live_tv_channel_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.datetime "start_time", null: false
+    t.datetime "end_time", null: false
+    t.string "icon_url"
+    t.string "category"
+    t.string "xmltv_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["end_time"], name: "index_tv_programs_on_end_time"
+    t.index ["live_tv_channel_id", "start_time", "end_time"], name: "index_tv_programs_on_channel_and_times"
+    t.index ["live_tv_channel_id"], name: "index_tv_programs_on_live_tv_channel_id"
+    t.index ["start_time"], name: "index_tv_programs_on_start_time"
+  end
+
   create_table "user_subscriptions", force: :cascade do |t|
     t.uuid "user_id", null: false
     t.integer "order_id"
@@ -285,31 +318,31 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
   end
 
   create_table "watch_party_session_users", force: :cascade do |t|
-    t.integer "watch_party_session_id", null: false
-    t.integer "user_id", null: false
+    t.bigint "watch_party_session_id", null: false
+    t.uuid "user_id", null: false
     t.boolean "is_host", default: false
-    t.datetime "joined_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_watch_party_session_users_on_user_id"
-    t.index ["watch_party_session_id", "user_id"], name: "idx_on_watch_party_session_id_user_id_46fa650fed", unique: true
-    t.index ["watch_party_session_id"], name: "index_watch_party_session_users_on_watch_party_session_id"
+    t.datetime "joined_at", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["user_id"], name: "idx_watch_party_session_users_on_user_id"
+    t.index ["watch_party_session_id", "user_id"], name: "idx_watch_party_session_users_on_session_and_user", unique: true
+    t.index ["watch_party_session_id"], name: "idx_watch_party_session_users_on_watch_party_session_id"
   end
 
   create_table "watch_party_sessions", force: :cascade do |t|
     t.string "content_id", null: false
-    t.integer "host_id", null: false
-    t.integer "user_id", null: false
-    t.float "current_time", default: 0.0
+    t.uuid "host_id", null: false
+    t.uuid "user_id", null: false
+    t.float "playback_current_time", default: 0.0
     t.boolean "is_playing", default: false
-    t.datetime "started_at"
-    t.datetime "ended_at"
-    t.datetime "last_sync_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["content_id"], name: "index_watch_party_sessions_on_content_id"
-    t.index ["host_id"], name: "index_watch_party_sessions_on_host_id"
-    t.index ["user_id"], name: "index_watch_party_sessions_on_user_id"
+    t.datetime "started_at", precision: nil
+    t.datetime "ended_at", precision: nil
+    t.datetime "last_sync_at", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["content_id"], name: "idx_watch_party_sessions_on_content_id"
+    t.index ["host_id"], name: "idx_watch_party_sessions_on_host_id"
+    t.index ["user_id"], name: "idx_watch_party_sessions_on_user_id"
   end
 
   create_table "webhook_logs", force: :cascade do |t|
@@ -317,6 +350,19 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
     t.text "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "xmltv_sources", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "name", null: false
+    t.string "url", null: false
+    t.boolean "is_active", default: true, null: false
+    t.datetime "last_fetched_at"
+    t.datetime "last_parsed_at"
+    t.text "raw_xml"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_active"], name: "index_xmltv_sources_on_is_active"
+    t.index ["url"], name: "index_xmltv_sources_on_url", unique: true
   end
 
   add_foreign_key "continue_watchings", "contents"
@@ -334,4 +380,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_15_135244) do
   add_foreign_key "reproductions", "contents"
   add_foreign_key "reproductions", "profiles"
   add_foreign_key "seasons", "contents"
+  add_foreign_key "tv_programs", "live_tv_channels"
+  add_foreign_key "watch_party_session_users", "users", name: "fk_watch_party_session_users_user"
+  add_foreign_key "watch_party_session_users", "watch_party_sessions", name: "fk_watch_party_session_users_session"
+  add_foreign_key "watch_party_sessions", "users", column: "host_id", name: "fk_watch_party_sessions_host"
+  add_foreign_key "watch_party_sessions", "users", name: "fk_watch_party_sessions_user"
 end

@@ -50,4 +50,17 @@ namespace :admin do
   # For updating and deleting a specific video source
   put "/video_sources/:id", to: "video_sources#update"
   delete "/video_sources/:id", to: "video_sources#destroy"
+
+  # Live TV Management routes
+  resources :live_tv_channels, only: [:index, :create, :update, :destroy] do
+    collection do
+      post :reorder
+    end
+  end
+
+  resources :xmltv_sources, only: [:index, :create, :update, :destroy] do
+    member do
+      post :fetch
+    end
+  end
 end

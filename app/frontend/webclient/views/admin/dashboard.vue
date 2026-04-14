@@ -1,9 +1,17 @@
 <template>
-  <div class="panel">
+  <div class="panel admin-dashboard-page">
     <c-spinner v-if="!dashboardData" />
-    <div v-else id="admin-dashboard" class="pt-2">
+    <div v-else id="admin-dashboard" class="admin-dashboard-page__content">
+      <header class="admin-dashboard-page__hero">
+        <p class="admin-dashboard-page__eyebrow">Admin Console</p>
+        <h1 class="admin-dashboard-page__title">Dashboard</h1>
+        <p class="admin-dashboard-page__subtitle">
+          Estado general de tu instancia, versión y actividad reciente en un vistazo.
+        </p>
+      </header>
+
       <section id="updated-recently" v-if="daysSince(dashboardData.version_check.last_updated_at) <= 3"
-        class="flex flex-col py-2 w-full mb-8 rounded-md">
+        class="admin-dashboard-banner flex flex-col py-2 w-full rounded-md">
 
         <div class="flex justify-center text-center text-white p-4 items-center text-xl font-medium">
           ¡Parece que has actualizado recientemente!
@@ -22,8 +30,9 @@
 
 
       </section>
-      <section id="problems" class="flex flex-col py-2 w-full mb-8" v-if="dashboardData.problems.length > 0">
-        <template v-for="problem in dashboardData.problems">
+      <section id="problems" class="admin-dashboard-problems flex flex-col py-2 w-full"
+        v-if="dashboardData.problems.length > 0">
+        <template v-for="problem in dashboardData.problems" :key="problem.content">
           <div class="problem-container" :class="getClassByType(problem.type)">
             <div class="flex-shrink-0">
               <c-icon :icon="problem.icon" :size="24" />
@@ -33,10 +42,8 @@
           </div>
         </template>
       </section>
-      <h2 class="text-2xl font-medium mx-auto text-center">
-        Dashboard
-      </h2>
-      <section class="version-checks pt-6">
+
+      <section class="version-checks dashboard-card">
         <div class="section-title">
           <h2>Version</h2>
         </div>
@@ -83,48 +90,40 @@
           </div>
         </div>
       </section>
-
-
-      <div class="section-title">
-        <h2>Statistics</h2>
-      </div>
-
-      <div class="flex w-full justify-center" v-if="!statisticsData">
-        <c-spinner />
-      </div>
-      <div class="dashboard-stats" v-else>
-
-        <div class="charts">
-          <div class="admin-stats-consolidated">
-            <div class="header">
-              <h2>
-                Signups last 30 days
-              </h2>
-            </div>
-            <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[0])"
-              :chartOptions="chartOptions" />
-
-          </div>
-
-          <template v-for="statistic in statisticsData.statistics.slice(1)">
-            <div class="admin-stats">
-              <div class="header">
-                <h2>
-                  {{ i18n.t(`js.admin.dashboard.statistics.${statistic.type}`) }}
-                </h2>
-              </div>
-              <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statistic)"
-                :chartOptions="chartOptions" />
-            </div>
-          </template>
-
-
-
-
-
+      <section class="dashboard-card dashboard-stats-block">
+        <div class="section-title">
+          <h2>Statistics</h2>
         </div>
 
-      </div>
+        <div class="flex w-full justify-center" v-if="!statisticsData">
+          <c-spinner />
+        </div>
+        <div class="dashboard-stats" v-else>
+          <div class="charts">
+            <div class="admin-stats-consolidated">
+              <div class="header">
+                <h2>
+                  Signups last 30 days
+                </h2>
+              </div>
+              <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statisticsData.statistics[0])"
+                :chartOptions="chartOptions" />
+            </div>
+
+            <template v-for="statistic in statisticsData.statistics.slice(1)" :key="statistic.type">
+              <div class="admin-stats">
+                <div class="header">
+                  <h2>
+                    {{ i18n.t(`js.admin.dashboard.statistics.${statistic.type}`) }}
+                  </h2>
+                </div>
+                <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statistic)"
+                  :chartOptions="chartOptions" />
+              </div>
+            </template>
+          </div>
+        </div>
+      </section>
 
     </div>
 
@@ -133,7 +132,6 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
-import { UploadCloud } from 'lucide-vue-next'
 import { useHead } from 'unhead'
 import { ajax } from '../../lib/Ajax';
 import { Chart, registerables } from "chart.js";
@@ -142,8 +140,6 @@ Chart.register(...registerables);
 
 const SiteSettings = inject('SiteSettings')
 const i18n = inject('I18n');
-
-const error = ref(false)
 
 
 useHead({
@@ -295,4 +291,4 @@ const fetchStatistics = async () => {
 onMounted(() => {
   fetchDashboard()
 })
-</script>../../lib/ajax
+</script>

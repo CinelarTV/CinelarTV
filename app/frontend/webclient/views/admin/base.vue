@@ -4,7 +4,7 @@
       <ul class="nav nav-pills overflow-x-auto">
         <li v-for="link in adminLinks" :key="link.to">
           <router-link class="nav-item min-w-0 whitespace-nowrap" :to="link.to" active-class="admin-nav-active"
-            :v-if="link.enabled === true">
+            v-if="link.enabled !== false">
             <CIcon v-if="link.icon" :icon="link.icon" class="icon" />
             {{ link.title }}
           </router-link>
@@ -36,6 +36,11 @@ const adminLinks = [
   {
     title: $t("js.admin.nav.users"),
     to: '/admin/users'
+  },
+  {
+    title: $t("js.admin.nav.live_tv") || 'Live TV',
+    to: '/admin/live-tv',
+    enabled: SiteSettings.enable_live_tv || false // Only show if Live TV is enabled
   },
   {
     title: $t("js.admin.nav.settings"),

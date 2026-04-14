@@ -1,0 +1,87 @@
+/* Live TV Section Styles */
+.live-tv-section {
+  position: relative;
+}
+
+.live-tv-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.live-tv-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.live-badge {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Live TV Player Styles */
+.live-player-overlay {
+  @apply absolute top-4 left-4 z-10 flex items-center gap-2;
+}
+
+.live-indicator {
+  @apply flex items-center gap-1.5 rounded bg-red-600 px-2.5 py-1 text-xs font-bold uppercase text-white;
+}
+
+.live-dot {
+  @apply h-2 w-2 animate-pulse rounded-full bg-white;
+}
+
+/* Program Guide Styles */
+.program-guide {
+  @apply space-y-2;
+}
+
+.program-item {
+  @apply rounded-lg border p-4 transition-colors;
+}
+
+.program-item.current {
+  @apply border-red-600 bg-red-600/10;
+}
+
+.program-item:not(.current) {
+  @apply border-white/10 bg-white/5 hover:bg-white/10;
+}
+
+/* Channel Card Styles */
+.channel-card {
+  @apply relative cursor-pointer overflow-hidden rounded-lg bg-white/5 transition-all;
+}
+
+.channel-card:hover {
+  @apply bg-white/10 shadow-lg shadow-black/50;
+}
+
+.channel-logo {
+  @apply flex aspect-video items-center justify-center p-6;
+}
+
+.channel-logo img {
+  @apply h-full w-full object-contain transition-transform;
+}
+
+.channel-card:hover .channel-logo img {
+  @apply scale-105;
+}

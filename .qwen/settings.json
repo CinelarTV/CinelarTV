@@ -3,7 +3,10 @@
     "allow": [
       "Bash(rails *)",
       "Bash(findstr *)",
-      "Bash(del *)"
+      "Bash(del *)",
+      "Bash(dir *)",
+      "Bash(bundle *)",
+      "Bash(move *)"
     ]
   },
   "$version": 3

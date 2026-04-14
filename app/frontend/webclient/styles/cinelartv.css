@@ -12,6 +12,7 @@
 @import "./components/hero-carousel.css";
 @import "./components/recyclerview.css";
 @import "./components/videoplayer.css";
+@import "./components/live-tv.css";
 @import "./components/banners.css";
 @import "./common/components/offline-indicator.css";
 @import "./components/videoable-manager.css";
@@ -20,7 +21,7 @@
   animation: rotate-forever 1s infinite linear;
 }
 
-body:not(.video-player) main:not([class]) {
+.with-header-offset {
   @apply mt-20;
 }
 
@@ -42,11 +43,16 @@ body {
 
 #cinelartv,
 #mountpoint,
-#profile-selector {
+#profile-selector,
+cinelar-main {
   @apply h-full;
   main {
     @apply h-full
   }
+}
+
+cinelar-main {
+  @apply block;
 }
 
 main {
