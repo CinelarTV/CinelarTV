@@ -612,6 +612,23 @@ export const adminDashboardStatisticsPath = /*#__PURE__*/ __jsr.r({"format":{}},
 
 /**
  * Generates rails route to
+ * /admin/live_tv_channels/:id(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminLiveTvChannelPath = /*#__PURE__*/ __jsr.r({"id":{"r":true},"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"live_tv_channels"],[2,[7,"/"],[2,[3,"id"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/live_tv_channels(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminLiveTvChannelsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"live_tv_channels"],[1,[2,[8,"."],[3,"format"]]]]]]]);
+
+/**
+ * Generates rails route to
  * /admin/restart(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -665,6 +682,23 @@ export const adminUsersPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2
  * @returns {string} route path
  */
 export const adminWebhooksLogsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"webhooks"],[2,[7,"/"],[2,[6,"logs"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/xmltv_sources/:id(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminXmltvSourcePath = /*#__PURE__*/ __jsr.r({"id":{"r":true},"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"xmltv_sources"],[2,[7,"/"],[2,[3,"id"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/xmltv_sources(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminXmltvSourcesPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"xmltv_sources"],[1,[2,[8,"."],[3,"format"]]]]]]]);
 
 /**
  * Generates rails route to
@@ -804,6 +838,15 @@ export const editUserRegistrationPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,
  * @returns {string} route path
  */
 export const explorePath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"explore"],[1,[2,[8,"."],[3,"format"]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/xmltv_sources/:id/fetch(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const fetchAdminXmltvSourcePath = /*#__PURE__*/ __jsr.r({"id":{"r":true},"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"xmltv_sources"],[2,[7,"/"],[2,[3,"id"],[2,[7,"/"],[2,[6,"fetch"],[1,[2,[8,"."],[3,"format"]]]]]]]]]]]);
 
 /**
  * Generates rails route to
@@ -1221,6 +1264,14 @@ export const railsServiceBlobPath = /*#__PURE__*/ __jsr.r({"signed_id":{"r":true
  * @returns {string} route path
  */
 export const railsServiceBlobProxyPath = /*#__PURE__*/ __jsr.r({"signed_id":{"r":true},"filename":{"r":true},"format":{}}, [2,[7,"/"],[2,[6,"rails"],[2,[7,"/"],[2,[6,"active_storage"],[2,[7,"/"],[2,[6,"blobs"],[2,[7,"/"],[2,[6,"proxy"],[2,[7,"/"],[2,[3,"signed_id"],[2,[7,"/"],[2,[5,[3,"filename"]],[1,[2,[8,"."],[3,"format"]]]]]]]]]]]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/live_tv_channels/reorder(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const reorderAdminLiveTvChannelsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"live_tv_channels"],[2,[7,"/"],[2,[6,"reorder"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
 
 /**
  * Generates rails route to

@@ -4,8 +4,7 @@ let LiveTvIndexRoute = {
     component: () => import(/* webpackChunkName: "live-tv-index" */ '../views/live-tv-index.tsx'),
     meta: {
         transition: 'fade',
-        requiresAuth: true,
-        showHeader: false
+        requiresAuth: true
     }
 };
 

@@ -4,8 +4,7 @@ let LiveTvGuideRoute = {
     component: () => import(/* webpackChunkName: "live-tv-guide" */ '../views/live-tv-guide.tsx'),
     meta: {
         transition: 'fade',
-        requiresAuth: true,
-        showHeader: false
+        requiresAuth: true
     }
 };
 

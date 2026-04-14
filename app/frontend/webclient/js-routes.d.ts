@@ -170,6 +170,28 @@ export const adminDashboardStatisticsPath: ((
 
 /**
  * Generates rails route to
+ * /admin/live_tv_channels/:id(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminLiveTvChannelPath: ((
+  id: RequiredRouteParameter,
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/live_tv_channels(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminLiveTvChannelsPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
  * /admin/restart(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -235,6 +257,28 @@ export const adminUsersPath: ((
  * @returns {string} route path
  */
 export const adminWebhooksLogsPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/xmltv_sources/:id(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminXmltvSourcePath: ((
+  id: RequiredRouteParameter,
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/xmltv_sources(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminXmltvSourcesPath: ((
   options?: {format?: OptionalRouteParameter} & RouteOptions
 ) => string) & RouteHelperExtras;
 
@@ -411,6 +455,18 @@ export const editUserRegistrationPath: ((
  * @returns {string} route path
  */
 export const explorePath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/xmltv_sources/:id/fetch(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const fetchAdminXmltvSourcePath: ((
+  id: RequiredRouteParameter,
   options?: {format?: OptionalRouteParameter} & RouteOptions
 ) => string) & RouteHelperExtras;
 
@@ -945,6 +1001,16 @@ export const railsServiceBlobPath: ((
 export const railsServiceBlobProxyPath: ((
   signedId: RequiredRouteParameter,
   filename: RequiredRouteParameter,
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/live_tv_channels/reorder(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const reorderAdminLiveTvChannelsPath: ((
   options?: {format?: OptionalRouteParameter} & RouteOptions
 ) => string) & RouteHelperExtras;
 

@@ -41,7 +41,7 @@
 import { computed, defineComponent, h, onMounted, getCurrentInstance } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useBanners } from '../app/services/banner-store'
-import { useSiteSettings } from '../app/services/site-settings'
+import { useSiteSettings } from '../app/services/site-settings';
 import { useCurrentUser } from '../app/services/current-user'
 
 // Store
@@ -115,7 +115,7 @@ onMounted(() => {
         type: 'warning',
         dismissible: false,
         content: `${$t?.('js.admin.wizard_required') ?? 'Wizard required'} [${$t?.('js.admin.wizard_link') ?? 'Configure'}](/wizard)`,
-        show: Boolean(!siteSettings.value?.wizard_completed && currentUser?.admin),
+        show: Boolean(!siteSettings?.wizard_completed && currentUser?.admin),
     })
 })
 </script>

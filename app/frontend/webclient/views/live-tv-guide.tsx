@@ -4,7 +4,6 @@ import { ajax } from '@/lib/Ajax';
 import { useHead } from 'unhead';
 import { toast } from 'vue-sonner';
 
-import SiteHeader from '@/components/SiteHeader';
 import CSpinner from '@/components/c-spinner';
 import CIcon from '@/components/c-icon.vue';
 
@@ -88,7 +87,6 @@ export default defineComponent({
             if (isLoading.value) {
                 return (
                     <div class="min-h-screen bg-[#0a0a0a]">
-                        <SiteHeader />
                         <div class="flex h-[60vh] items-center justify-center">
                             <CSpinner class="w-12 h-12 text-white" />
                         </div>
@@ -99,7 +97,6 @@ export default defineComponent({
             if (!guide.value) {
                 return (
                     <div class="min-h-screen bg-[#0a0a0a]">
-                        <SiteHeader />
                         <div class="flex h-[60vh] items-center justify-center">
                             <p class="text-white/60">No se pudo cargar la guía de programación.</p>
                         </div>
@@ -109,7 +106,6 @@ export default defineComponent({
 
             return (
                 <div class="min-h-screen bg-[#0a0a0a]">
-                    <SiteHeader />
                     <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
                         {/* Header */}
                         <div class="mb-6 flex items-center justify-between">
@@ -147,11 +143,10 @@ export default defineComponent({
                                     return (
                                         <div
                                             key={program.id}
-                                            class={`rounded-lg border p-4 transition-colors ${
-                                                isPlaying
+                                            class={`rounded-lg border p-4 transition-colors ${isPlaying
                                                     ? 'border-red-600 bg-red-600/10'
                                                     : 'border-white/10 bg-white/5 hover:bg-white/10'
-                                            }`}
+                                                }`}
                                         >
                                             <div class="flex items-start gap-4">
                                                 {/* Time Column */}
@@ -200,7 +195,7 @@ export default defineComponent({
                                                     {Math.round(
                                                         (new Date(program.end_time).getTime() -
                                                             new Date(program.start_time).getTime()) /
-                                                            60000
+                                                        60000
                                                     )} min
                                                 </div>
                                             </div>

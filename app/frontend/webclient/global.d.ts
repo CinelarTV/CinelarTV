@@ -8,6 +8,8 @@ declare module 'vue-router' {
     interface RouteMeta {
         transition?: string
         requiresAuth?: boolean
+        showHeader?: boolean
+        showMobileBottomNav?: boolean
     }
 
     interface RouteLocationAsRelativeGeneric {

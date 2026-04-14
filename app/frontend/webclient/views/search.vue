@@ -1,66 +1,93 @@
 <template>
-    <div class="search-page min-h-screen bg-gradient-to-br from-indigo-900 via-gray-900 to-black py-12 px-2">
-        <div class="search-page__header flex flex-col items-center justify-center mb-10">
-            <div class="search-page__header__title mb-2">
-                <h1 class="text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">Buscar</h1>
-                <p class="text-gray-300 text-base mt-2">Encuentra películas, series o personas en CinelarTV</p>
-            </div>
-            <div
-                class="search-page__header__search flex flex-row items-center w-full max-w-2xl mt-6 bg-white/10 rounded-full shadow-lg px-4 py-2">
-                <c-input type="text" placeholder="Buscar película, serie, persona..." v-model="searchQuery"
-                    class="flex-1 bg-transparent text-white placeholder-gray-400 border-none focus:ring-0 text-lg"
-                    @keyup.enter="search" autofocus />
-                <button
-                    class="ml-2 p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 transition-colors text-white shadow"
-                    @click="search" aria-label="Buscar">
-                    <SearchIcon class="w-6 h-6" />
-                </button>
-            </div>
-        </div>
-        <div class="search-page__results max-w-6xl mx-auto">
-            <div class="search-page__results__title mb-4">
-                <h2 class="text-xl font-semibold text-white tracking-wide">Resultados</h2>
-            </div>
-            <div v-if="searching"
-                class="search-page__results__content__loading flex flex-col items-center justify-center h-64">
-                <c-spinner />
-                <span class="text-gray-400 mt-4">Buscando...</span>
-            </div>
-            <div v-else class="search-page__results__content grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <div v-if="results && results.length > 0" class="search-page__results__content__item"
-                    v-for="result in results" :key="result.id">
-                    <ContentCard :data="result" />
+    <div class="search-page">
+        <div class="search-page__container">
+            <header class="search-page__header">
+                <h1 class="search-page__title">Buscar</h1>
+                <p class="search-page__subtitle">Encuentra películas, series y personas en CinelarTV.</p>
+
+                <form class="search-page__searchbar" @submit.prevent="search">
+                    <c-icon icon="search" class="search-page__search-icon" />
+
+                    <input v-model="searchQuery" type="text" class="search-page__input"
+                        placeholder="Buscar película, serie o persona..." autocomplete="off" autofocus />
+
+                    <button v-if="searchQuery" type="button" class="search-page__clear" aria-label="Limpiar búsqueda"
+                        @click="clearSearch">
+                        <c-icon icon="x" />
+                    </button>
+
+                    <button type="submit" class="search-page__submit" aria-label="Buscar">
+                        Buscar
+                    </button>
+                </form>
+
+                <div class="search-page__meta">
+                    <span v-if="searchQuery.length < minChars">Escribe al menos {{ minChars }} caracteres</span>
+                    <span v-else-if="searching">Buscando resultados...</span>
+                    <span v-else-if="hasSearched">{{ results.length }} resultados para “{{ searchQuery }}”</span>
+                    <span v-else>Empieza a escribir para buscar</span>
                 </div>
-                <div v-else class="col-span-full text-center text-gray-400 py-12 text-lg">
-                    No se encontraron resultados.
+            </header>
+
+            <section class="search-page__results">
+                <div v-if="searching" class="search-page__loading">
+                    <c-spinner />
+                    <span>Buscando contenido...</span>
                 </div>
-            </div>
+
+                <div v-else-if="results.length > 0" class="search-page__grid">
+                    <article v-for="result in results" :key="result.id" class="search-page__item">
+                        <ContentCard :data="result" />
+                    </article>
+                </div>
+
+                <div v-else-if="hasSearched" class="search-page__empty">
+                    <c-icon icon="search" class="search-page__empty-icon" />
+                    <h2>Sin resultados</h2>
+                    <p>Prueba con otro título, género o nombre de persona.</p>
+                </div>
+
+                <div v-else class="search-page__placeholder">
+                    <h2>Busca en todo el catálogo</h2>
+                    <p>Los resultados aparecerán aquí.</p>
+                </div>
+            </section>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onBeforeUnmount } from 'vue';
 import { ajax } from '../lib/Ajax';
 import ContentCard from '../components/content-card.vue';
-
-
-import CInput from "../components/forms/c-input.vue";
 import cSpinner from "../components/c-spinner.tsx";
 import CIcon from "../components/c-icon.vue";
 
 const searchQuery = ref('');
 const results = ref([]);
 const searching = ref(false);
+const hasSearched = ref(false);
+const minChars = 3;
+let searchDebounce = null;
 
 const search = async () => {
+    const query = searchQuery.value.trim();
+    if (query.length < minChars) {
+        hasSearched.value = false;
+        results.value = [];
+        return;
+    }
+
     if (searching.value) return;
+
     searching.value = true;
+    hasSearched.value = true;
+
     try {
         const { data } = await ajax.get('/search.json', {
-            params: { query: searchQuery.value }
+            params: { query }
         });
-        results.value = data.data;
+        results.value = data.data || [];
     } catch (error) {
         console.log(error);
     } finally {
@@ -68,7 +95,27 @@ const search = async () => {
     }
 };
 
+const clearSearch = () => {
+    searchQuery.value = '';
+    results.value = [];
+    hasSearched.value = false;
+};
+
 watch(() => searchQuery.value, () => {
-    if (searchQuery.value.length > 2) search();
+    if (searchDebounce) window.clearTimeout(searchDebounce);
+
+    if (searchQuery.value.trim().length < minChars) {
+        results.value = [];
+        hasSearched.value = false;
+        return;
+    }
+
+    searchDebounce = window.setTimeout(() => {
+        search();
+    }, 260);
+});
+
+onBeforeUnmount(() => {
+    if (searchDebounce) window.clearTimeout(searchDebounce);
 });
 </script>

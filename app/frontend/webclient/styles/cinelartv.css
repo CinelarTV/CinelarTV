@@ -14,6 +14,7 @@
 @import "./components/videoplayer.css";
 @import "./components/live-tv.css";
 @import "./components/banners.css";
+@import "./components/mobile-bottom-nav.css";
 @import "./common/components/offline-indicator.css";
 @import "./components/videoable-manager.css";
 
