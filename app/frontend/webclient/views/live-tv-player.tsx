@@ -102,6 +102,7 @@ export default defineComponent({
                         autoplay
                         title={`${channelData.value.name}`}
                         live
+                        streamType="live"
                     >
                         <media-provider>
                             <media-poster
