@@ -85,3 +85,227 @@
 .channel-card:hover .channel-logo img {
   @apply scale-105;
 }
+
+/* Home rail redesign */
+.live-tv-rail {
+  position: relative;
+}
+
+.live-tv-rail__header {
+  align-items: center;
+}
+
+.live-tv-rail__count {
+  box-shadow: 0 10px 28px -18px rgba(255, 50, 76, 0.9);
+}
+
+.live-tv-rail__view-all {
+  font-weight: 600;
+}
+
+.live-tv-rail__track {
+  scroll-snap-type: x proximity;
+  padding-top: 0.55rem;
+  padding-bottom: 0.95rem;
+}
+
+.live-tv-rail__card {
+  flex-shrink: 0;
+  width: 228px;
+  text-align: left;
+  scroll-snap-align: start;
+}
+
+.live-tv-rail__card-shell {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.01));
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 16px 30px -24px rgba(0, 0, 0, 0.8);
+  isolation: isolate;
+}
+
+.live-tv-rail__card:hover .live-tv-rail__card-shell {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 22px 38px -24px rgba(0, 0, 0, 0.95);
+}
+
+.live-tv-rail__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(130px 90px at 0% 0%, rgba(255, 46, 73, 0.2), transparent 65%),
+    radial-gradient(100px 80px at 100% 100%, rgba(0, 168, 225, 0.16), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.live-tv-rail__logo img {
+  transition: transform 0.22s ease;
+}
+
+.live-tv-rail__logo {
+  position: relative;
+  overflow: hidden;
+}
+
+.live-tv-rail__logo-image {
+  transition: filter 0.22s ease, opacity 0.22s ease, transform 0.22s ease;
+  will-change: filter, opacity, transform;
+}
+
+.live-tv-rail__logo-image.is-preview-loading {
+  filter: blur(2px) saturate(0.85);
+  opacity: 0.55;
+}
+
+.live-tv-rail__logo-image.is-preview-ready {
+  opacity: 0.14;
+  filter: blur(1px);
+}
+
+.live-tv-rail__video-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  filter: saturate(1.05) contrast(1.02);
+  animation: liveTvPreviewFade 0.24s ease;
+}
+
+.live-tv-rail__preview-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(9, 9, 12, 0.2), rgba(7, 7, 10, 0.5));
+  color: rgba(255, 255, 255, 0.82);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  transition: opacity 0.18s ease;
+}
+
+.live-tv-rail__preview-loader.is-visible {
+  opacity: 1;
+}
+
+.live-tv-rail__preview-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.92);
+  animation: liveTvSpin 0.85s linear infinite;
+}
+
+@keyframes liveTvSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes liveTvPreviewFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.live-tv-rail__card:hover .live-tv-rail__logo img {
+  transform: scale(1.05);
+}
+
+.live-tv-rail__live {
+  letter-spacing: 0.06em;
+}
+
+.live-tv-rail__meta {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  z-index: 5;
+}
+
+.live-tv-rail__preview {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 0.7rem 0.72rem;
+  background: linear-gradient(180deg, rgba(12, 12, 16, 0.55), rgba(10, 10, 14, 0.95));
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  z-index: 6;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.live-tv-rail__card:hover .live-tv-rail__preview {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.live-tv-rail__preview-kicker {
+  margin: 0;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.live-tv-rail__preview-title {
+  margin: 0.15rem 0 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.live-tv-rail__preview-now {
+  margin: 0.42rem 0 0;
+  font-size: 0.7rem;
+  color: #ff8b9b;
+}
+
+.live-tv-rail__preview-description {
+  margin: 0.28rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.live-tv-rail__preview-next {
+  margin: 0.4rem 0 0;
+  font-size: 0.69rem;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.live-tv-rail__preview-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.58rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+@media (hover: none) {
+  .live-tv-rail__preview {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .live-tv-rail__card {
+    width: 188px;
+  }
+}
