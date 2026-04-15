@@ -149,6 +149,7 @@ monetization:
     type: 'enum'
     allowed_values:
       - mercado_pago
+      - lemon_squeezy
 
   mercadopago_access_token:
     client: false
@@ -195,6 +196,32 @@ monetization:
       - MPE
       - MCO
       - MLU
+
+  lemonsqueezy_api_key:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
+
+  lemonsqueezy_store_id:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+
+  lemon_squeezy_plan_id:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+
+  lemonsqueezy_webhook_secret:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+    secret: true
 
 storage:
   storage_provider:

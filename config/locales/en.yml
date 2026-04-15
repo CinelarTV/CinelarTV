@@ -180,6 +180,9 @@ en:
         subscription_provider_primary:
           description: "Primary subscription provider used to process checkouts and webhooks"
           title: "Primary subscription provider"
+          values:
+            mercado_pago: "Mercado Pago"
+            lemon_squeezy: "Lemon Squeezy"
         enable_transcoding:
           description: "Enables the transcoding of videos, this will allow you to transcode the videos to different formats and resolutions"
           title: "Enable transcoding"
@@ -232,6 +235,18 @@ en:
             MLA: "MLA Argentina"
             MPE: "MPE Peru"
             MCL: "MCL Chile"
+        lemonsqueezy_api_key:
+          description: "Lemon Squeezy API key used for checkout and subscription API calls"
+          title: "Lemon Squeezy API key"
+        lemonsqueezy_store_id:
+          description: "Lemon Squeezy store ID used to create checkouts and list variants"
+          title: "Lemon Squeezy store ID"
+        lemon_squeezy_plan_id:
+          description: "Default Lemon Squeezy variant ID used as active subscription plan"
+          title: "Lemon Squeezy plan ID"
+        lemonsqueezy_webhook_secret:
+          description: "Webhook secret used to verify Lemon Squeezy notifications"
+          title: "Lemon Squeezy webhook secret"
         no_changes: "You haven't made any changes"
         primary_color:
           description: ""

@@ -4,7 +4,8 @@ module Subscriptions
   module Providers
     class Registry
       PROVIDERS = {
-        "mercado_pago" => "Subscriptions::Providers::MercadoPagoProvider"
+        "mercado_pago" => "Subscriptions::Providers::MercadoPagoProvider",
+        "lemon_squeezy" => "Subscriptions::Providers::LemonSqueezyProvider"
       }.freeze
 
       class << self

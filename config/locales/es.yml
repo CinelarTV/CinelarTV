@@ -143,6 +143,9 @@ es:
         subscription_provider_primary:
           description: "Proveedor principal de suscripciones para checkout y webhooks"
           title: "Proveedor principal de suscripción"
+          values:
+            mercado_pago: "Mercado Pago"
+            lemon_squeezy: "Lemon Squeezy"
         enable_web_updater:
           description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
           title: "Actualizador web experimental"
@@ -185,6 +188,18 @@ es:
         mercadopago_site_id:
           description: "Sitio de Mercado Pago para tu país (Uruguay = MLU)"
           title: "Sitio de Mercado Pago"
+        lemonsqueezy_api_key:
+          description: "API key de Lemon Squeezy para checkout y llamadas a la API de suscripciones"
+          title: "API key de Lemon Squeezy"
+        lemonsqueezy_store_id:
+          description: "Store ID de Lemon Squeezy usado para crear checkouts y listar variantes"
+          title: "Store ID de Lemon Squeezy"
+        lemon_squeezy_plan_id:
+          description: "Variant ID por defecto de Lemon Squeezy usado como plan de suscripción activo"
+          title: "ID de plan de Lemon Squeezy"
+        lemonsqueezy_webhook_secret:
+          description: "Secreto del webhook para validar notificaciones de Lemon Squeezy"
+          title: "Secreto webhook de Lemon Squeezy"
         no_changes: "No has realizado ningún cambio"
         primary_color:
           description: ""

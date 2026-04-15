@@ -229,6 +229,7 @@ module Admin
       key = provider_key.to_s
       labels = {
         "mercado_pago" => "Mercado Pago",
+        "lemon_squeezy" => "Lemon Squeezy",
         "stripe" => "Stripe",
         "paypal" => "PayPal"
       }
