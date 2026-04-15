@@ -96,8 +96,8 @@ Rails.application.routes.draw do
 
   get "account/billing" => "user_subscriptions#index"
   post "account/billing/subscribe" => "user_subscriptions#subscribe"
+  delete "account/billing/subscribe" => "user_subscriptions#destroy"
   post "account/billing/checkout" => "user_subscriptions#checkout"
-  get "account/billing/return" => "user_subscriptions#return_from_checkout"
 
   get "/404-content" => "exceptions#not_found_body"
 

@@ -30,7 +30,9 @@ module Admin
             meta: {
               page: page,
               per_page: per_page,
-              total_count: subscriptions.count
+              total_count: subscriptions.count,
+              available_providers: available_provider_options,
+              current_provider: current_provider.provider_key
             }
           }
         end
@@ -138,7 +140,9 @@ module Admin
       render json: {
         data: plans,
         meta: {
-          active_plan_id: SiteSetting.mercadopago_plan_id.to_s
+          active_plan_id: active_plan_id_for(provider.provider_key),
+          provider: provider.provider_key,
+          provider_label: provider_label(provider.provider_key)
         }
       }
     rescue StandardError => e
@@ -149,11 +153,13 @@ module Admin
       plan_id = params[:plan_id].to_s
       raise ArgumentError, "Plan id is required" if plan_id.blank?
 
-      SiteSetting.mercadopago_plan_id = plan_id
+      provider_key = current_provider.provider_key
+      set_active_plan_id_for(provider_key, plan_id)
 
       render json: {
         data: {
-          active_plan_id: SiteSetting.mercadopago_plan_id,
+          active_plan_id: active_plan_id_for(provider_key),
+          provider: provider_key,
           message: "Plan selected for CinelarTV"
         }
       }
@@ -201,6 +207,57 @@ module Admin
 
     def plan_params
       params.permit(:reason, :currency_id, :amount, :frequency, :frequency_type, :status, :back_url)
+    end
+
+    def available_provider_options
+      provider_keys = ::Subscriptions::Providers::Registry::PROVIDERS.keys
+      provider_keys += UserSubscription.distinct.pluck(:provider).compact
+
+      provider_keys
+        .uniq
+        .map do |provider_key|
+          {
+            key: provider_key,
+            label: provider_label(provider_key)
+          }
+        end
+    end
+
+    def provider_label(provider_key)
+      return "N/A" if provider_key.blank?
+
+      key = provider_key.to_s
+      labels = {
+        "mercado_pago" => "Mercado Pago",
+        "stripe" => "Stripe",
+        "paypal" => "PayPal"
+      }
+
+      labels[key] || key.split("_").map(&:capitalize).join(" ")
+    end
+
+    def active_plan_setting_method_for(provider_key)
+      "#{provider_key}_plan_id"
+    end
+
+    def active_plan_id_for(provider_key)
+      method_name = active_plan_setting_method_for(provider_key)
+
+      if SiteSetting.respond_to?(method_name)
+        SiteSetting.public_send(method_name).to_s
+      else
+        SiteSetting.mercadopago_plan_id.to_s
+      end
+    end
+
+    def set_active_plan_id_for(provider_key, plan_id)
+      method_name = "#{active_plan_setting_method_for(provider_key)}="
+
+      if SiteSetting.respond_to?(method_name)
+        SiteSetting.public_send(method_name, plan_id)
+      else
+        SiteSetting.mercadopago_plan_id = plan_id
+      end
     end
 
   end

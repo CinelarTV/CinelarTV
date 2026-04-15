@@ -40,12 +40,22 @@ module Subscriptions
         payload = parse_payload(request)
         resource_id = extract_resource_id(request, payload)
         event_type = extract_event_type(request, payload)
+        webhook_application_id = extract_application_id(request, payload)
         
         raise ArgumentError, "Missing resource id" if resource_id.blank?
 
+        if configured_application_id.present? && webhook_application_id.present? && webhook_application_id.to_s != configured_application_id.to_s
+          Rails.logger.warn(
+            "MercadoPago webhook ignored due to application_id mismatch: received=#{webhook_application_id} " \
+            "expected=#{configured_application_id} event_type=#{event_type} resource_id=#{resource_id}"
+          )
+          return
+        end
+
         case event_type
-        when "preapproval"
+        when "preapproval", "subscription_preapproval"
           preapproval_data = fetch_preapproval(resource_id)
+          preapproval_data = enrich_preapproval_from_search(preapproval_data, resource_id, webhook_application_id)
           upsert_subscription_from_preapproval!(preapproval_data)
         when "payment", "merchant_order"
           # Payment events are handled separately or logged for reference
@@ -56,24 +66,12 @@ module Subscriptions
         end
       end
 
-      def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, card_token_id: nil,
+      def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
         start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
         repetitions: nil, billing_day: nil, billing_day_proportional: nil)
         plan_id = SiteSetting.mercadopago_plan_id.to_s
-
-        if plan_id.present? && card_token_id.blank?
-          return {
-            provider: provider_key,
-            checkout_url: plan_checkout_url(
-              plan_id: plan_id,
-              user: user,
-              success_url: success_url
-            ),
-            preapproval_id: nil,
-            plan_id: plan_id,
-            webhook_note: "Webhook notifications require app-level configuration in MercadoPago dashboard"
-          }
-        end
+        validate_credentials_consistency!
+        requested_checkout_mode = checkout_mode.to_s.presence
 
         payload = if plan_id.present?
                     preapproval_payload_with_plan(
@@ -113,14 +111,40 @@ module Subscriptions
 
         response = HTTParty.post("#{API_BASE_URL}/preapproval", headers: auth_headers, body: payload.to_json)
 
-        raise "MercadoPago preapproval error: #{response.body}" unless response.code.between?(200, 299)
+        if requires_card_token_fallback?(response, plan_id: plan_id, card_token_id: card_token_id)
+          fallback_mode = requested_checkout_mode == "wallet_balance" ? "wallet_balance" : "provider_checkout"
+          fallback_reason = requested_checkout_mode == "wallet_balance" ? "wallet_balance_checkout" : "card_token_required"
+
+          return {
+            provider: provider_key,
+            checkout_url: plan_checkout_url(
+              plan_id: plan_id,
+              user: user,
+              success_url: success_url
+            ),
+            preapproval_id: nil,
+            plan_id: plan_id,
+            checkout_mode: fallback_mode,
+            fallback_reason: fallback_reason
+          }
+        end
+
+        raise_preapproval_error!(response) unless response.code.between?(200, 299)
 
         parsed = JSON.parse(response.body)
+
+        Rails.logger.info(
+          "MercadoPago preapproval created id=#{parsed["id"]} external_reference=#{payload[:external_reference]} " \
+          "metadata_user_id=#{payload.dig(:metadata, :user_id)} plan_id=#{parsed["preapproval_plan_id"] || payload[:preapproval_plan_id]} " \
+          "application_id=#{configured_application_id || "unknown"}"
+        )
+
         {
           provider: provider_key,
           checkout_url: parsed["init_point"],
           preapproval_id: parsed["id"],
-          plan_id: parsed["preapproval_plan_id"]
+          plan_id: parsed["preapproval_plan_id"],
+          checkout_mode: requested_checkout_mode || (card_token_id.present? ? "inline_card" : "provider_checkout")
         }
       end
 
@@ -152,14 +176,23 @@ module Subscriptions
       end
 
       def list_plans!(managed_only: true)
-        response = HTTParty.get("#{API_BASE_URL}/preapproval_plan/search?limit=100", headers: auth_headers)
+        query = { limit: 100 }
+        application_id = configured_application_id
+        query[:application_id] = application_id if application_id.present?
+
+        response = HTTParty.get("#{API_BASE_URL}/preapproval_plan/search?#{URI.encode_www_form(query)}", headers: auth_headers)
         raise "MercadoPago plans fetch error: #{response.body}" unless response.code.between?(200, 299)
 
         parsed = JSON.parse(response.body)
-        return parsed unless managed_only
+        plans = parsed["results"] || []
+        plans = filter_plans_by_application(plans, application_id)
+
+        unless managed_only
+          parsed["results"] = plans
+          return parsed
+        end
 
         # When managed_only is true, only show plans that belong to this CinelarTV instance
-        plans = parsed["results"] || []
         parsed["results"] = plans.select { |plan| cinelar_plan?(plan) }
         parsed
       end
@@ -262,6 +295,14 @@ module Subscriptions
           params["id"]
       end
 
+      def extract_application_id(request, payload)
+        params = request.query_parameters
+
+        payload["application_id"] ||
+          payload.dig("webhook", "application_id") ||
+          params["application_id"]
+      end
+
       def fetch_preapproval(preapproval_id)
         response = HTTParty.get("#{API_BASE_URL}/preapproval/#{preapproval_id}", headers: auth_headers)
         unless response.code.between?(200, 299)
@@ -277,9 +318,51 @@ module Subscriptions
         JSON.parse(response.body)
       end
 
+      def search_preapproval(preapproval_id:, application_id: nil)
+        query = { limit: 1, offset: 0, id: preapproval_id }
+        query[:application_id] = application_id if application_id.present?
+
+        response = HTTParty.get(
+          "#{API_BASE_URL}/preapproval/search?#{URI.encode_www_form(query)}",
+          headers: auth_headers
+        )
+
+        return nil unless response.code.between?(200, 299)
+
+        parsed = JSON.parse(response.body)
+        (parsed["results"] || []).first
+      rescue StandardError => e
+        Rails.logger.warn("MercadoPago preapproval search fallback failed for #{preapproval_id}: #{e.class} - #{e.message}")
+        nil
+      end
+
+      def enrich_preapproval_from_search(preapproval, resource_id, application_id)
+        return preapproval if preapproval.blank?
+        return preapproval unless missing_preapproval_identifiers?(preapproval)
+
+        searched = search_preapproval(preapproval_id: resource_id, application_id: application_id)
+        return preapproval if searched.blank?
+
+        preapproval.merge(searched)
+      end
+
+      def missing_preapproval_identifiers?(preapproval)
+        external_reference = preapproval["external_reference"].to_s
+        metadata_user_id = (preapproval["metadata"] || {})["user_id"].to_s
+        payer_email = preapproval["payer_email"].presence || preapproval.dig("payer", "email").presence
+
+        external_reference.blank? && metadata_user_id.blank? && payer_email.blank?
+      end
+
       def upsert_subscription_from_preapproval!(preapproval)
         external_reference = preapproval["external_reference"].to_s
         metadata = preapproval["metadata"] || {}
+
+        Rails.logger.info(
+          "MercadoPago preapproval sync id=#{preapproval["id"]} application_id=#{preapproval["application_id"] || "unknown"} " \
+          "external_reference=#{external_reference.presence || "none"} metadata_user_id=#{metadata["user_id"] || "none"} " \
+          "payer_email=#{preapproval["payer_email"].presence || preapproval.dig("payer", "email").presence || "none"}"
+        )
 
         user = find_user_for_preapproval(external_reference, metadata, preapproval)
         raise ActiveRecord::RecordNotFound, "User not found for MercadoPago preapproval #{preapproval["id"]}" if user.nil?
@@ -293,7 +376,7 @@ module Subscriptions
           provider_subscription_id: preapproval["id"].to_s,
           provider_customer_id: preapproval.dig("payer_id")&.to_s || preapproval.dig("payer", "id")&.to_s,
           provider_plan_id: preapproval["preapproval_plan_id"].presence || SiteSetting.mercadopago_plan_id.presence,
-          checkout_reference: external_reference.presence,
+          checkout_reference: external_reference.presence || metadata["user_id"].presence || user.id,
           status: status,
           status_formatted: status.humanize,
           external_status: raw_status,
@@ -315,37 +398,65 @@ module Subscriptions
         user_id = external_reference.presence || metadata["user_id"]
         return User.find_by(id: user_id) if user_id.present?
 
+        existing_subscription = UserSubscription.find_by(
+          provider: provider_key,
+          provider_subscription_id: preapproval["id"].to_s
+        )
+        return existing_subscription.user if existing_subscription.present?
+
+        pending_fallback_user = fallback_user_from_recent_pending_subscription(preapproval)
+        return pending_fallback_user if pending_fallback_user.present?
+
         email = preapproval["payer_email"]
         return nil if email.blank?
 
         User.find_by(email: email)
       end
 
+      def fallback_user_from_recent_pending_subscription(preapproval)
+        scope = UserSubscription
+          .where(provider: provider_key, status: "pending")
+          .where(provider_subscription_id: [nil, ""])
+          .where("updated_at >= ?", 30.minutes.ago)
+
+        preapproval_plan_id = preapproval["preapproval_plan_id"].to_s
+        scope = scope.where(provider_plan_id: preapproval_plan_id) if preapproval_plan_id.present?
+
+        candidates = scope.order(updated_at: :desc).limit(2).to_a
+
+        return nil unless candidates.size == 1
+
+        candidates.first.user
+      end
+
       def preapproval_payload_with_plan(user, plan_id:, success_url:, failure_url:, pending_url:, card_token_id:,
         start_date:, end_date:, amount:, currency_id:, frequency:, frequency_type:, repetitions:, billing_day:,
         billing_day_proportional:)
-        raise "card_token_id is required for plan-associated subscriptions" if card_token_id.blank?
+        # When using a preapproval plan, Mercado Pago validates recurring values
+        # against the plan definition. Sending defaults here can trigger
+        # "transaction_amount must be the same as preapproval_plan".
+        auto_recurring_overrides = {
+          frequency: frequency.presence&.to_i,
+          frequency_type: frequency_type.presence,
+          start_date: normalize_iso_datetime(start_date),
+          end_date: normalize_iso_datetime(end_date),
+          transaction_amount: amount.presence&.to_f,
+          currency_id: currency_id.presence,
+          repetitions: repetitions.presence&.to_i,
+          billing_day: billing_day.presence&.to_i,
+          billing_day_proportional: cast_boolean(billing_day_proportional)
+        }.compact
 
-        {
+        payload = {
           preapproval_plan_id: plan_id,
           reason: "CinelarTV Subscription",
           external_reference: user.id,
           payer_email: user.email,
-          card_token_id: card_token_id,
+          card_token_id: card_token_id.presence,
           back_url: success_url.presence || default_return_url,
-          status: "authorized",
+          status: card_token_id.present? ? "authorized" : "pending",
           notification_url: webhook_url,
-          auto_recurring: {
-            frequency: frequency.presence&.to_i || default_frequency,
-            frequency_type: frequency_type.presence || default_frequency_type,
-            start_date: normalize_iso_datetime(start_date),
-            end_date: normalize_iso_datetime(end_date),
-            transaction_amount: amount.presence&.to_f || 9.99,
-            currency_id: currency_id.presence || "UYU",
-            repetitions: repetitions.presence&.to_i,
-            billing_day: billing_day.presence&.to_i,
-            billing_day_proportional: cast_boolean(billing_day_proportional)
-          }.compact,
+          auto_recurring: auto_recurring_overrides.presence,
           metadata: {
             user_id: user.id,
             site_id: SiteSetting.mercadopago_site_id.presence || "MLU",
@@ -353,6 +464,8 @@ module Subscriptions
             pending_url: pending_url
           }.compact
         }
+
+        payload.compact
       end
 
       def preapproval_payload_without_plan(user, success_url:, failure_url:, pending_url:, start_date:, end_date:, amount:,
@@ -414,6 +527,65 @@ module Subscriptions
         ActiveModel::Type::Boolean.new.cast(value)
       end
 
+      def requires_card_token_fallback?(response, plan_id:, card_token_id:)
+        return false if plan_id.blank? || card_token_id.present?
+        return false if response.code.between?(200, 299)
+
+        body = response.body.to_s.downcase
+        response.code == 400 && body.include?("card_token_id") && body.include?("required")
+      end
+
+      def raise_preapproval_error!(response)
+        body = response.body.to_s
+        parsed = JSON.parse(body)
+        message = parsed["message"].to_s
+        hint = preapproval_error_hint(message)
+
+        if hint.present?
+          raise "MercadoPago preapproval error: #{body} | #{hint}"
+        end
+
+        raise "MercadoPago preapproval error: #{body}"
+      rescue JSON::ParserError
+        raise "MercadoPago preapproval error: #{body}"
+      end
+
+      def preapproval_error_hint(message)
+        normalized_message = message.to_s.downcase
+
+        if normalized_message.include?("cannot operate between different countries")
+          return "Country mismatch: collector account, plan, and payer/card token must belong to the same country/site. " \
+                 "Align mercadopago_access_token, mercadopago_public_key, mercadopago_plan_id and SiteSetting.mercadopago_site_id=" \
+                 "#{SiteSetting.mercadopago_site_id}."
+        end
+
+        if normalized_message.include?("both payer and collector must be real or test users")
+          return "Environment mismatch: do not mix TEST users/cards/tokens with APP_USR credentials. " \
+                 "Use either all TEST-* credentials and test users, or all APP_USR-* with real users."
+        end
+
+        nil
+      end
+
+      def validate_credentials_consistency!
+        access_token_mode = credential_mode(SiteSetting.mercadopago_access_token)
+        public_key_mode = credential_mode(SiteSetting.mercadopago_public_key)
+
+        return if access_token_mode == :unknown || public_key_mode == :unknown
+        return if access_token_mode == public_key_mode
+
+        raise "MercadoPago credentials mismatch: mercadopago_access_token is #{access_token_mode.upcase} and " \
+              "mercadopago_public_key is #{public_key_mode.upcase}. Use both TEST-* or both APP_USR-* credentials."
+      end
+
+      def credential_mode(value)
+        credential = value.to_s
+        return :test if credential.start_with?("TEST-")
+        return :production if credential.start_with?("APP_USR-")
+
+        :unknown
+      end
+
       def auth_headers
         token = SiteSetting.mercadopago_access_token.to_s
         raise "MercadoPago access token is missing" if token.blank?
@@ -456,6 +628,16 @@ module Subscriptions
         }.compact
 
         "#{base}?#{URI.encode_www_form(params)}"
+      end
+
+      def configured_application_id
+        SiteSetting.mercadopago_application_id.to_s.presence
+      end
+
+      def filter_plans_by_application(plans, application_id)
+        return plans if application_id.blank?
+
+        plans.select { |plan| plan["application_id"].to_s == application_id.to_s }
       end
 
       def mercadopago_host

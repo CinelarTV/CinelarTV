@@ -319,7 +319,7 @@ export default defineComponent({
                                                 </option>
                                                 {setting.options?.allowed_values?.map((option: string) => (
                                                     <option key={option} value={option}>
-                                                        {$t(`js.admin.settings.${setting.key}.options.${option}`) || option}
+                                                        {$t(`js.admin.settings.${setting.key}.values.${option}`) || option}
                                                     </option>
                                                 ))}
                                             </select>

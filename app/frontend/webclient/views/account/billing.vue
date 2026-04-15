@@ -22,6 +22,17 @@
       </p>
     </div>
 
+    <!-- Initial loading -->
+    <div v-else-if="isHydratingBilling" class="billing-page__loading-state">
+      <div class="billing-page__loading-icon-wrap">
+        <CIcon icon="loader" :size="24" class="billing-page__loading-icon" />
+      </div>
+      <h2 class="billing-page__loading-title">Loading your membership</h2>
+      <p class="billing-page__loading-description">
+        We are syncing your subscription status with the payment provider.
+      </p>
+    </div>
+
     <!-- Active subscription -->
     <div v-else-if="subscription" class="billing-page__content">
       <!-- Status Card -->
@@ -93,31 +104,143 @@
 
       <!-- Actions -->
       <div class="billing-page__actions">
-        <button class="billing-page__btn" @click="manageSubscription">
-          <CIcon icon="external-link" :size="18" />
-          Manage Payment Method
-        </button>
-        <button class="billing-page__btn billing-page__btn--danger" @click="cancelSubscription" v-if="canCancel">
-          <CIcon icon="x-circle" :size="18" />
+        <BillingActionButton icon="external-link" @click="manageSubscription">
+          Manage Subscription
+        </BillingActionButton>
+        <BillingActionButton v-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
           Cancel Subscription
-        </button>
+        </BillingActionButton>
+      </div>
+    </div>
+
+    <!-- Awaiting activation -->
+    <div v-else-if="isAwaitingActivation" class="billing-page__pending">
+      <div class="billing-page__pending-card">
+        <div class="billing-page__pending-pulse" />
+        <h2 class="billing-page__pending-title">Finalizing your subscription</h2>
+        <p class="billing-page__pending-description">
+          Your payment was received. We are waiting for confirmation from {{ providerProfile.displayName }}.
+        </p>
+        <BillingActionButton icon="refresh-cw" :loading="isHydratingBilling" @click="refreshBillingStatus">
+          Refresh status
+        </BillingActionButton>
       </div>
     </div>
 
     <!-- No subscription -->
     <div v-else class="billing-page__subscribe">
       <div class="billing-page__subscribe-card">
-        <CIcon icon="credit-card" :size="56" class="billing-page__subscribe-icon" />
-        <h2 class="billing-page__subscribe-title">No Active Subscription</h2>
+        <div class="billing-page__subscribe-hero">
+          <CIcon icon="sparkles" :size="26" class="billing-page__subscribe-hero-icon" />
+          <span class="billing-page__subscribe-hero-kicker">CinelarTV Premium</span>
+        </div>
+
+        <h2 class="billing-page__subscribe-title">Start your streaming membership</h2>
         <p class="billing-page__subscribe-description">
-          Subscribe now to access premium features and content
+          {{ providerProfile.subscribeDescription }}
         </p>
-        <button class="billing-page__btn billing-page__btn--primary billing-page__btn--large"
-          @click="createSubscription" :disabled="isCreatingCheckout">
-          <CIcon :icon="isCreatingCheckout ? 'loader' : 'arrow-right'" :size="20"
-            :class="{ 'billing-page__btn--spinning': isCreatingCheckout }" />
-          {{ isCreatingCheckout ? 'Creating Checkout...' : 'Subscribe Now' }}
-        </button>
+
+        <ul class="billing-page__benefits">
+          <li class="billing-page__benefit-item">
+            <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
+            Unlimited access to your catalog
+          </li>
+          <li class="billing-page__benefit-item">
+            <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
+            Continue watching across devices
+          </li>
+          <li class="billing-page__benefit-item">
+            <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
+            Faster support for billing issues
+          </li>
+        </ul>
+
+        <div class="billing-page__secure-badge" v-if="providerProfile.supportsInlineCardForm && showInlineCardForm">
+          <CIcon icon="shield-check" :size="16" />
+          {{ providerProfile.secureBadgeText }}
+        </div>
+
+        <BillingActionButton large icon="external-link" loading-icon="loader" :loading="isCreatingCheckout"
+          :disabled="isCreatingCheckout" @click="createSubscription">
+          {{ isCreatingCheckout ? providerProfile.checkoutLoadingCta : providerProfile.checkoutCta }}
+        </BillingActionButton>
+
+        <BillingActionButton v-if="providerProfile.supportsWalletCheckout"
+          icon="dollar-sign" loading-icon="loader" :loading="isCreatingCheckout" :disabled="isCreatingCheckout"
+          @click="createSubscription('wallet_balance')">
+          {{ isCreatingCheckout ? providerProfile.walletLoadingCta : providerProfile.walletCta }}
+        </BillingActionButton>
+
+        <BillingActionButton v-if="providerProfile.supportsInlineCardForm && !showInlineCardForm"
+          icon="credit-card" @click="openInlineCardForm">
+          Pay with card here
+        </BillingActionButton>
+
+        <BillingActionButton v-if="providerProfile.supportsInlineCardForm && showInlineCardForm"
+          icon="chevron-up" @click="closeInlineCardForm">
+          Hide card form
+        </BillingActionButton>
+
+        <form v-if="providerProfile.supportsInlineCardForm && showInlineCardForm" class="billing-page__form"
+          @submit.prevent="createSubscriptionWithCardToken">
+          <div class="billing-page__form-grid">
+            <div class="billing-page__field billing-page__field--full">
+              <label class="billing-page__label" for="mp-cardholder-name">Cardholder Name</label>
+              <BillingInputControl id="mp-cardholder-name" v-model="cardForm.cardholderName" type="text"
+                autocomplete="cc-name" required />
+            </div>
+
+            <div class="billing-page__field billing-page__field--full">
+              <label class="billing-page__label" for="mp-card-number">Card Number</label>
+              <BillingInputControl id="mp-card-number" v-model="cardForm.cardNumber" type="text" inputmode="numeric"
+                autocomplete="cc-number" placeholder="5031 4332 1540 6351" required />
+            </div>
+
+            <div class="billing-page__field">
+              <label class="billing-page__label" for="mp-exp-month">Exp. Month</label>
+              <BillingInputControl id="mp-exp-month" v-model="cardForm.cardExpirationMonth" type="text"
+                inputmode="numeric" autocomplete="cc-exp-month" placeholder="MM" required />
+            </div>
+
+            <div class="billing-page__field">
+              <label class="billing-page__label" for="mp-exp-year">Exp. Year</label>
+              <BillingInputControl id="mp-exp-year" v-model="cardForm.cardExpirationYear" type="text"
+                inputmode="numeric" autocomplete="cc-exp-year" placeholder="YY o YYYY" required />
+            </div>
+
+            <div class="billing-page__field">
+              <label class="billing-page__label" for="mp-security-code">CVV</label>
+              <BillingInputControl id="mp-security-code" v-model="cardForm.securityCode" type="text"
+                inputmode="numeric" autocomplete="cc-csc" placeholder="123" required />
+            </div>
+
+            <div class="billing-page__field">
+              <label class="billing-page__label" for="mp-identification-type">Document Type</label>
+              <BillingInputControl id="mp-identification-type" as="select" v-model="cardForm.identificationType"
+                :options="identificationTypeOptions" select-placeholder="Select"
+                :disabled="isInitializingMercadoPago || !identificationTypeOptions.length" required />
+            </div>
+
+            <div class="billing-page__field billing-page__field--full">
+              <label class="billing-page__label" for="mp-identification-number">Document Number</label>
+              <BillingInputControl id="mp-identification-number" v-model="cardForm.identificationNumber" type="text"
+                inputmode="numeric" autocomplete="off" required />
+            </div>
+          </div>
+
+          <BillingActionButton type="submit" variant="primary" large icon="lock" loading-icon="loader"
+            :loading="isCreatingCheckout || isInitializingMercadoPago" :disabled="!canSubmitCardForm">
+            {{ isCreatingCheckout ? providerProfile.cardLoadingCta : providerProfile.cardCta }}
+          </BillingActionButton>
+        </form>
+
+        <p v-if="mercadoPagoInitError" class="billing-page__form-hint billing-page__form-hint--warning">
+          {{ mercadoPagoInitError }}
+        </p>
+
+        <div v-if="providerProfile.supportsInlineCardForm && showInlineCardForm" class="billing-page__divider">
+          <span>or</span>
+        </div>
       </div>
     </div>
 
@@ -133,19 +256,45 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, inject } from 'vue';
+import { ref, shallowRef, markRaw, computed, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useHead } from 'unhead';
 import { ajax } from '../../lib/Ajax';
+import loadScript from '../../lib/load-script';
 import CIcon from '@/components/c-icon.vue';
+import BillingInputControl from '@/components/billing/BillingInputControl';
+import BillingActionButton from '@/components/billing/BillingActionButton';
+import {
+  buildBillingProviderUiProfile,
+  formatProviderLabel,
+} from '@/components/billing/provider-ui';
 
-const billingData = ref(null);
 const subscription = ref(null);
+const billingProviderKey = ref('');
+const isHydratingBilling = ref(true);
+const returnedFromCheckout = ref(false);
+const showInlineCardForm = ref(false);
 const isCreatingCheckout = ref(false);
 const checkoutError = ref('');
+const isInitializingMercadoPago = ref(false);
+const mercadoPagoClient = shallowRef(null);
+const mercadoPagoInitError = ref('');
+const identificationTypes = ref([]);
+
+const cardForm = ref({
+  cardholderName: '',
+  cardNumber: '',
+  cardExpirationMonth: '',
+  cardExpirationYear: '',
+  securityCode: '',
+  identificationType: '',
+  identificationNumber: ''
+});
 
 const SiteSettings = inject('SiteSettings');
-const i18n = inject('I18n');
 const currentUser = inject('currentUser');
+
+const MERCADO_PAGO_SDK_URL = 'https://sdk.mercadopago.com/js/v2';
+let mercadoPagoSdkPromise = null;
 
 const subscriptionStatusClass = computed(() => {
   if (!subscription.value) return 'inactive';
@@ -180,9 +329,108 @@ const canCancel = computed(() => {
   return ['active', 'approved'].includes(status);
 });
 
+const activeProviderKey = computed(() => {
+  const fromSubscription = String(subscription.value?.provider || '').trim().toLowerCase();
+  const fromBillingResponse = String(billingProviderKey.value || '').trim().toLowerCase();
+  const fromSettings = String(SiteSettings?.subscription_provider_primary || '').trim().toLowerCase();
+
+  return fromSubscription || fromBillingResponse || fromSettings || 'mercado_pago';
+});
+
+const providerProfile = computed(() => buildBillingProviderUiProfile(activeProviderKey.value, SiteSettings));
+
+const mercadoPagoPublicKey = computed(() => providerProfile.value.sdkPublicKey);
+
+const identificationTypeOptions = computed(() => identificationTypes.value.map((identificationType) => ({
+  value: identificationType.id,
+  label: identificationType.name,
+})));
+
+const isAwaitingActivation = computed(() => {
+  return returnedFromCheckout.value && !subscription.value && Boolean(pollingInterval.value);
+});
+
+const canSubmitCardForm = computed(() => {
+  if (
+    !providerProfile.value.supportsInlineCardForm ||
+    providerProfile.value.key !== 'mercado_pago' ||
+    isCreatingCheckout.value ||
+    isInitializingMercadoPago.value ||
+    !mercadoPagoClient.value
+  ) {
+    return false;
+  }
+
+  return Boolean(
+    cardForm.value.cardholderName.trim() &&
+    sanitizeDigits(cardForm.value.cardNumber).length >= 13 &&
+    sanitizeDigits(cardForm.value.cardExpirationMonth).length >= 1 &&
+    sanitizeDigits(cardForm.value.cardExpirationYear).length >= 2 &&
+    sanitizeDigits(cardForm.value.securityCode).length >= 3 &&
+    cardForm.value.identificationType &&
+    sanitizeDigits(cardForm.value.identificationNumber).length >= 5
+  );
+});
+
+const sanitizeDigits = (value) => String(value || '').replace(/\D+/g, '');
+
+const normalizeExpirationYear = (value) => {
+  const digits = sanitizeDigits(value);
+  if (digits.length === 2) {
+    return `20${digits}`;
+  }
+
+  return digits;
+};
+
+const fallbackIdentificationTypeForSite = () => {
+  const siteId = String(SiteSettings?.mercadopago_site_id || 'MLU').toUpperCase();
+
+  if (siteId === 'MLA') return 'DNI';
+  if (siteId === 'MLB') return 'CPF';
+  if (siteId === 'MLC') return 'RUT';
+  if (siteId === 'MLM') return 'INE';
+  if (siteId === 'MCO') return 'CC';
+  return 'CI';
+};
+
+const fallbackIdentificationTypes = () => {
+  const fallbackType = fallbackIdentificationTypeForSite();
+  return [{ id: fallbackType, name: fallbackType }];
+};
+
+const mercadoPagoLocaleForSite = () => {
+  const siteId = String(SiteSettings?.mercadopago_site_id || 'MLU').toUpperCase();
+  const localeBySite = {
+    MLA: 'es-AR',
+    MLB: 'pt-BR',
+    MLC: 'es-CL',
+    MLM: 'es-MX',
+    MPE: 'es-PE',
+    MCO: 'es-CO',
+    MLU: 'es-UY'
+  };
+
+  return localeBySite[siteId] || 'es-UY';
+};
+
+const parseMercadoPagoError = (error) => {
+  const cause = error?.cause;
+  if (Array.isArray(cause) && cause.length > 0) {
+    return cause.map((item) => item?.description || item?.message).filter(Boolean).join(' | ');
+  }
+
+  if (typeof cause === 'string' && cause.trim()) {
+    return cause;
+  }
+
+  return error?.message || 'Could not tokenize the card with the selected provider SDK.';
+};
+
 const fetchBillingData = async () => {
   try {
     const { data } = await ajax.get('/account/billing.json');
+    billingProviderKey.value = String(data?.provider || billingProviderKey.value || '').trim().toLowerCase();
     return data?.data?.[0] || null;
   } catch (error) {
     console.error('Error fetching billing data:', error);
@@ -190,16 +438,149 @@ const fetchBillingData = async () => {
   }
 };
 
-const createSubscription = async () => {
+const loadMercadoPagoSdk = async () => {
+  if (typeof window === 'undefined') return;
+  if (window.MercadoPago) return;
+
+  if (!mercadoPagoSdkPromise) {
+    mercadoPagoSdkPromise = loadScript(MERCADO_PAGO_SDK_URL);
+  }
+
+  await mercadoPagoSdkPromise;
+};
+
+const initializeMercadoPago = async () => {
+  if (providerProfile.value.key !== 'mercado_pago') {
+    return;
+  }
+
+  if (mercadoPagoClient.value || isInitializingMercadoPago.value) return;
+
+  if (!mercadoPagoPublicKey.value) {
+    mercadoPagoInitError.value = `${providerProfile.value.displayName} public key is missing. Contact the site administrator.`;
+    return;
+  }
+
+  isInitializingMercadoPago.value = true;
+  mercadoPagoInitError.value = '';
+
+  try {
+    await loadMercadoPagoSdk();
+
+    const MercadoPago = window.MercadoPago;
+    if (typeof MercadoPago !== 'function') {
+      throw new Error('MercadoPago.js did not load correctly.');
+    }
+
+    mercadoPagoClient.value = markRaw(new MercadoPago(mercadoPagoPublicKey.value, {
+      locale: mercadoPagoLocaleForSite()
+    }));
+
+    const fetchedTypes = await mercadoPagoClient.value.getIdentificationTypes();
+    identificationTypes.value = Array.isArray(fetchedTypes) && fetchedTypes.length > 0
+      ? fetchedTypes
+      : fallbackIdentificationTypes();
+
+    if (!cardForm.value.identificationType && identificationTypes.value.length > 0) {
+      cardForm.value.identificationType = identificationTypes.value[0].id;
+    }
+  } catch (error) {
+    console.error('Error initializing MercadoPago.js:', error);
+    mercadoPagoClient.value = null;
+    identificationTypes.value = fallbackIdentificationTypes();
+
+    if (!cardForm.value.identificationType && identificationTypes.value.length > 0) {
+      cardForm.value.identificationType = identificationTypes.value[0].id;
+    }
+
+    mercadoPagoInitError.value = parseMercadoPagoError(error);
+  } finally {
+    isInitializingMercadoPago.value = false;
+  }
+};
+
+const createCardToken = async () => {
+  if (providerProfile.value.key !== 'mercado_pago') {
+    throw new Error(`Inline card tokenization is not available for ${providerProfile.value.displayName}.`);
+  }
+
+  await initializeMercadoPago();
+
+  if (!mercadoPagoClient.value) {
+    throw new Error(mercadoPagoInitError.value || `${providerProfile.value.displayName} SDK is not ready.`);
+  }
+
+  const payload = {
+    cardNumber: sanitizeDigits(cardForm.value.cardNumber),
+    cardholderName: cardForm.value.cardholderName.trim(),
+    cardExpirationMonth: sanitizeDigits(cardForm.value.cardExpirationMonth).slice(0, 2),
+    cardExpirationYear: normalizeExpirationYear(cardForm.value.cardExpirationYear).slice(-4),
+    securityCode: sanitizeDigits(cardForm.value.securityCode),
+    identificationType: cardForm.value.identificationType,
+    identificationNumber: sanitizeDigits(cardForm.value.identificationNumber)
+  };
+
+  const tokenResponse = await mercadoPagoClient.value.createCardToken(payload);
+  const cardTokenId = tokenResponse?.id;
+
+  if (!cardTokenId) {
+    throw new Error(`${providerProfile.value.displayName} did not return a valid card token.`);
+  }
+
+  return cardTokenId;
+};
+
+const createSubscriptionWithCardToken = async () => {
   isCreatingCheckout.value = true;
   checkoutError.value = '';
 
   try {
-    const { data } = await ajax.post('/account/billing/subscribe.json');
+    const cardTokenId = await createCardToken();
+    const { data } = await ajax.post('/account/billing/subscribe.json', {
+      card_token_id: cardTokenId
+    });
+
+    const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+      return;
+    }
+
+    const freshData = await fetchBillingData();
+    if (freshData) {
+      subscription.value = freshData;
+    } else {
+      startPolling();
+    }
+  } catch (error) {
+    console.error('Error creating subscription with provider card tokenization:', error);
+    checkoutError.value = error?.response?.data?.error || parseMercadoPagoError(error) || 'Could not start subscription.';
+  } finally {
+    isCreatingCheckout.value = false;
+  }
+};
+
+const openInlineCardForm = async () => {
+  showInlineCardForm.value = true;
+  checkoutError.value = '';
+  await initializeMercadoPago();
+};
+
+const closeInlineCardForm = () => {
+  showInlineCardForm.value = false;
+};
+
+const createSubscription = async (checkoutMode = null) => {
+  isCreatingCheckout.value = true;
+  checkoutError.value = '';
+
+  try {
+    const payload = checkoutMode ? { checkout_mode: checkoutMode } : {};
+    const { data } = await ajax.post('/account/billing/subscribe.json', payload);
     const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
 
     if (!checkoutUrl) {
-      checkoutError.value = 'Could not obtain subscription checkout URL.';
+      checkoutError.value = `Could not obtain subscription checkout URL for ${providerProfile.value.displayName}.`;
       return;
     }
 
@@ -213,11 +594,17 @@ const createSubscription = async () => {
 };
 
 const manageSubscription = () => {
-  // Redirect to MercadoPago subscription management if available
-  if (subscription.value?.provider_subscription_id) {
-    // Could open MercadoPago checkout management URL
-    console.log('Manage subscription:', subscription.value.provider_subscription_id);
+  const managementUrl = subscription.value?.metadata?.management_url
+    || subscription.value?.metadata?.manage_url
+    || subscription.value?.metadata?.portal_url
+    || subscription.value?.metadata?.init_point;
+
+  if (managementUrl) {
+    window.location.href = managementUrl;
+    return;
   }
+
+  checkoutError.value = `No management portal is available for ${providerProfile.value.displayName} yet.`;
 };
 
 const cancelSubscription = async () => {
@@ -246,11 +633,20 @@ const formatDate = (value) => {
 };
 
 const formatProvider = (provider) => {
-  if (!provider) return 'N/A';
-  return provider.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return formatProviderLabel(provider);
 };
 
 const pollingInterval = ref(null);
+
+const refreshBillingStatus = async () => {
+  isHydratingBilling.value = true;
+  try {
+    const freshData = await fetchBillingData();
+    subscription.value = freshData;
+  } finally {
+    isHydratingBilling.value = false;
+  }
+};
 
 // Auto-refresh if no subscription found (user just returned from checkout)
 const startPolling = () => {
@@ -276,13 +672,23 @@ const stopPolling = () => {
 };
 
 onMounted(async () => {
-  if (SiteSettings.enable_subscription) {
+  if (!SiteSettings.enable_subscription) {
+    isHydratingBilling.value = false;
+    return;
+  }
+
+  try {
     subscription.value = await fetchBillingData();
 
-    // If no subscription found, start polling (user might have just returned from checkout)
-    if (!subscription.value) {
+    const searchParams = new URLSearchParams(window.location.search);
+    returnedFromCheckout.value = ['preapproval_id', 'subscription_id', 'collection_id', 'status']
+      .some((param) => searchParams.has(param));
+
+    if (!subscription.value && returnedFromCheckout.value) {
       startPolling();
     }
+  } finally {
+    isHydratingBilling.value = false;
   }
 });
 
@@ -382,6 +788,49 @@ useHead({
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* ── Loading State ───────────────────────────────────────────────────── */
+.billing-page__loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 20px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(0, 149, 217, 0.08), rgba(0, 0, 0, 0.22));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.billing-page__loading-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.billing-page__loading-icon {
+  color: var(--c-tertiary-400, #0095d9);
+  animation: spin 1s linear infinite;
+}
+
+.billing-page__loading-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.billing-page__loading-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 480px;
 }
 
 /* ── Status Card ─────────────────────────────────────────────────────── */
@@ -548,6 +997,65 @@ useHead({
   gap: 12px;
 }
 
+/* ── Pending State ───────────────────────────────────────────────────── */
+.billing-page__pending {
+  display: flex;
+  justify-content: center;
+  padding: 22px 0;
+}
+
+.billing-page__pending-card {
+  width: min(620px, 100%);
+  padding: 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 193, 7, 0.28);
+  background: linear-gradient(160deg, rgba(255, 193, 7, 0.1), rgba(0, 0, 0, 0.28));
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.billing-page__pending-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffc107;
+  box-shadow: 0 0 0 rgba(255, 193, 7, 0.6);
+  animation: billing-pulse 1.6s infinite;
+}
+
+.billing-page__pending-title {
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.billing-page__pending-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.86rem;
+  max-width: 500px;
+}
+
+@keyframes billing-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.55);
+  }
+
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 13px rgba(255, 193, 7, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
+
 /* ── Subscribe Section ───────────────────────────────────────────────── */
 .billing-page__subscribe {
   display: flex;
@@ -561,29 +1069,173 @@ useHead({
   align-items: center;
   gap: 16px;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(155deg, rgba(0, 149, 217, 0.09), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   text-align: center;
-  max-width: 500px;
+  max-width: 620px;
 }
 
-.billing-page__subscribe-icon {
-  color: var(--c-tertiary-400, #0095d9);
-  opacity: 0.6;
+.billing-page__subscribe-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  border: 1px solid rgba(0, 149, 217, 0.35);
+  background: rgba(0, 149, 217, 0.14);
+}
+
+.billing-page__subscribe-hero-icon {
+  color: #8fd4f7;
+}
+
+.billing-page__subscribe-hero-kicker {
+  color: #c4ecff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 .billing-page__subscribe-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 600;
   color: #fff;
   margin: 0;
 }
 
 .billing-page__subscribe-description {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
   margin: 0;
+  max-width: 520px;
+}
+
+.billing-page__benefits {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.billing-page__benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.billing-page__benefit-icon {
+  color: #78dbb1;
+  flex-shrink: 0;
+}
+
+.billing-page__secure-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(30, 192, 138, 0.12);
+  border: 1px solid rgba(30, 192, 138, 0.25);
+  color: #74e4bb;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.billing-page__form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.billing-page__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.billing-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.billing-page__field--full {
+  grid-column: span 2;
+}
+
+.billing-page__label {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.billing-page__input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.billing-page__input:focus {
+  outline: none;
+  border-color: var(--c-tertiary-400, #0095d9);
+  box-shadow: 0 0 0 2px rgba(0, 149, 217, 0.2);
+}
+
+.billing-page__divider {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 6px 0;
+}
+
+.billing-page__divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.billing-page__divider span {
+  position: relative;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(22, 25, 34, 1);
+}
+
+.billing-page__form-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.billing-page__form-hint--warning {
+  color: #ffb8a8;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────── */
@@ -690,6 +1342,10 @@ useHead({
   .billing-page__details-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .billing-page__benefits {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 767px) {
@@ -714,6 +1370,14 @@ useHead({
 
   .billing-page__details-grid {
     grid-template-columns: 1fr;
+  }
+
+  .billing-page__form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-page__field--full {
+    grid-column: span 1;
   }
 
   .billing-page__actions {

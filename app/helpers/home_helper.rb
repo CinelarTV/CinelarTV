@@ -116,15 +116,6 @@ module HomeHelper
   end
 
   def get_ip_address
-    @ip_address ||= Rails.env.production? ? request.remote_ip : fetch_ip_address_locally
-  end
-
-  def fetch_ip_address_locally
-    @local_ip ||= begin
-      Net::HTTP.get(URI.parse("http://checkip.amazonaws.com/")).squish
-    rescue StandardError => e
-      Rails.logger.error "Error fetching IP address: #{e.message}"
-      nil
-    end
+    @ip_address ||= request.remote_ip
   end
 end

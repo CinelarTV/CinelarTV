@@ -157,6 +157,12 @@ monetization:
     type: 'string'
     secret: true
 
+  mercadopago_public_key:
+    client: true
+    refresh: true
+    default: ""
+    type: 'string'
+
   mercadopago_webhook_secret:
     client: false
     refresh: true
@@ -170,12 +176,24 @@ monetization:
     default: ""
     type: 'string'
 
+  mercadopago_application_id:
+    client: false
+    refresh: true
+    default: ""
+    type: 'string'
+
   mercadopago_site_id:
     client: true
     refresh: true
     default: MLU
     type: 'enum'
     allowed_values:
+      - MLA
+      - MLB
+      - MLC
+      - MLM
+      - MPE
+      - MCO
       - MLU
 
 storage:

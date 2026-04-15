@@ -111,7 +111,9 @@
     "webpack-dev-server": "4"
   },
   "scripts": {
-    "build:css": "tailwindcss -i ./app/assets/stylesheets/cinelartv.scss -o ./app/assets/builds/cinelartv-wind.css --minify"
+    "build:css": "tailwindcss -i ./app/assets/stylesheets/cinelartv.scss -o ./app/assets/builds/cinelartv-wind.css --minify",
+    "i18n:export": "bundle exec rake i18n:js:export",
+    "sidekiq": "bundle exec sidekiq --config config/sidekiq.yml"
   },
   "workspaces": [
     "plugins/*"

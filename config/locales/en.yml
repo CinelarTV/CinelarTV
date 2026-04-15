@@ -138,6 +138,15 @@ en:
         default_locale:
           description: "The default language of your site"
           title: "Default language"
+          values:
+            en: "English"
+            es: "Spanish"
+            fr: "French"
+            de: "German"
+            it: "Italian"
+            pt: "Portuguese"
+            ru: "Russian"
+            zh: "Chinese"
         enable_carousel:
           description: "Enables the carousel on the home page"
           title: "Enable carousel"
@@ -201,15 +210,28 @@ en:
         mercadopago_access_token:
           description: "Mercado Pago access token for API requests"
           title: "Mercado Pago access token"
+        mercadopago_public_key:
+          description: "Mercado Pago public key used to initialize MercadoPago.js on the frontend"
+          title: "Mercado Pago public key"
         mercadopago_webhook_secret:
           description: "Webhook secret used to verify Mercado Pago notifications"
           title: "Mercado Pago webhook secret"
         mercadopago_plan_id:
           description: "Subscription preapproval plan ID in Mercado Pago"
           title: "Mercado Pago subscription plan ID"
+        mercadopago_application_id:
+          description: "Mercado Pago application ID used to filter plans and validate webhooks"
+          title: "Mercado Pago application ID"
         mercadopago_site_id:
           description: "Mercado Pago site for your country (Uruguay = MLU)"
           title: "Mercado Pago site"
+          values:
+            MLU: "MLU Uruguay"
+            MLB: "MLB Brazil"
+            MCO: "MCO Colombia"
+            MLA: "MLA Argentina"
+            MPE: "MPE Peru"
+            MCL: "MCL Chile"
         no_changes: "You haven't made any changes"
         primary_color:
           description: ""

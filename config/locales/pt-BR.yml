@@ -170,12 +170,18 @@ pt-BR:
         mercadopago_access_token:
           description: "Access token do Mercado Pago para requisicoes de API"
           title: "Access token do Mercado Pago"
+        mercadopago_public_key:
+          description: "Chave publica do Mercado Pago usada para inicializar o MercadoPago.js no frontend"
+          title: "Chave publica do Mercado Pago"
         mercadopago_webhook_secret:
           description: "Segredo do webhook para validar notificacoes do Mercado Pago"
           title: "Segredo de webhook do Mercado Pago"
         mercadopago_plan_id:
           description: "ID do plano de assinatura (preapproval plan) no Mercado Pago"
           title: "ID do plano de assinatura Mercado Pago"
+        mercadopago_application_id:
+          description: "Application ID do Mercado Pago usado para filtrar planos e validar webhooks"
+          title: "Application ID do Mercado Pago"
         mercadopago_site_id:
           description: "Site do Mercado Pago para seu país (Uruguai = MLU)"
           title: "Site do Mercado Pago"

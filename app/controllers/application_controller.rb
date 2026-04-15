@@ -10,7 +10,6 @@ class ApplicationController < ActionController::Base
     "/capybara",
   ].freeze
 
-  before_action :reload_storage_config
   before_action :require_finish_installation?
   before_action :check_maintenance_mode
   skip_before_action :verify_authenticity_token, if: :is_app_request?
@@ -92,10 +91,6 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in? && !current_profile
 
     redirect_to "/profiles/select"
-  end
-
-  def reload_storage_config
-    BaseUploader.configure_storage
   end
 
   def require_finish_installation?

@@ -37,22 +37,14 @@ module Admin
 
         if %w[site_logo site_mobile_logo site_favicon].include?(key)
           logo_uploader = LogoUploader.new
-          if key == "site_favicon"
-            # Read the original image using MiniMagick
-            image = MiniMagick::Image.read(setting_params[key].read)
-            # Resize the image to 32x32 pixels
-            image.resize "32x32"
-            # Replace the original image data with the resized image
-            setting_params[key] = image.to_blob
-            logo_uploader.store!(setting_params[key])
-          end
-
-          logo_uploader.store!(setting_params[key])
+          image_payload = key == "site_favicon" ? resized_favicon_blob(setting_params[key]) : setting_params[key]
+          logo_uploader.store!(image_payload)
           SiteSetting.send("#{key}=", logo_uploader.url)
         else
           # Si no, actualizar el valor de la configuración
           setting = SiteSetting.new(var: key)
-          setting.value = setting_params[key].strip
+          value = setting_params[key]
+          setting.value = value.respond_to?(:strip) ? value.strip : value
           @errors << setting.errors.full_messages unless setting.valid?
         end
       end
@@ -64,11 +56,7 @@ module Admin
           # Si el campo es el de la imagen del sitio, ya lo actualizamos, por lo que no necesitamos hacer nada aquí
           next if %w[site_logo site_mobile_logo site_favicon].include?(key)
 
-          puts "Setting #{key} to #{setting_params[key]}"
-          @new_value = setting_params[key]
-
-          puts "Setting #{key} to #{@new_value}"
-          SiteSetting.send("#{key}=", @new_value) unless setting_params[key].nil?
+          SiteSetting.send("#{key}=", setting_params[key]) unless setting_params[key].nil?
         end
 
         update_carrierwave_setting if is_storage_related?(setting_params.keys)
@@ -86,9 +74,15 @@ module Admin
       SiteSetting.keys
     end
 
-    def is_storage_related?(params)
+    def is_storage_related?(keys)
       @related_keys ||= %w[storage_provider s3_access_key_id s3_secret_access_key s3_bucket s3_region s3_endpoint]
-      @related_keys.include?(params)
+      Array(keys).map(&:to_s).any? { |key| @related_keys.include?(key) }
+    end
+
+    def resized_favicon_blob(uploaded_file)
+      image = MiniMagick::Image.read(uploaded_file.read)
+      image.resize "32x32"
+      image.to_blob
     end
 
     def update_carrierwave_setting

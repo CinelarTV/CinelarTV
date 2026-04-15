@@ -6,6 +6,7 @@ class UserSubscriptionsController < ApplicationController
   before_action :set_subscription
 
   def index
+    link_preapproval_from_return_param!
     @subscriptions = UserSubscription.where(user_id: current_user.id)
 
     respond_to do |format|
@@ -25,6 +26,7 @@ class UserSubscriptionsController < ApplicationController
       success_url: params[:success_url],
       failure_url: params[:failure_url],
       pending_url: params[:pending_url],
+      checkout_mode: params[:checkout_mode],
       card_token_id: params[:card_token_id],
       start_date: params[:start_date],
       end_date: params[:end_date],
@@ -34,19 +36,13 @@ class UserSubscriptionsController < ApplicationController
       frequency_type: params[:frequency_type],
       repetitions: params[:repetitions],
       billing_day: params[:billing_day],
-      billing_day_proportional: params[:billing_day_proportational]
+      billing_day_proportional: params[:billing_day_proportional]
     )
 
+    persist_checkout_attempt!(checkout)
+    persist_preapproval_link!(checkout[:preapproval_id])
+
     if !request.xhr? && request.format.html? && checkout[:checkout_url].present?
-      # Store checkout info for polling when user returns
-      session[:pending_checkout] = {
-        provider: checkout[:provider],
-        preapproval_id: checkout[:preapproval_id],
-        plan_id: checkout[:plan_id],
-        user_id: current_user.id,
-        started_at: Time.zone.now
-      }
-      
       redirect_to checkout[:checkout_url], allow_other_host: true
     else
       render json: { data: checkout }, status: :ok
@@ -60,29 +56,17 @@ class UserSubscriptionsController < ApplicationController
     subscribe
   end
 
-  def return_from_checkout
-    # Clear pending checkout
-    pending = session.delete(:pending_checkout)
-    
-    # Queue a job to sync the subscription
-    if pending.present?
-      Subscriptions::SyncPendingCheckoutJob.perform_async(
-        pending[:user_id],
-        pending[:preapproval_id]
-      )
-    end
-    
-    redirect_to '/account/billing', notice: 'Processing your subscription. Please refresh in a moment.'
-  end
-
   def destroy
-    @subscription = UserSubscription.find_by(id: params[:id])
+    subscription = UserSubscription.find_by(user_id: current_user.id)
+    return render json: { error: "Subscription not found" }, status: :not_found if subscription.blank?
 
-    if @subscription.destroy
-      render json: { message: "Subscription deleted successfully", status: :ok }
-    else
-      render json: { errors: @subscription.errors.full_messages }, status: :unprocessable_entity
-    end
+    provider = ::Subscriptions::Providers::Registry.build(subscription.provider.presence || @provider.provider_key)
+    provider.cancel_subscription!(subscription)
+
+    subscription.destroy!
+    render json: { message: "Subscription cancelled successfully", status: :ok }
+  rescue StandardError => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   private
@@ -97,5 +81,49 @@ class UserSubscriptionsController < ApplicationController
 
   def subscription_params
     params.require(:user_subscription).permit(:plan_id)
+  end
+
+  def link_preapproval_from_return_param!
+    preapproval_id = params[:preapproval_id].presence || params[:subscription_id].presence || params[:id].presence
+    persist_preapproval_link!(preapproval_id)
+  end
+
+  def persist_preapproval_link!(preapproval_id)
+    preapproval = preapproval_id.to_s
+    return if preapproval.blank?
+
+    subscription = UserSubscription.find_or_initialize_by(user_id: current_user.id)
+    metadata = subscription.metadata || {}
+
+    subscription.update!(
+      provider: @provider.provider_key,
+      provider_subscription_id: preapproval,
+      checkout_reference: current_user.id,
+      status: subscription.status.presence || "pending",
+      status_formatted: subscription.status_formatted.presence || "Pending",
+      metadata: metadata.merge(
+        "preapproval_linked_from_billing" => true,
+        "preapproval_linked_at" => Time.zone.now.iso8601
+      )
+    )
+  end
+
+  def persist_checkout_attempt!(checkout)
+    subscription = UserSubscription.find_or_initialize_by(user_id: current_user.id)
+    metadata = subscription.metadata || {}
+
+    subscription.update!(
+      provider: @provider.provider_key,
+      checkout_reference: current_user.id,
+      status: subscription.status.presence || "pending",
+      status_formatted: subscription.status_formatted.presence || "Pending",
+      provider_plan_id: checkout[:plan_id].presence || subscription.provider_plan_id,
+      metadata: metadata.merge(
+        "checkout_attempted" => true,
+        "checkout_attempted_at" => Time.zone.now.iso8601,
+        "checkout_fallback_reason" => checkout[:fallback_reason],
+        "checkout_mode" => checkout[:checkout_mode]
+      ).compact
+    )
   end
 end

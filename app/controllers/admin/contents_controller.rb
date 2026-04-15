@@ -18,14 +18,21 @@ module Admin
       # Initialize the TMDB API
       Tmdb::Api.key(api_key)
 
-      Tmdb::Api.language(SiteSetting.default_locale)
+      locale = SiteSetting.default_locale
+      Tmdb::Api.language(locale)
 
       Rails.logger.info("Using TMDB API Key: #{api_key}")
 
-      @search = Tmdb::Search.multi(params[:title])
+      normalized_title = params[:title].to_s.strip
+      cache_key = ["tmdb", "search", "multi", locale, normalized_title.downcase].join(":")
+
+      search_data = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+        Tmdb::Search.multi(normalized_title).table
+      end
+
       # Render as JSON
       render json: {
-        data: @search.table,
+        data: search_data,
         config: @config.as_json,
       }
     rescue Tmdb::Error => e
@@ -149,10 +156,11 @@ module Admin
 
       return unless episode_order.present?
 
-      episode_order.each_with_index do |episode_id, index|
-        episode = @season.episodes.find(episode_id)
-        episode.update(position: index)
-      end
+      pairs = episode_order.each_with_index.map { |episode_id, index| [episode_id.to_i, index] }
+      ids = pairs.map(&:first)
+      case_statement = pairs.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
+
+      @season.episodes.where(id: ids).update_all("position = CASE id #{case_statement} END")
     end
 
     def edit_episode
@@ -180,10 +188,11 @@ module Admin
       season_order = params[:season_order]
 
       if season_order.present?
-        season_order.each_with_index do |season_id, index|
-          season = @content.seasons.find(season_id)
-          season.update(position: index)
-        end
+        pairs = season_order.each_with_index.map { |season_id, index| [season_id.to_i, index] }
+        ids = pairs.map(&:first)
+        case_statement = pairs.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
+
+        @content.seasons.where(id: ids).update_all("position = CASE id #{case_statement} END")
       end
 
       render json: { message: "Temporadas reordenadas con éxito", status: :ok }

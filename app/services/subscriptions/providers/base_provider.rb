@@ -15,13 +15,13 @@ module Subscriptions
         raise NotImplementedError, "process_webhook! must be implemented"
       end
 
-      def create_subscription!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _card_token_id: nil,
+      def create_subscription!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _checkout_mode: nil, _card_token_id: nil,
         _start_date: nil, _end_date: nil, _amount: nil, _currency_id: nil, _frequency: nil, _frequency_type: nil,
         _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil)
         raise NotImplementedError, "create_subscription! must be implemented"
       end
 
-      def create_checkout!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _card_token_id: nil,
+      def create_checkout!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _checkout_mode: nil, _card_token_id: nil,
         _start_date: nil, _end_date: nil, _amount: nil, _currency_id: nil, _frequency: nil, _frequency_type: nil,
         _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil)
         create_subscription!(
@@ -29,6 +29,7 @@ module Subscriptions
           _success_url:,
           _failure_url:,
           _pending_url:,
+          _checkout_mode:,
           _card_token_id:,
           _start_date:,
           _end_date:,

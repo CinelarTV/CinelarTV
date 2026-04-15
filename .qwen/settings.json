@@ -6,7 +6,9 @@
       "Bash(del *)",
       "Bash(dir *)",
       "Bash(bundle *)",
-      "Bash(move *)"
+      "Bash(move *)",
+      "WebSearch",
+      "WebFetch(github.com)"
     ]
   },
   "$version": 3

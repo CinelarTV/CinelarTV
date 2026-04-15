@@ -11,7 +11,7 @@ const BASE_ICONS = new Set([
     "activity", "award", "airplay", "arrowRightLeft", "arrowRight", "box", "check",
     "compass", "copy", "checkCircle", "chevronDown", "chevronLeft", "chevronRight",
     "chevronUp", "clapperboard", "creditCard", "gripVertical", "helpCircle", "info",
-    "calendar",
+    "calendar", "clock",
     "loader", "logOut", "pause", "maximize", "minimize", "play", "frown", "fastForward",
     "playCircle", "playSquare", "plus", "rotateCcw", "rotateCw", "search", "settings",
     "shieldQuestion", "sparkles", "thumbsUp", "user", "wrench", "x", "hardDrive",

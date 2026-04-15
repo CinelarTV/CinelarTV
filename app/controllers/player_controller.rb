@@ -22,17 +22,7 @@ class PlayerController < ApplicationController
       played_at: Time.now,
     )
 
-    ip_address = nil
-
-    if Rails.env.production?
-      ip_address = request.remote_ip
-    else
-      begin
-        ip_address = Net::HTTP.get(URI.parse("http://checkip.amazonaws.com/")).squish
-      rescue StandardError => e
-        Rails.logger.error "Error fetching IP address: #{e.message}"
-      end
-    end
+    ip_address = request.remote_ip
 
     if ip_address.present?
       Rails.logger.info "IP address: #{ip_address}"

@@ -91,7 +91,9 @@
                     <label class="subscriptions-admin__label">Provider</label>
                     <select v-model="filters.provider" class="subscriptions-admin__select" @change="fetchSubscriptions">
                         <option value="">All</option>
-                        <option value="mercado_pago">MercadoPago</option>
+                        <option v-for="provider in providerOptions" :key="provider.key" :value="provider.key">
+                            {{ provider.label }}
+                        </option>
                     </select>
                 </div>
                 <div class="subscriptions-admin__field subscriptions-admin__field--actions">
@@ -138,7 +140,7 @@
                         <div class="subscription__info">
                             <span class="subscription__id">#{{ sub.id }}</span>
                             <span class="subscription__user">{{ sub.user?.email || sub.user?.username || 'Unknown'
-                                }}</span>
+                            }}</span>
                             <span class="subscription__date" v-if="sub.renews_at">
                                 <CIcon icon="calendar" :size="14" />
                                 Renews: {{ formatDate(sub.renews_at) }}
@@ -151,7 +153,7 @@
                     <div class="subscription__meta">
                         <div class="subscription__meta-item">
                             <CIcon icon="credit-card" :size="14" />
-                            <span>{{ sub.provider || 'N/A' }}</span>
+                            <span>{{ formatProvider(sub.provider) }}</span>
                         </div>
                         <div class="subscription__meta-item" v-if="sub.product_name">
                             <CIcon icon="package" :size="14" />
@@ -185,7 +187,7 @@
                         Plans
                     </h2>
                     <p class="subscriptions-admin__card-description">
-                        Select a plan created from MercadoPago web interface or create a new one
+                        Select a plan from {{ currentProviderLabel }} or create a new one
                     </p>
                 </div>
                 <label class="subscriptions-admin__toggle">
@@ -202,7 +204,7 @@
                 <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
                 <p class="subscriptions-admin__empty-title">No plans available</p>
                 <p class="subscriptions-admin__empty-description">
-                    Create a plan from MercadoPago web interface or use the form below
+                    Create a plan from {{ currentProviderLabel }} or use the form below
                 </p>
             </div>
             <div v-else class="subscriptions-admin__plans">
@@ -220,12 +222,12 @@
                             <div class="plan__detail">
                                 <CIcon icon="dollar-sign" :size="14" />
                                 <span>{{ plan.auto_recurring?.transaction_amount }} {{ plan.auto_recurring?.currency_id
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="plan__detail">
                                 <CIcon icon="calendar" :size="14" />
                                 <span>{{ plan.auto_recurring?.frequency }} {{ plan.auto_recurring?.frequency_type
-                                    }}</span>
+                                }}</span>
                             </div>
                             <div class="plan__detail">
                                 <CIcon icon="hash" :size="14" />
@@ -312,6 +314,8 @@ const subscriptions = ref([])
 const plans = ref([])
 const showAllPlans = ref(false)
 const activePlanId = ref('')
+const currentProviderKey = ref('')
+const availableProviders = ref([])
 
 const filters = ref({
     query: '',
@@ -330,6 +334,25 @@ const planForm = ref({
 const activeSubscriptionsCount = computed(() =>
     subscriptions.value.filter((sub) => ['active', 'approved'].includes((sub.status || '').toLowerCase())).length
 )
+
+const providerOptions = computed(() => {
+    if (availableProviders.value.length > 0) {
+        return availableProviders.value
+    }
+
+    return [{ key: 'mercado_pago', label: 'Mercado Pago' }]
+})
+
+const currentProviderLabel = computed(() => {
+    const provider = providerOptions.value.find((option) => option.key === currentProviderKey.value)
+    if (provider) {
+        return provider.label
+    }
+
+    return currentProviderKey.value
+        ? currentProviderKey.value.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase())
+        : 'Current provider'
+})
 
 const activePlanName = computed(() => {
     if (!activePlanId.value) {
@@ -354,6 +377,8 @@ const fetchSubscriptions = async () => {
     try {
         const { data } = await ajax.get('/admin/subscriptions.json', { params: filters.value })
         subscriptions.value = data?.data || []
+        availableProviders.value = data?.meta?.available_providers || availableProviders.value
+        currentProviderKey.value = data?.meta?.current_provider || currentProviderKey.value
     } catch (e) {
         error.value = e?.response?.data?.error || 'Failed to load subscriptions'
     } finally {
@@ -368,6 +393,7 @@ const fetchPlans = async () => {
         })
         plans.value = data?.data || []
         activePlanId.value = data?.meta?.active_plan_id || ''
+        currentProviderKey.value = data?.meta?.provider || currentProviderKey.value
     } catch (e) {
         error.value = e?.response?.data?.error || 'Failed to load plans'
     }
@@ -457,6 +483,20 @@ const formatDate = (value) => {
         day: 'numeric',
         year: 'numeric'
     })
+}
+
+const formatProvider = (provider) => {
+    if (!provider) {
+        return 'N/A'
+    }
+
+    const key = String(provider)
+    const option = providerOptions.value.find((candidate) => candidate.key === key)
+    if (option) {
+        return option.label
+    }
+
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 onMounted(async () => {
