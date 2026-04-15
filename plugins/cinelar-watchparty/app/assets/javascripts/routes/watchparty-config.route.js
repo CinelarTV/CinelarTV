@@ -1,6 +1,6 @@
 export default {
-    path: '/', // Asegúrate de que cada ruta tenga una propiedad path
-    name: 'home.index',
+    path: '/watchparty', // Asegúrate de que cada ruta tenga una propiedad path
+    name: 'watchparty.index',
     component: () => import(/* webpackChunkName: "watchparty" */ '../views/introducing-watchparty.vue'),
     meta: {
         requiresAuth: true,
