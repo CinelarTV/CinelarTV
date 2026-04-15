@@ -141,11 +141,17 @@ es:
           description: "Activa el sistema de suscripción, esto le permitirá cobrar a sus usuarios por el acceso a su sitio"
           title: "Habilitar la suscripción"
         subscription_provider_primary:
-          description: "Proveedor principal de suscripciones para checkout y webhooks"
+          description: "Proveedor principal de suscripciones para checkout y webhooks (respaldo cuando no hay flags de proveedor habilitados)"
           title: "Proveedor principal de suscripción"
           values:
             mercado_pago: "Mercado Pago"
             lemon_squeezy: "Lemon Squeezy"
+        enable_mercado_pago_provider:
+          description: "Habilitar Mercado Pago como proveedor de suscripciones"
+          title: "Habilitar proveedor Mercado Pago"
+        enable_lemon_squeezy_provider:
+          description: "Habilitar Lemon Squeezy como proveedor de suscripciones"
+          title: "Habilitar proveedor Lemon Squeezy"
         enable_web_updater:
           description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
           title: "Actualizador web experimental"

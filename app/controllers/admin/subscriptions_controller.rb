@@ -210,7 +210,7 @@ module Admin
     end
 
     def available_provider_options
-      provider_keys = ::Subscriptions::Providers::Registry::PROVIDERS.keys
+      provider_keys = ::Subscriptions::Providers::Registry.enabled_provider_keys
       provider_keys += UserSubscription.distinct.pluck(:provider).compact
 
       provider_keys

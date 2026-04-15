@@ -12,9 +12,11 @@ class UserSubscriptionsController < ApplicationController
     respond_to do |format|
       format.html
       format.json do
+        enabled_providers = ::Subscriptions::Providers::Registry.enabled_provider_keys
         render json: {
           data: @subscriptions.as_json,
-          provider: @provider.provider_key
+          provider: @provider.provider_key,
+          enabled_providers: enabled_providers.map { |key| { key: key, label: provider_label(key) } }
         }
       end
     end
@@ -72,7 +74,12 @@ class UserSubscriptionsController < ApplicationController
   private
 
   def set_provider
-    @provider = ::Subscriptions::Providers::Registry.current
+    requested_provider = params[:provider].to_s.presence
+    if requested_provider.present? && ::Subscriptions::Providers::Registry.enabled?(requested_provider)
+      @provider = ::Subscriptions::Providers::Registry.build(requested_provider)
+    else
+      @provider = ::Subscriptions::Providers::Registry.current
+    end
   end
 
   def set_subscription
@@ -125,5 +132,16 @@ class UserSubscriptionsController < ApplicationController
         "checkout_mode" => checkout[:checkout_mode]
       ).compact
     )
+  end
+
+  def provider_label(provider_key)
+    labels = {
+      "mercado_pago" => "Mercado Pago",
+      "lemon_squeezy" => "Lemon Squeezy",
+      "stripe" => "Stripe",
+      "paypal" => "PayPal"
+    }
+
+    labels[provider_key.to_s] || provider_key.to_s.split("_").map(&:capitalize).join(" ")
   end
 end
