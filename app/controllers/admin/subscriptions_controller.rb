@@ -22,14 +22,19 @@ module Admin
 
       paginated = subscriptions.offset((page - 1) * per_page).limit(per_page)
 
-      render json: {
-        data: paginated.as_json(include: { user: { only: %i[id email username] } }),
-        meta: {
-          page: page,
-          per_page: per_page,
-          total_count: subscriptions.count
-        }
-      }
+      respond_to do |format|
+        format.html { render "application/index" }
+        format.json do
+          render json: {
+            data: paginated.as_json(include: { user: { only: %i[id email username] } }),
+            meta: {
+              page: page,
+              per_page: per_page,
+              total_count: subscriptions.count
+            }
+          }
+        end
+      end
     end
 
     def show
@@ -88,11 +93,115 @@ module Admin
       render json: { data: logs.as_json }
     end
 
+    def test_webhook
+      # Fetch the most recent subscription to test with
+      subscription = UserSubscription.order(updated_at: :desc).first
+      
+      if subscription.blank?
+        render json: { error: 'No subscriptions found to test with' }, status: :unprocessable_entity
+        return
+      end
+
+      provider = provider_for(subscription)
+      
+      begin
+        # Fetch the subscription from MercadoPago
+        remote = provider.fetch_subscription!(subscription)
+        
+        if remote.is_a?(Hash)
+          # Update the subscription with fresh data
+          status = remote["status"].to_s
+          subscription.update(
+            external_status: status.presence || subscription.external_status,
+            metadata: subscription.metadata.merge("last_test_sync" => Time.zone.now.iso8601, "remote_data" => remote)
+          )
+          
+          render json: {
+            message: 'Webhook test successful',
+            data: subscription.as_json,
+            remote_data: remote
+          }
+        else
+          render json: { error: 'Invalid response from provider' }, status: :unprocessable_entity
+        end
+      rescue StandardError => e
+        render json: { error: "Webhook test failed: #{e.message}" }, status: :unprocessable_entity
+      end
+    end
+
+    def plans
+      provider = current_provider
+      managed_only = ActiveModel::Type::Boolean.new.cast(params.fetch(:managed_only, true))
+      plans_response = provider.list_plans!(managed_only: managed_only)
+      plans = plans_response["results"] || plans_response["data"] || []
+
+      render json: {
+        data: plans,
+        meta: {
+          active_plan_id: SiteSetting.mercadopago_plan_id.to_s
+        }
+      }
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
+    def select_plan
+      plan_id = params[:plan_id].to_s
+      raise ArgumentError, "Plan id is required" if plan_id.blank?
+
+      SiteSetting.mercadopago_plan_id = plan_id
+
+      render json: {
+        data: {
+          active_plan_id: SiteSetting.mercadopago_plan_id,
+          message: "Plan selected for CinelarTV"
+        }
+      }
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
+    def create_plan
+      provider = current_provider
+      plan = provider.create_plan!(plan_params)
+
+      render json: { data: plan }, status: :ok
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
+    def update_plan
+      provider = current_provider
+      plan = provider.update_plan!(params[:plan_id], plan_params)
+
+      render json: { data: plan }, status: :ok
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
+    def deactivate_plan
+      provider = current_provider
+      plan = provider.deactivate_plan!(params[:plan_id])
+
+      render json: { data: plan }, status: :ok
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     private
 
     def provider_for(subscription)
       provider_key = subscription.provider.presence || SiteSetting.subscription_provider_primary
-      Subscriptions::Providers::Registry.build(provider_key)
+      ::Subscriptions::Providers::Registry.build(provider_key)
     end
+
+    def current_provider
+      ::Subscriptions::Providers::Registry.current
+    end
+
+    def plan_params
+      params.permit(:reason, :currency_id, :amount, :frequency, :frequency_type, :status, :back_url)
+    end
+
   end
 end

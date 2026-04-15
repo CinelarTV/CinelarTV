@@ -150,15 +150,6 @@ monetization:
     allowed_values:
       - mercado_pago
 
-  subscription_provider_secondary:
-    client: true
-    refresh: true
-    default: ""
-    type: 'enum'
-    allowed_values:
-      - ""
-      - mercado_pago
-
   mercadopago_access_token:
     client: false
     refresh: true
@@ -179,50 +170,13 @@ monetization:
     default: ""
     type: 'string'
 
-  mercadopago_plan_title:
+  mercadopago_site_id:
     client: true
     refresh: true
-    default: "CinelarTV Subscription"
-    type: 'string'
-
-  mercadopago_plan_interval:
-    client: true
-    refresh: true
-    default: monthly
+    default: MLU
     type: 'enum'
     allowed_values:
-      - monthly
-      - yearly
-
-  mercadopago_plan_currency:
-    client: true
-    refresh: true
-    default: USD
-    type: 'string'
-
-  mercadopago_plan_price:
-    client: true
-    refresh: true
-    default: "9.99"
-    type: 'string'
-
-  mercadopago_success_url:
-    client: false
-    refresh: true
-    default: ""
-    type: 'string'
-
-  mercadopago_failure_url:
-    client: false
-    refresh: true
-    default: ""
-    type: 'string'
-
-  mercadopago_pending_url:
-    client: false
-    refresh: true
-    default: ""
-    type: 'string'
+      - MLU
 
 storage:
   storage_provider:

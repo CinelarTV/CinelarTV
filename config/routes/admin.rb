@@ -16,6 +16,12 @@ namespace :admin do
 
   get "subscriptions" => "subscriptions#index"
   get "subscriptions/logs" => "subscriptions#logs"
+  post "subscriptions/webhooks/test" => "subscriptions#test_webhook"
+  get "subscriptions/plans" => "subscriptions#plans"
+  post "subscriptions/plans" => "subscriptions#create_plan"
+  put "subscriptions/plans/:plan_id" => "subscriptions#update_plan"
+  post "subscriptions/plans/:plan_id/select" => "subscriptions#select_plan"
+  post "subscriptions/plans/:plan_id/deactivate" => "subscriptions#deactivate_plan"
   get "subscriptions/:id" => "subscriptions#show"
   post "subscriptions/:id/cancel" => "subscriptions#cancel"
   post "subscriptions/:id/sync" => "subscriptions#sync"

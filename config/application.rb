@@ -12,6 +12,8 @@ module CinelarTV
     config.load_defaults 7.0
 
     config.autoload_paths << "#{root}/lib"
+    config.autoload_paths << "#{root}/app/services"
+    config.eager_load_paths << "#{root}/app/services"
 
     # Plugin paths
     %w[controllers models].each do |layer|

@@ -171,9 +171,6 @@ en:
         subscription_provider_primary:
           description: "Primary subscription provider used to process checkouts and webhooks"
           title: "Primary subscription provider"
-        subscription_provider_secondary:
-          description: "Optional fallback subscription provider"
-          title: "Secondary subscription provider"
         enable_transcoding:
           description: "Enables the transcoding of videos, this will allow you to transcode the videos to different formats and resolutions"
           title: "Enable transcoding"
@@ -208,29 +205,11 @@ en:
           description: "Webhook secret used to verify Mercado Pago notifications"
           title: "Mercado Pago webhook secret"
         mercadopago_plan_id:
-          description: "Optional plan identifier for Mercado Pago"
-          title: "Mercado Pago plan ID"
-        mercadopago_plan_title:
-          description: "Title shown in Mercado Pago checkout"
-          title: "Mercado Pago plan title"
-        mercadopago_plan_interval:
-          description: "Subscription interval used for internal lifecycle"
-          title: "Mercado Pago plan interval"
-        mercadopago_plan_currency:
-          description: "Checkout currency code (for example USD, ARS, BRL)"
-          title: "Mercado Pago currency"
-        mercadopago_plan_price:
-          description: "Checkout price shown to users"
-          title: "Mercado Pago price"
-        mercadopago_success_url:
-          description: "Custom success URL after checkout"
-          title: "Mercado Pago success URL"
-        mercadopago_failure_url:
-          description: "Custom failure URL after checkout"
-          title: "Mercado Pago failure URL"
-        mercadopago_pending_url:
-          description: "Custom pending URL after checkout"
-          title: "Mercado Pago pending URL"
+          description: "Subscription preapproval plan ID in Mercado Pago"
+          title: "Mercado Pago subscription plan ID"
+        mercadopago_site_id:
+          description: "Mercado Pago site for your country (Uruguay = MLU)"
+          title: "Mercado Pago site"
         no_changes: "You haven't made any changes"
         primary_color:
           description: ""

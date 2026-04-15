@@ -15,7 +15,7 @@ class WebhooksController < ApplicationController
     render plain: "ok", status: :ok
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.warn("Webhook ignored: #{e.message}")
-    render plain: "user not found", status: :accepted
+    render plain: "ignored", status: :accepted
   rescue StandardError => e
     Rails.logger.error("Subscription webhook error (#{provider_key}): #{e.class} - #{e.message}")
     render plain: "Invalid event", status: :unprocessable_entity
@@ -24,7 +24,7 @@ class WebhooksController < ApplicationController
   private
 
   def set_provider
-    @provider = Subscriptions::Providers::Registry.build(provider_key)
+    @provider = ::Subscriptions::Providers::Registry.build(provider_key)
   rescue ArgumentError
     render plain: "Unknown provider", status: :unprocessable_entity
   end

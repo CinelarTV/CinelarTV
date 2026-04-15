@@ -15,8 +15,31 @@ module Subscriptions
         raise NotImplementedError, "process_webhook! must be implemented"
       end
 
-      def create_checkout!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil)
-        raise NotImplementedError, "create_checkout! must be implemented"
+      def create_subscription!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _card_token_id: nil,
+        _start_date: nil, _end_date: nil, _amount: nil, _currency_id: nil, _frequency: nil, _frequency_type: nil,
+        _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil)
+        raise NotImplementedError, "create_subscription! must be implemented"
+      end
+
+      def create_checkout!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _card_token_id: nil,
+        _start_date: nil, _end_date: nil, _amount: nil, _currency_id: nil, _frequency: nil, _frequency_type: nil,
+        _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil)
+        create_subscription!(
+          _user:,
+          _success_url:,
+          _failure_url:,
+          _pending_url:,
+          _card_token_id:,
+          _start_date:,
+          _end_date:,
+          _amount:,
+          _currency_id:,
+          _frequency:,
+          _frequency_type:,
+          _repetitions:,
+          _billing_day:,
+          _billing_day_proportional:
+        )
       end
 
       def fetch_subscription!(_subscription)
@@ -25,6 +48,22 @@ module Subscriptions
 
       def cancel_subscription!(_subscription)
         raise NotImplementedError, "cancel_subscription! must be implemented"
+      end
+
+      def list_plans!
+        raise NotImplementedError, "list_plans! must be implemented"
+      end
+
+      def create_plan!(_params)
+        raise NotImplementedError, "create_plan! must be implemented"
+      end
+
+      def update_plan!(_plan_id, _params)
+        raise NotImplementedError, "update_plan! must be implemented"
+      end
+
+      def deactivate_plan!(_plan_id)
+        raise NotImplementedError, "deactivate_plan! must be implemented"
       end
 
       protected
