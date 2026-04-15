@@ -5,10 +5,10 @@
       <div class="billing-page__header-content">
         <h1 class="billing-page__title">
           <CIcon icon="credit-card" :size="28" class="billing-page__icon" />
-          Subscription Management
+          Membership
         </h1>
         <p class="billing-page__description">
-          Manage your subscription plan and billing details
+          Manage your subscription and billing details
         </p>
       </div>
     </div>
@@ -29,239 +29,259 @@
       </div>
       <h2 class="billing-page__loading-title">Loading your membership</h2>
       <p class="billing-page__loading-description">
-        We are syncing your subscription status with the payment provider.
+        Syncing your subscription status…
       </p>
     </div>
 
-    <!-- Active subscription -->
+    <!-- Active / cancelled subscription -->
     <div v-else-if="subscription" class="billing-page__content">
-      <!-- Status Card -->
-      <div class="billing-page__card" :class="`billing-page__card--${subscriptionStatusClass}`">
-        <div class="billing-page__status-header">
-          <div class="billing-page__status-icon">
-            <CIcon :icon="subscriptionStatusIcon" :size="32" />
-          </div>
-          <div class="billing-page__status-info">
-            <h2 class="billing-page__status-title">
-              {{ subscription.product_name || 'Subscription Plan' }}
-            </h2>
-            <p class="billing-page__status-plan">
-              {{ subscription.variant_name || 'Monthly Plan' }}
-            </p>
-          </div>
+      <div class="billing-plan-card">
+        <!-- Status badge -->
+        <div class="billing-plan-card__status-row">
+          <span class="billing-plan-card__badge" :class="`billing-plan-card__badge--${subscriptionStatusClass}`">
+            <CIcon :icon="subscriptionStatusIcon" :size="14" />
+            {{ subscription.status_formatted || subscription.status }}
+          </span>
+          <span v-if="subscription.provider" class="billing-plan-card__provider-tag">
+            via {{ formatProvider(subscription.provider) }}
+          </span>
         </div>
-        <div class="billing-page__status-badge" :class="`billing-page__status-badge--${subscriptionStatusClass}`">
-          <CIcon :icon="subscriptionStatusBadgeIcon" :size="16" />
-          <span>{{ subscription.status_formatted || subscription.status }}</span>
-        </div>
-      </div>
 
-      <!-- Subscription Details -->
-      <div class="billing-page__details">
-        <h3 class="billing-page__section-title">
-          <CIcon icon="info" :size="20" />
-          Subscription Details
-        </h3>
-        <div class="billing-page__details-grid">
-          <div class="billing-page__detail-card">
-            <div class="billing-page__detail-icon">
-              <CIcon icon="calendar" :size="20" />
-            </div>
-            <span class="billing-page__detail-label">Next Billing Date</span>
-            <span class="billing-page__detail-value">
-              {{ formatDate(subscription.renews_at) }}
+        <!-- Plan name + cancellation notice -->
+        <h2 class="billing-plan-card__title">{{ subscription.product_name || 'CinelarTV Premium' }}</h2>
+        <p class="billing-plan-card__variant">{{ subscription.variant_name || 'Monthly' }}</p>
+
+        <div v-if="subscription.cancelled" class="billing-plan-card__cancellation-notice">
+          <CIcon icon="alert-circle" :size="16" />
+          Subscription cancelled · Access until {{ formatDate(subscription.ends_at) }}.
+        </div>
+
+        <!-- Details grid -->
+        <div class="billing-plan-card__details">
+          <div class="billing-plan-detail" v-if="!subscription.cancelled && subscription.renews_at">
+            <span class="billing-plan-detail__label">Next billing</span>
+            <span class="billing-plan-detail__value">{{ formatDate(subscription.renews_at) }}</span>
+          </div>
+          <div class="billing-plan-detail" v-if="subscription.cancelled && subscription.ends_at">
+            <span class="billing-plan-detail__label">Access until</span>
+            <span class="billing-plan-detail__value">{{ formatDate(subscription.ends_at) }}</span>
+          </div>
+          <div class="billing-plan-detail" v-if="subscription.card_last_four">
+            <span class="billing-plan-detail__label">Payment method</span>
+            <span class="billing-plan-detail__value">
+              {{ subscription.card_brand?.toUpperCase() || 'Card' }} ···· {{ subscription.card_last_four }}
             </span>
           </div>
-          <div class="billing-page__detail-card">
-            <div class="billing-page__detail-icon">
-              <CIcon icon="credit-card" :size="20" />
-            </div>
-            <span class="billing-page__detail-label">Provider</span>
-            <span class="billing-page__detail-value">
-              {{ formatProvider(subscription.provider) }}
-            </span>
+          <div class="billing-plan-detail">
+            <span class="billing-plan-detail__label">Billing email</span>
+            <span class="billing-plan-detail__value">{{ subscription.user_email || currentUser?.email || '—' }}</span>
           </div>
-          <div class="billing-page__detail-card">
-            <div class="billing-page__detail-icon">
-              <CIcon icon="mail" :size="20" />
-            </div>
-            <span class="billing-page__detail-label">Account Email</span>
-            <span class="billing-page__detail-value">
-              {{ subscription.user_email || currentUser?.email || 'N/A' }}
-            </span>
+          <div class="billing-plan-detail" v-if="subscription.provider_subscription_id">
+            <span class="billing-plan-detail__label">Subscription ID</span>
+            <span class="billing-plan-detail__value billing-plan-detail__value--mono">{{ subscription.provider_subscription_id }}</span>
           </div>
-          <div class="billing-page__detail-card" v-if="subscription.trial_ends_at">
-            <div class="billing-page__detail-icon">
-              <CIcon icon="gift" :size="20" />
-            </div>
-            <span class="billing-page__detail-label">Trial Ends</span>
-            <span class="billing-page__detail-value">
-              {{ formatDate(subscription.trial_ends_at) }}
-            </span>
+          <div class="billing-plan-detail" v-if="lastPaymentInfo">
+            <span class="billing-plan-detail__label">Last payment</span>
+            <span class="billing-plan-detail__value">{{ lastPaymentInfo }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- Actions -->
-      <div class="billing-page__actions">
-        <BillingActionButton icon="external-link" @click="manageSubscription">
-          Manage Subscription
-        </BillingActionButton>
-        <BillingActionButton v-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
-          Cancel Subscription
-        </BillingActionButton>
+        <!-- Actions -->
+        <div class="billing-plan-card__actions">
+          <BillingActionButton icon="refresh-cw" :loading="isSyncing" variant="secondary" @click="manualSync">
+            {{ isSyncing ? 'Checking…' : 'Verify status' }}
+          </BillingActionButton>
+          <BillingActionButton v-if="hasManagementUrl" icon="external-link" variant="secondary" @click="manageSubscription">
+            Manage in {{ formatProvider(subscription.provider) }}
+          </BillingActionButton>
+          <BillingActionButton v-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
+            Cancel plan
+          </BillingActionButton>
+        </div>
       </div>
     </div>
 
-    <!-- Awaiting activation -->
+    <!-- Awaiting activation (returned from checkout) -->
     <div v-else-if="isAwaitingActivation" class="billing-page__pending">
       <div class="billing-page__pending-card">
         <div class="billing-page__pending-pulse" />
         <h2 class="billing-page__pending-title">Finalizing your subscription</h2>
         <p class="billing-page__pending-description">
-          Your payment was received. We are waiting for confirmation from {{ providerProfile.displayName }}.
+          Your payment was received. Confirmation from {{ providerProfile.displayName }} may take a few minutes.
         </p>
-        <BillingActionButton icon="refresh-cw" :loading="isHydratingBilling" @click="refreshBillingStatus">
-          Refresh status
+        <BillingActionButton icon="refresh-cw" :loading="isSyncing" @click="manualSync">
+          {{ isSyncing ? 'Checking…' : 'Check activation status' }}
         </BillingActionButton>
+        <p class="billing-page__pending-hint">
+          Already activated? Try refreshing the page.
+        </p>
       </div>
     </div>
 
-    <!-- No subscription -->
+    <!-- No subscription — subscribe -->
     <div v-else class="billing-page__subscribe">
       <div class="billing-page__subscribe-card">
+        <!-- Hero -->
         <div class="billing-page__subscribe-hero">
           <CIcon icon="sparkles" :size="26" class="billing-page__subscribe-hero-icon" />
           <span class="billing-page__subscribe-hero-kicker">CinelarTV Premium</span>
         </div>
 
-        <h2 class="billing-page__subscribe-title">Start your streaming membership</h2>
-        <p class="billing-page__subscribe-description">
-          {{ providerProfile.subscribeDescription }}
-        </p>
+        <h2 class="billing-page__subscribe-title">Unlimited streaming, one plan</h2>
 
+        <!-- Benefits -->
         <ul class="billing-page__benefits">
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Unlimited access to your catalog
+            Full access to the entire catalog
           </li>
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Continue watching across devices
+            Continue watching across all your devices
           </li>
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Faster support for billing issues
+            Priority support for billing issues
           </li>
         </ul>
 
-        <!-- Provider Selector (multiple providers) -->
+        <!-- Provider selector (multi-provider) -->
         <div v-if="showProviderSelector" class="billing-page__provider-selector">
-          <span class="billing-page__provider-selector-label">Choose payment provider:</span>
+          <span class="billing-page__provider-selector-label">Pay with:</span>
           <div class="billing-page__provider-options">
-            <button
-              v-for="provider in enabledProviders"
-              :key="provider.key"
+            <button v-for="provider in enabledProviders" :key="provider.key"
               class="billing-page__provider-option"
               :class="{ 'billing-page__provider-option--active': activeProviderKey === provider.key }"
-              @click="selectProvider(provider.key)"
-            >
+              @click="selectProvider(provider.key)">
               <CIcon icon="credit-card" :size="18" />
               {{ provider.label }}
             </button>
           </div>
         </div>
 
-        <div class="billing-page__secure-badge" v-if="providerProfile.supportsInlineCardForm && showInlineCardForm">
-          <CIcon icon="shield-check" :size="16" />
-          {{ providerProfile.secureBadgeText }}
+        <!-- Primary CTA -->
+        <BillingActionButton id="billing-subscribe-btn" large icon="external-link" loading-icon="loader"
+          variant="primary" :loading="isCreatingCheckout && selectedCheckoutMode === 'redirect'"
+          :disabled="isCreatingCheckout"
+          @click="createSubscription('redirect')">
+          {{ isCreatingCheckout && selectedCheckoutMode === 'redirect'
+            ? providerProfile.checkoutLoadingCta
+            : providerProfile.checkoutCta }}
+        </BillingActionButton>
+
+        <!-- Secondary payment options -->
+        <div v-if="providerProfile.supportsWalletCheckout || providerProfile.supportsInlineCardForm"
+          class="billing-page__alt-methods">
+          <span class="billing-page__alt-methods-label">Or pay with:</span>
+          <div class="billing-page__alt-methods-list">
+            <button v-if="providerProfile.supportsWalletCheckout"
+              class="billing-page__alt-btn"
+              :class="{ 'billing-page__alt-btn--active': selectedPayMethod === 'wallet' }"
+              :disabled="isCreatingCheckout"
+              @click="selectedPayMethod = selectedPayMethod === 'wallet' ? null : 'wallet'">
+              <CIcon icon="wallet" :size="15" />
+              {{ providerProfile.displayName }} balance
+            </button>
+            <button v-if="providerProfile.supportsInlineCardForm"
+              class="billing-page__alt-btn"
+              :class="{ 'billing-page__alt-btn--active': selectedPayMethod === 'card' }"
+              :disabled="isCreatingCheckout"
+              @click="toggleCardForm">
+              <CIcon icon="credit-card" :size="15" />
+              Card details
+            </button>
+          </div>
         </div>
 
-        <BillingActionButton large icon="external-link" loading-icon="loader" :loading="isCreatingCheckout"
-          :disabled="isCreatingCheckout" @click="createSubscription">
-          {{ isCreatingCheckout ? providerProfile.checkoutLoadingCta : providerProfile.checkoutCta }}
-        </BillingActionButton>
+        <!-- Wallet CTA (secondary, shown when selected) -->
+        <div v-if="selectedPayMethod === 'wallet'" class="billing-page__secondary-action">
+          <BillingActionButton icon="dollar-sign" loading-icon="loader"
+            :loading="isCreatingCheckout && selectedCheckoutMode === 'wallet_balance'"
+            :disabled="isCreatingCheckout"
+            @click="createSubscription('wallet_balance')">
+            {{ isCreatingCheckout && selectedCheckoutMode === 'wallet_balance'
+              ? providerProfile.walletLoadingCta
+              : providerProfile.walletCta }}
+          </BillingActionButton>
+        </div>
 
-        <BillingActionButton v-if="providerProfile.supportsWalletCheckout"
-          icon="dollar-sign" loading-icon="loader" :loading="isCreatingCheckout" :disabled="isCreatingCheckout"
-          @click="createSubscription('wallet_balance')">
-          {{ isCreatingCheckout ? providerProfile.walletLoadingCta : providerProfile.walletCta }}
-        </BillingActionButton>
-
-        <BillingActionButton v-if="providerProfile.supportsInlineCardForm && !showInlineCardForm"
-          icon="credit-card" @click="openInlineCardForm">
-          Pay with card here
-        </BillingActionButton>
-
-        <BillingActionButton v-if="providerProfile.supportsInlineCardForm && showInlineCardForm"
-          icon="chevron-up" @click="closeInlineCardForm">
-          Hide card form
-        </BillingActionButton>
-
-        <form v-if="providerProfile.supportsInlineCardForm && showInlineCardForm" class="billing-page__form"
+        <!-- Inline card form (secondary, shown when selected) -->
+        <form v-if="selectedPayMethod === 'card' && providerProfile.supportsInlineCardForm"
+          class="billing-page__form"
           @submit.prevent="createSubscriptionWithCardToken">
-          <div class="billing-page__form-grid">
-            <div class="billing-page__field billing-page__field--full">
-              <label class="billing-page__label" for="mp-cardholder-name">Cardholder Name</label>
-              <BillingInputControl id="mp-cardholder-name" v-model="cardForm.cardholderName" type="text"
-                autocomplete="cc-name" required />
-            </div>
 
-            <div class="billing-page__field billing-page__field--full">
-              <label class="billing-page__label" for="mp-card-number">Card Number</label>
-              <BillingInputControl id="mp-card-number" v-model="cardForm.cardNumber" type="text" inputmode="numeric"
-                autocomplete="cc-number" placeholder="5031 4332 1540 6351" required />
-            </div>
-
-            <div class="billing-page__field">
-              <label class="billing-page__label" for="mp-exp-month">Exp. Month</label>
-              <BillingInputControl id="mp-exp-month" v-model="cardForm.cardExpirationMonth" type="text"
-                inputmode="numeric" autocomplete="cc-exp-month" placeholder="MM" required />
-            </div>
-
-            <div class="billing-page__field">
-              <label class="billing-page__label" for="mp-exp-year">Exp. Year</label>
-              <BillingInputControl id="mp-exp-year" v-model="cardForm.cardExpirationYear" type="text"
-                inputmode="numeric" autocomplete="cc-exp-year" placeholder="YY o YYYY" required />
-            </div>
-
-            <div class="billing-page__field">
-              <label class="billing-page__label" for="mp-security-code">CVV</label>
-              <BillingInputControl id="mp-security-code" v-model="cardForm.securityCode" type="text"
-                inputmode="numeric" autocomplete="cc-csc" placeholder="123" required />
-            </div>
-
-            <div class="billing-page__field">
-              <label class="billing-page__label" for="mp-identification-type">Document Type</label>
-              <BillingInputControl id="mp-identification-type" as="select" v-model="cardForm.identificationType"
-                :options="identificationTypeOptions" select-placeholder="Select"
-                :disabled="isInitializingMercadoPago || !identificationTypeOptions.length" required />
-            </div>
-
-            <div class="billing-page__field billing-page__field--full">
-              <label class="billing-page__label" for="mp-identification-number">Document Number</label>
-              <BillingInputControl id="mp-identification-number" v-model="cardForm.identificationNumber" type="text"
-                inputmode="numeric" autocomplete="off" required />
-            </div>
+          <div v-if="isInitializingMercadoPago" class="billing-page__form-loading">
+            <CIcon icon="loader" :size="18" class="animate-spin" />
+            Initializing secure card form…
           </div>
 
-          <BillingActionButton type="submit" variant="primary" large icon="lock" loading-icon="loader"
-            :loading="isCreatingCheckout || isInitializingMercadoPago" :disabled="!canSubmitCardForm">
-            {{ isCreatingCheckout ? providerProfile.cardLoadingCta : providerProfile.cardCta }}
-          </BillingActionButton>
+          <template v-else>
+            <div class="billing-page__secure-badge">
+              <CIcon icon="shield-check" :size="15" />
+              {{ providerProfile.secureBadgeText }}
+            </div>
+
+            <div class="billing-page__form-grid">
+              <div class="billing-page__field billing-page__field--full">
+                <label class="billing-page__label" for="mp-cardholder-name">Cardholder name</label>
+                <BillingInputControl id="mp-cardholder-name" v-model="cardForm.cardholderName"
+                  type="text" autocomplete="cc-name" required />
+              </div>
+
+              <div class="billing-page__field billing-page__field--full">
+                <label class="billing-page__label" for="mp-card-number">Card number</label>
+                <BillingInputControl id="mp-card-number" v-model="cardForm.cardNumber"
+                  type="text" inputmode="numeric" autocomplete="cc-number"
+                  placeholder="5031 4332 1540 6351" required />
+              </div>
+
+              <div class="billing-page__field">
+                <label class="billing-page__label" for="mp-exp-month">Exp. month</label>
+                <BillingInputControl id="mp-exp-month" v-model="cardForm.cardExpirationMonth"
+                  type="text" inputmode="numeric" autocomplete="cc-exp-month" placeholder="MM" required />
+              </div>
+
+              <div class="billing-page__field">
+                <label class="billing-page__label" for="mp-exp-year">Exp. year</label>
+                <BillingInputControl id="mp-exp-year" v-model="cardForm.cardExpirationYear"
+                  type="text" inputmode="numeric" autocomplete="cc-exp-year" placeholder="YY" required />
+              </div>
+
+              <div class="billing-page__field">
+                <label class="billing-page__label" for="mp-security-code">CVV</label>
+                <BillingInputControl id="mp-security-code" v-model="cardForm.securityCode"
+                  type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="123" required />
+              </div>
+
+              <div class="billing-page__field">
+                <label class="billing-page__label" for="mp-identification-type">Document type</label>
+                <BillingInputControl id="mp-identification-type" as="select"
+                  v-model="cardForm.identificationType"
+                  :options="identificationTypeOptions" select-placeholder="Select"
+                  :disabled="!identificationTypeOptions.length" required />
+              </div>
+
+              <div class="billing-page__field billing-page__field--full">
+                <label class="billing-page__label" for="mp-identification-number">Document number</label>
+                <BillingInputControl id="mp-identification-number" v-model="cardForm.identificationNumber"
+                  type="text" inputmode="numeric" autocomplete="off" required />
+              </div>
+            </div>
+
+            <BillingActionButton type="submit" variant="primary" large icon="lock" loading-icon="loader"
+              :loading="isCreatingCheckout" :disabled="!canSubmitCardForm">
+              {{ isCreatingCheckout ? providerProfile.cardLoadingCta : providerProfile.cardCta }}
+            </BillingActionButton>
+          </template>
         </form>
 
         <p v-if="mercadoPagoInitError" class="billing-page__form-hint billing-page__form-hint--warning">
           {{ mercadoPagoInitError }}
         </p>
-
-        <div v-if="providerProfile.supportsInlineCardForm && showInlineCardForm" class="billing-page__divider">
-          <span>or</span>
-        </div>
       </div>
     </div>
 
-    <!-- Error Display -->
+    <!-- Error toast -->
     <div v-if="checkoutError" class="billing-page__error">
       <CIcon icon="alert-circle" :size="18" />
       {{ checkoutError }}
@@ -285,19 +305,22 @@ import {
   formatProviderLabel,
 } from '@/components/billing/provider-ui';
 
-const subscription = ref(null);
-const billingProviderKey = ref('');
-const isHydratingBilling = ref(true);
+// ─── State ───────────────────────────────────────────────────────────────────
+const subscription        = ref(null);
+const billingProviderKey  = ref('');
+const isHydratingBilling  = ref(true);
+const isSyncing           = ref(false);
 const returnedFromCheckout = ref(false);
-const showInlineCardForm = ref(false);
-const isCreatingCheckout = ref(false);
-const checkoutError = ref('');
+const isCreatingCheckout  = ref(false);
+const selectedCheckoutMode = ref(null);   // tracks which CTA is loading
+const checkoutError       = ref('');
 const isInitializingMercadoPago = ref(false);
-const mercadoPagoClient = shallowRef(null);
+const mercadoPagoClient   = shallowRef(null);
 const mercadoPagoInitError = ref('');
 const identificationTypes = ref([]);
-const enabledProviders = ref([]);
+const enabledProviders    = ref([]);
 const selectedProviderKey = ref('');
+const selectedPayMethod   = ref(null);    // null | 'wallet' | 'card'
 
 const cardForm = ref({
   cardholderName: '',
@@ -310,11 +333,12 @@ const cardForm = ref({
 });
 
 const SiteSettings = inject('SiteSettings');
-const currentUser = inject('currentUser');
+const currentUser  = inject('currentUser');
 
 const MERCADO_PAGO_SDK_URL = 'https://sdk.mercadopago.com/js/v2';
 let mercadoPagoSdkPromise = null;
 
+// ─── Computed ─────────────────────────────────────────────────────────────────
 const subscriptionStatusClass = computed(() => {
   if (!subscription.value) return 'inactive';
   const status = (subscription.value.status || '').toLowerCase();
@@ -326,165 +350,137 @@ const subscriptionStatusClass = computed(() => {
 
 const subscriptionStatusIcon = computed(() => {
   switch (subscriptionStatusClass.value) {
-    case 'active': return 'check-circle';
-    case 'pending': return 'clock';
+    case 'active':    return 'check-circle';
+    case 'pending':   return 'clock';
     case 'cancelled': return 'x-circle';
-    default: return 'alert-circle';
-  }
-});
-
-const subscriptionStatusBadgeIcon = computed(() => {
-  switch (subscriptionStatusClass.value) {
-    case 'active': return 'check';
-    case 'pending': return 'loader';
-    case 'cancelled': return 'x';
-    default: return 'alert-circle';
+    default:          return 'alert-circle';
   }
 });
 
 const canCancel = computed(() => {
   if (!subscription.value) return false;
   const status = (subscription.value.status || '').toLowerCase();
-  return ['active', 'approved'].includes(status);
+  return ['active', 'approved'].includes(status) && !subscription.value.cancelled;
 });
 
-const activeProviderKey = computed(() => {
-  const fromSubscription = String(subscription.value?.provider || '').trim().toLowerCase();
-  const fromSelected = String(selectedProviderKey.value || '').trim().toLowerCase();
-  const fromBillingResponse = String(billingProviderKey.value || '').trim().toLowerCase();
-  const fromSettings = String(SiteSettings?.subscription_provider_primary || '').trim().toLowerCase();
-
-  return fromSubscription || fromSelected || fromBillingResponse || fromSettings || 'mercado_pago';
-});
-
-const hasMultipleProviders = computed(() => enabledProviders.value.length > 1);
-
-const showProviderSelector = computed(() => !subscription.value && hasMultipleProviders.value);
-
-const providerProfile = computed(() => buildBillingProviderUiProfile(activeProviderKey.value, SiteSettings));
-
-const mercadoPagoPublicKey = computed(() => providerProfile.value.sdkPublicKey);
-
-const identificationTypeOptions = computed(() => identificationTypes.value.map((identificationType) => ({
-  value: identificationType.id,
-  label: identificationType.name,
-})));
-
-const isAwaitingActivation = computed(() => {
-  return returnedFromCheckout.value && !subscription.value && Boolean(pollingInterval.value);
-});
-
-const canSubmitCardForm = computed(() => {
-  if (
-    !providerProfile.value.supportsInlineCardForm ||
-    providerProfile.value.key !== 'mercado_pago' ||
-    isCreatingCheckout.value ||
-    isInitializingMercadoPago.value ||
-    !mercadoPagoClient.value
-  ) {
-    return false;
-  }
-
-  return Boolean(
-    cardForm.value.cardholderName.trim() &&
-    sanitizeDigits(cardForm.value.cardNumber).length >= 13 &&
-    sanitizeDigits(cardForm.value.cardExpirationMonth).length >= 1 &&
-    sanitizeDigits(cardForm.value.cardExpirationYear).length >= 2 &&
-    sanitizeDigits(cardForm.value.securityCode).length >= 3 &&
-    cardForm.value.identificationType &&
-    sanitizeDigits(cardForm.value.identificationNumber).length >= 5
+const hasManagementUrl = computed(() => {
+  const meta = subscription.value?.metadata || {};
+  return !!(
+    meta.customer_portal
+    || meta.customer_portal_update_subscription
+    || meta.update_payment_method_url
+    || meta.management_url
+    || meta.manage_url
+    || meta.portal_url
+    || meta.init_point
   );
 });
 
-const sanitizeDigits = (value) => String(value || '').replace(/\D+/g, '');
+const lastPaymentInfo = computed(() => {
+  const meta = subscription.value?.metadata || {};
+  if (!meta.last_payment_date) return null;
+  const date = new Date(meta.last_payment_date);
+  if (Number.isNaN(date.getTime())) return null;
+  const amount = meta.last_payment_amount ? ` · $${Number(meta.last_payment_amount).toFixed(2)}` : '';
+  return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${amount}`;
+});
 
-const normalizeExpirationYear = (value) => {
-  const digits = sanitizeDigits(value);
-  if (digits.length === 2) {
-    return `20${digits}`;
-  }
+const activeProviderKey = computed(() => {
+  return (
+    String(subscription.value?.provider || '').trim().toLowerCase()
+    || String(selectedProviderKey.value || '').trim().toLowerCase()
+    || String(billingProviderKey.value || '').trim().toLowerCase()
+    || String(SiteSettings?.subscription_provider_primary || '').trim().toLowerCase()
+    || 'mercado_pago'
+  );
+});
 
-  return digits;
+const hasMultipleProviders = computed(() => enabledProviders.value.length > 1);
+const showProviderSelector = computed(() => !subscription.value && hasMultipleProviders.value);
+const providerProfile      = computed(() => buildBillingProviderUiProfile(activeProviderKey.value, SiteSettings));
+const mercadoPagoPublicKey = computed(() => providerProfile.value.sdkPublicKey);
+
+const identificationTypeOptions = computed(() =>
+  identificationTypes.value.map((t) => ({ value: t.id, label: t.name }))
+);
+
+// Awaiting activation: user returned from MP checkout but subscription not confirmed yet
+const isAwaitingActivation = computed(() => returnedFromCheckout.value && !subscription.value);
+
+const canSubmitCardForm = computed(() => {
+  if (
+    !providerProfile.value.supportsInlineCardForm
+    || providerProfile.value.key !== 'mercado_pago'
+    || isCreatingCheckout.value
+    || isInitializingMercadoPago.value
+    || !mercadoPagoClient.value
+  ) return false;
+
+  return Boolean(
+    cardForm.value.cardholderName.trim()
+    && sanitizeDigits(cardForm.value.cardNumber).length >= 13
+    && sanitizeDigits(cardForm.value.cardExpirationMonth).length >= 1
+    && sanitizeDigits(cardForm.value.cardExpirationYear).length >= 2
+    && sanitizeDigits(cardForm.value.securityCode).length >= 3
+    && cardForm.value.identificationType
+    && sanitizeDigits(cardForm.value.identificationNumber).length >= 5
+  );
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const sanitizeDigits        = (v) => String(v || '').replace(/\D+/g, '');
+const normalizeExpirationYear = (v) => {
+  const d = sanitizeDigits(v);
+  return d.length === 2 ? `20${d}` : d;
+};
+
+const formatDate = (value) => {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+};
+
+const formatProvider = (provider) => formatProviderLabel(provider);
+
+const parseMercadoPagoError = (error) => {
+  const cause = error?.cause;
+  if (Array.isArray(cause) && cause.length > 0)
+    return cause.map((i) => i?.description || i?.message).filter(Boolean).join(' | ');
+  if (typeof cause === 'string' && cause.trim()) return cause;
+  return error?.message || 'Could not tokenize the card.';
 };
 
 const fallbackIdentificationTypeForSite = () => {
   const siteId = String(SiteSettings?.mercadopago_site_id || 'MLU').toUpperCase();
-
-  if (siteId === 'MLA') return 'DNI';
-  if (siteId === 'MLB') return 'CPF';
-  if (siteId === 'MLC') return 'RUT';
-  if (siteId === 'MLM') return 'INE';
-  if (siteId === 'MCO') return 'CC';
-  return 'CI';
+  const map = { MLA: 'DNI', MLB: 'CPF', MLC: 'RUT', MLM: 'INE', MCO: 'CC' };
+  return map[siteId] || 'CI';
 };
 
 const fallbackIdentificationTypes = () => {
-  const fallbackType = fallbackIdentificationTypeForSite();
-  return [{ id: fallbackType, name: fallbackType }];
+  const t = fallbackIdentificationTypeForSite();
+  return [{ id: t, name: t }];
 };
 
 const mercadoPagoLocaleForSite = () => {
   const siteId = String(SiteSettings?.mercadopago_site_id || 'MLU').toUpperCase();
-  const localeBySite = {
-    MLA: 'es-AR',
-    MLB: 'pt-BR',
-    MLC: 'es-CL',
-    MLM: 'es-MX',
-    MPE: 'es-PE',
-    MCO: 'es-CO',
-    MLU: 'es-UY'
-  };
-
-  return localeBySite[siteId] || 'es-UY';
+  const map = { MLA: 'es-AR', MLB: 'pt-BR', MLC: 'es-CL', MLM: 'es-MX', MPE: 'es-PE', MCO: 'es-CO', MLU: 'es-UY' };
+  return map[siteId] || 'es-UY';
 };
 
-const parseMercadoPagoError = (error) => {
-  const cause = error?.cause;
-  if (Array.isArray(cause) && cause.length > 0) {
-    return cause.map((item) => item?.description || item?.message).filter(Boolean).join(' | ');
-  }
-
-  if (typeof cause === 'string' && cause.trim()) {
-    return cause;
-  }
-
-  return error?.message || 'Could not tokenize the card with the selected provider SDK.';
-};
-
-const fetchBillingData = async () => {
-  try {
-    const { data } = await ajax.get('/account/billing.json');
-    billingProviderKey.value = String(data?.provider || billingProviderKey.value || '').trim().toLowerCase();
-    if (Array.isArray(data?.enabled_providers) && data.enabled_providers.length > 0) {
-      enabledProviders.value = data.enabled_providers;
-    }
-    return data?.data?.[0] || null;
-  } catch (error) {
-    console.error('Error fetching billing data:', error);
-    return null;
-  }
-};
-
+// ─── MP SDK ──────────────────────────────────────────────────────────────────
 const loadMercadoPagoSdk = async () => {
-  if (typeof window === 'undefined') return;
-  if (window.MercadoPago) return;
-
-  if (!mercadoPagoSdkPromise) {
-    mercadoPagoSdkPromise = loadScript(MERCADO_PAGO_SDK_URL);
-  }
-
+  if (typeof window === 'undefined' || window.MercadoPago) return;
+  if (!mercadoPagoSdkPromise) mercadoPagoSdkPromise = loadScript(MERCADO_PAGO_SDK_URL);
   await mercadoPagoSdkPromise;
 };
 
 const initializeMercadoPago = async () => {
-  if (providerProfile.value.key !== 'mercado_pago') {
-    return;
-  }
-
+  if (providerProfile.value.key !== 'mercado_pago') return;
   if (mercadoPagoClient.value || isInitializingMercadoPago.value) return;
 
   if (!mercadoPagoPublicKey.value) {
-    mercadoPagoInitError.value = `${providerProfile.value.displayName} public key is missing. Contact the site administrator.`;
+    mercadoPagoInitError.value = `${providerProfile.value.displayName} public key is missing. Contact support.`;
     return;
   }
 
@@ -493,13 +489,10 @@ const initializeMercadoPago = async () => {
 
   try {
     await loadMercadoPagoSdk();
+    const MP = window.MercadoPago;
+    if (typeof MP !== 'function') throw new Error('MercadoPago.js did not load correctly.');
 
-    const MercadoPago = window.MercadoPago;
-    if (typeof MercadoPago !== 'function') {
-      throw new Error('MercadoPago.js did not load correctly.');
-    }
-
-    mercadoPagoClient.value = markRaw(new MercadoPago(mercadoPagoPublicKey.value, {
+    mercadoPagoClient.value = markRaw(new MP(mercadoPagoPublicKey.value, {
       locale: mercadoPagoLocaleForSite()
     }));
 
@@ -515,11 +508,9 @@ const initializeMercadoPago = async () => {
     console.error('Error initializing MercadoPago.js:', error);
     mercadoPagoClient.value = null;
     identificationTypes.value = fallbackIdentificationTypes();
-
-    if (!cardForm.value.identificationType && identificationTypes.value.length > 0) {
+    if (!cardForm.value.identificationType) {
       cardForm.value.identificationType = identificationTypes.value[0].id;
     }
-
     mercadoPagoInitError.value = parseMercadoPagoError(error);
   } finally {
     isInitializingMercadoPago.value = false;
@@ -532,29 +523,104 @@ const createCardToken = async () => {
   }
 
   await initializeMercadoPago();
-
   if (!mercadoPagoClient.value) {
     throw new Error(mercadoPagoInitError.value || `${providerProfile.value.displayName} SDK is not ready.`);
   }
 
-  const payload = {
-    cardNumber: sanitizeDigits(cardForm.value.cardNumber),
-    cardholderName: cardForm.value.cardholderName.trim(),
+  const tokenResponse = await mercadoPagoClient.value.createCardToken({
+    cardNumber:          sanitizeDigits(cardForm.value.cardNumber),
+    cardholderName:      cardForm.value.cardholderName.trim(),
     cardExpirationMonth: sanitizeDigits(cardForm.value.cardExpirationMonth).slice(0, 2),
-    cardExpirationYear: normalizeExpirationYear(cardForm.value.cardExpirationYear).slice(-4),
-    securityCode: sanitizeDigits(cardForm.value.securityCode),
-    identificationType: cardForm.value.identificationType,
+    cardExpirationYear:  normalizeExpirationYear(cardForm.value.cardExpirationYear).slice(-4),
+    securityCode:        sanitizeDigits(cardForm.value.securityCode),
+    identificationType:  cardForm.value.identificationType,
     identificationNumber: sanitizeDigits(cardForm.value.identificationNumber)
-  };
+  });
 
-  const tokenResponse = await mercadoPagoClient.value.createCardToken(payload);
   const cardTokenId = tokenResponse?.id;
-
-  if (!cardTokenId) {
-    throw new Error(`${providerProfile.value.displayName} did not return a valid card token.`);
-  }
-
+  if (!cardTokenId) throw new Error(`${providerProfile.value.displayName} did not return a valid card token.`);
   return cardTokenId;
+};
+
+// ─── Data fetching ────────────────────────────────────────────────────────────
+const fetchBillingData = async () => {
+  const { data } = await ajax.get('/account/billing.json');
+  billingProviderKey.value = String(data?.provider || billingProviderKey.value || '').trim().toLowerCase();
+  if (Array.isArray(data?.enabled_providers) && data.enabled_providers.length > 0) {
+    enabledProviders.value = data.enabled_providers;
+  }
+  return data?.data?.[0] || null;
+};
+
+// ─── Manual sync (replaces auto-polling) ─────────────────────────────────────
+const manualSync = async () => {
+  if (isSyncing.value) return;
+  isSyncing.value = true;
+  checkoutError.value = '';
+  try {
+    if (subscription.value) {
+      // Try provider sync first
+      try {
+        const { data } = await ajax.post('/account/billing/sync.json', {});
+        subscription.value = data?.data || subscription.value;
+      } catch {
+        subscription.value = await fetchBillingData();
+      }
+    } else {
+      // No subscription yet — just refetch
+      subscription.value = await fetchBillingData();
+    }
+  } catch (error) {
+    checkoutError.value = error?.response?.data?.error || 'Could not refresh status.';
+  } finally {
+    isSyncing.value = false;
+  }
+};
+
+// ─── Subscription actions ─────────────────────────────────────────────────────
+const createSubscription = async (mode = 'redirect') => {
+  isCreatingCheckout.value = true;
+  selectedCheckoutMode.value = mode;
+  checkoutError.value = '';
+
+  try {
+    const payload = { checkout_mode: mode === 'redirect' ? null : mode };
+    if (selectedProviderKey.value) payload.provider = selectedProviderKey.value;
+
+    const { data } = await ajax.post('/account/billing/subscribe.json', payload);
+    const provider = String(data?.data?.provider || activeProviderKey.value).toLowerCase();
+
+    if (provider === 'lemon_squeezy') {
+      const checkoutUrl = data?.data?.checkout_url;
+      if (!checkoutUrl) {
+        checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
+        return;
+      }
+      // LemonSqueezy overlay — SDK loaded from layout
+      let attempts = 0;
+      while (!window.LemonSqueezy?.Url?.Open && attempts < 50) {
+        await new Promise((r) => setTimeout(r, 100));
+        attempts++;
+      }
+      if (!window.LemonSqueezy?.Url?.Open) throw new Error('Lemon Squeezy SDK failed to load.');
+      window.LemonSqueezy.Url.Open(checkoutUrl);
+      returnedFromCheckout.value = true;
+    } else {
+      // MercadoPago and all other providers → redirect
+      const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
+      if (!checkoutUrl) {
+        checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
+        return;
+      }
+      window.location.href = checkoutUrl;
+    }
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    checkoutError.value = error?.response?.data?.error || 'Could not start subscription. Please try again.';
+  } finally {
+    isCreatingCheckout.value = false;
+    selectedCheckoutMode.value = null;
+  }
 };
 
 const createSubscriptionWithCardToken = async () => {
@@ -563,9 +629,7 @@ const createSubscriptionWithCardToken = async () => {
 
   try {
     const cardTokenId = await createCardToken();
-    const { data } = await ajax.post('/account/billing/subscribe.json', {
-      card_token_id: cardTokenId
-    });
+    const { data } = await ajax.post('/account/billing/subscribe.json', { card_token_id: cardTokenId });
 
     const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
     if (checkoutUrl) {
@@ -573,140 +637,83 @@ const createSubscriptionWithCardToken = async () => {
       return;
     }
 
-    const freshData = await fetchBillingData();
-    if (freshData) {
-      subscription.value = freshData;
-    } else {
-      startPolling();
-    }
+    // If no redirect needed, refresh billing data
+    subscription.value = await fetchBillingData();
+    if (!subscription.value) returnedFromCheckout.value = true;
   } catch (error) {
-    console.error('Error creating subscription with provider card tokenization:', error);
+    console.error('Error creating subscription with card tokenization:', error);
     checkoutError.value = error?.response?.data?.error || parseMercadoPagoError(error) || 'Could not start subscription.';
   } finally {
     isCreatingCheckout.value = false;
   }
 };
 
-const openInlineCardForm = async () => {
-  showInlineCardForm.value = true;
-  checkoutError.value = '';
-  await initializeMercadoPago();
-};
-
-const closeInlineCardForm = () => {
-  showInlineCardForm.value = false;
-};
-
-const createSubscription = async (checkoutMode = null) => {
-  isCreatingCheckout.value = true;
-  checkoutError.value = '';
-
-  try {
-    const payload = checkoutMode ? { checkout_mode: checkoutMode } : {};
-    if (selectedProviderKey.value) {
-      payload.provider = selectedProviderKey.value;
-    }
-    const { data } = await ajax.post('/account/billing/subscribe.json', payload);
-    const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
-
-    if (!checkoutUrl) {
-      checkoutError.value = `Could not obtain subscription checkout URL for ${providerProfile.value.displayName}.`;
-      return;
-    }
-
-    window.location.href = checkoutUrl;
-  } catch (error) {
-    console.error('Error creating subscription:', error);
-    checkoutError.value = error?.response?.data?.error || 'Could not start subscription.';
-  } finally {
-    isCreatingCheckout.value = false;
-  }
-};
-
 const manageSubscription = () => {
-  const managementUrl = subscription.value?.metadata?.management_url
-    || subscription.value?.metadata?.manage_url
-    || subscription.value?.metadata?.portal_url
-    || subscription.value?.metadata?.init_point;
-
-  if (managementUrl) {
-    window.location.href = managementUrl;
-    return;
-  }
-
-  checkoutError.value = `No management portal is available for ${providerProfile.value.displayName} yet.`;
+  const meta = subscription.value?.metadata || {};
+  const url = meta.customer_portal
+    || meta.customer_portal_update_subscription
+    || meta.update_payment_method_url
+    || meta.management_url
+    || meta.manage_url
+    || meta.portal_url
+    || meta.init_point;
+  if (url) { window.open(url, '_blank'); return; }
+  checkoutError.value = `No management portal is available for ${providerProfile.value.displayName}.`;
 };
 
 const cancelSubscription = async () => {
-  if (!confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
-    return;
-  }
+  const endDate = subscription.value?.ends_at
+    ? new Date(subscription.value.ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'the next billing date';
+
+  if (!confirm(`Your subscription will be cancelled. Access continues until ${endDate}. Continue?`)) return;
 
   try {
-    await ajax.delete(`/account/billing/subscribe.json`);
-    subscription.value = null;
+    await ajax.delete('/account/billing/subscribe.json');
+    subscription.value = await fetchBillingData();
+    checkoutError.value = '';
   } catch (error) {
     checkoutError.value = error?.response?.data?.error || 'Failed to cancel subscription.';
   }
 };
 
-const formatDate = (value) => {
-  if (!value) return 'Not available';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Not available';
-
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
-};
-
-const formatProvider = (provider) => {
-  return formatProviderLabel(provider);
-};
-
-const selectProvider = (providerKey) => {
-  selectedProviderKey.value = providerKey;
-  showInlineCardForm.value = false;
+const selectProvider = (key) => {
+  selectedProviderKey.value = key;
+  selectedPayMethod.value = null;
   checkoutError.value = '';
 };
 
-const pollingInterval = ref(null);
-
-const refreshBillingStatus = async () => {
-  isHydratingBilling.value = true;
-  try {
-    const freshData = await fetchBillingData();
-    subscription.value = freshData;
-  } finally {
-    isHydratingBilling.value = false;
+const toggleCardForm = async () => {
+  if (selectedPayMethod.value === 'card') {
+    selectedPayMethod.value = null;
+    return;
   }
+  selectedPayMethod.value = 'card';
+  checkoutError.value = '';
+  await initializeMercadoPago();
 };
 
-// Auto-refresh if no subscription found (user just returned from checkout)
-const startPolling = () => {
-  if (pollingInterval.value) return;
+// ─── Focus listener — sync when tab regains focus ─────────────────────────────
+let handleWindowFocusRef = null;
 
-  pollingInterval.value = setInterval(async () => {
-    const freshData = await fetchBillingData();
-    if (freshData) {
-      subscription.value = freshData;
-      stopPolling();
+const setupFocusListener = () => {
+  handleWindowFocusRef = async () => {
+    // Only auto-sync if user came back from checkout and hasn't confirmed yet
+    if (returnedFromCheckout.value && !subscription.value) {
+      await manualSync();
     }
-  }, 3000); // Check every 3 seconds
-
-  // Stop after 30 seconds max
-  setTimeout(stopPolling, 30000);
+  };
+  window.addEventListener('focus', handleWindowFocusRef);
 };
 
-const stopPolling = () => {
-  if (pollingInterval.value) {
-    clearInterval(pollingInterval.value);
-    pollingInterval.value = null;
+const removeFocusListener = () => {
+  if (handleWindowFocusRef) {
+    window.removeEventListener('focus', handleWindowFocusRef);
+    handleWindowFocusRef = null;
   }
 };
 
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   if (!SiteSettings.enable_subscription) {
     isHydratingBilling.value = false;
@@ -718,761 +725,34 @@ onMounted(async () => {
 
     const searchParams = new URLSearchParams(window.location.search);
     returnedFromCheckout.value = ['preapproval_id', 'subscription_id', 'collection_id', 'status']
-      .some((param) => searchParams.has(param));
+      .some((p) => searchParams.has(p));
 
+    // If returned from checkout with no subscription, try one sync
     if (!subscription.value && returnedFromCheckout.value) {
-      startPolling();
+      await manualSync();
     }
+    // If subscription is pending, sync from provider once
+    else if (subscription.value?.status === 'pending') {
+      try {
+        const { data } = await ajax.post('/account/billing/sync.json', {});
+        if (data?.data) subscription.value = data.data;
+      } catch {
+        // ignore — status will be shown as-is
+      }
+    }
+
+    setupFocusListener();
   } finally {
     isHydratingBilling.value = false;
   }
 });
 
 onBeforeUnmount(() => {
-  stopPolling();
+  removeFocusListener();
 });
 
 useHead({
-  title: 'Manage Subscription',
-  meta: [
-    {
-      name: 'description',
-      content: 'Manage your subscription and billing details',
-    },
-  ],
+  title: 'Membership',
+  meta: [{ name: 'description', content: 'Manage your CinelarTV subscription and billing details.' }],
 });
 </script>
-
-<style scoped>
-.billing-page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px 24px;
-  max-width: 900px;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ── Header ──────────────────────────────────────────────────────────── */
-.billing-page__header {
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.billing-page__title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 8px 0;
-}
-
-.billing-page__icon {
-  color: var(--c-tertiary-400, #0095d9);
-}
-
-.billing-page__description {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.45);
-  margin: 0;
-}
-
-/* ── Disabled State ──────────────────────────────────────────────────── */
-.billing-page__disabled {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.billing-page__disabled-icon {
-  color: rgba(255, 255, 255, 0.15);
-  margin-bottom: 16px;
-}
-
-.billing-page__disabled-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 8px 0;
-}
-
-.billing-page__disabled-description {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin: 0;
-}
-
-/* ── Content ─────────────────────────────────────────────────────────── */
-.billing-page__content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* ── Loading State ───────────────────────────────────────────────────── */
-.billing-page__loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 56px 20px;
-  border-radius: 12px;
-  background: linear-gradient(145deg, rgba(0, 149, 217, 0.08), rgba(0, 0, 0, 0.22));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.billing-page__loading-icon-wrap {
-  width: 46px;
-  height: 46px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.billing-page__loading-icon {
-  color: var(--c-tertiary-400, #0095d9);
-  animation: spin 1s linear infinite;
-}
-
-.billing-page__loading-title {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #fff;
-  font-weight: 600;
-}
-
-.billing-page__loading-description {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.85rem;
-  text-align: center;
-  max-width: 480px;
-}
-
-/* ── Status Card ─────────────────────────────────────────────────────── */
-.billing-page__card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-}
-
-.billing-page__card--active {
-  border-color: rgba(30, 192, 138, 0.2);
-  background: rgba(30, 192, 138, 0.05);
-}
-
-.billing-page__card--pending {
-  border-color: rgba(255, 193, 7, 0.2);
-  background: rgba(255, 193, 7, 0.05);
-}
-
-.billing-page__card--cancelled {
-  border-color: rgba(255, 120, 120, 0.2);
-  background: rgba(255, 120, 120, 0.05);
-}
-
-.billing-page__status-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.billing-page__status-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.billing-page__card--active .billing-page__status-icon {
-  background: rgba(30, 192, 138, 0.15);
-  color: #1ec08a;
-}
-
-.billing-page__card--pending .billing-page__status-icon {
-  background: rgba(255, 193, 7, 0.15);
-  color: #ffc107;
-}
-
-.billing-page__card--cancelled .billing-page__status-icon {
-  background: rgba(255, 120, 120, 0.15);
-  color: #ff7878;
-}
-
-.billing-page__status-info {
-  flex: 1;
-}
-
-.billing-page__status-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0 0 4px 0;
-}
-
-.billing-page__status-plan {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0;
-}
-
-.billing-page__status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 0.775rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.billing-page__status-badge--active {
-  background: rgba(30, 192, 138, 0.15);
-  color: #1ec08a;
-}
-
-.billing-page__status-badge--pending {
-  background: rgba(255, 193, 7, 0.15);
-  color: #ffc107;
-}
-
-.billing-page__status-badge--cancelled {
-  background: rgba(255, 120, 120, 0.15);
-  color: #ff7878;
-}
-
-.billing-page__status-badge--inactive {
-  background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
-}
-
-/* ── Details Section ─────────────────────────────────────────────────── */
-.billing-page__details {
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-}
-
-.billing-page__section-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  margin: 0 0 16px 0;
-}
-
-.billing-page__details-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.billing-page__detail-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.billing-page__detail-icon {
-  color: var(--c-tertiary-400, #0095d9);
-}
-
-.billing-page__detail-label {
-  font-size: 0.725rem;
-  color: rgba(255, 255, 255, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 500;
-}
-
-.billing-page__detail-value {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-/* ── Actions ─────────────────────────────────────────────────────────── */
-.billing-page__actions {
-  display: flex;
-  gap: 12px;
-}
-
-/* ── Pending State ───────────────────────────────────────────────────── */
-.billing-page__pending {
-  display: flex;
-  justify-content: center;
-  padding: 22px 0;
-}
-
-.billing-page__pending-card {
-  width: min(620px, 100%);
-  padding: 28px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 193, 7, 0.28);
-  background: linear-gradient(160deg, rgba(255, 193, 7, 0.1), rgba(0, 0, 0, 0.28));
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.billing-page__pending-pulse {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #ffc107;
-  box-shadow: 0 0 0 rgba(255, 193, 7, 0.6);
-  animation: billing-pulse 1.6s infinite;
-}
-
-.billing-page__pending-title {
-  margin: 0;
-  color: #fff;
-  font-size: 1.1rem;
-}
-
-.billing-page__pending-description {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 0.86rem;
-  max-width: 500px;
-}
-
-@keyframes billing-pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.55);
-  }
-
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 13px rgba(255, 193, 7, 0);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
-  }
-}
-
-/* ── Subscribe Section ───────────────────────────────────────────────── */
-.billing-page__subscribe {
-  display: flex;
-  justify-content: center;
-  padding: 40px 0;
-}
-
-.billing-page__subscribe-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 40px;
-  background: linear-gradient(155deg, rgba(0, 149, 217, 0.09), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  text-align: center;
-  max-width: 620px;
-}
-
-.billing-page__subscribe-hero {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: 999px;
-  padding: 8px 14px;
-  border: 1px solid rgba(0, 149, 217, 0.35);
-  background: rgba(0, 149, 217, 0.14);
-}
-
-.billing-page__subscribe-hero-icon {
-  color: #8fd4f7;
-}
-
-.billing-page__subscribe-hero-kicker {
-  color: #c4ecff;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
-}
-
-.billing-page__subscribe-title {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0;
-}
-
-.billing-page__subscribe-description {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0;
-  max-width: 520px;
-}
-
-/* ── Provider Selector ──────────────────────────────────────────────── */
-.billing-page__provider-selector {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.billing-page__provider-selector-label {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-
-.billing-page__provider-options {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.billing-page__provider-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.billing-page__provider-option:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.billing-page__provider-option--active {
-  background: rgba(0, 149, 217, 0.18);
-  border-color: rgba(0, 149, 217, 0.5);
-  color: #c4ecff;
-}
-
-.billing-page__benefits {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.billing-page__benefit-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.22);
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.75rem;
-  text-align: left;
-}
-
-.billing-page__benefit-icon {
-  color: #78dbb1;
-  flex-shrink: 0;
-}
-
-.billing-page__secure-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(30, 192, 138, 0.12);
-  border: 1px solid rgba(30, 192, 138, 0.25);
-  color: #74e4bb;
-  font-size: 0.78rem;
-  font-weight: 500;
-}
-
-.billing-page__form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.billing-page__form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.billing-page__field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-}
-
-.billing-page__field--full {
-  grid-column: span 2;
-}
-
-.billing-page__label {
-  font-size: 0.74rem;
-  color: rgba(255, 255, 255, 0.65);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
-}
-
-.billing-page__input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.25);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.billing-page__input:focus {
-  outline: none;
-  border-color: var(--c-tertiary-400, #0095d9);
-  box-shadow: 0 0 0 2px rgba(0, 149, 217, 0.2);
-}
-
-.billing-page__divider {
-  width: 100%;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  margin: 6px 0;
-}
-
-.billing-page__divider::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.billing-page__divider span {
-  position: relative;
-  padding: 0 10px;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
-  background: rgba(22, 25, 34, 1);
-}
-
-.billing-page__form-hint {
-  margin: 0;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.billing-page__form-hint--warning {
-  color: #ffb8a8;
-}
-
-/* ── Buttons ─────────────────────────────────────────────────────────── */
-.billing-page__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.billing-page__btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.billing-page__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.billing-page__btn--primary {
-  background: var(--c-tertiary-400, #0095d9);
-  border-color: var(--c-tertiary-400, #0095d9);
-  color: #fff;
-}
-
-.billing-page__btn--primary:hover:not(:disabled) {
-  background: var(--c-tertiary-300, #00a8f0);
-}
-
-.billing-page__btn--danger {
-  background: rgba(255, 120, 120, 0.1);
-  border-color: rgba(255, 120, 120, 0.2);
-  color: #ff7878;
-}
-
-.billing-page__btn--danger:hover:not(:disabled) {
-  background: rgba(255, 120, 120, 0.18);
-}
-
-.billing-page__btn--large {
-  padding: 12px 28px;
-  font-size: 0.95rem;
-}
-
-.billing-page__btn--spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ── Error ───────────────────────────────────────────────────────────── */
-.billing-page__error {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: rgba(255, 120, 120, 0.08);
-  border: 1px solid rgba(255, 120, 120, 0.2);
-  color: #ff9494;
-  font-size: 0.85rem;
-}
-
-.billing-page__error-close {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  background: transparent;
-  border: none;
-  color: rgba(255, 148, 148, 0.7);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.billing-page__error-close:hover {
-  background: rgba(255, 120, 120, 0.15);
-  color: #ff9494;
-}
-
-/* ── Mobile Responsive ───────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .billing-page__details-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .billing-page__benefits {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 767px) {
-  .billing-page {
-    padding: 16px 12px;
-  }
-
-  .billing-page__card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-  }
-
-  .billing-page__status-header {
-    width: 100%;
-  }
-
-  .billing-page__status-badge {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .billing-page__details-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .billing-page__form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .billing-page__field--full {
-    grid-column: span 1;
-  }
-
-  .billing-page__actions {
-    flex-direction: column;
-  }
-
-  .billing-page__btn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-</style>

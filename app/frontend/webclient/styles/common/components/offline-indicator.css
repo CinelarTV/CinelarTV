@@ -1,9 +1,121 @@
 .offline-indicator {
-    position: fixed;
-    top: var(--header-offset);
-    left: 50%;
-    transform: translate(-50%, 0);
-    padding: 0.5em 1em;
-    background-color: var(--c-primary-50);
-    z-index: 1001;
+  position: fixed;
+  top: var(--header-offset, 5rem);
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 1001;
+  animation: slideInDown 0.3s ease;
+}
+
+.offline-indicator__content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--c-primary-50) 8%, var(--c-background-color) 92%);
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--c-primary-50) 15%, transparent 85%);
+  box-shadow: 0 2px 8px color-mix(in srgb, #000 20%, transparent 80%);
+  backdrop-filter: blur(10px);
+}
+
+.offline-indicator__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--c-primary-50);
+  flex-shrink: 0;
+}
+
+.offline-indicator__message {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--c-body-text-color);
+  white-space: nowrap;
+}
+
+.offline-indicator__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.offline-indicator__reload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--c-primary-50) 12%, transparent 88%);
+  border: 1px solid color-mix(in srgb, var(--c-primary-50) 20%, transparent 80%);
+  border-radius: 6px;
+  color: color-mix(in srgb, var(--c-body-text-color) 85%, transparent 15%);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.offline-indicator__reload-btn:hover {
+  background: color-mix(in srgb, var(--c-primary-50) 22%, transparent 78%);
+  border-color: color-mix(in srgb, var(--c-primary-50) 35%, transparent 65%);
+}
+
+.offline-indicator__close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: color-mix(in srgb, var(--c-body-text-color) 50%, transparent 50%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.offline-indicator__close-btn:hover {
+  background: color-mix(in srgb, var(--c-primary-50) 10%, transparent 90%);
+  color: color-mix(in srgb, var(--c-body-text-color) 75%, transparent 25%);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
   }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 640px) {
+  .offline-indicator {
+    left: 8px;
+    right: 8px;
+    transform: none;
+  }
+
+  .offline-indicator__content {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .offline-indicator__message {
+    white-space: normal;
+    flex: 1;
+  }
+
+  .offline-indicator__actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}

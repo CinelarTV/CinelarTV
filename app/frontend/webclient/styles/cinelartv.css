@@ -17,6 +17,7 @@
 @import "./components/mobile-bottom-nav.css";
 @import "./common/components/offline-indicator.css";
 @import "./components/videoable-manager.css";
+@import "./components/account/billing.css";
 
 @utility animate-spin{
   animation: rotate-forever 1s infinite linear;

@@ -32,6 +32,7 @@ module ApplicationHelper
   def render_external_scripts
     scripts = (SiteSetting.external_scripts || "").split("|")
     scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" if SiteSetting.enable_chromecast
+    scripts << "https://app.lemonsqueezy.com/js/lemon.js" if SiteSetting.enable_lemon_squeezy_provider
 
     scripts.map { |s| javascript_include_tag(s, defer: true) }.join.html_safe
   end

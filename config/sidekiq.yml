@@ -1,4 +1,5 @@
 :queues:
+  - [subscriptions, 5]
   - [default, 3]
   - [xmltv, 2]
 

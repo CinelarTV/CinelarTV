@@ -51,8 +51,9 @@ pt-BR:
       nav:
         content: "Gerenciar conteúdo"
         dashboard: "Painel de controle"
-        subscriptions: "Assinaturas"
+        live_tv: "Live TV"
         settings: "Configurações"
+        subscriptions: "Subscriptions"
         updater: "Atualizador"
         users: "Usuários"
       settings:
@@ -65,6 +66,9 @@ pt-BR:
         allow_admin_to_create_users:
           description: "Allows the admin to create users from the admin panel"
           title: "Allow admin to create users"
+        allow_plugins_replace_core_routes:
+          description: "Allows plugins to replace core routes. This can be useful if you want to customize the behavior of the application, but it can also cause conflicts between plugins and make the application unstable if not used carefully."
+          title: "Allow plugins to replace core routes"
         allow_registration:
           description: "Allows users to register on the site"
           title: "Allow registration"
@@ -86,8 +90,10 @@ pt-BR:
           developer: "Developer"
           experimental: "Experimental"
           general: "General"
+          live_tv: "Live TV"
           monetization: "Monetization"
           player: "Player"
+          plugins: "Plugins"
           security: "Security"
           storage: "Storage"
         cdn_enabled:
@@ -113,6 +119,15 @@ pt-BR:
         default_locale:
           description: "The default language of your site"
           title: "Default language"
+          values:
+            de: "German"
+            en: "English"
+            es: "Spanish"
+            fr: "French"
+            it: "Italian"
+            pt: "Portuguese"
+            ru: "Russian"
+            zh: "Chinese"
         enable_carousel:
           description: "Enables the carousel on the home page"
           title: "Enable carousel"
@@ -122,9 +137,21 @@ pt-BR:
         enable_custom_pages:
           description: "This will allow you to create custom pages in <a href='/admin/custom_pages'>/admin/custom_pages</a>"
           title: "Enable custom pages"
+        enable_google_drive_parser:
+          description: "Enables the Google Drive parser, this will allow you to parse Google Drive links and play the videos directly from Google Drive"
+          title: "Enable Google Drive parser"
         enable_js_error_reporting:
           description: "Enables the reporting of JavaScript errors, this will send the errors to the server and will be displayed in the console. You can see the reports in <a href='/logs'>/logs</a>"
           title: "Enable JavaScript error reporting"
+        enable_lemon_squeezy_provider:
+          description: "Enable Lemon Squeezy as a subscription provider"
+          title: "Enable Lemon Squeezy provider"
+        enable_live_tv:
+          description: "Enables the live TV functionality, this will allow you to add live TV channels to your site and watch them in real time"
+          title: "Enable live TV"
+        enable_mercado_pago_provider:
+          description: "Enable Mercado Pago as a subscription provider"
+          title: "Enable Mercado Pago provider"
         enable_metadata_recommendation:
           description: "Allow to fetch metadata from TheMovieDB at the moment of adding a new content, this will help you to fill the fields of the content automatically"
           title: "Enable metadata recommendation"
@@ -140,18 +167,9 @@ pt-BR:
         enable_subscription:
           description: "Enables the subscription system, this will allow you to charge your users for access to your site"
           title: "Enable subscription"
-        subscription_provider_primary:
-          description: "Provedor primario de assinatura para checkout e webhooks (fallback quando nenhum flag de provedor está habilitado)"
-          title: "Provedor primario de assinatura"
-          values:
-            mercado_pago: "Mercado Pago"
-            lemon_squeezy: "Lemon Squeezy"
-        enable_mercado_pago_provider:
-          description: "Habilitar Mercado Pago como provedor de assinaturas"
-          title: "Habilitar provedor Mercado Pago"
-        enable_lemon_squeezy_provider:
-          description: "Habilitar Lemon Squeezy como provedor de assinaturas"
-          title: "Habilitar provedor Lemon Squeezy"
+        enable_transcoding:
+          description: "Enables the transcoding of videos, this will allow you to transcode the videos to different formats and resolutions"
+          title: "Enable transcoding"
         enable_web_updater:
           description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
           title: "Experimental web updater"
@@ -176,36 +194,55 @@ pt-BR:
           values:
             backdrop: "Backdrop"
             poster: "Poster"
-        mercadopago_access_token:
-          description: "Access token do Mercado Pago para requisicoes de API"
-          title: "Access token do Mercado Pago"
-        mercadopago_public_key:
-          description: "Chave publica do Mercado Pago usada para inicializar o MercadoPago.js no frontend"
-          title: "Chave publica do Mercado Pago"
-        mercadopago_webhook_secret:
-          description: "Segredo do webhook para validar notificacoes do Mercado Pago"
-          title: "Segredo de webhook do Mercado Pago"
-        mercadopago_plan_id:
-          description: "ID do plano de assinatura (preapproval plan) no Mercado Pago"
-          title: "ID do plano de assinatura Mercado Pago"
-        mercadopago_application_id:
-          description: "Application ID do Mercado Pago usado para filtrar planos e validar webhooks"
-          title: "Application ID do Mercado Pago"
-        mercadopago_site_id:
-          description: "Site do Mercado Pago para seu país (Uruguai = MLU)"
-          title: "Site do Mercado Pago"
-        lemonsqueezy_api_key:
-          description: "API key do Lemon Squeezy para checkout e chamadas da API de assinaturas"
-          title: "API key do Lemon Squeezy"
-        lemonsqueezy_store_id:
-          description: "Store ID do Lemon Squeezy usado para criar checkouts e listar variantes"
-          title: "Store ID do Lemon Squeezy"
         lemon_squeezy_plan_id:
-          description: "Variant ID padrao do Lemon Squeezy usado como plano de assinatura ativo"
-          title: "ID do plano do Lemon Squeezy"
+          description: "Default Lemon Squeezy variant ID used as active subscription plan"
+          title: "Lemon Squeezy plan ID"
+        lemonsqueezy_api_key:
+          description: "Lemon Squeezy API key used for checkout and subscription API calls"
+          title: "Lemon Squeezy API key"
+        lemonsqueezy_store_id:
+          description: "Lemon Squeezy store ID used to create checkouts and list variants"
+          title: "Lemon Squeezy store ID"
         lemonsqueezy_webhook_secret:
-          description: "Segredo do webhook para validar notificacoes do Lemon Squeezy"
-          title: "Segredo de webhook do Lemon Squeezy"
+          description: "Webhook secret used to verify Lemon Squeezy notifications"
+          title: "Lemon Squeezy webhook secret"
+        live_tv_proxy_allowed_stream_hosts:
+          description: "If the live TV proxy is enabled, you can specify a list of allowed stream hosts. This is useful to prevent abuse of the proxy to stream content from unauthorized sources. "
+          title: "Live TV proxy allowed stream hosts"
+        live_tv_proxy_mode:
+          description: "The mode of the live TV proxy, if enabled, the live TV streams will be proxied through the server. This can be useful if your streams don't support CORS or prevent mixed content. <b>Caution:</b> Enabling the proxy may cause performance issues and increase the load on your server, especially if you have many users watching live TV at the same time."
+          title: "Live TV proxy mode"
+          values:
+            disabled: "Disabled"
+            internal: "Internal (server will proxy the streams)"
+        live_tv_section_title:
+          description: "The title of the live TV section on the home page and in the navigation"
+          title: "Live TV section title"
+        mercadopago_access_token:
+          description: "Mercado Pago access token for API requests"
+          title: "Mercado Pago access token"
+        mercadopago_application_id:
+          description: "Mercado Pago application ID used to filter plans and validate webhooks"
+          title: "Mercado Pago application ID"
+        mercadopago_plan_id:
+          description: "Subscription preapproval plan ID in Mercado Pago"
+          title: "Mercado Pago subscription plan ID"
+        mercadopago_public_key:
+          description: "Mercado Pago public key used to initialize MercadoPago.js on the frontend"
+          title: "Mercado Pago public key"
+        mercadopago_site_id:
+          description: "Mercado Pago site for your country (Uruguay = MLU)"
+          title: "Mercado Pago site"
+          values:
+            MCL: "MCL Chile"
+            MCO: "MCO Colombia"
+            MLA: "MLA Argentina"
+            MLB: "MLB Brazil"
+            MLU: "MLU Uruguay"
+            MPE: "MPE Peru"
+        mercadopago_webhook_secret:
+          description: "Webhook secret used to verify Mercado Pago notifications"
+          title: "Mercado Pago webhook secret"
         no_changes: "You haven't made any changes"
         primary_color:
           description: ""
@@ -250,6 +287,12 @@ pt-BR:
         storage_provider:
           description: "The storage provider of your site, this will be used to store the media files of your site"
           title: "Storage provider"
+        subscription_provider_primary:
+          description: "Primary subscription provider used to process checkouts and webhooks (legacy fallback when no provider feature flag is enabled)"
+          title: "Primary subscription provider"
+          values:
+            lemon_squeezy: "Lemon Squeezy"
+            mercado_pago: "Mercado Pago"
         tertiary_color:
           description: "Used for some links and tabs"
           title: "Tertiary color"
@@ -257,6 +300,9 @@ pt-BR:
         tmdb_api_key:
           description: "A chave de API da sua conta TMDB, você pode obtê-la aqui <a href='https://www.themoviedb.org/settings/api' target='_blank'> </a>"
           title: "Chave de API TMDB"
+        xmltv_refresh_interval:
+          description: "The interval at which to refresh the XMLTV data"
+          title: "XMLTV refresh interval"
       updater:
         ready_description: "O CinelarTV é um software que está sendo atualizado constantemente, e lembramos que talvez você queira estar na vanguarda, por isso implementamos esse recurso experimental para torná-lo tão simples quanto pressionar um botão."
         ready_title: "¿Pronto para atualização?"
@@ -267,6 +313,8 @@ pt-BR:
       id: "ID"
       name: "Name"
       updated_at: "Atualizado em"
+    errors:
+      chunk_loading_error: "An error ocurred when loading next page.\n Please reload"
     home:
       added_recently: "Added recently"
       because_you_liked: "Because you liked %{title}"
@@ -278,17 +326,19 @@ pt-BR:
       no_internet: "No internet connection"
       reload: "Reload page"
     user:
+      added_to_favorites: "\"{{title}}\" added to your favorites"
       nav:
         dashboard: "Dashboard"
         settings: "Settings"
         subscriptions: "Subscriptions"
+      removed_from_favorites: "\"{{title}}\" removed from your favorites"
     video_player:
       back: "Back"
       next_episode: "Next episode"
       skip_intro: "Skip intro"
     wizard:
       introduction:
-        description: "\U0001f389 Welcome to CinelarTV! \U0001f389<br><br>Before you start, we need to configure some things. Don't worry, it's very simple and you'll only have to do it once."
+        description: "🎉 Welcome to CinelarTV! 🎉<br><br>Before you start, we need to configure some things. Don't worry, it's very simple and you'll only have to do it once."
         title: "Introduction"
       license:
         description: "Introduce your license key to enable Commercial features"
@@ -309,6 +359,8 @@ pt-BR:
       step: "Step"
   settings:
     saved_successfully: "Settings saved successfully"
+  ui:
+    loading: "Loading"
   wizard:
     site_info:
       description: "Essas informações serão usadas para configurar seu site"

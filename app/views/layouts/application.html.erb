@@ -62,19 +62,9 @@
     </noscript>
     <%= render_external_scripts %>
     <%= vite_client_tag %>
-    <%= vite_react_refresh_tag %>
     <%= vite_typescript_tag 'boot-cinelartv' %>
 
-    <%# On development, enable React Fast Refresh %>
 
-    <% if Rails.env.development? %>
-      <script type="module">
-        import RefreshRuntime from '/vite-dev/@react-refresh'
-        RefreshRuntime.injectIntoGlobalHook(window)
-        window.$RefreshReg$ = () => {}
-        window.$RefreshSig$ = () => (type) => type
-        window.__vite_plugin_react_preamble_installed__ = true
-      </script>
-    <% end %>
+   
   </body>
 </html>

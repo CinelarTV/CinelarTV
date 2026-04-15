@@ -47,7 +47,9 @@ class UserSubscriptionsController < ApplicationController
     if !request.xhr? && request.format.html? && checkout[:checkout_url].present?
       redirect_to checkout[:checkout_url], allow_other_host: true
     else
-      render json: { data: checkout }, status: :ok
+      # Ensure provider is included in response so frontend can detect checkout type
+      checkout_response = checkout.merge(provider: @provider.provider_key)
+      render json: { data: checkout_response }, status: :ok
     end
   rescue StandardError => e
     Rails.logger.error("Subscription creation failed for user #{current_user.id}: #{e.message}")
@@ -65,9 +67,39 @@ class UserSubscriptionsController < ApplicationController
     provider = ::Subscriptions::Providers::Registry.build(subscription.provider.presence || @provider.provider_key)
     provider.cancel_subscription!(subscription)
 
-    subscription.destroy!
-    render json: { message: "Subscription cancelled successfully", status: :ok }
+    # Don't delete - keep the record so user can see when their access ends
+    render json: { 
+      message: "Subscription cancelled successfully. You'll have access until #{subscription.ends_at&.strftime('%B %d, %Y') || 'your next billing date'}",
+      status: :ok 
+    }
   rescue StandardError => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
+
+  def sync
+    subscription = UserSubscription.find_by(user_id: current_user.id)
+    return render json: { error: "No subscription found" }, status: :not_found if subscription.blank?
+
+    provider = ::Subscriptions::Providers::Registry.build(subscription.provider.presence || @provider.provider_key)
+
+    # Fetch fresh data from provider (returns raw provider Hash)
+    remote = provider.fetch_subscription!(subscription)
+    return render json: { error: "Could not fetch subscription from provider" }, status: :unprocessable_entity if remote.blank?
+
+    # Normalize only the fields we know and trust — never dump the raw Hash
+    # directly into the model to avoid accidental overwrites.
+    normalized = provider.normalize_remote_for_update(subscription, remote)
+    subscription.update!(normalized)
+
+    render json: {
+      data: subscription.reload.as_json,
+      message: "Subscription synced successfully"
+    }, status: :ok
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.warn("Subscription sync: #{e.message}")
+    render json: { error: "Subscription not found in provider" }, status: :not_found
+  rescue StandardError => e
+    Rails.logger.error("Subscription sync failed: #{e.message}")
     render json: { error: e.message }, status: :unprocessable_entity
   end
 
@@ -135,13 +167,6 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def provider_label(provider_key)
-    labels = {
-      "mercado_pago" => "Mercado Pago",
-      "lemon_squeezy" => "Lemon Squeezy",
-      "stripe" => "Stripe",
-      "paypal" => "PayPal"
-    }
-
-    labels[provider_key.to_s] || provider_key.to_s.split("_").map(&:capitalize).join(" ")
+    ::Subscriptions::Providers::Registry.label_for(provider_key)
   end
 end

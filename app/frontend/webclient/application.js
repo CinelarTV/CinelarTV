@@ -72,10 +72,10 @@ CinelarTV.destroy = () => {
     CinelarTV.unmount()
 }
 
-loadPlugins()
-
 import * as jsRoutes from './js-routes';
 import loadPlugins from "./pre-initializers/plugin-loader";
 window.jsRoutes = jsRoutes;
 
+// Exportar loadPlugins para que boot-cinelartv.ts lo controle con await
+export { loadPlugins };
 export default CinelarTV

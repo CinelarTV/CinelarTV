@@ -4,20 +4,32 @@ const loadScript = (src, inlineCode = null) => {
             const script = document.createElement('script');
             script.src = src;
             script.async = true;
-            script.onload = resolve;
-            script.onerror = reject;
+            script.onload = () => {
+                console.log('[Script] External script loaded: ' + src);
+                resolve();
+            };
+            script.onerror = (error) => {
+                const err = new Error('Failed to load script: ' + src);
+                console.error('[Script Error]', err);
+                reject(err);
+            };
             document.head.appendChild(script);
         } else if (inlineCode) {
             try {
                 const script = document.createElement('script');
                 script.text = inlineCode;
+                script.type = 'text/javascript';
                 document.head.appendChild(script);
+                console.log('[Script] Inline script executed');
                 resolve();
             } catch (error) {
+                console.error('[Script Error] Error executing inline script:', error);
                 reject(error);
             }
         } else {
-            reject(new Error('Neither src nor inlineCode provided.'));
+            const err = new Error('Neither src nor inlineCode provided.');
+            console.error('[Script Error]', err);
+            reject(err);
         }
     });
 }

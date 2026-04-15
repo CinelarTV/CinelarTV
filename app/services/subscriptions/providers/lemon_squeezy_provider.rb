@@ -13,8 +13,8 @@ module Subscriptions
         secret = SiteSetting.lemonsqueezy_webhook_secret.to_s
         return true if secret.blank?
 
+        # Rails request.headers is case-insensitive
         signature = request.headers["X-Signature"].to_s
-        signature = request.headers["x-signature"].to_s if signature.blank?
         return false if signature.blank?
 
         local_signature = OpenSSL::HMAC.hexdigest("SHA256", secret, request.raw_post.to_s)
@@ -23,13 +23,14 @@ module Subscriptions
 
       def process_webhook!(request)
         payload = parse_payload(request)
+        # Per LS docs, event_name is always at meta.event_name
         event_name = payload.dig("meta", "event_name").to_s
-        event_name = payload["event_name"].to_s if event_name.blank?
-        event_name = payload["type"].to_s if event_name.blank?
 
         case event_name
         when /\Asubscription_/
-          upsert_subscription_from_webhook!(payload.fetch("data", {}), event_name: event_name)
+          data = payload.fetch("data", {})
+          custom_data = payload.dig("meta", "custom_data") || {}
+          upsert_subscription_from_webhook!(data, custom_data: custom_data, event_name: event_name)
         when "order_created"
           Rails.logger.info("Lemon Squeezy order_created event received")
         else
@@ -66,11 +67,13 @@ module Subscriptions
         raise_api_error!(response, action: "checkout create") unless response.code.between?(200, 299)
 
         parsed = parse_json(response.body)
+        checkout_id = parsed.dig("data", "id").to_s
         checkout_url = parsed.dig("data", "attributes", "url").to_s
-        raise "Lemon Squeezy checkout URL is missing" if checkout_url.blank?
+        raise "Lemon Squeezy checkout ID is missing" if checkout_id.blank?
 
         {
           provider: provider_key,
+          checkout_id: checkout_id,
           checkout_url: checkout_url,
           preapproval_id: nil,
           plan_id: plan_id,
@@ -103,9 +106,7 @@ module Subscriptions
             data: {
               type: "subscriptions",
               id: subscription.provider_subscription_id.to_s,
-              attributes: {
-                cancelled: true
-              }
+              attributes: { cancelled: true }
             }
           }
 
@@ -164,17 +165,32 @@ module Subscriptions
         raise "Lemon Squeezy plans must be managed in Lemon Squeezy dashboard"
       end
 
+      def normalize_remote_for_update(subscription, remote)
+        raw_status = remote["status"].to_s
+        new_status = normalize_status(raw_status)
+        
+        {
+          status: new_status,
+          status_formatted: new_status.humanize,
+          external_status: raw_status,
+          renews_at: parse_time(remote["renews_at"]) || subscription.renews_at,
+          ends_at: parse_time(remote["ends_at"]) || subscription.ends_at,
+          cancelled: cancelled_subscription?(raw_status, remote),
+          user_email: remote["user_email"].presence || subscription.user_email,
+          metadata: (subscription.metadata || {}).merge(
+            "remote_sync" => remote.slice("status", "renews_at", "ends_at", "urls", "cancelled", "trial_ends_at"),
+            "synced_at"   => Time.zone.now.iso8601
+          )
+        }.compact
+      end
+
       private
 
       def checkout_payload(user:, store_id:, plan_id:, success_url:, failure_url:, pending_url:, checkout_mode:, amount:)
-        custom_data = {
-          user_id: user.id,
-          provider: provider_key
-        }
-
-        custom_data[:checkout_mode] = checkout_mode if checkout_mode.present?
-        custom_data[:failure_url] = failure_url if failure_url.present?
-        custom_data[:pending_url] = pending_url if pending_url.present?
+        custom_data = { user_id: user.id, provider: provider_key }
+        custom_data[:checkout_mode] = checkout_mode.to_s if checkout_mode.present?
+        custom_data[:failure_url]   = failure_url.to_s   if failure_url.present?
+        custom_data[:pending_url]   = pending_url.to_s   if pending_url.present?
 
         attributes = {
           checkout_data: {
@@ -201,32 +217,26 @@ module Subscriptions
             type: "checkouts",
             attributes: attributes,
             relationships: {
-              store: {
-                data: {
-                  type: "stores",
-                  id: store_id.to_s
-                }
-              },
-              variant: {
-                data: {
-                  type: "variants",
-                  id: plan_id.to_s
-                }
-              }
+              store: { data: { type: "stores", id: store_id.to_s } },
+              variant: { data: { type: "variants", id: plan_id.to_s } }
             }
           }
         }
       end
 
-      def upsert_subscription_from_webhook!(data, event_name:)
+      def upsert_subscription_from_webhook!(data, custom_data: {}, event_name:)
         raise ArgumentError, "Missing Lemon Squeezy subscription payload" if data.blank?
 
         attributes = data["attributes"] || {}
         external_id = data["id"].to_s
         raise ArgumentError, "Missing Lemon Squeezy subscription id" if external_id.blank?
 
-        user = find_user_for_subscription(attributes: attributes, external_id: external_id)
-        raise ActiveRecord::RecordNotFound, "User not found for Lemon Squeezy subscription #{external_id}" if user.nil?
+        user = find_user_for_subscription(attributes: attributes, external_id: external_id, custom_data_from_meta: custom_data)
+
+        if user.nil?
+          Rails.logger.error("Lemon Squeezy webhook: User not found for subscription #{external_id}. custom_data=#{custom_data.inspect}, user_email=#{attributes["user_email"].inspect}")
+          raise ActiveRecord::RecordNotFound, "User not found for Lemon Squeezy subscription #{external_id}"
+        end
 
         raw_status = attributes["status"].to_s
         status = normalize_status(raw_status)
@@ -265,19 +275,25 @@ module Subscriptions
         subscription
       end
 
-      def find_user_for_subscription(attributes:, external_id:)
-        user_id = attributes.dig("custom_data", "user_id").presence || attributes.dig("checkout_data", "custom", "user_id").presence
+      def find_user_for_subscription(attributes:, external_id:, custom_data_from_meta: {})
+        # First priority: custom_data from webhook meta (most reliable)
+        user_id = custom_data_from_meta["user_id"].presence
         return User.find_by(id: user_id) if user_id.present?
 
-        existing_subscription = UserSubscription.find_by(
-          provider: provider_key,
-          provider_subscription_id: external_id
-        )
-        return existing_subscription.user if existing_subscription.present?
+        # Fallback: custom_data embedded in subscription attributes
+        user_id = attributes.dig("custom_data", "user_id").presence ||
+                  attributes.dig("checkout_data", "custom", "user_id").presence
+        return User.find_by(id: user_id) if user_id.present?
 
+        # Fallback: find existing subscription by external id
+        existing = UserSubscription.find_by(provider: provider_key, provider_subscription_id: external_id)
+        return existing.user if existing.present?
+
+        # Fallback: find by email
         email = attributes["user_email"].presence || attributes.dig("customer", "email").presence
         return User.find_by(email: email) if email.present?
 
+        # Last resort: recent pending subscription with matching plan
         fallback_user_from_recent_pending_subscription(attributes)
       end
 
@@ -297,20 +313,17 @@ module Subscriptions
       end
 
       def subscription_metadata(attributes, event_name:)
+        # URL keys match exactly what the LS API returns in the `urls` object
         urls = attributes["urls"].is_a?(Hash) ? attributes["urls"] : {}
 
         metadata = {
-          "event_name" => event_name,
-          "customer_portal_url" => urls["customer_portal"],
-          "portal_url" => urls["customer_portal"],
-          "manage_url" => urls["customer_portal"],
-          "management_url" => urls["customer_portal"],
-          "update_payment_method_url" => urls["update_payment_method"],
-          "customer_portal_update_subscription" => urls["customer_portal_update_subscription"],
-          "customer_portal_invoice_url" => urls["customer_portal_invoice_url"],
-          "store_id" => attributes["store_id"],
-          "customer_id" => attributes["customer_id"],
-          "status_formatted" => attributes["status_formatted"]
+          "event_name"                           => event_name,
+          "customer_portal"                      => urls["customer_portal"],
+          "update_payment_method_url"            => urls["update_payment_method"],
+          "customer_portal_update_subscription"  => urls["customer_portal_update_subscription"],
+          "store_id"                             => attributes["store_id"],
+          "customer_id"                          => attributes["customer_id"],
+          "status_formatted"                     => attributes["status_formatted"]
         }
 
         metadata["custom_data"] = attributes["custom_data"] if attributes["custom_data"].is_a?(Hash)
@@ -336,8 +349,7 @@ module Subscriptions
 
       def plan_from_variant(variant)
         attrs = variant["attributes"] || {}
-        interval_count = attrs["interval_count"].to_i
-        interval_count = 1 unless interval_count.positive?
+        interval_count = [attrs["interval_count"].to_i, 1].max
 
         {
           "id" => variant["id"].to_s,
@@ -364,23 +376,16 @@ module Subscriptions
 
       def interval_to_frequency_type(interval)
         case interval.to_s
-        when "day"
-          "days"
-        when "week"
-          "weeks"
-        when "month"
-          "months"
-        when "year"
-          "years"
-        else
-          "months"
+        when "day"   then "days"
+        when "week"  then "weeks"
+        when "month" then "months"
+        when "year"  then "years"
+        else              "months"
         end
       end
 
       def integer_or_nil(value)
-        return nil if value.blank?
-
-        value.to_i
+        value.blank? ? nil : value.to_i
       end
 
       def selected_plan_id
@@ -417,19 +422,8 @@ module Subscriptions
       end
 
       def lemon_api_key
-        raw = if SiteSetting.respond_to?(:lemonsqueezy_api_key)
-                SiteSetting.lemonsqueezy_api_key
-              elsif SiteSetting.respond_to?(:lemon_squeezy_api_key)
-                SiteSetting.lemon_squeezy_api_key
-              end
-
-        raw = ENV["LEMONSQUEEZY_API_KEY"] if raw.to_s.strip.blank?
-        raw = ENV["LEMON_SQUEEZY_API_KEY"] if raw.to_s.strip.blank?
-
-        token = raw.to_s.strip
-        token = token.sub(/\ABearer\s+/i, "")
-        token = token.sub(/\A['\"]/, "").sub(/['\"]\z/, "")
-        token = token.gsub(/\s+/, "")
+        token = SiteSetting.lemonsqueezy_api_key.to_s.strip
+        token = token.sub(/\ABearer\s+/i, "").gsub(/['"\s]/, "")
         token
       end
 
@@ -440,12 +434,13 @@ module Subscriptions
         detail = first_error["detail"].to_s
         title = first_error["title"].to_s
 
+        Rails.logger.error("Lemon Squeezy API error during #{action}: HTTP #{response.code}. Response body: #{body}")
+
         if response.code.to_i == 401
-            key_hint = api_key_debug_hint
-          raise "Lemon Squeezy #{action} error (401 Unauthorized). Verify SiteSetting.lemonsqueezy_api_key " \
-              "with a valid API key (usually sk_... or ls_api_...), do not include the 'Bearer' prefix, and do not use the webhook secret. " \
-              "#{key_hint} " \
-                "Provider response: #{[title, detail].reject(&:blank?).join(' - ').presence || body}"
+          raise "Lemon Squeezy #{action} error (401 Unauthorized). " \
+                "Verify SiteSetting.lemonsqueezy_api_key contains a valid JWT token (starts with 'eyJ'). " \
+                "#{api_key_debug_hint} " \
+                "Provider response: #{[title, detail].reject(&:blank?).join(" - ").presence || body}"
         end
 
         message = [title, detail].reject(&:blank?).join(" - ").presence || body
@@ -454,15 +449,32 @@ module Subscriptions
 
       def api_key_debug_hint
         token = lemon_api_key
-        return "No API key value detected in settings or env vars." if token.blank?
+        return "No API key found in SiteSetting.lemonsqueezy_api_key." if token.blank?
 
-        masked = if token.length <= 8
-                   "***"
-                 else
-                   "#{token[0, 4]}...#{token[-4, 4]}"
-                 end
+        masked = token.length <= 8 ? "***" : "#{token[0, 4]}...#{token[-4, 4]}"
 
-        "Loaded key=#{masked} len=#{token.length}."
+        unless token =~ /\AeyJ/i
+          return "Loaded key=#{masked} len=#{token.length}. ⚠️ Unexpected format — Lemon Squeezy API keys are JWT tokens starting with 'eyJ'."
+        end
+
+        hint = "✓ Valid JWT format."
+
+        parts = token.split(".")
+        if parts.length == 3
+          begin
+            payload = JSON.parse(Base64.urlsafe_decode64("#{parts[1]}=="))
+            if payload["exp"].present?
+              exp_time = Time.at(payload["exp"])
+              hint += payload["exp"] < Time.now.to_i ? " ⚠️ Token EXPIRED (#{exp_time})." : " (expires: #{exp_time})."
+            end
+          rescue StandardError
+            # Non-critical: skip expiry check if JWT can't be decoded
+          end
+        else
+          hint += " ⚠️ Invalid JWT structure (expected 3 parts, got #{parts.length})."
+        end
+
+        "Loaded key=#{masked} len=#{token.length}. #{hint}"
       end
 
       def default_return_url

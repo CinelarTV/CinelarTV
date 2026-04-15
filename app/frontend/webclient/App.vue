@@ -17,15 +17,15 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import SiteHeader from '@/components/SiteHeader.tsx'
 import MobileBottomNav from '@/components/MobileBottomNav.tsx'
 import { Toaster } from 'vue-sonner'
 import 'vue-sonner/style.css'
 
-import { useHead } from 'unhead'
+import { useHead } from 'unhead';
 import { useRoute } from 'vue-router';
-import { computed } from 'vue';
+import { computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import SiteBanner from './components/site-banner.vue';
 import OfflineIndicator from './components/offline-indicator.vue';
 import { useSiteSettings } from '@/app/services/site-settings.ts';
@@ -41,6 +41,16 @@ const showMobileBottomNav = computed(() => {
 
     return true;
 });
+
+const updateBodyNavClass = (active: boolean) => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('with-mobile-bottom-nav', active);
+};
+
+watch(showMobileBottomNav, active => updateBodyNavClass(active));
+
+onMounted(() => updateBodyNavClass(showMobileBottomNav.value));
+onBeforeUnmount(() => updateBodyNavClass(false));
 
 const { siteSettings } = useSiteSettings();
 useHead({

@@ -215,6 +215,7 @@ monetization:
     default: ""
     type: 'string'
     secret: true
+    maxlength: 10000
 
   lemonsqueezy_store_id:
     client: false
@@ -234,6 +235,9 @@ monetization:
     default: ""
     type: 'string'
     secret: true
+    maxlength: 2000
+
+
 
 storage:
   storage_provider:
@@ -429,6 +433,12 @@ experimental:
     refresh: true
     default: false
     type: 'boolean'
+  allow_plugins_replace_core_routes:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
+    hidden: false
   enable_transcoding:
     client: true
     refresh: true

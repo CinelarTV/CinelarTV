@@ -6,19 +6,25 @@ class WebhooksController < ApplicationController
   before_action :verify_signature, only: [:subscription]
 
   def subscription
-    payload = parse_payload
+    payload    = parse_payload
     event_name = request.headers["X-Topic"].presence || payload["type"].presence || "payment"
 
     WebhookLog.create!(event_name: "#{provider_key}:#{event_name}", payload: payload.to_json)
 
-    @provider.process_webhook!(request)
-    render plain: "ok", status: :ok
-  rescue ActiveRecord::RecordNotFound => e
-    Rails.logger.warn("Webhook ignored: #{e.message}")
-    render plain: "ignored", status: :accepted
+    # Snapshot request data before enqueuing — the request object is not
+    # serializable and won't be available inside the Sidekiq job.
+    snapshot = {
+      "headers" => extract_webhook_headers,
+      "body"    => request.raw_post.to_s,
+      "params"  => request.query_parameters.to_h
+    }
+    ProcessSubscriptionWebhookJob.perform_async(provider_key, snapshot)
+
+    # Respond immediately so MP doesn't timeout and retry.
+    render plain: "accepted", status: :accepted
   rescue StandardError => e
-    Rails.logger.error("Subscription webhook error (#{provider_key}): #{e.class} - #{e.message}")
-    render plain: "Invalid event", status: :unprocessable_entity
+    Rails.logger.error("Subscription webhook enqueue error (#{provider_key}): #{e.class} - #{e.message}")
+    render plain: "error", status: :unprocessable_entity
   end
 
   private
@@ -49,5 +55,21 @@ class WebhooksController < ApplicationController
     JSON.parse(payload)
   rescue JSON::ParserError
     {}
+  end
+
+  # Snapshots only the headers that providers actually read during processing.
+  # Keeping a lean subset avoids serializing large/irrelevant request metadata.
+  def extract_webhook_headers
+    relevant_keys = %w[
+      X-Signature x-signature X-Provider-Signature
+      X-Request-Id x-request-id
+      X-Topic x-topic
+      Content-Type
+    ]
+
+    relevant_keys.each_with_object({}) do |key, hash|
+      value = request.headers[key].presence
+      hash[key] = value if value
+    end
   end
 end

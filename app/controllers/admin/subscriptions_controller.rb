@@ -90,6 +90,16 @@ module Admin
       render json: { data: subscription.reload.as_json }
     end
 
+    def stats
+      render json: {
+        total:     UserSubscription.count,
+        active:    UserSubscription.active.count,
+        pending:   UserSubscription.where(status: "pending").count,
+        cancelled: UserSubscription.where(status: %w[cancelled canceled]).count,
+        granted:   UserSubscription.where(granted_by_admin: true).count
+      }
+    end
+
     def logs
       logs = WebhookLog.order(created_at: :desc).limit(200)
       render json: { data: logs.as_json }
@@ -224,17 +234,7 @@ module Admin
     end
 
     def provider_label(provider_key)
-      return "N/A" if provider_key.blank?
-
-      key = provider_key.to_s
-      labels = {
-        "mercado_pago" => "Mercado Pago",
-        "lemon_squeezy" => "Lemon Squeezy",
-        "stripe" => "Stripe",
-        "paypal" => "PayPal"
-      }
-
-      labels[key] || key.split("_").map(&:capitalize).join(" ")
+      ::Subscriptions::Providers::Registry.label_for(provider_key)
     end
 
     def active_plan_setting_method_for(provider_key)

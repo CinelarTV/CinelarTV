@@ -32,7 +32,8 @@ class SiteSetting < RailsSettings::Base
                   refresh: options["refresh"] || false,
                   readonly: options["readonly"] || false,
                   allowed_values: options["allowed_values"] || nil,
-                  hidden: options["hidden"] || false
+                  hidden: options["hidden"] || false,
+                  maxlength: options["maxlength"] || nil
           end
         end
       end

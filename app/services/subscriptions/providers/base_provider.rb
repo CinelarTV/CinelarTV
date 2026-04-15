@@ -86,6 +86,19 @@ module Subscriptions
         }
       end
 
+      # Converts the raw Hash returned by fetch_subscription! into a safe set of
+      # model attributes for UserSubscription#update!.
+      # Subclasses should override this to map provider-specific fields.
+      # The default implementation is a no-op safe guard — returns only status.
+      def normalize_remote_for_update(subscription, remote)
+        raw_status = remote["status"].to_s
+        {
+          status:         normalize_status(raw_status),
+          external_status: raw_status,
+          metadata:       subscription.metadata.merge("remote_sync" => remote, "synced_at" => Time.zone.now.iso8601)
+        }.compact
+      end
+
       protected
 
       def parse_time(value)

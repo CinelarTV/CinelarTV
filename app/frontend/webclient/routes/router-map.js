@@ -26,9 +26,17 @@ const loadRoutes = () => {
     return routes;
 }
 
+// Cachear plugins detectados
+let _pluginsCache = null;
+
 const getAvailablePlugins = () => {
-    // Usar cualquier archivo para detectar plugins
-    const allPluginFiles = import.meta.glob('@plugins/**/*', { eager: false });
+    // Usar caché si ya se detectaron
+    if (_pluginsCache) return _pluginsCache;
+
+    // Buscar SOLO archivos index.ts/app/index.ts de plugins (más específico)
+    const pattern1 = import.meta.glob('@plugins/*/index.ts', { eager: false });
+    const pattern2 = import.meta.glob('@plugins/*/app/index.ts', { eager: false });
+    const allPluginFiles = { ...pattern1, ...pattern2 };
 
     const plugins = [...new Set(
         Object.keys(allPluginFiles)
@@ -40,6 +48,7 @@ const getAvailablePlugins = () => {
     )];
 
     console.log('🔍 Plugins detectados:', plugins);
+    _pluginsCache = plugins;
     return plugins;
 }
 
@@ -50,8 +59,13 @@ const loadPluginRoutes = () => {
     console.log(`🔌 Plugins habilitados: ${plugins.join(', ')}`);
 
     try {
-        // Un solo patrón que capture todas las rutas de plugins
-        const allPluginModules = import.meta.glob('@plugins/**/*.route.js', { eager: true });
+        // Buscar SOLO rutas en ubicaciones conocidas (más eficiente)
+        // Patrones: @plugins/[nombre]/routes/*.route.js o @plugins/[nombre]/app/routes/*.route.js
+        const pattern1 = import.meta.glob('@plugins/*/routes/*.route.js', { eager: true });
+        const pattern2 = import.meta.glob('@plugins/*/app/routes/*.route.js', { eager: true });
+        const pattern3 = import.meta.glob('@plugins/*/app/assets/javascripts/routes/*.route.js', { eager: true });
+
+        const allPluginModules = { ...pattern1, ...pattern2, ...pattern3 };
 
         console.log('📦 Archivos de rutas encontrados:', Object.keys(allPluginModules));
 
@@ -149,10 +163,74 @@ const processPluginModules = (modules, patternName) => {
     return [];
 }
 
+/**
+ * Valida conflictos entre rutas core y plugin
+ * Si `allow_plugins_replace_core_routes` es false (default), rechaza conflictos
+ */
+const validatePluginRoutes = (coreRoutes, pluginRoutes) => {
+    // Null = false (seguridad por defecto)
+    const allowReplace = siteSettings.allow_plugins_replace_core_routes === true;
+    const validatedRoutes = [];
+    let replacedCount = 0;
+    let conflictCount = 0;
+
+    pluginRoutes.forEach(pluginRoute => {
+        // Búscar conflictos con rutas core
+        const coreRouteByName = coreRoutes.find(r => r.name === pluginRoute.name);
+        const coreRouteByPath = coreRoutes.find(r => r.path === pluginRoute.path);
+
+        // Caso 1: Ambos coinciden (completo reemplazo o validación segura)
+        if (coreRouteByName && coreRouteByPath &&
+            coreRouteByName.name === pluginRoute.name &&
+            coreRouteByPath.path === pluginRoute.path) {
+
+            if (!allowReplace) {
+                console.warn(
+                    `⚠️ [RUTA RECHAZADA] Plugin "${pluginRoute.meta?.plugin}" intenta reemplazar ruta core:`,
+                    `"${pluginRoute.name}" (${pluginRoute.path})`,
+                    `- Reemplazo detectado. Habilita "allow_plugins_replace_core_routes" para permitir.`
+                );
+                conflictCount++;
+                return; // No agregar esta ruta
+            } else {
+                console.log(
+                    `🔄 [RUTA REEMPLAZADA] Plugin "${pluginRoute.meta?.plugin}" reemplaza ruta core:`,
+                    `"${pluginRoute.name}"`
+                );
+                replacedCount++;
+            }
+        }
+        // Caso 2: Conflicto parcial (name coincide pero path no, o viceversa)
+        else if ((coreRouteByName && coreRouteByName.path !== pluginRoute.path) ||
+            (coreRouteByPath && coreRouteByPath.name !== pluginRoute.name)) {
+            console.warn(
+                `⚠️ [RUTA RECHAZADA] Plugin "${pluginRoute.meta?.plugin}" causa conflicto:`,
+                `name: ${pluginRoute.name} (core: ${coreRouteByName?.name || 'N/A'}),`,
+                `path: ${pluginRoute.path} (core: ${coreRouteByPath?.path || 'N/A'})`,
+                `- Conflicto detectado. Verifica la configuración de la ruta.`
+            );
+            conflictCount++;
+            return; // No agregar esta ruta
+        }
+
+        validatedRoutes.push(pluginRoute);
+    });
+
+    if (conflictCount > 0) {
+        console.warn(`\n⚠️ Se rechazaron ${conflictCount} rutas de plugins por conflictos o intentos de reemplazo (modo seguro)\n`);
+    }
+    if (replacedCount > 0) {
+        console.log(`\n✅ Se reemplazaron ${replacedCount} rutas core con rutas de plugins (allow_plugins_replace_core_routes habilitado)\n`);
+    }
+
+    return validatedRoutes;
+};
+
 const initializeRoutes = () => {
     console.log('🚀 Inicializando sistema de rutas...');
 
-    let routes = loadRoutes();
+    const coreRoutes = loadRoutes();
+    let routes = [...coreRoutes];
 
     // Cargar plugins si están habilitados
     if (siteSettings.enable_plugins) {
@@ -163,7 +241,20 @@ const initializeRoutes = () => {
         } else {
             console.log('✅ Cargando rutas de plugins...');
             const pluginRoutes = loadPluginRoutes();
-            routes = routes.concat(pluginRoutes);
+
+            // Validar conflictos entre core y plugin si allow_plugins_replace_core_routes está deshabilitado
+            const validatedPluginRoutes = validatePluginRoutes(coreRoutes, pluginRoutes);
+
+            // Si se permite reemplazar, usar validatedPluginRoutes como source de verdad
+            if (siteSettings.allow_plugins_replace_core_routes === true) {
+                // Remover rutas core que fueron reemplazadas
+                const replacedNames = new Set(pluginRoutes.map(pr => pr.name).filter(n =>
+                    coreRoutes.find(cr => cr.name === n)
+                ));
+                routes = routes.filter(r => !replacedNames.has(r.name));
+            }
+
+            routes = routes.concat(validatedPluginRoutes);
         }
     } else {
         console.log('❌ Plugins deshabilitados en configuración');

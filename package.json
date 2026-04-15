@@ -113,6 +113,7 @@
   "scripts": {
     "build:css": "tailwindcss -i ./app/assets/stylesheets/cinelartv.scss -o ./app/assets/builds/cinelartv-wind.css --minify",
     "i18n:export": "bundle exec rake i18n:js:export",
+    "i18n:sync": "localazy download && pnpm run i18n:export",
     "sidekiq": "bundle exec sidekiq --config config/sidekiq.yml"
   },
   "workspaces": [

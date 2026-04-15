@@ -225,14 +225,16 @@ export default defineComponent({
                                     <div class="settings-panel__card-control">
                                         {/* String input */}
                                         {setting.type === 'string' && (
-                                            <input
-                                                type="text"
-                                                value={settings.value[setting.key] || ''}
-                                                onInput={(e: any) => updateValue(setting.key, e.target.value)}
-                                                maxlength={setting.options?.limit || 255}
-                                                class="settings-panel__input"
-                                                placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
-                                            />
+                                            <>
+                                                <input
+                                                    type="text"
+                                                    value={settings.value[setting.key] || ''}
+                                                    onInput={(e: any) => updateValue(setting.key, e.target.value)}
+                                                    maxlength={setting.options?.maxlength || 255}
+                                                    class="settings-panel__input"
+                                                    placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
+                                                />
+                                            </>
                                         )}
 
                                         {/* Boolean switch */}

@@ -21,7 +21,7 @@ export default defineComponent({
             default: 'button',
         },
         variant: {
-            type: String as PropType<'default' | 'primary' | 'danger'>,
+            type: String as PropType<'default' | 'primary' | 'secondary' | 'danger'>,
             default: 'default',
         },
         large: {
@@ -38,6 +38,7 @@ export default defineComponent({
         const classes = () => [
             'billing-page__btn',
             props.variant === 'primary' && 'billing-page__btn--primary',
+            props.variant === 'secondary' && 'billing-page__btn--secondary',
             props.variant === 'danger' && 'billing-page__btn--danger',
             props.large && 'billing-page__btn--large',
         ];

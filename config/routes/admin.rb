@@ -15,6 +15,7 @@ namespace :admin do
   get "webhooks/logs" => "dashboard#webhook_logs"
 
   get "subscriptions" => "subscriptions#index"
+  get "subscriptions/stats" => "subscriptions#stats"
   get "subscriptions/logs" => "subscriptions#logs"
   post "subscriptions/webhooks/test" => "subscriptions#test_webhook"
   get "subscriptions/plans" => "subscriptions#plans"

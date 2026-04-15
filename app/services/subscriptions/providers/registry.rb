@@ -13,6 +13,13 @@ module Subscriptions
         "lemon_squeezy" => :enable_lemon_squeezy_provider
       }.freeze
 
+      PROVIDER_LABELS = {
+        "mercado_pago"  => "Mercado Pago",
+        "lemon_squeezy" => "Lemon Squeezy",
+        "stripe"        => "Stripe",
+        "paypal"        => "PayPal"
+      }.freeze
+
       class << self
         def current
           enabled = enabled_provider_keys
@@ -45,6 +52,14 @@ module Subscriptions
           # Backward compatibility: fall back to subscription_provider_primary
           primary = SiteSetting.subscription_provider_primary.to_s.presence
           primary && PROVIDERS.key?(primary) ? [primary] : ["mercado_pago"]
+        end
+
+        # Returns a human-readable label for a provider key.
+        # Single source of truth — use this in controllers and helpers instead of
+        # duplicating the labels hash.
+        def label_for(provider_key)
+          key = provider_key.to_s.strip.downcase
+          PROVIDER_LABELS[key] || key.split("_").map(&:capitalize).join(" ")
         end
       end
     end

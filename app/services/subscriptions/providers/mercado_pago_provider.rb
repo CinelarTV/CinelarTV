@@ -57,9 +57,12 @@ module Subscriptions
           preapproval_data = fetch_preapproval(resource_id)
           preapproval_data = enrich_preapproval_from_search(preapproval_data, resource_id, webhook_application_id)
           upsert_subscription_from_preapproval!(preapproval_data)
-        when "payment", "merchant_order"
-          # Payment events are handled separately or logged for reference
-          Rails.logger.info("MercadoPago #{event_type} event received: #{resource_id}")
+        when "payment"
+          process_payment_event!(resource_id)
+        when "subscription_authorized_payment"
+          Rails.logger.info("MercadoPago subscription_authorized_payment event received: #{resource_id} (ignoring in favor of standard payment event)")
+        when "merchant_order"
+          Rails.logger.info("MercadoPago merchant_order event received: #{resource_id} (informational only)")
         else
           Rails.logger.warn("Unknown MercadoPago event type: #{event_type}")
           upsert_subscription_from_preapproval!(fetch_preapproval(resource_id))
@@ -242,6 +245,31 @@ module Subscriptions
         update_plan!(plan_id, status: "cancelled")
       end
 
+      # Maps the raw preapproval Hash from fetch_subscription! to safe model
+      # attributes. This is MercadoPago-specific: the preapproval object has
+      # different field names than the UserSubscription columns.
+      def normalize_remote_for_update(subscription, remote)
+        raw_status    = remote["status"].to_s
+        next_pay_date = parse_time(remote.dig("auto_recurring", "next_payment_date"))
+        end_date      = parse_time(remote.dig("auto_recurring", "end_date"))
+
+        {
+          status:                  normalize_status(raw_status),
+          status_formatted:        normalize_status(raw_status).humanize,
+          external_status:         raw_status,
+          renews_at:               next_pay_date || subscription.renews_at,
+          ends_at:                 end_date,
+          cancelled:               %w[cancelled canceled].include?(raw_status),
+          user_email:              remote["payer_email"].presence ||
+                                   remote.dig("payer", "email").presence ||
+                                   subscription.user_email,
+          metadata:                subscription.metadata.merge(
+            "remote_sync" => remote.slice("status", "status_detail", "auto_recurring", "summarized"),
+            "synced_at"   => Time.zone.now.iso8601
+          )
+        }.compact
+      end
+
       private
 
       def parse_payload(request)
@@ -318,6 +346,174 @@ module Subscriptions
         JSON.parse(response.body)
       end
 
+      # Fetches a single payment from the MP Payments API.
+      # Payment objects always include preapproval_id, which we use to locate
+      # the existing UserSubscription without relying on external_reference.
+      def fetch_payment(payment_id)
+        response = HTTParty.get("#{API_BASE_URL}/v1/payments/#{payment_id}", headers: auth_headers)
+        unless response.code.between?(200, 299)
+          body = response.body.to_s
+          if response.code == 404
+            raise ActiveRecord::RecordNotFound, "Payment not found for id #{payment_id}"
+          end
+
+          raise "MercadoPago payment fetch error: #{body}"
+        end
+
+        JSON.parse(response.body)
+      rescue JSON::ParserError => e
+        raise "MercadoPago payment parse error for #{payment_id}: #{e.message}"
+      end
+
+      # Processes a payment event from MP.
+      #
+      # Strategy for finding the subscription (in order):
+      #   1. payment.preapproval_id → UserSubscription.provider_subscription_id
+      #      This is the primary path — no external_reference needed since the
+      #      subscription record was already created by the preapproval webhook.
+      #   2. If not found locally, fetch the full preapproval and run the
+      #      standard upsert path (which handles user lookup via external_reference).
+      #
+      # Status mapping:
+      #   approved  → marks subscription active, updates renews_at
+      #   rejected  → logs; MP will retry automatically, do NOT cancel the subscription
+      #   refunded  → marks subscription cancelled
+      def process_payment_event!(payment_id)
+        payment = fetch_payment(payment_id)
+        return if payment.blank?
+
+        preapproval_id  = payment["preapproval_id"].to_s.presence
+        payment_status  = payment["status"].to_s.downcase
+        payment_amount  = payment["transaction_amount"]
+        payment_currency = payment["currency_id"].to_s
+        date_approved   = payment["date_approved"].to_s
+        date_created    = payment["date_created"].to_s
+
+        Rails.logger.info(
+          "MercadoPago payment event payment_id=#{payment_id} preapproval_id=#{preapproval_id.presence || 'none'} " \
+          "status=#{payment_status} amount=#{payment_amount} #{payment_currency}"
+        )
+
+        # --- 1. Find subscription by preapproval_id (primary path) ---
+        subscription = preapproval_id.present? &&
+          UserSubscription.find_by(provider: provider_key, provider_subscription_id: preapproval_id)
+
+        # --- 2. Fallback: fetch preapproval and run full upsert ---
+        if subscription.blank? && preapproval_id.present?
+          Rails.logger.info(
+            "MercadoPago payment #{payment_id}: subscription not found locally for preapproval #{preapproval_id}, " \
+            "fetching preapproval to upsert"
+          )
+          preapproval_data = fetch_preapproval(preapproval_id)
+          subscription = upsert_subscription_from_preapproval!(preapproval_data)
+        end
+
+        # If we still have no subscription, there's nothing we can do
+        if subscription.blank?
+          Rails.logger.warn(
+            "MercadoPago payment #{payment_id}: could not find or create subscription " \
+            "(preapproval_id=#{preapproval_id.presence || 'missing'}). Ignoring."
+          )
+          return
+        end
+
+        # --- 3. Update subscription based on payment outcome ---
+        update_subscription_from_payment!(subscription, payment_status, payment, date_approved, date_created)
+      end
+
+      def update_subscription_from_payment!(subscription, payment_status, payment, date_approved, date_created)
+        case payment_status
+        when "approved"
+          # Payment successful: mark active and project next renewal date.
+          # We use date_approved + subscription interval to estimate renews_at
+          # since the preapproval next_payment_date may not have updated yet.
+          new_renews_at = next_renewal_from_payment(subscription, date_approved)
+          subscription.update!(
+            status: "active",
+            status_formatted: "Active",
+            external_status: "approved",
+            cancelled: false,
+            renews_at: new_renews_at,
+            metadata: subscription.metadata.merge(
+              "last_payment_id"     => payment["id"].to_s,
+              "last_payment_status" => payment_status,
+              "last_payment_date"   => date_approved.presence || date_created,
+              "last_payment_amount" => payment["transaction_amount"]
+            )
+          )
+          Rails.logger.info(
+            "MercadoPago payment approved: subscription #{subscription.id} renewed, next renewal ~#{new_renews_at}"
+          )
+
+        when "rejected", "cancelled"
+          # MP retries automatically. We log but do NOT cancel the subscription —
+          # a rejected payment doesn't mean the user cancelled; it means MP will retry.
+          subscription.update!(
+            metadata: subscription.metadata.merge(
+              "last_payment_id"     => payment["id"].to_s,
+              "last_payment_status" => payment_status,
+              "last_payment_date"   => date_created,
+              "last_payment_failure_detail" => payment.dig("status_detail")
+            )
+          )
+          Rails.logger.info(
+            "MercadoPago payment #{payment_status} for subscription #{subscription.id}: " \
+            "MP will retry automatically. status_detail=#{payment.dig('status_detail')}"
+          )
+
+        when "refunded", "charged_back"
+          subscription.update!(
+            status: "cancelled",
+            status_formatted: "Cancelled",
+            external_status: payment_status,
+            cancelled: true,
+            cancelled_at: Time.zone.now,
+            metadata: subscription.metadata.merge(
+              "last_payment_id"     => payment["id"].to_s,
+              "last_payment_status" => payment_status
+            )
+          )
+          Rails.logger.info("MercadoPago payment refunded/charged_back: subscription #{subscription.id} cancelled")
+
+        else
+          # pending, in_process — intermediary states, just record them
+          subscription.update!(
+            metadata: subscription.metadata.merge(
+              "last_payment_id"     => payment["id"].to_s,
+              "last_payment_status" => payment_status
+            )
+          )
+          Rails.logger.info(
+            "MercadoPago payment #{payment_status} (intermediary) for subscription #{subscription.id}"
+          )
+        end
+      end
+
+      # Estimates the next renewal date after a successful payment.
+      # Reads the subscription's last known frequency from its metadata or falls
+      # back to 1 month. This is only used until the next preapproval webhook
+      # fires with the definitive next_payment_date.
+      def next_renewal_from_payment(subscription, date_approved)
+        base_date = parse_time(date_approved) || Time.zone.now
+
+        # Try to get frequency from metadata (set during preapproval upsert)
+        remote = subscription.metadata.dig("remote_sync") || subscription.metadata.dig("remote")
+        frequency      = remote&.dig("auto_recurring", "frequency").to_i
+        frequency_type = remote&.dig("auto_recurring", "frequency_type").to_s
+
+        if frequency.positive? && frequency_type.present?
+          case frequency_type
+          when "days"   then base_date + frequency.days
+          when "months" then base_date + frequency.months
+          when "years"  then base_date + frequency.years
+          else base_date + 1.month
+          end
+        else
+          # Safe default: 1 month from payment date
+          base_date + 1.month
+        end
+      end
+
       def search_preapproval(preapproval_id:, application_id: nil)
         query = { limit: 1, offset: 0, id: preapproval_id }
         query[:application_id] = application_id if application_id.present?
@@ -388,7 +584,7 @@ module Subscriptions
           cancelled_at: %w[cancelled].include?(raw_status) ? Time.zone.now : nil,
           renews_at: parse_time(preapproval.dig("auto_recurring", "next_payment_date")) || 1.month.from_now,
           ends_at: parse_time(preapproval.dig("auto_recurring", "end_date")),
-          metadata: metadata.merge(preapproval.slice("status", "status_detail", "summarized", "operation_type"))
+          metadata: metadata.merge(preapproval.slice("status", "status_detail", "summarized", "operation_type", "auto_recurring"))
         )
 
         subscription
