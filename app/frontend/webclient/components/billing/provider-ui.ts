@@ -12,6 +12,8 @@ export type BillingProviderUiProfile = {
     walletLoadingCta: string;
     cardCta: string;
     cardLoadingCta: string;
+    supportedRegions: string[];
+    checkoutType: string;
 };
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -49,6 +51,8 @@ const baseProfile = (providerKey: string): BillingProviderUiProfile => {
         walletLoadingCta: 'Opening wallet checkout...',
         cardCta: 'Subscribe with card',
         cardLoadingCta: 'Processing card...',
+        supportedRegions: [],
+        checkoutType: 'redirect',
     };
 };
 
@@ -78,5 +82,7 @@ export const buildBillingProviderUiProfile = (
         walletLoadingCta: 'Opening Mercado Pago wallet...',
         cardCta: 'Subscribe with card',
         cardLoadingCta: 'Processing card...',
+        supportedRegions: ['AR', 'BR', 'CL', 'CO', 'MX', 'PE', 'UY'],
+        checkoutType: 'redirect',
     };
 };

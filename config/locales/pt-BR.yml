@@ -141,11 +141,17 @@ pt-BR:
           description: "Enables the subscription system, this will allow you to charge your users for access to your site"
           title: "Enable subscription"
         subscription_provider_primary:
-          description: "Provedor primario de assinatura para checkout e webhooks"
+          description: "Provedor primario de assinatura para checkout e webhooks (fallback quando nenhum flag de provedor está habilitado)"
           title: "Provedor primario de assinatura"
           values:
             mercado_pago: "Mercado Pago"
             lemon_squeezy: "Lemon Squeezy"
+        enable_mercado_pago_provider:
+          description: "Habilitar Mercado Pago como provedor de assinaturas"
+          title: "Habilitar provedor Mercado Pago"
+        enable_lemon_squeezy_provider:
+          description: "Habilitar Lemon Squeezy como provedor de assinaturas"
+          title: "Habilitar provedor Lemon Squeezy"
         enable_web_updater:
           description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
           title: "Experimental web updater"

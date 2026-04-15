@@ -178,11 +178,17 @@ en:
           description: "Enables the subscription system, this will allow you to charge your users for access to your site"
           title: "Enable subscription"
         subscription_provider_primary:
-          description: "Primary subscription provider used to process checkouts and webhooks"
+          description: "Primary subscription provider used to process checkouts and webhooks (legacy fallback when no provider feature flag is enabled)"
           title: "Primary subscription provider"
           values:
             mercado_pago: "Mercado Pago"
             lemon_squeezy: "Lemon Squeezy"
+        enable_mercado_pago_provider:
+          description: "Enable Mercado Pago as a subscription provider"
+          title: "Enable Mercado Pago provider"
+        enable_lemon_squeezy_provider:
+          description: "Enable Lemon Squeezy as a subscription provider"
+          title: "Enable Lemon Squeezy provider"
         enable_transcoding:
           description: "Enables the transcoding of videos, this will allow you to transcode the videos to different formats and resolutions"
           title: "Enable transcoding"

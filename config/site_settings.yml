@@ -151,6 +151,18 @@ monetization:
       - mercado_pago
       - lemon_squeezy
 
+  enable_mercado_pago_provider:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
+
+  enable_lemon_squeezy_provider:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
+
   mercadopago_access_token:
     client: false
     refresh: true

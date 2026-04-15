@@ -155,6 +155,23 @@
           </li>
         </ul>
 
+        <!-- Provider Selector (multiple providers) -->
+        <div v-if="showProviderSelector" class="billing-page__provider-selector">
+          <span class="billing-page__provider-selector-label">Choose payment provider:</span>
+          <div class="billing-page__provider-options">
+            <button
+              v-for="provider in enabledProviders"
+              :key="provider.key"
+              class="billing-page__provider-option"
+              :class="{ 'billing-page__provider-option--active': activeProviderKey === provider.key }"
+              @click="selectProvider(provider.key)"
+            >
+              <CIcon icon="credit-card" :size="18" />
+              {{ provider.label }}
+            </button>
+          </div>
+        </div>
+
         <div class="billing-page__secure-badge" v-if="providerProfile.supportsInlineCardForm && showInlineCardForm">
           <CIcon icon="shield-check" :size="16" />
           {{ providerProfile.secureBadgeText }}
@@ -279,6 +296,8 @@ const isInitializingMercadoPago = ref(false);
 const mercadoPagoClient = shallowRef(null);
 const mercadoPagoInitError = ref('');
 const identificationTypes = ref([]);
+const enabledProviders = ref([]);
+const selectedProviderKey = ref('');
 
 const cardForm = ref({
   cardholderName: '',
@@ -331,11 +350,16 @@ const canCancel = computed(() => {
 
 const activeProviderKey = computed(() => {
   const fromSubscription = String(subscription.value?.provider || '').trim().toLowerCase();
+  const fromSelected = String(selectedProviderKey.value || '').trim().toLowerCase();
   const fromBillingResponse = String(billingProviderKey.value || '').trim().toLowerCase();
   const fromSettings = String(SiteSettings?.subscription_provider_primary || '').trim().toLowerCase();
 
-  return fromSubscription || fromBillingResponse || fromSettings || 'mercado_pago';
+  return fromSubscription || fromSelected || fromBillingResponse || fromSettings || 'mercado_pago';
 });
+
+const hasMultipleProviders = computed(() => enabledProviders.value.length > 1);
+
+const showProviderSelector = computed(() => !subscription.value && hasMultipleProviders.value);
 
 const providerProfile = computed(() => buildBillingProviderUiProfile(activeProviderKey.value, SiteSettings));
 
@@ -431,6 +455,9 @@ const fetchBillingData = async () => {
   try {
     const { data } = await ajax.get('/account/billing.json');
     billingProviderKey.value = String(data?.provider || billingProviderKey.value || '').trim().toLowerCase();
+    if (Array.isArray(data?.enabled_providers) && data.enabled_providers.length > 0) {
+      enabledProviders.value = data.enabled_providers;
+    }
     return data?.data?.[0] || null;
   } catch (error) {
     console.error('Error fetching billing data:', error);
@@ -576,6 +603,9 @@ const createSubscription = async (checkoutMode = null) => {
 
   try {
     const payload = checkoutMode ? { checkout_mode: checkoutMode } : {};
+    if (selectedProviderKey.value) {
+      payload.provider = selectedProviderKey.value;
+    }
     const { data } = await ajax.post('/account/billing/subscribe.json', payload);
     const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
 
@@ -634,6 +664,12 @@ const formatDate = (value) => {
 
 const formatProvider = (provider) => {
   return formatProviderLabel(provider);
+};
+
+const selectProvider = (providerKey) => {
+  selectedProviderKey.value = providerKey;
+  showInlineCardForm.value = false;
+  checkoutError.value = '';
 };
 
 const pollingInterval = ref(null);
@@ -1110,6 +1146,56 @@ useHead({
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
   max-width: 520px;
+}
+
+/* ── Provider Selector ──────────────────────────────────────────────── */
+.billing-page__provider-selector {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.billing-page__provider-selector-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.billing-page__provider-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.billing-page__provider-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.billing-page__provider-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.billing-page__provider-option--active {
+  background: rgba(0, 149, 217, 0.18);
+  border-color: rgba(0, 149, 217, 0.5);
+  color: #c4ecff;
 }
 
 .billing-page__benefits {

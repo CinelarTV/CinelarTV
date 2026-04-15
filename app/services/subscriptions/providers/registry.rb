@@ -8,9 +8,15 @@ module Subscriptions
         "lemon_squeezy" => "Subscriptions::Providers::LemonSqueezyProvider"
       }.freeze
 
+      PROVIDER_FEATURE_FLAGS = {
+        "mercado_pago" => :enable_mercado_pago_provider,
+        "lemon_squeezy" => :enable_lemon_squeezy_provider
+      }.freeze
+
       class << self
         def current
-          key = SiteSetting.subscription_provider_primary.presence || "mercado_pago"
+          enabled = enabled_provider_keys
+          key = enabled.first.presence || SiteSetting.subscription_provider_primary.presence || "mercado_pago"
           build(key)
         end
 
@@ -19,6 +25,26 @@ module Subscriptions
           raise ArgumentError, "Unknown subscription provider: #{key}" if provider_class_name.blank?
 
           provider_class_name.constantize.new
+        end
+
+        def enabled?(key)
+          enabled_provider_keys.include?(key.to_s)
+        end
+
+        def enabled_providers
+          enabled_provider_keys.map { |key| build(key) }
+        end
+
+        def enabled_provider_keys
+          keys = PROVIDER_FEATURE_FLAGS.select do |_key, flag|
+            SiteSetting.respond_to?(flag) && SiteSetting.public_send(flag)
+          end.keys
+
+          return keys if keys.any?
+
+          # Backward compatibility: fall back to subscription_provider_primary
+          primary = SiteSetting.subscription_provider_primary.to_s.presence
+          primary && PROVIDERS.key?(primary) ? [primary] : ["mercado_pago"]
         end
       end
     end

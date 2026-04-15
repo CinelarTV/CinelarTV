@@ -67,6 +67,25 @@ module Subscriptions
         raise NotImplementedError, "deactivate_plan! must be implemented"
       end
 
+      def get_subscription_status(subscription)
+        remote = fetch_subscription!(subscription)
+        return nil if remote.blank?
+
+        normalize_status(remote["status"])
+      rescue StandardError => e
+        Rails.logger.warn("#{self.class.name}#get_subscription_status failed for subscription #{subscription&.id}: #{e.class} - #{e.message}")
+        nil
+      end
+
+      def provider_metadata
+        {
+          provider_name: provider_key,
+          provider_logo: nil,
+          supported_regions: [],
+          checkout_type: "redirect"
+        }
+      end
+
       protected
 
       def parse_time(value)
