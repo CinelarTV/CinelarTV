@@ -11,6 +11,11 @@
       class: LicenseValidationJob
       queue: 'default'
       description: 'Verify if the license for this CinelarTV instance is valid'
+    check_for_updates:
+      every: '15m'
+      class: UpdateCheckJob
+      queue: 'default'
+      description: 'Refresh cached remote git version for updater checks'
     get_top_10_for_country:
       every: '1h'
       class: Top10ContentJob

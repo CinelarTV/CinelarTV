@@ -6,13 +6,34 @@ require "io/wait"
 
 module CinelarTV
   module Updater
-    def self.remote_version
+    REMOTE_VERSION_CACHE_KEY = "updater_remote_version"
+    REMOTE_VERSION_LAST_CHECKED_AT_KEY = "updater_remote_version_checked_at"
+    REMOTE_VERSION_CACHE_TTL = 20.minutes
+
+    def self.remote_version(force_refresh: false)
       return nil unless CinelarTV.is_git_repo?
-      `git ls-remote --heads origin test-passed 2>#{File::NULL}`.strip.split.first
+
+      cached = remote_version_cache
+      return cached if cached.present? && !force_refresh && !remote_version_stale?
+
+      refreshed = refresh_remote_version_cache
+      refreshed.presence || cached.presence
+    end
+
+    def self.refresh_remote_version_cache
+      return nil unless CinelarTV.is_git_repo?
+
+      version = `git ls-remote --heads origin test-passed 2>#{File::NULL}`.strip.split.first
+      self.remote_version_cache = version
+      self.remote_version_last_checked_at = Time.current
+      version.presence
+    rescue StandardError
+      nil
     end
 
     def self.versions_diff
       return 0 unless CinelarTV.is_git_repo?
+
       rv = remote_version
       return 0 if rv.nil? || rv.empty?
 
@@ -40,6 +61,27 @@ module CinelarTV
 
     def self.last_updated_at=(val)
       CinelarTV.cache.write("updated_at", val)
+    end
+
+    def self.remote_version_cache
+      CinelarTV.cache.read(REMOTE_VERSION_CACHE_KEY)
+    end
+
+    def self.remote_version_cache=(val)
+      CinelarTV.cache.write(REMOTE_VERSION_CACHE_KEY, val)
+    end
+
+    def self.remote_version_last_checked_at
+      CinelarTV.cache.read(REMOTE_VERSION_LAST_CHECKED_AT_KEY)
+    end
+
+    def self.remote_version_last_checked_at=(val)
+      CinelarTV.cache.write(REMOTE_VERSION_LAST_CHECKED_AT_KEY, val)
+    end
+
+    def self.remote_version_stale?
+      checked_at = remote_version_last_checked_at
+      checked_at.blank? || checked_at <= REMOTE_VERSION_CACHE_TTL.ago
     end
 
     def self.log(message)
@@ -107,7 +149,7 @@ module CinelarTV
         log("=> Puma PID: #{pid}")
         log("=> Current git hash: #{CinelarTV.git_version}")
         log("=> Current git branch: #{CinelarTV.git_branch}")
-        log("=> Remote git hash: #{remote_version}")
+        log("=> Remote git hash: #{remote_version(force_refresh: true)}")
         log("=> Commit message: #{last_commit_message}")
         log("=> Versions diff: #{versions_diff}")
         log("")
