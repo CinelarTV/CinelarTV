@@ -14,7 +14,17 @@ class Cache
   end
 
   def redis
-    @redis ||= Redis.new(db: 1)
+    @redis ||= Redis.new(**redis_options)
+  end
+
+  def redis_options
+    redis_url = ENV["REDIS_URL"]
+
+    if redis_url.present?
+      { url: redis_url, db: ENV.fetch("REDIS_CACHE_DB", "0").to_i }
+    else
+      { db: ENV.fetch("REDIS_CACHE_DB", "0").to_i }
+    end
   end
 
   def reconnect
