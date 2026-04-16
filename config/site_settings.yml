@@ -486,3 +486,10 @@ internal:
     default: false
     type: 'boolean'
     hidden: true # Internal use only
+backup:
+  allow_restore:
+    client: false
+    refresh: true
+    default: false
+    type: 'boolean'
+

@@ -10,12 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_16_000700) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_16_095000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
   enable_extension "unaccent"
+
+  create_table "backups", force: :cascade do |t|
+    t.string "filename", null: false
+    t.bigint "size"
+    t.string "backup_type"
+    t.string "source"
+    t.text "notes"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["filename"], name: "index_backups_on_filename", unique: true
+  end
 
   create_table "categories", force: :cascade do |t|
     t.string "name"
