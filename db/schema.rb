@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_15_234242) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_16_000700) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -345,6 +345,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_234242) do
     t.datetime "updated_at", null: false
     t.string "status"
     t.string "temp_path"
+    t.datetime "last_checked_at"
+    t.string "media_status", default: "verified"
+    t.integer "failure_count", default: 0
+    t.index ["last_checked_at"], name: "index_video_sources_on_last_checked_at"
+    t.index ["media_status"], name: "index_video_sources_on_media_status"
     t.index ["videoable_type", "videoable_id"], name: "index_video_sources_on_videoable"
   end
 

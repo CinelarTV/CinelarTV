@@ -95,6 +95,14 @@ const AdminRoutes = {
                     meta: {
                         requireAdmin: true
                     }
+                },
+                {
+                    name: 'admin.content.manager.media_integrity',
+                    path: 'media-integrity',
+                    component: () => import('../views/admin/content-manager/MediaIntegrity.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
                 }
             ]
         },

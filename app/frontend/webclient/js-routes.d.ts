@@ -272,6 +272,16 @@ export const adminSubscriptionsPlansPath: ((
 
 /**
  * Generates rails route to
+ * /admin/subscriptions/stats(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminSubscriptionsStatsPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
  * /admin/subscriptions/webhooks/test(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -317,6 +327,16 @@ export const adminUpgradePath: ((
  * @returns {string} route path
  */
 export const adminUsersPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/video_sources/broken(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminVideoSourcesBrokenPath: ((
   options?: {format?: OptionalRouteParameter} & RouteOptions
 ) => string) & RouteHelperExtras;
 

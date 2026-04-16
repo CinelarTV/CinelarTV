@@ -32,6 +32,26 @@ module Admin
       head :no_content
     end
 
+    def broken
+      @broken_sources = VideoSource.where(media_status: 'broken')
+                                   .includes(:videoable)
+                                   .map do |source|
+        {
+          id: source.id,
+          url: source.url,
+          quality: source.quality,
+          format: source.format,
+          failure_count: source.failure_count,
+          last_checked_at: source.last_checked_at,
+          videoable_type: source.videoable_type,
+          videoable_id: source.videoable_id,
+          parent_title: source.videoable.try(:title) || "Unknown Content"
+        }
+      end
+
+      render json: { video_sources: @broken_sources }
+    end
+
     private
 
     def handle_file_upload

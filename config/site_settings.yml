@@ -91,6 +91,28 @@ content:
     type: 'string'
     secret: true
 
+maintenance:
+  enable_media_checker:
+    client: true
+    refresh: true
+    default: true
+    type: 'boolean'
+  media_checker_failure_threshold:
+    client: false
+    refresh: true
+    default: 3
+    type: 'integer'
+  media_checker_timeout:
+    client: false
+    refresh: true
+    default: 5
+    type: 'integer'
+  media_checker_batch_size:
+    client: false
+    refresh: true
+    default: 100
+    type: 'integer'
+
 player:
   enable_chromecast:
     client: true

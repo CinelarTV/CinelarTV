@@ -693,6 +693,14 @@ export const adminSubscriptionsPlansPath = /*#__PURE__*/ __jsr.r({"format":{}}, 
 
 /**
  * Generates rails route to
+ * /admin/subscriptions/stats(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminSubscriptionsStatsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"subscriptions"],[2,[7,"/"],[2,[6,"stats"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
  * /admin/subscriptions/webhooks/test(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -730,6 +738,14 @@ export const adminUpgradePath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],
  * @returns {string} route path
  */
 export const adminUsersPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"users"],[1,[2,[8,"."],[3,"format"]]]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/video_sources/broken(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminVideoSourcesBrokenPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"video_sources"],[2,[7,"/"],[2,[6,"broken"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
 
 /**
  * Generates rails route to

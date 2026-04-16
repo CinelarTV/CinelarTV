@@ -30,6 +30,7 @@ namespace :admin do
 
   # Content Management related routes
   get "/content-manager/all", to: "contents#index"
+  get "/content-manager/media-integrity", to: "dashboard#index" # Redirigir al dashboard#index para que Vue maneje la ruta
   get "/content-manager/:id", to: "contents#show"
   get "/content-manager/:id/analytics", to: "contents#analytics"
   put "/content-manager/:id", to: "contents#update"
@@ -62,6 +63,7 @@ namespace :admin do
 
   
   # For updating and deleting a specific video source
+  get "/video_sources/broken", to: "video_sources#broken", defaults: { format: 'json' }
   put "/video_sources/:id", to: "video_sources#update"
   delete "/video_sources/:id", to: "video_sources#destroy"
 

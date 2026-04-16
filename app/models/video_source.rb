@@ -8,20 +8,20 @@ class VideoSource < ApplicationRecord
   validates :format, presence: true
   validates :storage_location, presence: true
 
-  enum storage_location: {
+  enum :storage_location, {
     local: "local",
     s3: "cloud",
     external_url: "external_url",
   }
 
-  enum format: {
+  enum :format, {
     mp4: "mp4",
     m3u8: "m3u8",
   }
 
   # If the format is m3u8, the quality is adaptative
 
-  enum quality: {
+  enum :quality, {
     "144": "144p",
     "240": "240p",
     "360": "360p",
@@ -33,4 +33,20 @@ class VideoSource < ApplicationRecord
     adaptative: "adaptative",
     legacy: "legacy",
   }
+
+  enum :media_status, {
+    checking: "checking",
+    verified: "verified",
+    broken: "broken",
+    uncertain: "uncertain",
+  }
+
+  before_save :reset_integrity_on_url_change, if: :url_changed?
+
+  private
+
+  def reset_integrity_on_url_change
+    self.media_status = "verified"
+    self.failure_count = 0
+  end
 end

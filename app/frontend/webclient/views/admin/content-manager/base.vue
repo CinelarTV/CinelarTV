@@ -22,7 +22,7 @@ import { ref, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from 'unhead'
 import { getCurrentInstance } from 'vue'
-import { ClapperboardIcon, TvIcon, ShapesIcon } from 'lucide-vue-next'
+import { ClapperboardIcon, TvIcon, ShapesIcon, ActivityIcon } from 'lucide-vue-next'
 
 const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
@@ -42,6 +42,11 @@ const navItems = [
         icon: ShapesIcon,
         title: $t("js.admin.content_manager.nav.categories"),
         to: '/admin/content-manager/categories'
+    },
+    {
+        icon: ActivityIcon,
+        title: $t("js.admin.content_manager.nav.media_integrity"),
+        to: '/admin/content-manager/media-integrity'
     }
 ]
 

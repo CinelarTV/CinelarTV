@@ -21,3 +21,8 @@
       class: XmltvFetchJob
       queue: 'xmltv'
       description: 'Fetch and parse XMLTV sources for Live TV program guide'
+    media_integrity_checker:
+      every: '1d' # Every 24 hours
+      class: MediaScannerJob
+      queue: 'default'
+      description: 'Daily check for media integrity (broken links)'
