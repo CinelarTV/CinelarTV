@@ -12,6 +12,10 @@ module CinelarTV
     @git_branch ||= try_git("git rev-parse --abbrev-ref HEAD", "unknown")
   end
 
+  def self.is_git_repo?
+    @is_git_repo ||= try_git("git rev-parse --is-inside-work-tree", "false") == "true"
+  end
+
   def self.last_commit_date
     @last_commit_date ||= begin
       seconds = try_git('git log -1 --format="%ct"', nil)
@@ -24,7 +28,7 @@ module CinelarTV
   end
 
   def self.try_git(git_cmd, default_value)
-    result = `#{git_cmd}`.strip
+    result = `#{git_cmd} 2>#{File::NULL}`.strip
     result.empty? ? default_value : result
   rescue StandardError
     default_value

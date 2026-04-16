@@ -7,21 +7,31 @@ require "io/wait"
 module CinelarTV
   module Updater
     def self.remote_version
-      `git ls-remote --heads origin test-passed`.strip.split.first
+      return nil unless CinelarTV.is_git_repo?
+      `git ls-remote --heads origin test-passed 2>#{File::NULL}`.strip.split.first
     end
 
     def self.versions_diff
-      commits = `git rev-list #{CinelarTV.git_version}..#{remote_version}`
+      return 0 unless CinelarTV.is_git_repo?
+      rv = remote_version
+      return 0 if rv.nil? || rv.empty?
 
+      commits = `git rev-list #{CinelarTV.git_version}..#{rv} 2>#{File::NULL}`
       commits.split("\n").count
     end
 
     def self.updates_available?
-      CinelarTV.git_version != remote_version # temporarily
+      return false unless CinelarTV.is_git_repo?
+
+      rv = remote_version
+      return false if rv.nil? || rv.empty?
+
+      CinelarTV.git_version != rv
     end
 
     def self.last_commit_message
-      `git log --format=%s -n 1`
+      return "N/A" unless CinelarTV.is_git_repo?
+      `git log --format=%s -n 1 2>#{File::NULL}`.strip
     end
 
     def self.last_updated_at
@@ -68,6 +78,17 @@ module CinelarTV
     end
 
     def self.run_update
+     unless CinelarTV.is_git_repo?
+      log("Not a Git repository. Attempting to fix...")
+      
+        unless try_to_fix_git_repo
+          publish("status", "failed")
+          log("Update failed: Could not initialize Git repository.")
+          log("Please install from Git or set CINELAR_GIT_REPO environment variable.")
+          return
+        end
+      end
+
       pid = Process.pid
       CinelarTV.maintenance_enabled = true
       begin
@@ -150,6 +171,33 @@ module CinelarTV
       warn(msg)
       CinelarTV.maintenance_enabled = false
       raise RuntimeError
+    end
+
+    def self.try_to_fix_git_repo
+      return true if CinelarTV.is_git_repo?
+      
+      log("Attempting to initialize Git repository...")
+      
+      begin
+        # Inicializar el repo
+        run("git init")
+        
+        # Agregar el remote origin
+        remote_url = ENV["CINELAR_GIT_REPO"] || "https://github.com/cinelartv/cinelartv.git"
+        run("git remote add origin #{remote_url}")
+        
+        # Fetch el branch test-passed
+        run("git fetch origin test-passed")
+        
+        # Hacer checkout al branch
+        run("git checkout -b test-passed origin/test-passed")
+        
+        log("Git repository initialized successfully!")
+        true
+      rescue StandardError => e
+        log("Failed to initialize Git repository: #{e.message}")
+        false
+      end
     end
   end
 end
