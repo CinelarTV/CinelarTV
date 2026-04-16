@@ -2,6 +2,7 @@ import { defineComponent, ref, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useHead } from 'unhead';
 import RequireSignupModal from '../components/modals/require-signup.modal.vue';
+import SubscriptionPaywallModal from '../components/modals/subscription-paywall.modal.vue';
 import Content from '../app/models/Content';
 import CButton from '../components/forms/c-button';
 import cSpinner from "../components/c-spinner";
@@ -18,6 +19,7 @@ export default defineComponent({
         const showTrailer = ref(false);
         const activeSeason = ref<string | null>(null);
         const requireSignupModalRef = ref<any>(null);
+        const subscriptionPaywallModalRef = ref<any>(null);
         const relatedContentScroll = ref<HTMLElement | null>(null);
 
         const onScroll = () => {
@@ -53,6 +55,12 @@ export default defineComponent({
                 openRequireSignupModal();
                 return;
             }
+
+            if (contentData.value?.premium && !(currentUser as any).is_subscribed) {
+                subscriptionPaywallModalRef.value?.setIsOpen(true);
+                return;
+            }
+
             if (contentData.value?.isMovie) {
                 router.push({ path: `/watch/${contentData.value.id}` }).catch(console.error);
             } else if (contentData.value?.continueWatching) {
@@ -67,6 +75,14 @@ export default defineComponent({
                 openRequireSignupModal();
                 return;
             }
+
+            // Find episode to check premium status
+            const episode = contentData.value?.seasons?.flatMap(s => s.episodes).find(e => e.id === episodeId);
+            if (episode?.premium && !(currentUser as any).is_subscribed) {
+                subscriptionPaywallModalRef.value?.setIsOpen(true);
+                return;
+            }
+
             router.push(`/watch/${contentData.value?.id}/${episodeId}`);
         };
 
@@ -193,8 +209,8 @@ export default defineComponent({
                                         {contentData.value?.available ? (
                                             <>
                                                 <CButton
-                                                    icon="play-circle"
-                                                    class="content-actions__btn--primary"
+                                                    icon={contentData.value?.premium && !(currentUser as any)?.is_subscribed ? 'lock' : 'play-circle'}
+                                                    class={['content-actions__btn--primary', (contentData.value?.premium && !(currentUser as any)?.is_subscribed) ? 'premium-btn' : '']}
                                                     onClick={playContent}
                                                 >
                                                     {content?.continueWatching ? 'Continuar viendo' : 'Reproducir'}
@@ -257,6 +273,10 @@ export default defineComponent({
                                     ref={requireSignupModalRef}
                                     content-name={content?.title}
                                     onOpenSignupModal={() => { }}
+                                />
+
+                                <SubscriptionPaywallModal
+                                    ref={subscriptionPaywallModalRef}
                                 />
                             </div>
                         );

@@ -15,7 +15,8 @@ class ContentSerializer < ApplicationSerializer
              :created_at,
              :updated_at,
              :trailer_url,
-             :available
+             :available,
+             :premium
 
   attribute :seasons, if: :include_seasons?
   attribute :liked, key: "liked"
@@ -68,7 +69,7 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def episode_attributes(episode, continue_watching_data = nil)
-    attributes = episode.as_json(only: %i[id title description position thumbnail])
+    attributes = episode.as_json(only: %i[id title description position thumbnail premium])
     attributes[:thumbnail] = episode.thumbnail.presence || object.banner
     
     # Agregar continue_watching si existe

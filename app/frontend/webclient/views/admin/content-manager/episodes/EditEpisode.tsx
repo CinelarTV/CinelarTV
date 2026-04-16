@@ -11,6 +11,7 @@ type ExtendedEpisode = Episode & {
     skip_intro_start?: number;
     skip_intro_end?: number;
     episode_end?: number;
+    premium?: boolean;
 };
 
 function formatTime(seconds: number | null): string {
@@ -70,6 +71,9 @@ export default defineComponent({
                     }
                     if (episodeData.value.episode_end) {
                         formData.append('episode_end', episodeData.value.episode_end.toString());
+                    }
+                    if (episodeData.value.premium !== undefined) {
+                        formData.append('premium', episodeData.value.premium.toString());
                     }
                 }
 
@@ -241,6 +245,25 @@ export default defineComponent({
                                         class="rounded-lg mt-4 w-full max-h-48 object-contain border border-gray-200"
                                     />
                                 )}
+                            </div>
+                            <div class="bg-white/10 rounded-lg shadow p-6 border border-white/5">
+                                <label class="block text-sm font-medium text-gray-700 mb-4 uppercase tracking-widest text-[10px]">Acceso</label>
+                                <div class="flex items-center justify-between p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-white uppercase tracking-wider">Premium</span>
+                                        <span class="text-[10px] text-white/40">Solo suscriptores</span>
+                                    </div>
+                                    <button onClick={() => handleInputChange("premium", !episodeData.value?.premium)}
+                                        class={[
+                                            "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none",
+                                            episodeData.value?.premium ? "bg-yellow-500" : "bg-white/20"
+                                        ]}>
+                                        <span class={[
+                                            "inline-block h-3 w-3 transform rounded-full bg-white transition-transform",
+                                            episodeData.value?.premium ? "translate-x-5" : "translate-x-1"
+                                        ]} />
+                                    </button>
+                                </div>
                             </div>
                             <div class="bg-white/10 rounded-lg shadow p-6 border border-white/5">
                                 <div class="text-sm text-gray-500 mb-2">Información del Episodio</div>

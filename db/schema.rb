@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_14_000004) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_15_234242) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -36,6 +36,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_14_000004) do
     t.datetime "updated_at", null: false
     t.string "trailer_url"
     t.boolean "available", default: true
+    t.boolean "premium", default: false
   end
 
   create_table "continue_watchings", force: :cascade do |t|
@@ -75,6 +76,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_14_000004) do
     t.float "skip_intro_start"
     t.float "skip_intro_end"
     t.float "episode_end"
+    t.boolean "premium", default: false
     t.index ["season_id"], name: "index_episodes_on_season_id"
   end
 
@@ -231,6 +233,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_14_000004) do
     t.datetime "updated_at", null: false
     t.boolean "exposed_to_client", default: false
     t.index ["var"], name: "index_settings_on_var", unique: true
+  end
+
+  create_table "subscription_payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.bigint "user_subscription_id", null: false
+    t.string "provider", null: false
+    t.string "provider_payment_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "currency", null: false
+    t.string "status", null: false
+    t.datetime "paid_at"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider", "provider_payment_id"], name: "index_subscription_payments_on_provider_and_provider_payment_id", unique: true
+    t.index ["user_id"], name: "index_subscription_payments_on_user_id"
+    t.index ["user_subscription_id"], name: "index_subscription_payments_on_user_subscription_id"
   end
 
   create_table "tv_programs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -392,6 +411,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_14_000004) do
   add_foreign_key "reproductions", "contents"
   add_foreign_key "reproductions", "profiles"
   add_foreign_key "seasons", "contents"
+  add_foreign_key "subscription_payments", "user_subscriptions"
+  add_foreign_key "subscription_payments", "users"
   add_foreign_key "tv_programs", "live_tv_channels"
   add_foreign_key "watch_party_session_users", "users", name: "fk_watch_party_session_users_user"
   add_foreign_key "watch_party_session_users", "watch_party_sessions", name: "fk_watch_party_session_users_session"

@@ -76,6 +76,22 @@
                                                     {{ errors.content_type }}
                                                 </p>
                                             </div>
+
+                                            <div class="flex items-center justify-between p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                                                <div class="flex items-center gap-2">
+                                                    <SparklesIcon :size="16" class="text-yellow-500" />
+                                                    <div>
+                                                        <p class="text-xs font-bold text-white uppercase tracking-wider">Contenido Premium</p>
+                                                        <p class="text-[10px] text-[var(--c-primary-900)]">Solo disponible para suscriptores</p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" @click="contentData.premium = !contentData.premium"
+                                                    :class="contentData.premium ? 'bg-yellow-500' : 'bg-white/10'"
+                                                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none">
+                                                    <span :class="contentData.premium ? 'translate-x-5' : 'translate-x-1'"
+                                                        class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -246,6 +262,7 @@ const contentData = ref({
     content_description: '',
     content_cover: '',
     content_banner: '',
+    premium: false,
 })
 const recommendedContent = ref(null)
 const metadataModal = ref()
@@ -300,6 +317,7 @@ const clearData = () => {
         content_description: '',
         content_cover: '',
         content_banner: '',
+        premium: false,
     }
     errors.value = {}
     generalError.value = ''
@@ -328,6 +346,7 @@ const submitCreateContent = async () => {
         description: contentData.value.content_description,
         cover: contentData.value.content_cover,
         banner: contentData.value.content_banner,
+        premium: contentData.value.premium,
     }
 
     for (const key in data) {

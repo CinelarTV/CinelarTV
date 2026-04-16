@@ -334,7 +334,7 @@ customization:
   background_color:
     client: true
     refresh: true
-    default: "#000000"
+    default: "#0a0a0a"
     type: 'color'
   body_text_color:
     client: true

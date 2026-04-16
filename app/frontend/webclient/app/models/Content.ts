@@ -23,6 +23,7 @@ interface ContentData {
     updated_at: string;
     trailer_url: string | null;
     available: boolean;
+    premium: boolean;
     seasons?: SeasonData[];
     liked?: boolean;
     related_content?: ContentData[];
@@ -95,6 +96,10 @@ class Content extends RestModel {
 
     get available(): boolean {
         return this.data.available;
+    }
+
+    get premium(): boolean {
+        return this.data.premium || false;
     }
 
     get seasons(): Season[] | undefined {

@@ -729,3 +729,72 @@
     transform: rotate(360deg);
   }
 }
+
+/* ── History Section ─────────────────────────────────────────────────── */
+.billing-page__history {
+  margin-top: 24px;
+}
+
+.billing-page__history-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: var(--c-body-text-color);
+}
+
+.billing-page__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.billing-page__history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--c-primary-200);
+  border: 1px solid var(--c-primary-300);
+  border-radius: 8px;
+}
+
+.billing-page__history-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.billing-page__history-date {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--c-body-text-color);
+}
+
+.billing-page__history-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.billing-page__history-status--approved {
+  color: #4CAF50;
+}
+
+.billing-page__history-item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.billing-page__history-amount {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--c-body-text-color);
+}
+
+.billing-page__history-provider {
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+}

@@ -8,6 +8,7 @@ class UserSubscriptionsController < ApplicationController
   def index
     link_preapproval_from_return_param!
     @subscriptions = UserSubscription.where(user_id: current_user.id)
+    @payments = SubscriptionPayment.where(user_id: current_user.id).order(paid_at: :desc)
 
     respond_to do |format|
       format.html
@@ -15,6 +16,7 @@ class UserSubscriptionsController < ApplicationController
         enabled_providers = ::Subscriptions::Providers::Registry.enabled_provider_keys
         render json: {
           data: @subscriptions.as_json,
+          payments: @payments.as_json,
           provider: @provider.provider_key,
           enabled_providers: enabled_providers.map { |key| { key: key, label: provider_label(key) } }
         }

@@ -32,11 +32,14 @@
 }
 
 
-html,
+html {
+  @apply h-full;
+}
+
 body {
   background-color: var(--c-background-color);
   color: var(--c-body-text-color);
-  @apply h-full;
+  @apply min-h-full;
 }
 
 *:focus {
@@ -45,11 +48,14 @@ body {
 
 #cinelartv,
 #mountpoint,
-#profile-selector,
+#profile-selector {
+  @apply min-h-[100dvh];
+}
+
 cinelar-main {
-  @apply h-full;
+  @apply min-h-[100dvh];
   main {
-    @apply h-full
+    @apply min-h-[100dvh]
   }
 }
 

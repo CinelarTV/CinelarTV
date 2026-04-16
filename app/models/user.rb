@@ -13,6 +13,8 @@ class User < ApplicationRecord
   validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 20 }
 
   has_many :profiles, dependent: :destroy # Si se elimina un usuario, se eliminan sus perfiles
+  has_many :user_subscriptions, dependent: :destroy
+  has_many :subscription_payments, dependent: :destroy
 
   # Doorkeeper related
 
@@ -30,6 +32,11 @@ class User < ApplicationRecord
            class_name: "Doorkeeper::DeviceAuthorizationGrant::DeviceGrant",
            foreign_key: :resource_owner_id,
            dependent: :delete_all # or :destroy if you need callbacks
+
+  def is_subscribed?
+    return true if has_role?(:admin)
+    user_subscriptions.active.exists?
+  end
 
   protected
 

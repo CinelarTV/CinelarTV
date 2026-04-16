@@ -297,7 +297,7 @@ module Admin
     private
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available,
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium,
                                       category_ids: [])
     end
 
@@ -306,7 +306,7 @@ module Admin
     end
 
     def episode_params
-      params.permit(:title, :description, :duration, :position)
+      params.permit(:title, :description, :duration, :position, :premium)
     end
 
     def set_content

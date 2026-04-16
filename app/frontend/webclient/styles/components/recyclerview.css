@@ -142,6 +142,16 @@
     bottom: 24px;
 }
 
+.recyclerview-card-article__premium-badge {
+    @apply absolute top-2 right-2 z-20 flex items-center gap-1.5 px-2 py-0.5 rounded bg-yellow-500 text-black font-extrabold text-[10px] uppercase shadow-lg;
+    transform: translateY(0);
+    transition: transform 0.2s ease;
+}
+
+.content-item:hover .recyclerview-card-article__premium-badge {
+    transform: translateY(-2px);
+}
+
 .recyclerview-card-article__title {
     @apply absolute bottom-2 left-0 right-0 px-2 m-0 text-white text-base font-bold leading-relaxed text-left truncate w-full;
 }

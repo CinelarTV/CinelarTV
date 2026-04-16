@@ -9,6 +9,10 @@
             </div>
             <div class="recyclerview-card-article__overlay"
               :class="data.duration && data.progress ? 'with-progress' : ''">
+              <div class="recyclerview-card-article__premium-badge" v-if="data.premium">
+                <CIcon icon="lock" class="w-3 h-3" />
+                <span>PREMIUM</span>
+              </div>
               <div class="recyclerview-card-article__title">
                 {{ data.title }}
               </div>
@@ -38,6 +42,7 @@
 
 <script setup>
 import { defineProps, ref } from 'vue'
+import CIcon from './c-icon.vue'
 
 const props = defineProps({
   data: {

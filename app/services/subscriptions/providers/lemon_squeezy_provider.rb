@@ -23,19 +23,49 @@ module Subscriptions
 
       def process_webhook!(request)
         payload = parse_payload(request)
-        # Per LS docs, event_name is always at meta.event_name
         event_name = payload.dig("meta", "event_name").to_s
+        data = payload.fetch("data", {})
+        attributes = data["attributes"] || {}
+        resource_type = data["type"]
 
-        case event_name
-        when /\Asubscription_/
-          data = payload.fetch("data", {})
-          custom_data = payload.dig("meta", "custom_data") || {}
-          upsert_subscription_from_webhook!(data, custom_data: custom_data, event_name: event_name)
-        when "order_created"
-          Rails.logger.info("Lemon Squeezy order_created event received")
-        else
-          Rails.logger.warn("Unknown Lemon Squeezy event type: #{event_name}")
+        # 1. Identify Subscription ID and User
+        external_id = if resource_type == "subscriptions"
+                        data["id"].to_s
+                      elsif resource_type == "subscription-invoices" || resource_type == "subscription-payments"
+                        attributes["subscription_id"]&.to_s
+                      end
+
+        return if external_id.blank?
+
+        custom_data = payload.dig("meta", "custom_data") || {}
+        user = find_user_for_subscription(attributes: attributes, external_id: external_id, custom_data_from_meta: custom_data)
+
+        if user.nil?
+          Rails.logger.error("Lemon Squeezy webhook: User not found for subscription #{external_id}")
+          raise ActiveRecord::RecordNotFound, "User not found for Lemon Squeezy subscription #{external_id}"
         end
+
+        # 2. Find or Init local record
+        subscription = UserSubscription.find_or_initialize_by(user_id: user.id)
+        subscription.provider = provider_key
+        subscription.provider_subscription_id = external_id
+        subscription.save! if subscription.new_record?
+
+        # 3. Perform a full fetch from API to get completion canonical data
+        remote_data = fetch_subscription!(subscription)
+        return if remote_data.blank?
+
+        # 4. Sync local record
+        update_params = normalize_remote_for_update(subscription, remote_data)
+        
+        # Merge some extra fields from webhook if needed (like trial info or checkout flags)
+        update_params[:test_mode] = ActiveModel::Type::Boolean.new.cast(attributes["test_mode"]) if attributes.key?("test_mode")
+        
+        # Merge metadata
+        existing_meta = subscription.metadata || {}
+        update_params[:metadata] = existing_meta.merge(subscription_metadata(attributes, event_name: event_name))
+
+        subscription.update!(update_params)
       end
 
       def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
@@ -173,10 +203,24 @@ module Subscriptions
           status: new_status,
           status_formatted: new_status.humanize,
           external_status: raw_status,
+          provider_customer_id: remote["customer_id"]&.to_s || subscription.provider_customer_id,
+          provider_plan_id: remote["variant_id"]&.to_s || subscription.provider_plan_id,
+          order_id: integer_or_nil(remote["order_id"]) || subscription.order_id,
+          order_item_id: integer_or_nil(remote["order_item_id"]) || subscription.order_item_id,
+          product_id: integer_or_nil(remote["product_id"]) || subscription.product_id,
+          variant_id: integer_or_nil(remote["variant_id"]) || subscription.variant_id,
+          product_name: remote["product_name"].presence || subscription.product_name || "Subscription",
+          variant_name: remote["variant_name"].presence || subscription.variant_name,
+          user_name: remote["user_name"].presence || subscription.user_name,
+          user_email: remote["user_email"].presence || subscription.user_email,
+          card_brand: remote["card_brand"] || subscription.card_brand,
+          card_last_four: remote["card_last_four"] || subscription.card_last_four,
           renews_at: parse_time(remote["renews_at"]) || subscription.renews_at,
           ends_at: parse_time(remote["ends_at"]) || subscription.ends_at,
           cancelled: cancelled_subscription?(raw_status, remote),
-          user_email: remote["user_email"].presence || subscription.user_email,
+          cancelled_at: parse_time(remote["ends_at"]),
+          trial_ends_at: parse_time(remote["trial_ends_at"]) || subscription.trial_ends_at,
+          billing_anchor: integer_or_nil(remote["billing_anchor"]) || subscription.billing_anchor,
           metadata: (subscription.metadata || {}).merge(
             "remote_sync" => remote.slice("status", "renews_at", "ends_at", "urls", "cancelled", "trial_ends_at"),
             "synced_at"   => Time.zone.now.iso8601
@@ -224,56 +268,7 @@ module Subscriptions
         }
       end
 
-      def upsert_subscription_from_webhook!(data, custom_data: {}, event_name:)
-        raise ArgumentError, "Missing Lemon Squeezy subscription payload" if data.blank?
-
-        attributes = data["attributes"] || {}
-        external_id = data["id"].to_s
-        raise ArgumentError, "Missing Lemon Squeezy subscription id" if external_id.blank?
-
-        user = find_user_for_subscription(attributes: attributes, external_id: external_id, custom_data_from_meta: custom_data)
-
-        if user.nil?
-          Rails.logger.error("Lemon Squeezy webhook: User not found for subscription #{external_id}. custom_data=#{custom_data.inspect}, user_email=#{attributes["user_email"].inspect}")
-          raise ActiveRecord::RecordNotFound, "User not found for Lemon Squeezy subscription #{external_id}"
-        end
-
-        raw_status = attributes["status"].to_s
-        status = normalize_status(raw_status)
-        cancelled = cancelled_subscription?(raw_status, attributes)
-
-        subscription = UserSubscription.find_or_initialize_by(user_id: user.id)
-        subscription.update!(
-          provider: provider_key,
-          provider_subscription_id: external_id,
-          provider_customer_id: attributes["customer_id"]&.to_s,
-          provider_plan_id: attributes["variant_id"]&.to_s || selected_plan_id,
-          checkout_reference: attributes.dig("custom_data", "user_id").presence || user.id,
-          order_id: integer_or_nil(attributes["order_id"]),
-          order_item_id: integer_or_nil(attributes["order_item_id"]),
-          product_id: integer_or_nil(attributes["product_id"]),
-          variant_id: integer_or_nil(attributes["variant_id"]),
-          product_name: attributes["product_name"].presence || "Subscription",
-          variant_name: attributes["variant_name"].presence || attributes["variant_id"]&.to_s,
-          user_name: attributes["user_name"].presence || user.username,
-          user_email: attributes["user_email"].presence || user.email,
-          status: status,
-          status_formatted: status.humanize,
-          external_status: raw_status,
-          card_brand: attributes["card_brand"],
-          card_last_four: attributes["card_last_four"],
-          cancelled: cancelled,
-          cancelled_at: cancelled ? (parse_time(attributes["ends_at"]) || Time.zone.now) : nil,
-          trial_ends_at: parse_time(attributes["trial_ends_at"]),
-          billing_anchor: integer_or_nil(attributes["billing_anchor"]),
-          renews_at: parse_time(attributes["renews_at"]),
-          ends_at: parse_time(attributes["ends_at"]),
-          test_mode: ActiveModel::Type::Boolean.new.cast(attributes["test_mode"]),
-          metadata: (subscription.metadata || {}).merge(subscription_metadata(attributes, event_name: event_name))
-        )
-
-        subscription
-      end
+      # (upsert_subscription_from_webhook! removed in favor of full sync)
 
       def find_user_for_subscription(attributes:, external_id:, custom_data_from_meta: {})
         # First priority: custom_data from webhook meta (most reliable)

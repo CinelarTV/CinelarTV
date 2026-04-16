@@ -49,6 +49,19 @@
                                             class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     </div>
 
+                                    <div class="flex items-center justify-between p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 mt-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-bold text-white uppercase tracking-wider text-left">Episodio Premium</span>
+                                            <span class="text-[10px] text-white/40 text-left">Solo disponible con suscripción</span>
+                                        </div>
+                                        <button type="button" @click="episodeData.premium = !episodeData.premium"
+                                            :class="episodeData.premium ? 'bg-yellow-500' : 'bg-white/10'"
+                                            class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none">
+                                            <span :class="episodeData.premium ? 'translate-x-5' : 'translate-x-1'"
+                                                class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
+                                        </button>
+                                    </div>
+
                                     <input type="hidden" :value="seasonId" name="season_id" />
 
                                 </div>
@@ -92,6 +105,7 @@ const episodeData = ref({
     description: '',
     url: '',
     thumbnail: '',
+    premium: false,
 })
 
 const setIsOpen = (value) => {
@@ -108,6 +122,7 @@ const clearData = () => {
     episodeData.value.description = ''
     episodeData.value.url = ''
     episodeData.value.thumbnail = ''
+    episodeData.value.premium = false
 }
 
 const submitCreateEpisode = (e) => {
@@ -122,6 +137,7 @@ const submitCreateEpisode = (e) => {
         description: episodeData.value.description,
         url: episodeData.value.url,
         thumbnail: episodeData.value.thumbnail,
+        premium: episodeData.value.premium,
         season_id: props.seasonId, // Use the provided seasonId prop
     }
 

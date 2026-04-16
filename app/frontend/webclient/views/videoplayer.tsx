@@ -81,6 +81,9 @@ function handleFetchError(response: AxiosError['response']['data']) {
 
     if (errorType === 'content_not_available') {
         toast.error(errorMsg || 'Contenido no disponible');
+    } else if (errorType === 'subscription_required') {
+        toast.error(errorMsg || 'Se requiere suscripción activa.');
+        return 'redirect';
     } else {
         toast.error(errorMsg);
     }
@@ -127,7 +130,10 @@ export default defineComponent({
 
                 useHead({ title: contentData.content?.title });
             } catch (error) {
-                handleFetchError(error);
+                const action = handleFetchError(error.response?.data);
+                if (action === 'redirect') {
+                    backToContent();
+                }
             }
         }
 

@@ -105,6 +105,19 @@
                                     class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
                             </button>
                         </div>
+
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                            <div>
+                                <p class="text-xs font-bold text-white uppercase tracking-wider">Premium</p>
+                                <p class="text-[10px] text-white/40">Solo suscriptores</p>
+                            </div>
+                            <button @click="editedData.premium = !editedData.premium"
+                                :class="editedData.premium ? 'bg-yellow-500' : 'bg-white/20'"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none">
+                                <span :class="editedData.premium ? 'translate-x-5' : 'translate-x-1'"
+                                    class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 

@@ -1,4 +1,4 @@
-import { defineComponent, ref, PropType } from 'vue'
+import { defineComponent, ref, PropType, inject } from 'vue'
 import CIcon from "../c-icon.vue"
 
 interface Episode {
@@ -12,6 +12,7 @@ interface Episode {
         progress: number
         duration: number
     }
+    premium?: boolean
 }
 
 interface Season {
@@ -34,6 +35,7 @@ export default defineComponent({
     },
     emits: ['update:activeSeason', 'playEpisode'],
     setup(props, { emit }) {
+        const currentUser = inject('currentUser') as any;
         const scrollPosition = ref(0)
         const episodesContainer = ref<HTMLElement>()
 
@@ -143,10 +145,14 @@ export default defineComponent({
                                                         {/* Overlay */}
                                                         <div class="absolute inset-0 bg-black/0 group-hover/card:bg-black/30 transition-colors duration-300" />
 
-                                                        {/* Play Button */}
+                                                        {/* Play Button or Lock */}
                                                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300">
                                                             <div class="bg-white/20 backdrop-blur-sm rounded-full p-3">
-                                                                <CIcon icon="play" class="w-8 h-8 text-white" />
+                                                                {episode.premium && !currentUser?.is_subscribed ? (
+                                                                    <CIcon icon="lock" class="w-8 h-8 text-yellow-500" />
+                                                                ) : (
+                                                                    <CIcon icon="play" class="w-8 h-8 text-white" />
+                                                                )}
                                                             </div>
                                                         </div>
 

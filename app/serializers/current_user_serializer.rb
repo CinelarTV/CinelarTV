@@ -10,7 +10,9 @@ class CurrentUserSerializer < ApplicationSerializer
              :username,
              :customer_id,
              :created_at,
-             :updated_at
+             :updated_at,
+             :is_subscribed,
+             :subscription
 
   attribute :profiles, if: :include_profiles?
   attribute :current_profile, if: :include_profiles?
@@ -28,7 +30,15 @@ class CurrentUserSerializer < ApplicationSerializer
     object.is_admin?
   end
 
+  def is_subscribed
+    !!object.is_subscribed?
+  end
+
+  def subscription
+    object.user_subscriptions.active.first || object.user_subscriptions.last
+  end
+
   def profiles
-    object.profiles
+    object.profiles.as_json(include: :preferences)
   end
 end

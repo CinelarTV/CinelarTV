@@ -19,7 +19,7 @@ class Reproduction < ApplicationRecord
     raise ArgumentError, "No country code provided" if country_code.blank?
 
     Content
-      .joins("LEFT JOIN reproductions ON reproductions.content_id = contents.id AND reproductions.country_code = ?", country_code)
+      .joins("LEFT JOIN reproductions ON reproductions.content_id = contents.id AND reproductions.country_code = '#{country_code}'")
       .select("contents.*, COUNT(reproductions.id) AS reproduction_count")
       .group("contents.id")
       .order("reproduction_count DESC")

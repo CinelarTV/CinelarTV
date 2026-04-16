@@ -5,10 +5,10 @@
       <div class="billing-page__header-content">
         <h1 class="billing-page__title">
           <CIcon icon="credit-card" :size="28" class="billing-page__icon" />
-          Membership
+          Membresía
         </h1>
         <p class="billing-page__description">
-          Manage your subscription and billing details
+          Administra tu suscripción y métodos de pago
         </p>
       </div>
     </div>
@@ -16,9 +16,9 @@
     <!-- Subscriptions disabled -->
     <div v-if="!SiteSettings.enable_subscription" class="billing-page__disabled">
       <CIcon icon="credit-card-off" :size="48" class="billing-page__disabled-icon" />
-      <h2 class="billing-page__disabled-title">Subscriptions Disabled</h2>
+      <h2 class="billing-page__disabled-title">Suscripciones Desactivadas</h2>
       <p class="billing-page__disabled-description">
-        Subscriptions are currently disabled by the site administrator.
+        El administrador ha desactivado temporalmente las suscripciones de la plataforma.
       </p>
     </div>
 
@@ -27,9 +27,9 @@
       <div class="billing-page__loading-icon-wrap">
         <CIcon icon="loader" :size="24" class="billing-page__loading-icon" />
       </div>
-      <h2 class="billing-page__loading-title">Loading your membership</h2>
+      <h2 class="billing-page__loading-title">Cargando tu membresía</h2>
       <p class="billing-page__loading-description">
-        Syncing your subscription status…
+        Sincronizando estado de tu suscripción…
       </p>
     </div>
 
@@ -49,39 +49,39 @@
 
         <!-- Plan name + cancellation notice -->
         <h2 class="billing-plan-card__title">{{ subscription.product_name || 'CinelarTV Premium' }}</h2>
-        <p class="billing-plan-card__variant">{{ subscription.variant_name || 'Monthly' }}</p>
+        <p class="billing-plan-card__variant">{{ subscription.variant_name || 'Suscripción Mensual' }}</p>
 
         <div v-if="subscription.cancelled" class="billing-plan-card__cancellation-notice">
           <CIcon icon="alert-circle" :size="16" />
-          Subscription cancelled · Access until {{ formatDate(subscription.ends_at) }}.
+          Suscripción cancelada · Acceso hasta el {{ formatDate(subscription.ends_at) }}.
         </div>
 
         <!-- Details grid -->
         <div class="billing-plan-card__details">
           <div class="billing-plan-detail" v-if="!subscription.cancelled && subscription.renews_at">
-            <span class="billing-plan-detail__label">Next billing</span>
+            <span class="billing-plan-detail__label">Próximo cobro</span>
             <span class="billing-plan-detail__value">{{ formatDate(subscription.renews_at) }}</span>
           </div>
           <div class="billing-plan-detail" v-if="subscription.cancelled && subscription.ends_at">
-            <span class="billing-plan-detail__label">Access until</span>
+            <span class="billing-plan-detail__label">Acceso hasta el</span>
             <span class="billing-plan-detail__value">{{ formatDate(subscription.ends_at) }}</span>
           </div>
           <div class="billing-plan-detail" v-if="subscription.card_last_four">
-            <span class="billing-plan-detail__label">Payment method</span>
+            <span class="billing-plan-detail__label">Método de pago</span>
             <span class="billing-plan-detail__value">
-              {{ subscription.card_brand?.toUpperCase() || 'Card' }} ···· {{ subscription.card_last_four }}
+              {{ subscription.card_brand?.toUpperCase() || 'Tarjeta' }} ···· {{ subscription.card_last_four }}
             </span>
           </div>
           <div class="billing-plan-detail">
-            <span class="billing-plan-detail__label">Billing email</span>
+            <span class="billing-plan-detail__label">Email de facturación</span>
             <span class="billing-plan-detail__value">{{ subscription.user_email || currentUser?.email || '—' }}</span>
           </div>
           <div class="billing-plan-detail" v-if="subscription.provider_subscription_id">
-            <span class="billing-plan-detail__label">Subscription ID</span>
+            <span class="billing-plan-detail__label">ID de Suscripción</span>
             <span class="billing-plan-detail__value billing-plan-detail__value--mono">{{ subscription.provider_subscription_id }}</span>
           </div>
           <div class="billing-plan-detail" v-if="lastPaymentInfo">
-            <span class="billing-plan-detail__label">Last payment</span>
+            <span class="billing-plan-detail__label">Último cobro</span>
             <span class="billing-plan-detail__value">{{ lastPaymentInfo }}</span>
           </div>
         </div>
@@ -89,14 +89,34 @@
         <!-- Actions -->
         <div class="billing-plan-card__actions">
           <BillingActionButton icon="refresh-cw" :loading="isSyncing" variant="secondary" @click="manualSync">
-            {{ isSyncing ? 'Checking…' : 'Verify status' }}
+            {{ isSyncing ? 'Verificando…' : 'Refrescar estado' }}
           </BillingActionButton>
           <BillingActionButton v-if="hasManagementUrl" icon="external-link" variant="secondary" @click="manageSubscription">
-            Manage in {{ formatProvider(subscription.provider) }}
+            Administrar en {{ formatProvider(subscription.provider) }}
           </BillingActionButton>
           <BillingActionButton v-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
-            Cancel plan
+            Cancelar plan
           </BillingActionButton>
+        </div>
+      </div>
+
+      <div v-if="payments && payments.length > 0" class="billing-page__history">
+        <h3 class="billing-page__history-title">Historial de pagos</h3>
+        <div class="billing-page__history-list">
+          <div v-for="payment in payments" :key="payment.id" class="billing-page__history-item">
+            <div class="billing-page__history-item-left">
+              <span class="billing-page__history-date">{{ formatDate(payment.paid_at) }}</span>
+              <span class="billing-page__history-status" :class="`billing-page__history-status--${payment.status}`">
+                {{ payment.status }}
+              </span>
+            </div>
+            <div class="billing-page__history-item-right">
+              <span class="billing-page__history-amount">{{ formatAmount(payment.amount, payment.currency) }}</span>
+              <span class="billing-page__history-provider" v-if="payment.provider">
+                vía {{ formatProvider(payment.provider) }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -105,15 +125,15 @@
     <div v-else-if="isAwaitingActivation" class="billing-page__pending">
       <div class="billing-page__pending-card">
         <div class="billing-page__pending-pulse" />
-        <h2 class="billing-page__pending-title">Finalizing your subscription</h2>
+        <h2 class="billing-page__pending-title">Finalizando tu suscripción</h2>
         <p class="billing-page__pending-description">
-          Your payment was received. Confirmation from {{ providerProfile.displayName }} may take a few minutes.
+          Recibimos tu pago correctamente. La confirmación oficial de {{ providerProfile.displayName }} puede tomar unos momentos.
         </p>
         <BillingActionButton icon="refresh-cw" :loading="isSyncing" @click="manualSync">
-          {{ isSyncing ? 'Checking…' : 'Check activation status' }}
+          {{ isSyncing ? 'Verificando…' : 'Verificar estado de cuenta' }}
         </BillingActionButton>
         <p class="billing-page__pending-hint">
-          Already activated? Try refreshing the page.
+          ¿Ya se activó? Intenta recargar la página.
         </p>
       </div>
     </div>
@@ -127,27 +147,27 @@
           <span class="billing-page__subscribe-hero-kicker">CinelarTV Premium</span>
         </div>
 
-        <h2 class="billing-page__subscribe-title">Unlimited streaming, one plan</h2>
+        <h2 class="billing-page__subscribe-title">Streaming ilimitado, un solo plan</h2>
 
         <!-- Benefits -->
         <ul class="billing-page__benefits">
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Full access to the entire catalog
+            Acceso total a nuestro catálogo
           </li>
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Continue watching across all your devices
+            Continúa viendo en todos tus dispositivos
           </li>
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Priority support for billing issues
+            Soporte técnico prioritario
           </li>
         </ul>
 
         <!-- Provider selector (multi-provider) -->
         <div v-if="showProviderSelector" class="billing-page__provider-selector">
-          <span class="billing-page__provider-selector-label">Pay with:</span>
+          <span class="billing-page__provider-selector-label">Paga inicialmente con:</span>
           <div class="billing-page__provider-options">
             <button v-for="provider in enabledProviders" :key="provider.key"
               class="billing-page__provider-option"
@@ -172,7 +192,7 @@
         <!-- Secondary payment options -->
         <div v-if="providerProfile.supportsWalletCheckout || providerProfile.supportsInlineCardForm"
           class="billing-page__alt-methods">
-          <span class="billing-page__alt-methods-label">Or pay with:</span>
+          <span class="billing-page__alt-methods-label">Otras formas de pago:</span>
           <div class="billing-page__alt-methods-list">
             <button v-if="providerProfile.supportsWalletCheckout"
               class="billing-page__alt-btn"
@@ -180,7 +200,7 @@
               :disabled="isCreatingCheckout"
               @click="selectedPayMethod = selectedPayMethod === 'wallet' ? null : 'wallet'">
               <CIcon icon="wallet" :size="15" />
-              {{ providerProfile.displayName }} balance
+              Dinero en cuenta
             </button>
             <button v-if="providerProfile.supportsInlineCardForm"
               class="billing-page__alt-btn"
@@ -188,7 +208,7 @@
               :disabled="isCreatingCheckout"
               @click="toggleCardForm">
               <CIcon icon="credit-card" :size="15" />
-              Card details
+              Ingresar tarjeta
             </button>
           </div>
         </div>
@@ -212,7 +232,7 @@
 
           <div v-if="isInitializingMercadoPago" class="billing-page__form-loading">
             <CIcon icon="loader" :size="18" class="animate-spin" />
-            Initializing secure card form…
+            Inicializando formulario seguro…
           </div>
 
           <template v-else>
@@ -223,26 +243,26 @@
 
             <div class="billing-page__form-grid">
               <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-cardholder-name">Cardholder name</label>
+                <label class="billing-page__label" for="mp-cardholder-name">Nombre del titular</label>
                 <BillingInputControl id="mp-cardholder-name" v-model="cardForm.cardholderName"
                   type="text" autocomplete="cc-name" required />
               </div>
 
               <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-card-number">Card number</label>
+                <label class="billing-page__label" for="mp-card-number">Número de la tarjeta</label>
                 <BillingInputControl id="mp-card-number" v-model="cardForm.cardNumber"
                   type="text" inputmode="numeric" autocomplete="cc-number"
                   placeholder="5031 4332 1540 6351" required />
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-exp-month">Exp. month</label>
+                <label class="billing-page__label" for="mp-exp-month">Mes (MM)</label>
                 <BillingInputControl id="mp-exp-month" v-model="cardForm.cardExpirationMonth"
                   type="text" inputmode="numeric" autocomplete="cc-exp-month" placeholder="MM" required />
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-exp-year">Exp. year</label>
+                <label class="billing-page__label" for="mp-exp-year">Año (AA)</label>
                 <BillingInputControl id="mp-exp-year" v-model="cardForm.cardExpirationYear"
                   type="text" inputmode="numeric" autocomplete="cc-exp-year" placeholder="YY" required />
               </div>
@@ -254,7 +274,7 @@
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-identification-type">Document type</label>
+                <label class="billing-page__label" for="mp-identification-type">Documento</label>
                 <BillingInputControl id="mp-identification-type" as="select"
                   v-model="cardForm.identificationType"
                   :options="identificationTypeOptions" select-placeholder="Select"
@@ -262,7 +282,7 @@
               </div>
 
               <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-identification-number">Document number</label>
+                <label class="billing-page__label" for="mp-identification-number">Número</label>
                 <BillingInputControl id="mp-identification-number" v-model="cardForm.identificationNumber"
                   type="text" inputmode="numeric" autocomplete="off" required />
               </div>
@@ -307,6 +327,7 @@ import {
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const subscription        = ref(null);
+const payments            = ref([]);
 const billingProviderKey  = ref('');
 const isHydratingBilling  = ref(true);
 const isSyncing           = ref(false);
@@ -382,7 +403,7 @@ const lastPaymentInfo = computed(() => {
   const date = new Date(meta.last_payment_date);
   if (Number.isNaN(date.getTime())) return null;
   const amount = meta.last_payment_amount ? ` · $${Number(meta.last_payment_amount).toFixed(2)}` : '';
-  return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${amount}`;
+  return `${date.toLocaleDateString('es-UY', { month: 'short', day: 'numeric', year: 'numeric' })}${amount}`;
 });
 
 const activeProviderKey = computed(() => {
@@ -438,7 +459,12 @@ const formatDate = (value) => {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString('es-UY', { month: 'long', day: 'numeric', year: 'numeric' });
+};
+
+const formatAmount = (amount, currency) => {
+  const num = Number(amount) || 0;
+  return new Intl.NumberFormat('es-UY', { style: 'currency', currency: currency || 'UYU' }).format(num);
 };
 
 const formatProvider = (provider) => formatProviderLabel(provider);
@@ -546,6 +572,11 @@ const createCardToken = async () => {
 const fetchBillingData = async () => {
   const { data } = await ajax.get('/account/billing.json');
   billingProviderKey.value = String(data?.provider || billingProviderKey.value || '').trim().toLowerCase();
+  
+  if (Array.isArray(data?.payments)) {
+    payments.value = data.payments;
+  }
+  
   if (Array.isArray(data?.enabled_providers) && data.enabled_providers.length > 0) {
     enabledProviders.value = data.enabled_providers;
   }
@@ -663,10 +694,10 @@ const manageSubscription = () => {
 
 const cancelSubscription = async () => {
   const endDate = subscription.value?.ends_at
-    ? new Date(subscription.value.ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : 'the next billing date';
+    ? new Date(subscription.value.ends_at).toLocaleDateString('es-UY', { month: 'long', day: 'numeric', year: 'numeric' })
+    : 'su próximo ciclo de facturación';
 
-  if (!confirm(`Your subscription will be cancelled. Access continues until ${endDate}. Continue?`)) return;
+  if (!confirm(`Tu suscripción será cancelada, pero mantendrás tu acceso al catálogo hasta el día: ${endDate}. ¿Deseas continuar?`)) return;
 
   try {
     await ajax.delete('/account/billing/subscribe.json');

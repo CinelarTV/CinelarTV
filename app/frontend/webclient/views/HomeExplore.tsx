@@ -118,7 +118,7 @@ export default defineComponent({
 
         // Render
         return () => (
-            <div id="home-explore" class="min-h-screen bg-[#0a0a0a]">
+            <div id="home-explore" class="min-h-screen">
                 {/* Loading state */}
                 {loading.value && (
                     <div class="flex items-center justify-center min-h-screen">

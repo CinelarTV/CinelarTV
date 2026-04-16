@@ -4,6 +4,7 @@ class PlayerController < ApplicationController
   before_action :authenticate_user!
   before_action :find_content, only: :watch
   before_action :check_content_availability, only: :watch
+  before_action :check_subscription, only: :watch
 
   def watch
     return respond_to do |format|
@@ -70,6 +71,20 @@ class PlayerController < ApplicationController
     render_content_not_available
   rescue StandardError => e
     render json: { error: e.message }, status: :unprocessable_entity
+  end
+
+  def check_subscription
+    # TVSHOW check needs episode to be loaded
+    find_episode_and_season if @content.content_type == "TVSHOW"
+
+    is_premium = @content.premium?
+    is_premium ||= @episode&.premium? if @content.content_type == "TVSHOW"
+
+    return unless is_premium
+    return if current_user.has_role?(:admin) # Admins bypass check
+    return if current_user.is_subscribed?
+
+    render_subscription_required
   end
 
   def find_episode_and_season
@@ -159,6 +174,18 @@ class PlayerController < ApplicationController
           errors: ["El contenido no está disponible para su reproducción."],
           error_type: "content_not_available",
         }, status: :unprocessable_entity
+      }
+    end
+  end
+
+  def render_subscription_required
+    respond_to do |format|
+      format.html { render template: 'application/index', status: :forbidden }
+      format.json {
+        render json: {
+          errors: ["Se requiere una suscripción activa para ver este contenido."],
+          error_type: "subscription_required",
+        }, status: :forbidden
       }
     end
   end

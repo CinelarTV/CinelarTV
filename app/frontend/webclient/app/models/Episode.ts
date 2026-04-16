@@ -7,6 +7,7 @@ export interface EpisodeData {
     description: string;
     thumbnail: string;
     position: number;
+    premium: boolean;
 }
 
 class Episode {
@@ -34,6 +35,10 @@ class Episode {
 
     get position(): number {
         return this.data.position;
+    }
+
+    get premium(): boolean {
+        return this.data.premium || false;
     }
 }
 

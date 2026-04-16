@@ -13,6 +13,7 @@ class User {
     profiles: Profile[];
     admin: boolean;
     current_profile: Profile | null;
+    is_subscribed: boolean;
 
     constructor(data: User) {
         this.id = data.id;
@@ -24,6 +25,7 @@ class User {
         this.profiles = (data.profiles || []).map((profileData: any) => new Profile(profileData));
         this.admin = data.admin;
         this.current_profile = data.current_profile ? new Profile(data.current_profile) : null;
+        this.is_subscribed = data.is_subscribed || false;
     }
 
     getPreferences() {

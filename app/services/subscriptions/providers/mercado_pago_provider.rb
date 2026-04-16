@@ -422,6 +422,9 @@ module Subscriptions
       end
 
       def update_subscription_from_payment!(subscription, payment_status, payment, date_approved, date_created)
+        # Record the payment into the historical table
+        record_payment_history(subscription, payment, payment_status, date_approved, date_created)
+
         case payment_status
         when "approved"
           # Payment successful: mark active and project next renewal date.
@@ -487,6 +490,25 @@ module Subscriptions
             "MercadoPago payment #{payment_status} (intermediary) for subscription #{subscription.id}"
           )
         end
+      end
+
+      def record_payment_history(subscription, payment, payment_status, date_approved, date_created)
+        payment_record = SubscriptionPayment.find_or_initialize_by(
+          provider: provider_key,
+          provider_payment_id: payment["id"].to_s
+        )
+
+        payment_record.update!(
+          user_id: subscription.user_id,
+          user_subscription_id: subscription.id,
+          amount: payment["transaction_amount"] || 0.0,
+          currency: payment["currency_id"] || "UYU",
+          status: payment_status,
+          paid_at: parse_time(date_approved) || parse_time(date_created),
+          metadata: payment.slice("status_detail", "payment_method_id", "payment_type_id", "taxes_amount", "fee_details")
+        )
+      rescue StandardError => e
+        Rails.logger.error("Failed to record payment history for #{payment["id"]}: #{e.message}")
       end
 
       # Estimates the next renewal date after a successful payment.

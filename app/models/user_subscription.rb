@@ -2,8 +2,12 @@
 
 class UserSubscription < ApplicationRecord
 	belongs_to :user
+	has_many :subscription_payments, dependent: :destroy
 
-	scope :active, -> { where(status: %w[active approved]) }
+	scope :active, -> { 
+    where("status IN ('active', 'approved') OR (ends_at IS NOT NULL AND ends_at >= ?) OR (granted_until IS NOT NULL AND granted_until >= ?)", 
+          Time.zone.now, Time.zone.now)
+	}
 	scope :by_provider, ->(provider) { where(provider: provider) }
 
 	def active?

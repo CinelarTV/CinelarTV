@@ -21,6 +21,8 @@ class Content < ApplicationRecord
   validates :year, numericality: { only_integer: true }, allow_nil: true
 
   scope :available, -> { where(available: true) }
+  scope :premium, -> { where(premium: true) }
+  scope :free, -> { where(premium: false) }
 
   scope :added_recently, -> {
     where(available: true)

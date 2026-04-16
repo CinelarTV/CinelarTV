@@ -64,12 +64,9 @@ module ApplicationHelper
   def build_user_data
     return nil unless current_user
 
-    user_json = current_user.as_json(include: { profiles: { include: :preferences } })
-
-    extras = { admin: current_user.has_role?(:admin) }
-    extras[:current_profile] = current_profile if current_profile
-    extras[:subscription] = UserSubscription.find_by(user_id: current_user.id)
-
-    user_json.merge(extras.compact)
+    CurrentUserSerializer.new(current_user, {
+      include_profiles: true,
+      current_profile_id: session[:current_profile_id]
+    }).serializable_hash
   end
 end
