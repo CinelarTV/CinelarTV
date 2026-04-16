@@ -7,6 +7,29 @@ require_relative "../config/environment"
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
+
+# Rails 7.1+ uses fixture_paths and may not expose fixture_path.
+# RSpec Rails 5 still expects the singular API.
+if defined?(ActiveRecord::TestFixtures::ClassMethods)
+  module ActiveRecord
+    module TestFixtures
+      module ClassMethods
+        unless method_defined?(:fixture_path=)
+          def fixture_path=(path)
+            self.fixture_paths = Array(path)
+          end
+        end
+
+        unless method_defined?(:fixture_path)
+          def fixture_path
+            fixture_paths&.first
+          end
+        end
+      end
+    end
+  end
+end
+
 # Devise helpers
 require "devise"
 # Add additional requires below this line. Rails is not loaded until this point!
