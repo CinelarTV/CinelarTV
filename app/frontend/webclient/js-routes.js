@@ -596,6 +596,14 @@ export const adminContentManagerAllPath = /*#__PURE__*/ __jsr.r({"format":{}}, [
 
 /**
  * Generates rails route to
+ * /admin/content-manager/media-integrity(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminContentManagerMediaIntegrityPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"content-manager"],[2,[7,"/"],[2,[6,"media-integrity"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
  * /admin/contents(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -745,7 +753,7 @@ export const adminUsersPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2
  * @param {object | undefined} options
  * @returns {string} route path
  */
-export const adminVideoSourcesBrokenPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"video_sources"],[2,[7,"/"],[2,[6,"broken"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+export const adminVideoSourcesBrokenPath = /*#__PURE__*/ __jsr.r({"format":{"d":"json"}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"video_sources"],[2,[7,"/"],[2,[6,"broken"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
 
 /**
  * Generates rails route to

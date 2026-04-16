@@ -150,6 +150,16 @@ export const adminContentManagerAllPath: ((
 
 /**
  * Generates rails route to
+ * /admin/content-manager/media-integrity(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminContentManagerMediaIntegrityPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
  * /admin/contents(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
