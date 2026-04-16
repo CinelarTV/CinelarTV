@@ -1,5 +1,5 @@
 cinelar_watchparty_enabled:
     client: true
     refresh: true
-    default: true
+    default: false
     type: 'boolean'
