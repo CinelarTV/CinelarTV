@@ -6,7 +6,7 @@
 # authors: CinelarTV
 # url: null
 
-enabled_site_setting :cinelar_watchparty_enabled
+#enabled_site_setting :cinelar_watchparty_enabled
 
 module ::WatchParty
   PLUGIN_NAME = "cinelartv-watch-party"
