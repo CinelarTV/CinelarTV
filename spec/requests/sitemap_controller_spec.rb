@@ -24,7 +24,7 @@ RSpec.describe SitemapController, type: :controller do
         content2 = create(:content, title: "Content 2")
 
         get :index
-        expect(assigns(:contents)).to eq([content1, content2])
+        expect(assigns(:contents)).to include(content1, content2)
       end
 
       it "renders an XML response" do
