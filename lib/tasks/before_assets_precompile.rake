@@ -6,7 +6,7 @@ task :before_assets_precompile do
   system("bundle exec rake i18n:js:export")
 
   warn "Compiling TailwindCSS styles..."
-  system("yarn build:css")
+  system("pnpm build:css")
 end
 
 # every time execute 'rake assets:precompile'

@@ -94,8 +94,6 @@ group :test do
   gem "webdrivers"
 end
 
-gem "shakapacker", "= 8.0"
-
 gem "rails-settings-cached", "~> 2.9"
 
 gem "devise", "~> 4.9"
