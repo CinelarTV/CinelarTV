@@ -21,8 +21,10 @@ class BackupManager
     # -f: Output file
     
     env = {
-      "PGPASSWORD" => db_config[:password].to_s
+      "PGPASSWORD" => db_config[:password].to_s,
+      "PGSSLMODE" => db_config[:sslmode].to_s
     }
+
 
     command = [
       "pg_dump",
@@ -77,8 +79,10 @@ class BackupManager
     # -v: Verbose
     
     env = {
-      "PGPASSWORD" => db_config[:password].to_s
+      "PGPASSWORD" => db_config[:password].to_s,
+      "PGSSLMODE" => db_config[:sslmode].to_s
     }
+
 
     # IMPORTANT: We need to disconnect other sessions if possible, or warn the user.
     # In a development/simple environment, -c --if-exists is usually enough if no one is using the DB.

@@ -18,6 +18,8 @@ development:
   username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
   password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
   port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
+  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
+
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -30,6 +32,8 @@ test:
   username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
   password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
   port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
+  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
+
 
 
 production:
@@ -41,3 +45,5 @@ production:
   username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
   password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
   port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
+  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
+
