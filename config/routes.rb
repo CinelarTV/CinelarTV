@@ -107,7 +107,7 @@ Rails.application.routes.draw do
   get "/404-content" => "exceptions#not_found_body"
 
   get "site" => "site#info"
-  get "site/settings.json" => "site#settings"
+  get "site/settings" => "site#settings"
 
   # API V1 Authentication Routes (for mobile/native clients)
   namespace :api do
