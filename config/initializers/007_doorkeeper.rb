@@ -2,20 +2,21 @@
 
 Doorkeeper.configure do
   orm :active_record
+  base_controller "ApplicationController"
 
   # ------------------------------
   # Autenticación del Resource Owner
   # ------------------------------
-resource_owner_authenticator do
-  Rails.logger.debug "DEBUG current_user en authenticator: #{current_user&.id}"
-  Rails.logger.debug "DEBUG warden user: #{warden.user}"
-  
-  # Intenta obtener el usuario de diferentes formas
-  user = current_user || warden.user || warden.authenticate!(scope: :user)
-  
-  Rails.logger.debug "DEBUG usuario final: #{user&.id}"
-  user
-end 
+  resource_owner_authenticator do
+    Rails.logger.debug "DEBUG current_user en authenticator: #{current_user&.id}"
+    Rails.logger.debug "DEBUG warden user: #{warden.user}"
+    
+    # Intenta obtener el usuario de diferentes formas
+    user = current_user || warden.user || warden.authenticate!(scope: :user)
+    
+    Rails.logger.debug "DEBUG usuario final: #{user&.id}"
+    user
+  end
 
   resource_owner_from_credentials do |_routes|
     Rails.logger.debug "[Doorkeeper] Params recibidos: #{params.inspect}"

@@ -19,9 +19,8 @@ Rails.application.routes.draw do
 
   use_doorkeeper
   # Enable the Device Authorization Grant flow
-  use_doorkeeper_device_authorization_grant do
-    controller device_authorizations: "doorkeeper/device_authorization_grant/spa_device_authorizations"
-  end
+  use_doorkeeper_device_authorization_grant 
+  
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
@@ -107,7 +106,8 @@ Rails.application.routes.draw do
 
   get "/404-content" => "exceptions#not_found_body"
 
-  get "site_info" => "site#info"
+  get "site" => "site#info"
+  get "site/settings.json" => "site#settings"
 
   # API V1 Authentication Routes (for mobile/native clients)
   namespace :api do
@@ -139,7 +139,11 @@ Rails.application.routes.draw do
     instance_eval(File.read(plugin_routes_file))
   end
 
+  # Explicit 404 routes so the catch-all does not swallow them
+  get "/404", to: "exceptions#not_found"
+  get "/404.json", to: "exceptions#not_found_body"
+
   # This is the catch-all route for custom pages, but also for the Single Page Application (For now)
   # TODO: Create a route for each route in the SPA to avoid this catch-all
-  get "*path", to: "custom_pages#show", as: :custom_page_catch_all
+  get "*path", to: "custom_pages#show", as: :custom_page_catch_all, constraints: ->(req) { req.format.html? }
 end
