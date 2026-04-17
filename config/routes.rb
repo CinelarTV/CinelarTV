@@ -54,6 +54,11 @@ Rails.application.routes.draw do
   get "/watch/:id/:episode_id", to: "player#watch"
   put "/watch/:id/progress", to: "player#update_current_progress"
 
+  post "/stream/ping", to: "stream_sessions#ping"
+  post "/stream/end", to: "stream_sessions#end_stream"
+  post "/stream/kill", to: "stream_sessions#kill"
+  get "/stream/sessions", to: "stream_sessions#index"
+
   # Live TV routes
   get "/live_tv", to: "live_tv#index"
   get "/live_tv/:id", to: "live_tv#show"

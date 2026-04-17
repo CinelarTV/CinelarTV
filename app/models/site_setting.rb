@@ -33,7 +33,9 @@ class SiteSetting < RailsSettings::Base
                   readonly: options["readonly"] || false,
                   allowed_values: options["allowed_values"] || nil,
                   hidden: options["hidden"] || false,
-                  maxlength: options["maxlength"] || nil
+                  maxlength: options["maxlength"] || nil,
+                  min: options["min"] || nil,
+                  max: options["max"] || nil
           end
         end
       end

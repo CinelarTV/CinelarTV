@@ -23,6 +23,25 @@ class PlayerController < ApplicationController
       played_at: Time.now,
     )
 
+    if request.format.json?
+      @stream_session_result = StreamSessionManager.start_session(
+        current_user,
+        device_name: stream_device_name,
+        device_type: stream_device_type,
+        profile_id: profile&.id,
+        requested_session_id: params[:deviceSessionToken].presence || params[:streamSessionToken].presence
+      )
+
+      if @stream_session_result.limit_reached?
+        return respond_to do |format|
+          format.html { render template: 'application/index', status: :forbidden }
+          format.json { render json: { error: 'STREAM_LIMIT_REACHED', sessions: @stream_session_result.active_sessions }, status: :forbidden }
+        end
+      end
+    else
+      @stream_session_result = StreamSessionManager::Result.new(success: true, skipped: true)
+    end
+
     ip_address = request.remote_ip
 
     if ip_address.present?
@@ -133,7 +152,10 @@ class PlayerController < ApplicationController
     data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
     data[:season][:episodes] = @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position]) if @season
 
-    render json: { data: data }
+    response = { data: data }
+    response[:deviceSessionToken] = @stream_session_result.session_id if @stream_session_result&.session_id.present?
+
+    render json: response
   end
 
   def video_sources_data
@@ -176,6 +198,26 @@ class PlayerController < ApplicationController
         }, status: :unprocessable_entity
       }
     end
+  end
+
+  def stream_device_name
+    sanitize_device_name(params[:device_name].presence || request.user_agent)
+  end
+
+  def stream_device_type
+    return params[:device_type].to_s if params[:device_type].present?
+
+    user_agent = request.user_agent.to_s.downcase
+    return "tv" if user_agent.match?(/smarttv|hbbtv|appletv|roku|bravia|firetv|satellite|xbox|playstation|tv/i)
+    return "mobile" if user_agent.match?(/iphone|ipad|android|mobile|tablet|ios|ipod/i)
+
+    "desktop"
+  end
+
+  def sanitize_device_name(name)
+    sanitized = name.to_s.strip
+    sanitized = "Unknown Device" if sanitized.blank?
+    sanitized.truncate(100)
   end
 
   def render_subscription_required

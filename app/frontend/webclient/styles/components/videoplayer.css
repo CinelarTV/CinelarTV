@@ -1,3 +1,5 @@
+@import "vidstack/player/styles/base.css";
+
 body.video-player {
     height: 100%;
     min-height: 100dvh;
@@ -365,6 +367,107 @@ body.video-player #c-progress {
 .prime-control-btn:focus,
 .prime-play-btn:focus,
 .prime-seek-btn:focus {
-    outline: 2px solid #00A8E1;
+    outline: 2px solid var(--c-primary-color, #00A8E1);
     outline-offset: 2px;
+}
+
+.stream-limit-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.82);
+    padding: 24px;
+    gap: 20px;
+    text-align: center;
+}
+
+.stream-limit-copy {
+    max-width: 720px;
+}
+
+.stream-limit-title {
+    font-size: clamp(1.4rem, 2vw, 1.9rem);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--c-primary-color, #ffffff);
+}
+
+.stream-limit-message {
+    margin: 0 auto;
+    max-width: 650px;
+    font-size: 1rem;
+    color: rgb(203 213 225 / 0.92);
+    line-height: 1.7;
+}
+
+.stream-limit-list {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.stream-limit-list__title {
+    font-size: 0.83rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: color-mix(in srgb, var(--c-body-color, #ffffff) 80%, transparent 20%);
+    margin-bottom: 0.8rem;
+}
+
+.stream-limit-list__items {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.stream-limit-list__item {
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.stream-limit-item__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.2rem;
+}
+
+.stream-limit-item__icon {
+    color: var(--c-primary-color, #38bdf8);
+    min-width: 20px;
+}
+
+.stream-limit-item__name {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--c-body-text-color, #ffffff);
+}
+
+.stream-limit-item__meta {
+    font-size: 0.88rem;
+    color: rgb(203 213 225 / 0.78);
+}
+
+.stream-limit-actions {
+    display: flex;
+    justify-content: center;
+}
+
+@media screen and (max-width: 640px) {
+    .stream-limit-copy {
+        max-width: 100%;
+    }
+
+    .stream-limit-title {
+        font-size: 1.5rem;
+    }
+
+    .stream-limit-message {
+        font-size: 0.95rem;
+    }
 }

@@ -6,14 +6,16 @@ import { useHead } from "unhead";
 import { toast } from "vue-sonner";
 import { getGoogleDriveVideoInfo } from "@/app/utils/GoogleDriveParser";
 
-import 'vidstack/player/styles/base.css';
-import 'vidstack/player';
+/* import 'vidstack/player';
 import 'vidstack/player/ui';
+import { MediaPlayer } from "vidstack"; */
 import { defineCustomElement, MediaTitleElement, MediaSpinnerElement, MediaQualityRadioGroupElement } from "vidstack/elements";
-import { MediaPlayer } from "vidstack";
+import 'vidstack/bundle';
+
 
 import CSpinner from "@/components/c-spinner";
 import CIcon from "@/components/c-icon.vue";
+import CButton from "@/components/forms/c-button";
 import PlayerGestures from "@/components/videoplayer/PlayerGestures";
 import PlayerSlider from "@/components/videoplayer/PlayerSlider";
 import PlayerVolumeSlider from "@/components/videoplayer/PlayerVolumeSlider";
@@ -21,6 +23,9 @@ import PlayerTopControls from "@/components/videoplayer/PlayerTopControls";
 import { useContinueWatching } from "@/composables/useContinueWatching";
 import { AxiosError } from "axios";
 import PluginOutlet from "@/components/PluginOutlet";
+
+const DEFAULT_STREAM_PING_INTERVAL_MS = 10_000;
+const STREAM_LIMIT_ERROR_MESSAGE = 'Has alcanzado el número máximo de transmisiones simultáneas.';
 
 // ---------- Funciones puras ----------
 function shouldRedirect(data, isShow, episodeId, contentId, replaceRoute) {
@@ -106,21 +111,108 @@ export default defineComponent({
         provide('playerEpisodeId', episodeId || null);
 
         const watchData = ref<any>(null);
+        const streamLimitError = ref<string | null>(null);
+        const streamLimitSessions = ref<any[]>([]);
         const googleCastEnabled = computed(() => siteSettings?.enable_chromecast || false);
         const isShow = computed(() => watchData.value?.content?.content_type === 'TVSHOW');
 
         const videoPlayer = ref<MediaPlayer | null>(null);
         const isOnFullscreen = ref(false);
         const sources = ref<{ src: string; type: string }[]>([]);
+        const streamPingToken = ref<string | null>(null);
+        let pingInterval: ReturnType<typeof setInterval> | null = null;
+        const STREAM_PING_INTERVAL_MS = DEFAULT_STREAM_PING_INTERVAL_MS;
+
+        const storageKey = (episodeIdParam?: string) => `cinelar_stream_session:${contentId}:${episodeIdParam || episodeId || 'movie'}`;
+
+        const getStoredSessionToken = (): string | null => {
+            if (typeof window === 'undefined') return null;
+            const token = window.sessionStorage.getItem(storageKey());
+            if (token) return token;
+
+            if (!episodeId) {
+                const prefix = `cinelar_stream_session:${contentId}:`;
+                for (let i = 0; i < window.sessionStorage.length; i++) {
+                    const key = window.sessionStorage.key(i);
+                    if (key?.startsWith(prefix)) {
+                        const stored = window.sessionStorage.getItem(key);
+                        if (stored) return stored;
+                    }
+                }
+            }
+
+            return null;
+        };
+
+        const saveSessionToken = (token: string, episodeIdParam?: string) => {
+            if (typeof window === 'undefined' || !token) return;
+            window.sessionStorage.setItem(storageKey(episodeIdParam), token);
+            streamPingToken.value = token;
+        };
+
+        const saveSessionTokenForRedirect = (token: string, targetEpisodeId?: string) => {
+            saveSessionToken(token);
+            if (!episodeId && targetEpisodeId) {
+                saveSessionToken(token, targetEpisodeId);
+            }
+        };
+
+        const clearSessionToken = () => {
+            if (typeof window === 'undefined') return;
+            window.sessionStorage.removeItem(storageKey());
+            streamPingToken.value = null;
+        };
+
+        const watchUrl = () => {
+            const base = episodeId ? `/watch/${contentId}/${episodeId}.json` : `/watch/${contentId}.json`;
+            const token = getStoredSessionToken();
+            return token ? `${base}?deviceSessionToken=${encodeURIComponent(token)}` : base;
+        };
+
+        const stopStreamPing = () => {
+            if (pingInterval) {
+                clearInterval(pingInterval);
+                pingInterval = null;
+            }
+        };
+
+        const pingStreamSession = async (sessionId: string) => {
+            try {
+                await ajax.post('/stream/ping', { session_id: sessionId });
+            } catch (error) {
+                console.warn('[StreamSession] ping failed', error);
+            }
+        };
+
+        const startStreamPing = (sessionId: string) => {
+            if (!sessionId) return;
+            stopStreamPing();
+            pingInterval = setInterval(() => pingStreamSession(sessionId), STREAM_PING_INTERVAL_MS);
+            streamPingToken.value = sessionId;
+        };
 
         const { updateProgress } = useContinueWatching({ contentId, episodeId });
 
         async function fetchData() {
+            stopStreamPing();
             try {
-                const url = episodeId ? `/watch/${contentId}/${episodeId}.json` : `/watch/${contentId}.json`;
+                const url = watchUrl();
                 const { data } = await ajax.get(url);
                 const contentData = data.data;
                 watchData.value = contentData;
+                streamLimitError.value = null;
+                streamLimitSessions.value = [];
+
+                if (contentData.deviceSessionToken) {
+                    const redirectEpisodeId = !episodeId
+                        ? contentData.episode?.id || contentData.season?.episodes?.[0]?.id
+                        : undefined;
+
+                    saveSessionTokenForRedirect(contentData.deviceSessionToken, redirectEpisodeId);
+                    startStreamPing(contentData.deviceSessionToken);
+                } else {
+                    clearSessionToken();
+                }
 
                 if (shouldRedirect(contentData, isShow.value, episodeId, contentId, replaceRoute)) return;
 
@@ -130,7 +222,16 @@ export default defineComponent({
 
                 useHead({ title: contentData.content?.title });
             } catch (error) {
-                const action = handleFetchError(error.response?.data);
+                const responseData = error?.response?.data || error;
+
+                if (responseData?.error === 'STREAM_LIMIT_REACHED') {
+                    streamLimitError.value = STREAM_LIMIT_ERROR_MESSAGE;
+                    streamLimitSessions.value = responseData.sessions || [];
+                    clearSessionToken();
+                    return;
+                }
+
+                const action = handleFetchError(responseData);
                 if (action === 'redirect') {
                     backToContent();
                 }
@@ -176,6 +277,7 @@ export default defineComponent({
 
         onBeforeUnmount(() => {
             document.body.classList.remove('video-player');
+            stopStreamPing();
         });
 
 
@@ -187,6 +289,42 @@ export default defineComponent({
 
         // ---------- Render ----------
         return () => {
+            if (streamLimitError.value) {
+                return (
+                    <div class="video-container">
+                        <div class="stream-limit-overlay" role="alert" aria-live="assertive">
+                            <div class="stream-limit-copy">
+                                <div class="stream-limit-title">Límite de transmisiones alcanzado</div>
+                                <div class="stream-limit-message">{streamLimitError.value}</div>
+                            </div>
+
+                            {streamLimitSessions.value.length > 0 && (
+                                <div class="stream-limit-list">
+                                    <div class="stream-limit-list__title">Sesiones activas</div>
+                                    <ul class="stream-limit-list__items">
+                                        {streamLimitSessions.value.map((session) => (
+                                            <li key={session.session_id} class="stream-limit-list__item">
+                                                <div class="stream-limit-item__heading">
+                                                    <CIcon icon="tv" size={16} class="stream-limit-item__icon" />
+                                                    <span class="stream-limit-item__name">{session.device_name || 'Dispositivo desconocido'}</span>
+                                                </div>
+                                                <div class="stream-limit-item__meta">{session.device_type || 'desconocido'} · TTL: {session.ttl}s</div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            <div class="stream-limit-actions">
+                                <CButton onClick={backToContent}>
+                                    Volver al contenido
+                                </CButton>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
             if (!watchData.value) {
                 return (
                     <div class="video-container">

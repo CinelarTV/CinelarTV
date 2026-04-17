@@ -237,6 +237,20 @@ export default defineComponent({
                                             </>
                                         )}
 
+                                        {/* Integer/number input */}
+                                        {(setting.type === 'integer' || setting.type === 'number') && (
+                                            <input
+                                                type="number"
+                                                value={settings.value[setting.key] ?? ''}
+                                                onInput={(e: any) => updateValue(setting.key, e.target.value)}
+                                                min={setting.options?.min}
+                                                max={setting.options?.max}
+                                                step={setting.type === 'integer' ? '1' : 'any'}
+                                                class="settings-panel__input"
+                                                placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
+                                            />
+                                        )}
+
                                         {/* Boolean switch */}
                                         {setting.type === 'boolean' && (
                                             <SwitchGroup as="div" class="settings-panel__switch">

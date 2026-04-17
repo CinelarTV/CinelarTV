@@ -124,6 +124,37 @@ player:
     refresh: true
     default: "{}"
     type: 'code'
+  enable_stream_limit:
+    client: true
+    refresh: true
+    default: false
+    type: 'boolean'
+  max_simultaneous_streams_per_user:
+    client: true
+    refresh: true
+    default: 2
+    type: 'integer'
+    min: 1
+    max: 10
+  stream_session_timeout_seconds:
+    client: false
+    refresh: true
+    default: 60
+    type: 'integer'
+    min: 30
+    max: 300
+  stream_ping_interval_seconds:
+    client: false
+    refresh: true
+    default: 10
+    type: 'integer'
+    min: 5
+    max: 60
+  stream_force_kill_enabled:
+    client: false
+    refresh: true
+    default: true
+    type: 'boolean'
 
 live_tv:
   enable_live_tv:
