@@ -5,3 +5,262 @@
         @apply mt-4 px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md cursor-pointer;
     }
 }
+
+.not-found-page {
+    --not-found-accent: var(--c-primary-300, #42c0ff);
+    --not-found-surface: color-mix(in srgb, var(--c-background-color, #0f1218) 90%, #ffffff 10%);
+    --not-found-surface-soft: color-mix(in srgb, var(--c-background-color, #0f1218) 84%, #ffffff 16%);
+    --not-found-border: color-mix(in srgb, var(--c-body-text-color, #ffffff) 14%, transparent 86%);
+    --not-found-text-soft: color-mix(in srgb, var(--c-body-text-color, #ffffff) 72%, transparent 28%);
+    position: relative;
+    isolation: isolate;
+    padding: clamp(14px, 2.2vw, 28px);
+    background: var(--c-background-color, #0f1218);
+    overflow-x: clip;
+    overflow-y: visible;
+}
+
+@supports not (overflow: clip) {
+    .not-found-page {
+        overflow-x: hidden;
+    }
+}
+
+.not-found-page__bg-shape {
+    position: absolute;
+    z-index: 0;
+    border-radius: 999px;
+    filter: blur(40px);
+    pointer-events: none;
+    opacity: 0.45;
+    will-change: transform;
+}
+
+.not-found-page__bg-shape--one {
+    width: min(34vw, 420px);
+    height: min(34vw, 420px);
+    top: 0;
+    right: 0;
+    transform: translate(34%, -36%);
+    background: color-mix(in srgb, var(--c-primary-color, #00a9ff) 52%, transparent 48%);
+}
+
+.not-found-page__bg-shape--two {
+    width: min(28vw, 320px);
+    height: min(28vw, 320px);
+    left: 0;
+    bottom: 0;
+    transform: translate(-36%, 42%);
+    background: color-mix(in srgb, var(--c-tertiary-color, #2f90ff) 40%, transparent 60%);
+}
+
+.not-found-page__container {
+    position: relative;
+    z-index: 1;
+    width: min(1320px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: clamp(14px, 2vw, 24px);
+}
+
+.not-found-page__hero,
+.not-found-page__recommendations {
+    border: 1px solid var(--not-found-border);
+    border-radius: 16px;
+    background: var(--not-found-surface);
+    box-shadow: 0 14px 50px rgba(0, 0, 0, 0.24);
+}
+
+.not-found-page__hero {
+    padding: clamp(16px, 2.8vw, 30px);
+    animation: not-found-enter 0.32s ease both;
+}
+
+.not-found-page__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--not-found-accent) 30%, transparent 70%);
+    background: color-mix(in srgb, var(--not-found-accent) 16%, transparent 84%);
+    color: var(--c-body-text-color, #ffffff);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.not-found-page__status .icon {
+    color: var(--not-found-accent);
+}
+
+.not-found-page__title {
+    margin: 12px 0 0;
+    color: var(--c-body-text-color, #ffffff);
+    font-size: clamp(1.55rem, 3.5vw, 2.35rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.not-found-page__description {
+    margin: 10px 0 0;
+    max-width: 680px;
+    color: var(--not-found-text-soft);
+    font-size: 0.96rem;
+    line-height: 1.55;
+}
+
+.not-found-page__actions {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.not-found-page__home-link,
+.not-found-page__retry-btn {
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.not-found-page__home-link {
+    text-decoration: none;
+    background: var(--not-found-accent);
+    color: var(--c-primary-text-color, #ffffff);
+}
+
+.not-found-page__home-link:hover {
+    background: var(--c-primary-400, var(--not-found-accent));
+}
+
+.not-found-page__retry-btn {
+    background: var(--not-found-surface-soft);
+    border-color: var(--not-found-border);
+    color: var(--c-body-text-color, #ffffff);
+}
+
+.not-found-page__home-link:hover,
+.not-found-page__retry-btn:hover {
+    transform: translateY(-1px);
+}
+
+.not-found-page__recommendations {
+    padding: clamp(14px, 2vw, 20px);
+    animation: not-found-enter 0.4s ease both;
+    animation-delay: 0.06s;
+}
+
+.not-found-page__recommendations-header h2 {
+    margin: 0;
+    color: var(--c-body-text-color, #ffffff);
+    font-size: clamp(1.1rem, 2vw, 1.45rem);
+    line-height: 1.2;
+}
+
+.not-found-page__recommendations-header p {
+    margin: 6px 0 0;
+    color: var(--not-found-text-soft);
+    font-size: 0.9rem;
+}
+
+.not-found-page__grid {
+    margin-top: 14px;
+    display: grid;
+    gap: clamp(12px, 1.6vw, 18px);
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.not-found-page__item {
+    animation: not-found-card-enter 0.28s ease both;
+}
+
+.not-found-page__state {
+    margin-top: 14px;
+    border: 1px solid var(--not-found-border);
+    border-radius: 12px;
+    background: var(--not-found-surface-soft);
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    color: var(--not-found-text-soft);
+    font-size: 0.9rem;
+    padding: 16px;
+}
+
+.not-found-page__state .icon {
+    color: var(--not-found-accent);
+}
+
+.not-found-page__spinner .icon {
+    animation: rotate-forever 1s linear infinite;
+}
+
+.not-found-page__state--empty {
+    min-height: 140px;
+}
+
+@media (min-width: 680px) {
+    .not-found-page__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .not-found-page__grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .not-found-page {
+        padding: 8px 12px 18px;
+    }
+
+    .not-found-page__hero,
+    .not-found-page__recommendations {
+        border-radius: 14px;
+    }
+
+    .not-found-page__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .not-found-page__home-link,
+    .not-found-page__retry-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@keyframes not-found-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes not-found-card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

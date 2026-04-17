@@ -86,7 +86,9 @@ class ApplicationController < ActionController::Base
   private
 
   def check_profile_if_signed_in
-    return if request.post? || request.format.json?
+    # This guard should only apply to page navigations, not mutating API requests.
+    return unless request.get?
+    return if request.format.json?
     return if request.path == "/profiles/select"
     return unless user_signed_in? && !current_profile
 

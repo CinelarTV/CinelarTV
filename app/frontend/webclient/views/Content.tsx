@@ -5,7 +5,7 @@ import RequireSignupModal from '../components/modals/require-signup.modal.vue';
 import SubscriptionPaywallModal from '../components/modals/subscription-paywall.modal.vue';
 import Content from '../app/models/Content';
 import CButton from '../components/forms/c-button';
-import cSpinner from "../components/c-spinner";
+import CSpinner from '../components/c-spinner';
 import EpisodesList from "@/components/content/EpisodesList";
 
 export default defineComponent({
@@ -132,7 +132,7 @@ export default defineComponent({
             <div class="content-view">
                 {loading.value ? (
                     <div class="content-view__loader">
-                        <cSpinner />
+                        <CSpinner />
                     </div>
                 ) : (
                     (() => {
@@ -189,10 +189,10 @@ export default defineComponent({
                                         return (
                                             <div class="content-meta">
                                                 {metaItems.map((item, index) => (
-                                                    <>
+                                                    <span class="content-meta__entry" key={`meta-${index}`}>
                                                         {index > 0 && <span class="content-meta__dot" />}
                                                         {item}
-                                                    </>
+                                                    </span>
                                                 ))}
                                             </div>
                                         );
@@ -244,28 +244,41 @@ export default defineComponent({
 
                                     {/* Contenido relacionado */}
                                     {relatedContent.length > 0 && (
-                                        <div class="content-related">
-                                            <h3 class="content-related__title">Quizás te guste...</h3>
+                                        <section class="content-related">
+                                            <div class="content-related__head">
+                                                <h3 class="content-related__title">Quizás te guste</h3>
+                                                <p class="content-related__subtitle">Más historias con una vibra parecida.</p>
+                                            </div>
+
                                             <div ref={relatedContentScroll} class="content-related__scroll">
-                                                {relatedContent.map(content => (
+                                                {relatedContent.map((relatedItem: any) => (
                                                     <router-link
-                                                        key={content.id}
-                                                        to={{ name: 'content.show', params: { id: content.id }, force: true }}
+                                                        key={relatedItem.id}
+                                                        to={{ name: 'content.show', params: { id: relatedItem.id }, force: true }}
                                                         class="content-related__card"
                                                     >
                                                         <img
-                                                            src={content.banner || content.cover}
-                                                            alt={content.title}
+                                                            src={relatedItem.banner || relatedItem.cover}
+                                                            alt={relatedItem.title}
                                                             class="content-related__card-img"
                                                             loading="lazy"
                                                         />
+                                                        <div class="content-related__card-glow" />
                                                         <div class="content-related__card-overlay">
-                                                            <span class="content-related__card-title">{content.title}</span>
+                                                            <div class="content-related__card-meta">
+                                                                {relatedItem.year && (
+                                                                    <span class="content-related__card-year">{relatedItem.year}</span>
+                                                                )}
+                                                                <span class="content-related__card-type">
+                                                                    {relatedItem.isMovie ? 'Pelicula' : 'Serie'}
+                                                                </span>
+                                                            </div>
+                                                            <span class="content-related__card-title">{relatedItem.title}</span>
                                                         </div>
                                                     </router-link>
                                                 ))}
                                             </div>
-                                        </div>
+                                        </section>
                                     )}
                                 </div>
 

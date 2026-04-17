@@ -1,11 +1,11 @@
 <template>
-    <span>
+    <span class="c-icon">
         <svg class="icon" :width="size" :height="size">
             <use :xlink:href="`#${icon}`" />
         </svg>
     </span>
 </template>
-  
+
 <script setup>
 const props = defineProps({
     icon: String,
@@ -15,4 +15,3 @@ const props = defineProps({
     },
 });
 </script>
-  

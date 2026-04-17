@@ -6,7 +6,8 @@ import { useCurrentUser } from '../../services/current-user';
 import { ajax } from '../../../lib/Ajax';
 import { LogOut, Pencil, Info, Plus, ArrowRightLeft } from 'lucide-vue-next';
 import LoginModal from '../../../components/modals/login.modal.tsx';
-import SignupModal from '../../../components/modals/signup.modal.vue';
+import SignupModal from '../../../components/modals/signup.modal.tsx';
+import CIcon from "@/components/c-icon.vue";
 
 interface MenuItemType {
   text: string;
@@ -267,7 +268,7 @@ export default defineComponent({
               aria-label="Iniciar sesión"
               class="flex items-center gap-2 rounded-lg bg-[var(--c-tertiary-color)] px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--c-tertiary-100)]"
             >
-              <c-icon icon="user" size={16} class="shrink-0" />
+              <CIcon icon="user" size={16} class="shrink-0" />
               Login
             </button>
             <LoginModal ref={loginModal} />

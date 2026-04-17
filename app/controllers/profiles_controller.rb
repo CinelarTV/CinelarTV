@@ -21,7 +21,16 @@ class ProfilesController < ApplicationController
     # Set the profile type to OWNER if it's the first profile
     @profile.profile_type = "OWNER" if current_user.profiles.count.zero?
     if @profile.save
-      render json: { message: "Profile created successfully", status: :ok }
+      render json: {
+        message: "Profile created successfully",
+        status: :ok,
+        profile: {
+          id: @profile.id,
+          name: @profile.name,
+          avatar_id: @profile.avatar_id,
+          profile_type: @profile.profile_type
+        }
+      }
     else
       render json: { errors: @profile.errors.full_messages }, status: :unprocessable_entity
     end

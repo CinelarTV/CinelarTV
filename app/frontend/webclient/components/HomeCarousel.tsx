@@ -1,4 +1,4 @@
-import { defineComponent, ref, onMounted, onBeforeUnmount, PropType, getCurrentInstance } from 'vue';
+import { defineComponent, ref, onMounted, onBeforeUnmount, watch, PropType, getCurrentInstance } from 'vue';
 import CButton from './forms/c-button';
 import CIconButton from './forms/c-icon-button.vue';
 import CIcon from "./c-icon.vue";
@@ -49,6 +49,8 @@ export default defineComponent({
         let autoplayTimer: number | null = null;
         let resumeTimer: number | null = null;
         let isAutoplayPaused = false;
+
+        const getSeasonLabel = (count: number) => (count === 1 ? 'temporada' : 'temporadas');
 
         const isDesktopViewport = () => window.matchMedia('(min-width: 1024px)').matches;
 
@@ -161,15 +163,48 @@ export default defineComponent({
             if (e.key === 'ArrowLeft') scrollPrev();
         };
 
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                pauseAutoplay();
+                return;
+            }
+            isAutoplayPaused = false;
+            startAutoplay();
+        };
+
+        watch(
+            () => props.items.length,
+            (length) => {
+                if (length === 0) {
+                    currentIndex.value = 0;
+                    clearAutoplay();
+                    return;
+                }
+                if (currentIndex.value > length - 1) {
+                    currentIndex.value = length - 1;
+                }
+                startAutoplay();
+            }
+        );
+
+        watch(
+            () => [props.autoplay, props.autoplayInterval, props.loading],
+            () => {
+                startAutoplay();
+            }
+        );
+
         onMounted(() => {
             trackRef.value?.addEventListener('scroll', handleScroll, { passive: true });
             window.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('visibilitychange', handleVisibilityChange);
             startAutoplay();
         });
 
         onBeforeUnmount(() => {
             trackRef.value?.removeEventListener('scroll', handleScroll);
             window.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
             if (rafId !== null) cancelAnimationFrame(rafId);
             clearAutoplay();
             clearResumeTimer();
@@ -196,6 +231,7 @@ export default defineComponent({
                                 index === currentIndex.value ? 'home-carousel__slide--active' : '',
                                 index === currentIndex.value + 1 ? 'home-carousel__slide--next' : '',
                             ]}
+                            aria-label={`${index + 1} de ${props.items.length}: ${item.title}`}
                         >
                             {/* Imagen de fondo */}
                             <img
@@ -218,10 +254,13 @@ export default defineComponent({
                                 )}
 
                                 <div class="home-carousel__info">
-                                    <span class="home-carousel__eyebrow">
-                                        <CIcon icon="star" class="home-carousel__eyebrow-icon" />
-                                        Destacado
-                                    </span>
+                                    <div class="home-carousel__eyebrow-row">
+                                        <span class="home-carousel__eyebrow">
+                                            <CIcon icon="star" class="home-carousel__eyebrow-icon" />
+                                            Destacado
+                                        </span>
+                                        <span class="home-carousel__counter">{index + 1}/{props.items.length}</span>
+                                    </div>
                                     <h2 class="home-carousel__title" title={item.title}>{item.title}</h2>
 
                                     <div class="home-carousel__meta">
@@ -238,7 +277,7 @@ export default defineComponent({
                                         {item.seasonCount && item.seasonCount > 1 && (
                                             <>
                                                 <span class="home-carousel__meta-dot">•</span>
-                                                <span>{item.seasonCount} temporadas</span>
+                                                <span>{item.seasonCount} {getSeasonLabel(item.seasonCount)}</span>
                                             </>
                                         )}
                                     </div>
@@ -268,9 +307,20 @@ export default defineComponent({
                                             Mi lista
                                         </CButton>
 
+                                        {props.onShowInfo && (
+                                            <CIconButton
+                                                icon="info"
+                                                class="home-carousel__btn home-carousel__btn--icon"
+                                                aria-label="Ver detalles"
+                                                onClick={() => props.onShowInfo?.(item.id)}
+                                            />
+                                        )}
+
                                         <CIconButton
                                             icon="thumbs-up"
                                             class={['home-carousel__btn home-carousel__btn--icon', item.liked ? 'home-carousel__btn--liked' : '']}
+                                            aria-pressed={item.liked ? 'true' : 'false'}
+                                            aria-label={item.liked ? 'Quitar like' : 'Me gusta'}
                                             onClick={() => props.onToggleLike?.(item.id)}
                                         />
                                     </div>

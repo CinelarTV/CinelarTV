@@ -1,15 +1,20 @@
 import { defineComponent, ref, onMounted, inject } from 'vue';
-import { PlusCircleIcon, PencilIcon, Trash2Icon, Loader2 } from 'lucide-vue-next';
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue';
-import { Howl } from 'howler';
 import { ajax } from '../../lib/Ajax';
-import CIcon from "../../components/c-icon.vue";
+import CSpinner from '../../components/c-spinner';
+import CIcon from '../../components/c-icon.vue';
 
 interface Profile {
     id: number;
     name: string;
     avatar_id?: string;
     profile_type?: string;
+}
+
+interface AvatarOption {
+    id: string;
+    name: string;
+    path: string;
 }
 
 export default defineComponent({
@@ -19,14 +24,18 @@ export default defineComponent({
         const SiteSettings = inject<any>('SiteSettings');
         const createProfileModal = ref<any>(null);
         const editMode = ref(false);
-        const avatarList = ref<string[]>([]);
+        const avatarList = ref<AvatarOption[]>([]);
         const loadingProfile = ref(false);
         const profileSelected = ref<Profile | null>(null);
+        const profiles = ref<Profile[]>(Array.isArray(currentUser?.profiles) ? [...currentUser.profiles] : []);
 
-        const buttonClickedSound = new Howl({
-            src: ['/assets/audio/profile-select.mp3'],
-            volume: 0.5,
-        });
+        const buttonClickedSound = typeof Audio !== 'undefined'
+            ? new Audio('/assets/audio/profile-select.mp3')
+            : null;
+
+        if (buttonClickedSound) {
+            buttonClickedSound.volume = 0.5;
+        }
 
         const handleKeyDown = (e: KeyboardEvent, profile: Profile) => {
             if (e.key === 'Enter') {
@@ -36,9 +45,13 @@ export default defineComponent({
 
         const deleteProfile = (profile: Profile) => {
             if (!confirm(`Are you sure you want to delete the profile ${profile.name}?`)) return;
-            ajax.delete(`/user/profiles/${profile.id}`).then(() => {
-                window.location.reload();
+            ajax.delete(`/user/profiles/${profile.id}.json`).then(() => {
+                profiles.value = profiles.value.filter((item) => item.id !== profile.id);
             }).catch(console.log);
+        };
+
+        const handleProfileCreated = (profile: Profile) => {
+            profiles.value = [...profiles.value, profile];
         };
 
         const userLogout = () => {
@@ -61,7 +74,10 @@ export default defineComponent({
             if (editMode.value) return;
             profileSelected.value = profile;
             loadingProfile.value = true;
-            buttonClickedSound.play();
+            if (buttonClickedSound) {
+                buttonClickedSound.currentTime = 0;
+                buttonClickedSound.play().catch(() => { });
+            }
             setTimeout(() => {
                 ajax.post('/session/select-profile.json', {
                     profile_id: profile.id
@@ -82,7 +98,7 @@ export default defineComponent({
         const fetchAvatars = () => {
             ajax.get('/user/default-avatars.json')
                 .then((response: any) => {
-                    avatarList.value = response.data.profiles;
+                    avatarList.value = response?.data?.profiles || response?.data || [];
                 })
                 .catch(console.log);
         };
@@ -93,83 +109,94 @@ export default defineComponent({
 
         return () => (
             <div id="profile-selector">
-                <div class="h-screen flex flex-col items-center justify-center px-4">
-                    {/* Site logo */}
-                    <div class="mb-12">
-                        <img
-                            src={SiteSettings.site_logo}
-                            alt={`${SiteSettings.site_name} logo`}
-                            class="h-8 md:h-10 w-auto"
-                        />
-                    </div>
+                <div class="profile-selector__layout">
+                    <div class="profile-selector__content">
+                        {/* Site logo */}
+                        <div class="profile-selector__logo-wrap">
+                            <img
+                                src={SiteSettings.site_logo}
+                                alt={`${SiteSettings.site_name} logo`}
+                                class="h-8 md:h-10 w-auto"
+                            />
+                        </div>
 
-                    {/* Title */}
-                    <h1 class="text-2xl md:text-3xl font-semibold mb-16 text-[var(--c-body-text-color)]" v-emoji>
-                        ¿Quién eres? 🍿
-                    </h1>
+                        {/* Title */}
+                        <h1 class="profile-selector__title" v-emoji>
+                            ¿Quién eres? 🍿
+                        </h1>
+                        <p class="profile-selector__subtitle">
+                            Elige un perfil para continuar donde te quedaste.
+                        </p>
 
-                    {/* Profile grid */}
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12 md:mb-32">
-                        {currentUser.profiles.map((profile: Profile) => (
-                            <div class="profile-card-wrapper" key={profile.id}>
-                                <div
-                                    class={`profile-card ${editMode.value ? ' editing' : ''}`}
-                                    tabindex={0}
-                                    role="button"
-                                    aria-label={`Seleccionar perfil ${profile.name}`}
-                                    onKeydown={e => handleKeyDown(e as KeyboardEvent, profile)}
-                                    onClick={() => selectProfile(profile)}
-                                >
-                                    {/* Avatar */}
-                                    <img
-                                        src={getProfileAvatar(profile.avatar_id)}
-                                        class="profile-avatar"
-                                        alt={`Avatar de perfil ${profile.name}`}
-                                    />
-
-                                    {/* Profile name */}
-                                    <h2 class="profile-name">{profile.name}</h2>
-                                </div>
-
-                                {/* Edit mode actions */}
-                                {editMode.value && profile.profile_type !== 'OWNER' && (
-                                    <button
-                                        class="profile-edit-btn delete"
-                                        onClick={() => deleteProfile(profile)}
+                        {/* Profile grid */}
+                        <div class="profile-selector__grid">
+                            {profiles.value.map((profile: Profile) => (
+                                <div class="profile-card-wrapper" key={profile.id}>
+                                    <div
+                                        class={`profile-card ${editMode.value ? ' editing' : ''}`}
+                                        tabindex={0}
+                                        role="button"
+                                        aria-label={`Seleccionar perfil ${profile.name}`}
+                                        onKeydown={e => handleKeyDown(e as KeyboardEvent, profile)}
+                                        onClick={() => selectProfile(profile)}
                                     >
-                                        <Trash2Icon size={16} />
-                                        Eliminar
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                                        {/* Avatar */}
+                                        <img
+                                            src={getProfileAvatar(profile.avatar_id)}
+                                            class="profile-avatar"
+                                            alt={`Avatar de perfil ${profile.name}`}
+                                        />
 
-                        {/* Create new profile card */}
-                        {currentUser.profiles.length < 5 && (
-                            <div class="profile-card-wrapper">
-                                <div
-                                    class="profile-card create-profile"
-                                    onClick={createProfile}
-                                >
-                                    <PlusCircleIcon size={32} class="create-profile-icon" />
-                                    <h2 class="profile-name">Crear perfil</h2>
+                                        {/* Profile name */}
+                                        <h2 class="profile-name">{profile.name}</h2>
+                                    </div>
+
+                                    {/* Edit mode actions */}
+                                    {editMode.value && profile.profile_type !== 'OWNER' && (
+                                        <button
+                                            class="profile-edit-btn delete"
+                                            onClick={() => deleteProfile(profile)}
+                                        >
+                                            <CIcon icon="trash2" size={16} />
+                                            Eliminar
+                                        </button>
+                                    )}
                                 </div>
-                            </div>
-                        )}
+                            ))}
 
-                        {/* Create profile modal */}
-                        <CreateProfileModal avatar-list={avatarList.value} ref={createProfileModal} />
-                    </div>
+                            {/* Create new profile card */}
+                            {profiles.value.length < 5 && (
+                                <div class="profile-card-wrapper">
+                                    <button
+                                        type="button"
+                                        class="profile-card create-profile"
+                                        aria-label="Crear perfil"
+                                        onClick={createProfile}
+                                    >
+                                        <CIcon icon="plus" size={32} class="create-profile-icon" />
+                                        <h2 class="profile-name">Crear perfil</h2>
+                                    </button>
+                                </div>
+                            )}
 
-                    {/* Footer actions */}
-                    <div class="flex flex-row gap-4 items-center">
-                        <button class="profile-footer-btn" onClick={userLogout}>
-                            Cerrar sesión
-                        </button>
-                        <button class="profile-footer-btn edit" onClick={toggleEditMode}>
-                            <PencilIcon size={16} />
-                            {editMode.value ? 'Guardar cambios' : 'Modificar perfiles'}
-                        </button>
+                            {/* Create profile modal */}
+                            <CreateProfileModal
+                                avatar-list={avatarList.value}
+                                ref={createProfileModal}
+                                onCreated={handleProfileCreated}
+                            />
+                        </div>
+
+                        {/* Footer actions */}
+                        <div class="profile-selector__footer">
+                            <button class="profile-footer-btn" onClick={userLogout}>
+                                Cerrar sesión
+                            </button>
+                            <button class={['profile-footer-btn', 'edit', editMode.value && 'is-active']} onClick={toggleEditMode}>
+                                <CIcon icon="pencil" size={16} />
+                                {editMode.value ? 'Guardar cambios' : 'Modificar perfiles'}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -183,8 +210,8 @@ export default defineComponent({
                                 alt={`Avatar de perfil ${profileSelected.value.name}`}
                             />
                             <h2 class="profile-name-lg">{profileSelected.value.name}</h2>
-                            <p class="text-sm mt-4">Cargando perfil...</p>
-                            <c-spinner />
+                            <p class="profile-loading-text">Cargando perfil...</p>
+                            <CSpinner />
                         </div>
                     </div>
                 )}
