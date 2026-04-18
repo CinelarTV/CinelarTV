@@ -20,6 +20,10 @@ class ProfilesController < ApplicationController
     @profile = current_user.profiles.new(profile_params)
     # Set the profile type to OWNER if it's the first profile
     @profile.profile_type = "OWNER" if current_user.profiles.count.zero?
+    # Validate avatar_id against allowed list
+    if profile_params[:avatar_id].present? && !Profile.valid_avatar_id?(profile_params[:avatar_id])
+      render json: { errors: ["Invalid avatar"] }, status: :unprocessable_entity and return
+    end
     if @profile.save
       broadcast_profile_update(current_user, {})
       render json: {
@@ -39,9 +43,22 @@ class ProfilesController < ApplicationController
 
   def update
     @profile = current_user.profiles.find(params[:id])
+    if params[:profile] && params[:profile][:avatar_id].present? && !Profile.valid_avatar_id?(params[:profile][:avatar_id])
+      render json: { error: "Invalid avatar" }, status: :unprocessable_entity and return
+    end
+
     if @profile.update(profile_params)
       broadcast_profile_update(current_user, {})
-      render json: { message: "Profile updated successfully", status: :ok }
+      render json: {
+        message: "Profile updated successfully",
+        status: :ok,
+        profile: {
+          id: @profile.id,
+          name: @profile.name,
+          avatar_id: @profile.avatar_id,
+          profile_type: @profile.profile_type
+        }
+      }
     else
       render json: { error: @profile.errors.full_messages.join(", ") }, status: :unprocessable_entity
     end
@@ -60,13 +77,7 @@ class ProfilesController < ApplicationController
   end
 
   def default_avatars
-    # List default avatars (Currently is a static list, but in the future we allow the Admin to add more)
-    render json: [
-      { id: "coolCat", name: "Cool Cat", path: "/assets/default/avatars/coolCat.png" },
-      { id: "cuteCat", name: "Cute Cat", path: "/assets/default/avatars/cuteCat.png" },
-      { id: "dino_boy", name: "Dino Boy", path: "/assets/default/avatars/dino_boy.png" },
-      { id: "baby_unicorn", name: "Baby Unicorn", path: "/assets/default/avatars/baby_unicorn.png" }
-    ]
+    render json: Profile.default_avatars
   end
 
   private

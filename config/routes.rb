@@ -31,6 +31,7 @@ Rails.application.routes.draw do
   get "profiles/select", to: "application#index"
 
   post "/user/create-profile", to: "profiles#create"
+  patch "/user/profiles/:id", to: "profiles#update"
   post "/session/select-profile", to: "session#select_profile"
   post "/session/deassign-profile", to: "session#deassign_profile"
   delete "/user/profiles/:id", to: "profiles#destroy"

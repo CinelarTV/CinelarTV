@@ -1,5 +1,6 @@
 import { defineComponent, ref, onMounted, inject } from 'vue';
 import CreateProfileModal from '../../components/modals/create-profile.modal.vue';
+import EditProfileModal from '../../components/modals/edit-profile.modal.vue';
 import { ajax } from '../../lib/Ajax';
 import CSpinner from '../../components/c-spinner';
 import CIcon from '../../components/c-icon.vue';
@@ -23,6 +24,7 @@ export default defineComponent({
         const currentUser = inject<any>('currentUser');
         const SiteSettings = inject<any>('SiteSettings');
         const createProfileModal = ref<any>(null);
+        const editProfileModal = ref<any>(null);
         const editMode = ref(false);
         const avatarList = ref<AvatarOption[]>([]);
         const loadingProfile = ref(false);
@@ -49,6 +51,14 @@ export default defineComponent({
                 profiles.value = profiles.value.filter((item) => item.id !== profile.id);
             }).catch(console.log);
         };
+
+        const openEditModal = (profile: Profile) => {
+            editProfileModal.value?.openWithProfile(profile)
+        }
+
+        const handleProfileUpdated = (updated: Profile) => {
+            profiles.value = profiles.value.map((p) => (p.id === updated.id ? updated : p));
+        }
 
         const handleProfileCreated = (profile: Profile) => {
             profiles.value = [...profiles.value, profile];
@@ -153,13 +163,23 @@ export default defineComponent({
 
                                     {/* Edit mode actions */}
                                     {editMode.value && profile.profile_type !== 'OWNER' && (
-                                        <button
-                                            class="profile-edit-btn delete"
-                                            onClick={() => deleteProfile(profile)}
-                                        >
-                                            <CIcon icon="trash2" size={16} />
-                                            Eliminar
-                                        </button>
+                                        <div class="profile-edit-actions">
+                                            <button
+                                                class="profile-edit-btn edit"
+                                                onClick={(e) => { e.stopPropagation(); openEditModal(profile); }}
+                                            >
+                                                <CIcon icon="pencil" size={16} />
+                                                Editar
+                                            </button>
+
+                                            <button
+                                                class="profile-edit-btn delete"
+                                                onClick={(e) => { e.stopPropagation(); deleteProfile(profile); }}
+                                            >
+                                                <CIcon icon="trash2" size={16} />
+                                                Eliminar
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -184,6 +204,13 @@ export default defineComponent({
                                 avatar-list={avatarList.value}
                                 ref={createProfileModal}
                                 onCreated={handleProfileCreated}
+                            />
+
+                            {/* Edit profile modal */}
+                            <EditProfileModal
+                                avatar-list={avatarList.value}
+                                ref={editProfileModal}
+                                onUpdated={handleProfileUpdated}
                             />
                         </div>
 
