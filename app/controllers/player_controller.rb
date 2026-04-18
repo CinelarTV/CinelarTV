@@ -14,7 +14,7 @@ class PlayerController < ApplicationController
 
     find_episode_and_season if @content.content_type == "TVSHOW"
 
-    profile = Profile.find_by(id: session[:current_profile_id])
+    profile = current_profile
     continue_watching = create_or_find_continue_watching(profile)
 
     reproduction = Reproduction.new(
@@ -64,7 +64,7 @@ class PlayerController < ApplicationController
   end
 
   def update_current_progress
-    profile = Profile.find_by(id: session[:current_profile_id])
+    profile = current_profile
     @content = Content.find_by(id: params[:id])
 
     return render_content_not_found unless @content

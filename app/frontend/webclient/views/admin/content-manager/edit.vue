@@ -22,7 +22,7 @@
                         Editar contenido
                     </h1>
                     <p class="text-sm text-white/60 mt-1">
-                        {{ content.title }}
+                        {{ editedData.title || content.title }}
                     </p>
                 </div>
             </div>
@@ -38,18 +38,14 @@
                         Información básica
                     </h2>
                     <div class="space-y-4">
-                        <c-input :modelValue="content.title" @update:text="value => editedData.title = value"
-                            placeholder="Título" label="Título" />
+                        <c-input v-model="editedData.title" placeholder="Título" label="Título" />
 
-                        <c-select :options="contentTypes" :modelValue="editedData.content_type"
-                            @update:modelValue="value => editedData.content_type = value" label="Tipo de contenido" />
+                        <c-select :options="contentTypes" v-model="editedData.content_type" label="Tipo de contenido" />
 
-                        <c-textarea placeholder="Descripción" :modelValue="content.description"
-                            @update:modelValue="value => editedData.description = value" label="Descripción"
+                        <c-textarea placeholder="Descripción" v-model="editedData.description" label="Descripción"
                             :rows="4" />
 
-                        <c-input type="number" placeholder="Año" :modelValue="content.year"
-                            @update:modelValue="value => editedData.year = value" label="Año" />
+                        <c-input type="number" placeholder="Año" v-model="editedData.year" label="Año" />
                     </div>
                 </div>
 
@@ -63,15 +59,15 @@
                             <label class="block text-sm font-medium text-white/80 mb-2">
                                 Cover (2:3)
                             </label>
-                            <c-image-upload :modelValue="content.cover"
-                                @update:modelValue="value => editedData.cover = value" aspect-ratio="2:3" />
+                            <c-image-upload v-model="editedData.cover" :modelValue="editedData.cover || content.cover"
+                                aspect-ratio="2:3" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-white/80 mb-2">
                                 Banner (16:9)
                             </label>
-                            <c-image-upload :modelValue="content.banner"
-                                @update:modelValue="value => editedData.banner = value" aspect-ratio="16:9" />
+                            <c-image-upload v-model="editedData.banner"
+                                :modelValue="editedData.banner || content.banner" aspect-ratio="16:9" />
                         </div>
                     </div>
                 </div>
@@ -106,7 +102,8 @@
                             </button>
                         </div>
 
-                        <div class="flex items-center justify-between p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                        <div
+                            class="flex items-center justify-between p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
                             <div>
                                 <p class="text-xs font-bold text-white uppercase tracking-wider">Premium</p>
                                 <p class="text-[10px] text-white/40">Solo suscriptores</p>
@@ -148,7 +145,7 @@
         </div>
 
         <!-- Seasons Management (TV Shows) -->
-        <div v-if="content.content_type === 'TVSHOW'" class="mt-8">
+        <div v-if="(editedData.content_type || content.content_type) === 'TVSHOW'" class="mt-8">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-white">
                     Temporadas
@@ -199,8 +196,8 @@
             </draggable>
         </div>
 
-        <add-season-modal v-if="content.content_type === 'TVSHOW'" :content="content" ref="addSeasonModalRef"
-            @season-created="fetchContent" />
+        <add-season-modal v-if="(editedData.content_type || content.content_type) === 'TVSHOW'" :content="content"
+            ref="addSeasonModalRef" @season-created="fetchContent" />
     </div>
 </template>
 
@@ -280,7 +277,8 @@ const saveContent = async (e) => {
             if (['id', 'created_at', 'updated_at', 'seasons'].includes(key)) {
                 return;
             }
-            if (!value) {
+            // Only skip undefined/null — allow false/empty strings/0 to be sent
+            if (value === undefined || value === null) {
                 return;
             }
             formData.append(`content[${key}]`, value);

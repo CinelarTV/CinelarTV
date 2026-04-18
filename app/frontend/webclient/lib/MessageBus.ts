@@ -440,7 +440,8 @@ export class MessageBus {
                 this._ajaxInProgress = false;
 
                 const inLongPollingMode = this.shouldLongPoll();
-                let startNextRequestAfter: number;
+                // Inicializar con un valor por defecto seguro
+                let startNextRequestAfter: number = this.minPollInterval;
 
                 try {
                     if (rateLimited) {

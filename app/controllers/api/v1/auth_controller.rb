@@ -85,10 +85,8 @@ module Api
           return
         end
 
-        # Find the refresh token
-        token = Doorkeeper::AccessToken
-          .joins(:refresh_token)
-          .find_by(refresh_token: { token: refresh_token_param })
+        # Find the refresh token (the refresh token is a column on the access tokens table)
+        token = Doorkeeper::AccessToken.find_by(refresh_token: refresh_token_param)
 
         if token && !token.revoked? && !token.expired?
           # Create new tokens

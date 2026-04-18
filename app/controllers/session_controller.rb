@@ -21,25 +21,29 @@ class SessionController < ApplicationController
   end
 
   def select_profile
-    if current_user_with_doorkeeper.update(user_params)
-      if params[:profile_id].present?
-        selected_profile = current_user_with_doorkeeper.profiles.find(params[:profile_id])
-        selected_profile.update(user_id: current_user_with_doorkeeper.id)
-        set_current_profile_id(selected_profile.id)
-      end
-      render json: { message: "Profile selection updated successfully" }
-    else
-      render json: { error: "Failed to update profile selection" }, status: :unprocessable_entity
+    profile_id = params[:profile_id]
+
+    unless profile_id.present?
+      render json: { error: "missing_profile_id", message: "Profile ID is required" }, status: :unprocessable_entity
+      return
     end
+
+    selected_profile = current_user_with_doorkeeper.profiles.find_by(id: profile_id)
+
+    unless selected_profile
+      render json: { error: "profile_not_found", message: "Profile not found or doesn't belong to you" }, status: :not_found
+      return
+    end
+
+    selected_profile.update(user_id: current_user_with_doorkeeper.id)
+    set_current_profile_id(selected_profile.id)
+
+    render json: { message: "Profile selection updated successfully" }
   end
 
   def deassign_profile
-    if current_user_with_doorkeeper.update(user_params)
-      set_current_profile_id(nil)
-      render json: { message: "Profile deassigned successfully" }
-    else
-      render json: { error: "Failed to deassign profile" }, status: :unprocessable_entity
-    end
+    set_current_profile_id(nil)
+    render json: { message: "Profile deassigned successfully" }
   end
 
   def csrf
@@ -47,11 +51,6 @@ class SessionController < ApplicationController
   end
 
   private
-
-  def user_params
-    params.permit(:email, :password, :password_confirmation,
-                  profile_attributes: %i[display_name username biography profile_id])
-  end
 
   # Authenticate either through Devise session or Doorkeeper token
   def authenticate_user_or_doorkeeper!

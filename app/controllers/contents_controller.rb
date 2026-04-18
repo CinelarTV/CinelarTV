@@ -20,7 +20,7 @@ class ContentsController < ApplicationController
       format.html
       format.json {
         render json: {
-          data: @contents.as_json(only: %i[id title description banner])
+          data: @contents.as_json(only: %i[id title description banner content_type], methods: [:available])
         }
       }
     end

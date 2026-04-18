@@ -114,4 +114,15 @@ class ApplicationController < ActionController::Base
     end
     true
   end
+
+  def broadcast_profile_update(user, payload = {})
+    return unless user
+
+    channel = "/profiles/#{user.id}"
+    begin
+      MessageBus.publish(channel, payload)
+    rescue => e
+      Rails.logger.error("broadcast_profile_update failed for #{channel}: #{e.message}")
+    end
+  end
 end

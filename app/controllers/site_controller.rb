@@ -5,7 +5,7 @@ class SiteController < ApplicationController
       logo_url: SiteSetting.site_logo || view_context.asset_url("logo.png"),
       description: "La mejor plataforma de streaming independiente",
       contact_email: "info@cinelartv.com",
-      version: (defined?(CinelarTv::VERSION) ? CinelarTv::VERSION : nil)
+      version: (defined?(::CinelarTV::Application::Version) ? ::CinelarTV::Application::Version::FULL : nil)
     }
   end
 

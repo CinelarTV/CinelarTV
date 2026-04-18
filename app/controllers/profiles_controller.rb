@@ -21,6 +21,7 @@ class ProfilesController < ApplicationController
     # Set the profile type to OWNER if it's the first profile
     @profile.profile_type = "OWNER" if current_user.profiles.count.zero?
     if @profile.save
+      broadcast_profile_update(current_user, {})
       render json: {
         message: "Profile created successfully",
         status: :ok,
@@ -39,6 +40,7 @@ class ProfilesController < ApplicationController
   def update
     @profile = current_user.profiles.find(params[:id])
     if @profile.update(profile_params)
+      broadcast_profile_update(current_user, {})
       render json: { message: "Profile updated successfully", status: :ok }
     else
       render json: { error: @profile.errors.full_messages.join(", ") }, status: :unprocessable_entity
@@ -52,6 +54,7 @@ class ProfilesController < ApplicationController
       render json: { error: "You cannot delete the OWNER profile" }, status: :unprocessable_entity
     else
       @profile.destroy
+      broadcast_profile_update(current_user, {})
       render json: { message: "Profile deleted successfully", status: :ok }
     end
   end
