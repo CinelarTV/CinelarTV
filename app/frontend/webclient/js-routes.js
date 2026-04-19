@@ -862,6 +862,15 @@ export const capybaraPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[
 
 /**
  * Generates rails route to
+ * /admin/xmltv_sources/:id/channels(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const channelsAdminXmltvSourcePath = /*#__PURE__*/ __jsr.r({"id":{"r":true},"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"xmltv_sources"],[2,[7,"/"],[2,[3,"id"],[2,[7,"/"],[2,[6,"channels"],[1,[2,[8,"."],[3,"format"]]]]]]]]]]]);
+
+/**
+ * Generates rails route to
  * /c/:id(.:format)
  * @param {any} id
  * @param {object | undefined} options

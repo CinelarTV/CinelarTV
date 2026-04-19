@@ -23,7 +23,7 @@ export default defineComponent({
                 {
                     key: 'explore',
                     to: '/',
-                    icon: 'compass',
+                    icon: 'telescope',
                     label: 'Explorar',
                     match: (path: string) => path === '/' || path.startsWith('/contents/'),
                 },
@@ -60,6 +60,8 @@ export default defineComponent({
                     style={{
                         '--mobile-nav-count': String(navItems.value.length),
                         '--mobile-nav-active-index': String(activeIndex.value),
+                        '--mobile-nav-gap': '6px',
+                        '--mobile-nav-padding-x': '10px',
                     }}
                 >
                     <span class="mobile-bottom-nav__active-pill" aria-hidden="true" />
@@ -73,7 +75,7 @@ export default defineComponent({
                             ]}
                         >
                             <span class="mobile-bottom-nav__icon-wrap">
-                                <CIcon icon={item.icon} size={19} class="icon mobile-bottom-nav__icon" />
+                                <CIcon icon={item.icon} size={22} class="icon mobile-bottom-nav__icon" />
                             </span>
                             <span class="mobile-bottom-nav__label">{item.label}</span>
                         </RouterLink>

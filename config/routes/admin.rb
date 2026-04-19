@@ -77,6 +77,7 @@ namespace :admin do
   resources :xmltv_sources, only: [:index, :create, :update, :destroy] do
     member do
       post :fetch
+      get :channels
     end
   end
 end

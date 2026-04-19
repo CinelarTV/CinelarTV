@@ -162,7 +162,7 @@ export default defineComponent({
                                     </div>
 
                                     {/* Edit mode actions */}
-                                    {editMode.value && profile.profile_type !== 'OWNER' && (
+                                    {editMode.value && (
                                         <div class="profile-edit-actions">
                                             <button
                                                 class="profile-edit-btn edit"
@@ -172,13 +172,15 @@ export default defineComponent({
                                                 Editar
                                             </button>
 
-                                            <button
-                                                class="profile-edit-btn delete"
-                                                onClick={(e) => { e.stopPropagation(); deleteProfile(profile); }}
-                                            >
-                                                <CIcon icon="trash2" size={16} />
-                                                Eliminar
-                                            </button>
+                                            {profile.profile_type !== 'OWNER' && (
+                                                <button
+                                                    class="profile-edit-btn delete"
+                                                    onClick={(e) => { e.stopPropagation(); deleteProfile(profile); }}
+                                                >
+                                                    <CIcon icon="trash2" size={16} />
+                                                    Eliminar
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>

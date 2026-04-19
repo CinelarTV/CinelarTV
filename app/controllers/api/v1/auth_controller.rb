@@ -84,36 +84,57 @@ module Api
           }, status: :unprocessable_entity
           return
         end
+        begin
+          # Find the refresh token (the refresh token is a column on the access tokens table)
+          token = Doorkeeper::AccessToken.find_by(refresh_token: refresh_token_param)
 
-        # Find the refresh token (the refresh token is a column on the access tokens table)
-        token = Doorkeeper::AccessToken.find_by(refresh_token: refresh_token_param)
+          if token && !token.revoked? && !token.expired?
+            # Resolve resource owner (user) from token
+            owner = User.find_by(id: token.resource_owner_id)
+            unless owner
+              Rails.logger.error "[API Auth#refresh] Token owner not found for token id=#{token.id} owner_id=#{token.resource_owner_id}"
+              render json: { error: "invalid_refresh_token", message: "Refresh token is invalid or expired" }, status: :unauthorized and return
+            end
 
-        if token && !token.revoked? && !token.expired?
-          # Create new tokens
-          new_token = create_oauth_token(token.resource_owner)
+            # Create new tokens
+            new_token = create_oauth_token(owner)
 
-          if new_token
-            # Revoke old token
-            token.revoke
+            if new_token
+              # Copy profile cache from old token to new token so client keeps selected profile after refresh
+              begin
+                old_profile_id = Rails.cache.read("profile_#{token.token}")
+                if old_profile_id.present?
+                  Rails.cache.write("profile_#{new_token.token}", old_profile_id, expires_in: 24.hours)
+                end
+              rescue => e
+                Rails.logger.error "[API Auth#refresh] Failed to copy profile cache: #{e.class} - #{e.message}"
+              end
 
-            render json: {
-              access_token: new_token.token,
-              refresh_token: new_token.refresh_token,
-              token_type: "Bearer",
-              expires_in: new_token.expires_in,
-              created_at: new_token.created_at
-            }, status: :ok
+              # Revoke old token
+              token.revoke
+
+              render json: {
+                access_token: new_token.token,
+                refresh_token: new_token.refresh_token,
+                token_type: "Bearer",
+                expires_in: new_token.expires_in,
+                created_at: new_token.created_at
+              }, status: :ok
+            else
+              render json: {
+                error: "token_creation_failed",
+                message: "Failed to create new token"
+              }, status: :internal_server_error
+            end
           else
             render json: {
-              error: "token_creation_failed",
-              message: "Failed to create new token"
-            }, status: :internal_server_error
+              error: "invalid_refresh_token",
+              message: "Refresh token is invalid or expired"
+            }, status: :unauthorized
           end
-        else
-          render json: {
-            error: "invalid_refresh_token",
-            message: "Refresh token is invalid or expired"
-          }, status: :unauthorized
+        rescue => e
+          Rails.logger.error "[API Auth#refresh] Exception: #{e.class} - #{e.message}\n#{e.backtrace.join("\n")}"
+          render json: { error: 'internal_error', message: 'Internal server error' }, status: :internal_server_error
         end
       end
 
@@ -265,7 +286,7 @@ module Api
           use_refresh_token: true
         )
       rescue => e
-        Rails.logger.error "[API Auth] Failed to create token: #{e.message}"
+        Rails.logger.error "[API Auth] Failed to create token: #{e.class} - #{e.message}\n#{e.backtrace.join("\n")}"
         nil
       end
 

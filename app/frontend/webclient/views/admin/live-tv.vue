@@ -66,7 +66,13 @@
                     </label>
                     <label class="live-tv-admin__field">
                         <span>XMLTV Channel ID</span>
-                        <input v-model="channelForm.xmltv_channel_id" type="text" />
+                        <div style="display:flex;gap:.5rem;align-items:center;">
+                            <input v-model="channelForm.xmltv_channel_id" type="text" readonly />
+                            <div style="display:flex;gap:.25rem;">
+                                <c-button type="button" @click="openXmltvSelector">Buscar</c-button>
+                                <c-button type="button" @click="channelForm.xmltv_channel_id = ''">Limpiar</c-button>
+                            </div>
+                        </div>
                     </label>
                     <label class="live-tv-admin__field">
                         <span>Posicion</span>
@@ -205,6 +211,8 @@
                 </article>
             </div>
         </section>
+
+        <SelectXmltvChannelModal ref="xmltvModal" :sources="sources" @selected="onXmltvSelected" />
     </div>
 </template>
 
@@ -214,6 +222,7 @@ import draggable from 'vuedraggable';
 import { toast } from 'vue3-toastify';
 import { PlusIcon, PencilIcon, Trash2Icon } from 'lucide-vue-next';
 import { ajax } from '../../lib/Ajax';
+import SelectXmltvChannelModal from '../../components/modals/select-xmltv-channel.modal.vue'
 
 const streamFormats = ['hls', 'dash', 'rtmp', 'external'];
 
@@ -230,6 +239,7 @@ const showSourceForm = ref(false);
 
 const channelForm = ref(defaultChannelForm());
 const sourceForm = ref(defaultSourceForm());
+const xmltvModal = ref(null);
 
 const activeChannelsCount = computed(() => channels.value.filter((channel) => channel.is_active).length);
 const activeSourcesCount = computed(() => sources.value.filter((source) => source.is_active).length);
@@ -280,6 +290,14 @@ function editChannel(channel) {
 function resetChannelForm() {
     showChannelForm.value = false;
     channelForm.value = defaultChannelForm();
+}
+
+function openXmltvSelector() {
+    xmltvModal.value?.openWith({ sourceId: sources.value?.[0]?.id, initialXmltvId: channelForm.value.xmltv_channel_id })
+}
+
+function onXmltvSelected(id) {
+    channelForm.value.xmltv_channel_id = id
 }
 
 function startCreateSource() {

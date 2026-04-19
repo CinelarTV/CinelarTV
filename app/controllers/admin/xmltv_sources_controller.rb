@@ -2,7 +2,7 @@
 
 module Admin
   class XmltvSourcesController < Admin::BaseController
-    before_action :set_source, only: [:update, :destroy, :fetch]
+    before_action :set_source, only: [:update, :destroy, :fetch, :channels]
 
     def index
       @sources = XmltvSource.order(:created_at)
@@ -64,6 +64,48 @@ module Admin
       respond_to do |format|
         format.html { redirect_to admin_xmltv_sources_path, notice: "XMLTV fetch job queued." }
         format.json { render json: { message: "XMLTV fetch job queued" } }
+      end
+    end
+
+    # Returns parsed channel list for the given XMLTV source.
+    # Supports optional params: q (query), page, per_page, fetch (bool to re-fetch remote XML)
+    def channels
+      if params[:fetch].present?
+        @source.fetch
+      end
+
+      xml = @source.raw_xml.to_s
+      channel_list = []
+
+      if xml.present?
+        begin
+          doc = Nokogiri::XML(xml)
+          channel_list = doc.css('channel').map do |ch|
+            {
+              id: ch['id'],
+              display_name: ch.at('display-name')&.text,
+              icon: ch.at('icon')&.attr('src')
+            }
+          end
+        rescue StandardError => e
+          Rails.logger.error("Failed to parse XMLTV channels: #{e.message}")
+        end
+      end
+
+      if params[:q].present?
+        q = params[:q].to_s.downcase
+        channel_list.select! do |c|
+          (c[:display_name].to_s.downcase.include?(q)) || (c[:id].to_s.downcase.include?(q))
+        end
+      end
+
+      total = channel_list.size
+      page = [params[:page].to_i, 1].max
+      per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 20
+      paginated = channel_list.slice((page - 1) * per_page, per_page) || []
+
+      respond_to do |format|
+        format.json { render json: { channels: paginated, total: total, page: page, per_page: per_page } }
       end
     end
 

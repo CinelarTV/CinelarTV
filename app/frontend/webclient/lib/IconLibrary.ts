@@ -15,7 +15,7 @@ const BASE_ICONS = new Set([
     "loader", "logOut", "pause", "maximize", "minimize", "play", "frown", "fastForward",
     "playCircle", "playSquare", "plus", "rotateCcw", "rotateCw", "search", "settings",
     "shieldQuestion", "sparkles", "thumbsUp", "user", "wrench", "x", "hardDrive",
-    "circleDollarSign", "brush", "testTube2", "code2", "cpu", "star", "satelliteDish",
+    "circleDollarSign", "brush", "testTube2", "telescope", "code2", "cpu", "star", "satelliteDish",
     "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2",
     "volumeX", "home", "packageOpen", "webhook", "cast", "shrink", "messageCircleMore",
     "messageCircleOff"

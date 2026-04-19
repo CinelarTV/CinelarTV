@@ -6,7 +6,7 @@ import CIcon from "./c-icon.vue";
 import { RouterLink } from "vue-router";
 
 const headerItems = [
-    { to: '/', title: 'Explorar', icon: 'compass', showItem: true },
+    { to: '/', title: 'Explorar', icon: 'telescope', showItem: true },
     { to: '/search', title: 'Buscar', icon: 'search', showItem: true },
     { to: '/collections', title: 'Mi Colección', icon: 'bookmark', showItem: true },
 ];

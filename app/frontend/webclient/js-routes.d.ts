@@ -484,6 +484,18 @@ export const capybaraPath: ((
 
 /**
  * Generates rails route to
+ * /admin/xmltv_sources/:id/channels(.:format)
+ * @param {any} id
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const channelsAdminXmltvSourcePath: ((
+  id: RequiredRouteParameter,
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
  * /c/:id(.:format)
  * @param {any} id
  * @param {object | undefined} options
