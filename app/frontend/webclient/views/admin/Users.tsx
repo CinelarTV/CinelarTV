@@ -1,8 +1,10 @@
-import { defineComponent, ref, onMounted, watch, nextTick } from 'vue';
+import { defineComponent, ref, onMounted, watch, nextTick, inject } from 'vue';
 import { useHead } from 'unhead';
 import { useRouter } from 'vue-router';
 import { ajax } from '../../lib/Ajax';
 import CInput from "@/components/forms/c-input.vue";
+import CButton from '@/components/forms/c-button';
+import CreateUserModal from '../../components/modals/create-user.modal.vue';
 
 interface User {
     id: number;
@@ -25,7 +27,8 @@ export default defineComponent({
         const searchTimeout = ref<number | null>(null);
         const containerRef = ref<HTMLElement | null>(null);
         const router = useRouter();
-        const dialogRef = ref<HTMLDialogElement | null>(null);
+        const createUserModal = ref<any>(null);
+        const SiteSettings = inject<any>('SiteSettings');
 
         const getUsers = async (reset = false) => {
             if (loading.value || (!hasMore.value && !reset)) return;
@@ -88,40 +91,12 @@ export default defineComponent({
 
         useHead({ title: 'Manage Users' });
 
-        const showCreate = ref(false);
-        const createForm = ref({ email: '', username: '', password: '' });
-        const createLoading = ref(false);
-        const createError = ref<string | null>(null);
-
         const openCreate = () => {
-            showCreate.value = true;
-            createForm.value = { email: '', username: '', password: '' };
-            createError.value = null;
-            nextTick(() => {
-                dialogRef.value?.showModal();
-            });
+            nextTick(() => createUserModal.value?.setIsOpen(true));
         };
-        const closeCreate = () => {
-            showCreate.value = false;
-            createError.value = null;
-            dialogRef.value?.close();
-        };
-        const createUser = async () => {
-            createLoading.value = true;
-            createError.value = null;
-            try {
-                const res = await ajax.post('/admin/users/create_user', { user: createForm.value });
-                if (res.data?.data?.id) {
-                    users.value.unshift(res.data.data);
-                    closeCreate();
-                } else if (res.data?.data) {
-                    createError.value = Object.values(res.data.data).join(', ');
-                }
-            } catch (e: any) {
-                createError.value = e?.response?.data?.error || 'Error al crear usuario';
-            } finally {
-                createLoading.value = false;
-            }
+
+        const handleUserCreated = (user: User) => {
+            users.value.unshift(user);
         };
 
         return () => (
@@ -134,41 +109,41 @@ export default defineComponent({
                             placeholder="Buscar usuario por email o username..."
                             class="w-full"
                         />
-                        <button class="btn btn-primary px-4 py-2 rounded font-semibold" onClick={openCreate}>
-                            Crear usuario
-                        </button>
+                        {SiteSettings?.allow_admin_to_create_users && (
+                            <CButton icon="plus" onClick={openCreate}>Crear usuario</CButton>
+                        )}
                     </div>
                 </div>
-                <div class="panel-body" style="height: 70vh; overflow-y: auto;" ref={containerRef}>
-                    <div class="table-responsive rounded-lg overflow-hidden shadow border border-gray-800 bg-[#18181b]">
-                        <table class="min-w-full bg-[#18181b] text-sm text-gray-100">
-                            <thead class="bg-[#23232a] sticky top-0 z-10">
+                <div class="panel-body max-h-[70vh] overflow-y-auto" ref={containerRef}>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left admin-table text-sm">
+                            <thead class="sticky top-0 z-10">
                                 <tr>
-                                    <th class="px-6 py-3 text-left font-semibold text-gray-200">Email</th>
-                                    <th class="px-6 py-3 text-left font-semibold text-gray-200">Username</th>
-                                    <th class="px-6 py-3 text-left font-semibold text-gray-200">Role</th>
-                                    <th class="px-6 py-3 text-center font-semibold text-gray-200">Actions</th>
+                                    <th>Email</th>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.value.map((user, idx) => (
-                                    <tr key={user.id} class={idx % 2 === 0 ? "bg-[#18181b]" : "bg-[#23232a] hover:bg-blue-900/40 transition"}>
-                                        <td class="px-6 py-3 whitespace-nowrap text-gray-100">{user.email}</td>
-                                        <td class="px-6 py-3 whitespace-nowrap text-gray-100">{user.username}</td>
-                                        <td class="px-6 py-3 whitespace-nowrap text-gray-300">{user.role || '-'}</td>
-                                        <td class="px-6 py-3 text-center">
-                                            <button class="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white font-semibold shadow-sm transition text-xs" onClick={() => deleteUser(user.id)}>
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                                Eliminar
-                                            </button>
+                                {users.value.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            <a class="text-blue-600 hover:underline cursor-pointer" onClick={() => router.push(`/admin/users/${user.id}`)}>{user.username}</a>
+                                        </td>
+                                        <td>{user.role || '-'}</td>
+                                        <td class="text-center">
+                                            <CButton type="danger" icon="trash2" onClick={() => deleteUser(user.id)}>Eliminar</CButton>
                                         </td>
                                     </tr>
                                 ))}
                                 {loading.value && (
-                                    <tr><td colspan={4} class="text-center py-6 text-gray-400">Cargando...</td></tr>
+                                    <tr><td colSpan={4} class="text-center py-6 text-gray-400">Cargando...</td></tr>
                                 )}
                             </tbody>
                         </table>
+
                         {!loading.value && users.value.length === 0 && (
                             <div class="text-center py-8 text-gray-500">No hay usuarios.</div>
                         )}
@@ -177,37 +152,7 @@ export default defineComponent({
                         )}
                     </div>
                 </div>
-                {showCreate.value && (
-                    <dialog ref={dialogRef} class="rounded-lg shadow-lg p-0 w-full max-w-md bg-[#23232a] border border-gray-700" onClose={closeCreate}>
-                        <form method="dialog" class="p-8 relative" onSubmit={e => { e.preventDefault(); createUser(); }}>
-                            <button type="button" class="absolute top-2 right-2 text-gray-400 hover:text-white" onClick={closeCreate}>
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                            <h3 class="text-xl font-bold mb-4 text-white">Crear usuario</h3>
-                            <div class="mb-4">
-                                <label class="block text-gray-300 mb-1">Email</label>
-                                <CInput v-model={createForm.value.email} placeholder="Email" class="w-full" />
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-gray-300 mb-1">Username</label>
-                                <CInput v-model={createForm.value.username} placeholder="Username" class="w-full" />
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-gray-300 mb-1">Contraseña</label>
-                                <CInput v-model={createForm.value.password} placeholder="Contraseña" class="w-full" />
-                            </div>
-                            {createError.value && <div class="text-red-500 mb-2">{createError.value}</div>}
-                            <div class="flex gap-2 mt-4">
-                                <button type="submit" class="btn btn-primary px-4 py-2 rounded font-semibold" disabled={createLoading.value}>
-                                    {createLoading.value ? 'Creando...' : 'Crear'}
-                                </button>
-                                <button type="button" class="btn btn-secondary px-4 py-2 rounded font-semibold" onClick={closeCreate}>
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    </dialog>
-                )}
+                <CreateUserModal ref={createUserModal} onCreated={handleUserCreated} />
             </div>
         );
     }

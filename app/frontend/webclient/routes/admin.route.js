@@ -35,6 +35,14 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.user.detail',
+            path: 'users/:id',
+            component: () => import('../views/admin/UserDetail.tsx'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.subscriptions',
             path: 'subscriptions',
             component: () => import('../views/admin/subscriptions.vue'),

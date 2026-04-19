@@ -6,7 +6,7 @@
         <cinelar-main
             :class="{ 'with-header-offset': $route.meta.showHeader !== false, 'with-mobile-bottom-nav': showMobileBottomNav }">
             <SiteBanner />
-            <router-view v-slot="{ Component, route }" :key="route.fullPath">
+            <router-view v-slot="{ Component, route }">
                 <transition :name="route.meta.transition">
                     <component :is="Component" />
                 </transition>

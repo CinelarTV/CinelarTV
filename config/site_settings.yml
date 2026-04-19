@@ -67,6 +67,12 @@ security:
     default: false
     hidden: true
     type: 'boolean'  
+  hard_delete_users:
+    client: true
+    refresh: true
+    default: false
+    hidden: true
+    type: 'boolean'
   enable_cors:
     client: true
     refresh: true

@@ -48,6 +48,15 @@ namespace :admin do
 
   # User Management related routes
   get "/users", to: "users#index"
+  # Serve SPA for HTML requests to user detail; API JSON handled below
+  get "/users/:id", to: "dashboard#index", constraints: ->(req) { req.format.html? }
+  get "/users/:id", to: "users#show", defaults: { format: 'json' }
+  post "/users/create_user", to: "users#create_user", defaults: { format: 'json' }
+  post "/users/:id/suspend", to: "users#suspend", defaults: { format: 'json' }
+  post "/users/:id/unsuspend", to: "users#unsuspend", defaults: { format: 'json' }
+  post "/users/:id/deactivate", to: "users#deactivate", defaults: { format: 'json' }
+  post "/users/:id/activate", to: "users#activate", defaults: { format: 'json' }
+  #delete "/users/:id", to: "users#destroy", defaults: { format: 'json' }
 
   # Custom Pages related routes
   get "/custom-pages", to: "custom_pages#index"

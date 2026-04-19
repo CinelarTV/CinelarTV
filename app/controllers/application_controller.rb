@@ -19,6 +19,7 @@ class ApplicationController < ActionController::Base
   end
 
   before_action :check_profile_if_signed_in
+  before_action :ensure_account_active
 
   def index; end
 
@@ -93,6 +94,43 @@ class ApplicationController < ActionController::Base
     return unless user_signed_in? && !current_profile
 
     redirect_to "/profiles/select"
+  end
+
+  def ensure_account_active
+    return unless current_user
+
+    if current_user.deactivated?
+      handle_inactive_account(:deactivated)
+      return false
+    end
+
+    if current_user.suspended?
+      handle_inactive_account(:suspended)
+      return false
+    end
+
+    true
+  end
+
+  def handle_inactive_account(type)
+    if request.format.json? || request.xhr? || using_doorkeeper?
+      message = if type == :deactivated
+                  "La cuenta ha sido desactivada. Contacta con soporte."
+                else
+                  suspension_message
+                end
+      render json: { error: (type == :deactivated ? 'account_deactivated' : 'account_suspended'), message: message }, status: :forbidden
+    else
+      sign_out(current_user) if defined?(sign_out)
+      redirect_to "/", alert: (type == :deactivated ? 'Tu cuenta ha sido desactivada.' : 'Tu cuenta está suspendida.')
+    end
+  end
+
+  def suspension_message
+    return 'Tu cuenta ha sido suspendida indefinidamente.' if current_user.suspended_indefinitely?
+    return "Tu cuenta está suspendida hasta #{I18n.l(current_user.suspended_until)}." if current_user.suspended_temporary?
+
+    'Tu cuenta está suspendida.'
   end
 
   def require_finish_installation?

@@ -47,8 +47,11 @@ export default defineComponent({
           user: { email: email.value, password: password.value, remember_me: true },
         })
         window.location.reload()
-      } catch {
-        errorMessage.value = 'Invalid credentials. Please try again.'
+      } catch (error: any) {
+        /* {
+    "error": "Translation missing. Options considered were:\n- es.devise.failure.user.account_suspended\n- es.devise.failure.account_suspended"
+} */
+        errorMessage.value = error.response?.data?.error || 'Login failed. Please check your credentials and try again.'
       } finally {
         loading.value = false
       }

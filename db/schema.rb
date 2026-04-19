@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_16_095000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_19_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -333,8 +333,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_16_095000) do
     t.datetime "last_sign_in_at"
     t.string "current_sign_in_ip"
     t.string "last_sign_in_ip"
+    t.boolean "suspended", default: false, null: false
+    t.datetime "suspended_until"
+    t.text "suspended_reason"
+    t.uuid "suspended_by_id"
+    t.datetime "deactivated_at"
+    t.text "deactivated_reason"
+    t.uuid "deactivated_by_id"
+    t.index ["deactivated_at"], name: "index_users_on_deactivated_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["suspended_until"], name: "index_users_on_suspended_until"
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 

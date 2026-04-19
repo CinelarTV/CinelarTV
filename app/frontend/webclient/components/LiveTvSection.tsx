@@ -335,11 +335,10 @@ export default defineComponent({
 
                                             <div class="live-tv-rail__meta p-2.5">
                                                 <p class="truncate text-xs font-semibold text-white">{channel.name}</p>
-                                                {channel.current_program && (
-                                                    <p class="mt-0.5 line-clamp-1 text-[10px] text-white/50">
-                                                        {channel.current_program.title}
-                                                    </p>
-                                                )}
+                                                <p class="mt-0.5 line-clamp-1 text-[10px] text-white/50">
+                                                    {channel.current_program?.title || 'Programación no disponible'}
+                                                </p>
+
                                             </div>
 
                                             <div class="live-tv-rail__preview">

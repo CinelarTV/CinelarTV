@@ -819,6 +819,41 @@ body.is-mobile {
     border-color: rgba(255, 120, 120, 0.32);
 }
 
+/* Global admin table styles (shared) */
+.admin-table {
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+    width: 100%;
+}
+
+.admin-table thead th {
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: var(--c-primary-100);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+    background: transparent;
+}
+
+.admin-table td {
+    padding: 0.9rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-table tr:hover td {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-table tbody tr td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.admin-table tbody tr td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
 .live-tv-admin__source-list {
     display: flex;
     flex-direction: column;

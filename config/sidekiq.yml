@@ -26,3 +26,8 @@
       class: MediaScannerJob
       queue: 'default'
       description: 'Daily check for media integrity (broken links)'
+    unsuspend_expired_users:
+      every: '1d'
+      class: UnsuspendExpiredUsersJob
+      queue: 'default'
+      description: 'Unsuspend users whose suspended_until passed'
