@@ -15,7 +15,6 @@ es:
     memory_warning: "El servidor se está ejecutando con menos de 1 GB de RAM. CinelarTV recomienda al menos 1 GB de memoria para funcionar correctamente."
     sidekiq_warning: "Sidekiq no se está ejecutando. Sidekiq ejecuta muchas tareas de forma asíncrona, como enviar correos electrónicos o procesar recomendaciones. Asegúrese de que se esté ejecutando al menos un proceso de Sidekiq. <a href='https://github.com/mperham/sidekiq' target='_blank'>Obtén más información sobre Sidekiq aquí. </a>"
     updates_available: "Parece que hay actualizaciones disponibles para CinelarTV. <a href='/admin/updates'>Haga clic aquí para actualizar. </a>"
-    broken_media_warning: "Se han detectado %{count} medios con problemas de integridad. Puedes revisarlos en el <a href='/admin/content-manager/media-integrity'>Panel de Integridad</a>."
   js:
     admin:
       actions:
@@ -39,7 +38,6 @@ es:
           all_content: "Todo el contenido"
           categories: "Categorías"
           episodes: "Episodios"
-          media_integrity: "Integridad de medios"
           movies: "Películas"
           seasons: "Temporadas"
           series: "Series"
@@ -93,7 +91,6 @@ es:
           experimental: "Experimental"
           general: "General"
           live_tv: "Televisión en vivo"
-          maintenance: "Mantenimiento"
           monetization: "Monetización"
           player: "Reproductor"
           plugins: "Plugins"
@@ -155,18 +152,6 @@ es:
         enable_mercado_pago_provider:
           description: "Enable Mercado Pago as a subscription provider"
           title: "Enable Mercado Pago provider"
-        enable_media_checker:
-          description: "Activa el verificador de integridad de medios. Revisará periódicamente si tus fuentes de video (links externos) están funcionando correctamente."
-          title: "Activar Media Checker"
-        media_checker_failure_threshold:
-          description: "Número de veces que un medio puede fallar consecutivamente antes de ser marcado como 'roto'."
-          title: "Umbral de fallos del Media Checker"
-        media_checker_timeout:
-          description: "Tiempo máximo (en segundos) que el sistema esperará una respuesta del servidor remoto."
-          title: "Timeout del Media Checker"
-        media_checker_batch_size:
-          description: "Cantidad de medios que se revisarán en cada ejecución del job."
-          title: "Tamaño de lote del Media Checker"
         enable_metadata_recommendation:
           description: "Permite obtener metadatos de TheMovieDB al momento de añadir un nuevo contenido, esto te ayudará a rellenar los campos del contenido automáticamente"
           title: "Habilitar la recomendación de metadatos"

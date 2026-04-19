@@ -11,14 +11,6 @@ en:
             name:
               blank: "Name cannot be blank"
               too_short: "Name is too short, it must be at least %{count} characters"
-  devise:
-    failure:
-      account_suspended: "Your account has been suspended. Please contact support for more information."
-      invalid: "Invalid email or password."
-      locked: "Your account is locked."
-      timeout: "Your session has expired. Please sign in again to continue."
-      unauthenticated: "You need to sign in or sign up before continuing."
-      unconfirmed: "You have to confirm your email address before continuing."
   dashboard:
     memory_warning: "Your server is running with less than 1 GB of total memory. CinelarTV recommends at least 1 GB of memory to run properly."
     sidekiq_warning: "Sidekiq is not running. Many tasks, like sending emails or processing recommendations, are executed asynchronously by Sidekiq. Please ensure at least one Sidekiq process is running. <a href='https://github.com/mperham/sidekiq' target='_blank'>Learn about Sidekiq here</a>."
