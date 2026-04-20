@@ -14,8 +14,8 @@ class XmltvParseJob
     return unless xml_data
 
     Rails.logger.info "Parsing XMLTV from: #{source.name}"
-    programs_count = source.parse(xml_data)
-    Rails.logger.info "Parsed #{programs_count} programs from: #{source.name}"
+    result = source.parse(xml_data)
+    Rails.logger.info "Parsed #{result[:programs_count]} programs from: #{source.name} for channels: #{result[:channels].to_sentence}"
   rescue ActiveRecord::RecordNotFound
     Rails.logger.error "XmltvSource with ID #{xmltv_source_id} not found"
   rescue StandardError => e

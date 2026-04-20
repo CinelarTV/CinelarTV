@@ -342,6 +342,16 @@ export const adminUsersPath: ((
 
 /**
  * Generates rails route to
+ * /admin/users/create_user(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminUsersCreateUserPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
  * /admin/video_sources/broken(.:format)
  * @param {object | undefined} options
  * @returns {string} route path

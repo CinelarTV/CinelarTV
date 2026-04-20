@@ -1,17 +1,19 @@
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref, provide } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref, provide, watch, nextTick } from 'vue';
+
 import { useSiteSettings } from '@/app/services/site-settings';
+
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
+
 import { ajax } from "@/lib/Ajax";
+
 import { useHead } from "unhead";
+
 import { toast } from "vue-sonner";
+
 import { getGoogleDriveVideoInfo } from "@/app/utils/GoogleDriveParser";
 
-/* import 'vidstack/player';
-import 'vidstack/player/ui';
-import { MediaPlayer } from "vidstack"; */
 import { defineCustomElement, MediaTitleElement, MediaSpinnerElement, MediaQualityRadioGroupElement } from "vidstack/elements";
 import 'vidstack/bundle';
-
 
 import CSpinner from "@/components/c-spinner";
 import CIcon from "@/components/c-icon.vue";
@@ -23,6 +25,9 @@ import PlayerTopControls from "@/components/videoplayer/PlayerTopControls";
 import { useContinueWatching } from "@/composables/useContinueWatching";
 import { AxiosError } from "axios";
 import PluginOutlet from "@/components/PluginOutlet";
+import { MediaPlayer } from "vidstack";
+import PlayerSkipButton from "@/components/videoplayer/PlayerSkipButton";
+import PlayerNextEpisode from "@/components/videoplayer/PlayerNextEpisode";
 
 const DEFAULT_STREAM_PING_INTERVAL_MS = 10_000;
 const STREAM_LIMIT_ERROR_MESSAGE = 'Has alcanzado el número máximo de transmisiones simultáneas.';
@@ -75,7 +80,6 @@ function processVideoSources(sources, enableGoogleDriveParser) {
 
 function handleFetchError(response: AxiosError['response']['data']) {
     const responseData = response as any;
-    console.log({ responseData });
     const errorType =
         responseData?.errors?.[0]?.error_type ||
         responseData?.error_type;
@@ -104,11 +108,12 @@ export default defineComponent({
         const { siteSettings } = useSiteSettings();
         const route = useRoute();
         const { replace: replaceRoute } = useRouter();
-        const { contentId, episodeId } = route.params as { contentId: string; episodeId?: string };
+        const contentId = computed(() => route.params.contentId as string);
+        const episodeId = computed(() => route.params.episodeId as string | undefined);
 
-        // Provide contentId for plugins (like WatchParty)
+        // Provide reactivo
         provide('playerContentId', contentId);
-        provide('playerEpisodeId', episodeId || null);
+        provide('playerEpisodeId', episodeId);
 
         const watchData = ref<any>(null);
         const streamLimitError = ref<string | null>(null);
@@ -121,17 +126,45 @@ export default defineComponent({
         const sources = ref<{ src: string; type: string }[]>([]);
         const streamPingToken = ref<string | null>(null);
         let pingInterval: ReturnType<typeof setInterval> | null = null;
-        const STREAM_PING_INTERVAL_MS = DEFAULT_STREAM_PING_INTERVAL_MS;
 
-        const storageKey = (episodeIdParam?: string) => `cinelar_stream_session:${contentId}:${episodeIdParam || episodeId || 'movie'}`;
+        const currentTime = ref(0);
+        const playerDuration = ref(0);
+
+        const segments = computed(() =>
+            watchData.value?.episode?.segments || watchData.value?.content?.segments || []
+        );
+
+        const nextEpisode = computed(() => {
+            if (!isShow.value || !watchData.value?.season?.episodes) return null;
+            const currentEpisodeId = watchData.value?.episode?.id;
+            const episodes = watchData.value.season.episodes;
+            const currentIndex = episodes.findIndex(ep => ep.id === currentEpisodeId);
+            if (currentIndex === -1 || currentIndex >= episodes.length - 1) return null;
+            return episodes[currentIndex + 1];
+        });
+
+        const handleSkipSegment = (endTime: number) => {
+            if (videoPlayer.value) videoPlayer.value.currentTime = endTime;
+        };
+
+        const handleNextEpisode = () => {
+            if (nextEpisode.value) {
+                stopStreamPing();
+                replaceRoute(`/watch/${contentId.value}/${nextEpisode.value.id}`);
+            }
+        };
+
+        // ---------- Session helpers ----------
+        const storageKey = (epId?: string) =>
+            `cinelar_stream_session:${contentId.value}:${epId || episodeId.value || 'movie'}`;
 
         const getStoredSessionToken = (): string | null => {
             if (typeof window === 'undefined') return null;
             const token = window.sessionStorage.getItem(storageKey());
             if (token) return token;
 
-            if (!episodeId) {
-                const prefix = `cinelar_stream_session:${contentId}:`;
+            if (!episodeId.value) {
+                const prefix = `cinelar_stream_session:${contentId.value}:`;
                 for (let i = 0; i < window.sessionStorage.length; i++) {
                     const key = window.sessionStorage.key(i);
                     if (key?.startsWith(prefix)) {
@@ -140,21 +173,13 @@ export default defineComponent({
                     }
                 }
             }
-
             return null;
         };
 
-        const saveSessionToken = (token: string, episodeIdParam?: string) => {
+        const saveSessionToken = (token: string, epId?: string) => {
             if (typeof window === 'undefined' || !token) return;
-            window.sessionStorage.setItem(storageKey(episodeIdParam), token);
+            window.sessionStorage.setItem(storageKey(epId), token);
             streamPingToken.value = token;
-        };
-
-        const saveSessionTokenForRedirect = (token: string, targetEpisodeId?: string) => {
-            saveSessionToken(token);
-            if (!episodeId && targetEpisodeId) {
-                saveSessionToken(token, targetEpisodeId);
-            }
         };
 
         const clearSessionToken = () => {
@@ -164,11 +189,14 @@ export default defineComponent({
         };
 
         const watchUrl = () => {
-            const base = episodeId ? `/watch/${contentId}/${episodeId}.json` : `/watch/${contentId}.json`;
+            const base = episodeId.value
+                ? `/watch/${contentId.value}/${episodeId.value}.json`
+                : `/watch/${contentId.value}.json`;
             const token = getStoredSessionToken();
             return token ? `${base}?deviceSessionToken=${encodeURIComponent(token)}` : base;
         };
 
+        // ---------- Stream ping ----------
         const stopStreamPing = () => {
             if (pingInterval) {
                 clearInterval(pingInterval);
@@ -187,40 +215,86 @@ export default defineComponent({
         const startStreamPing = (sessionId: string) => {
             if (!sessionId) return;
             stopStreamPing();
-            pingInterval = setInterval(() => pingStreamSession(sessionId), STREAM_PING_INTERVAL_MS);
+            pingInterval = setInterval(() => pingStreamSession(sessionId), DEFAULT_STREAM_PING_INTERVAL_MS);
             streamPingToken.value = sessionId;
         };
 
-        const { updateProgress } = useContinueWatching({ contentId, episodeId });
+        // ---------- useContinueWatching reactivo ----------
+        // Se recrea cada vez que cambia contentId o episodeId
+        let updateProgress: ReturnType<typeof useContinueWatching>['updateProgress'];
 
+        const initContinueWatching = () => {
+            const cw = useContinueWatching({
+                contentId: contentId.value,
+                episodeId: episodeId.value
+            });
+            updateProgress = cw.updateProgress;
+        };
+
+        // ---------- Player subscription ----------
+        let unsubscribePlayer: (() => void) | null = null;
+
+        const setupPlayerSubscription = (player: MediaPlayer) => {
+            unsubscribePlayer?.();
+            unsubscribePlayer = player.subscribe(({ paused, playing, currentTime: time }) => {
+                if (paused || !playing) return;
+                updateProgress(time, player.duration || 0);
+                currentTime.value = time;
+                playerDuration.value = player.duration || 0;
+            });
+
+            player.addEventListener('fullscreenchange', () => {
+                isOnFullscreen.value = !!document.fullscreenElement;
+            });
+        };
+
+        // Re-suscribirse cada vez que el player se remonta (key cambia con episodio)
+        watch(videoPlayer, (player) => {
+            if (!player) return;
+            setupPlayerSubscription(player);
+
+            // Restaurar progreso de continue watching tras remonte del player
+            const progress = watchData.value?.continue_watching?.progress;
+            if (progress) player.currentTime = progress;
+        });
+
+        // ---------- fetchData ----------
         async function fetchData() {
             stopStreamPing();
+            initContinueWatching();
+
             try {
-                const url = watchUrl();
-                const { data } = await ajax.get(url);
+                const { data } = await ajax.get(watchUrl());
                 const contentData = data.data;
                 watchData.value = contentData;
                 streamLimitError.value = null;
                 streamLimitSessions.value = [];
 
                 if (contentData.deviceSessionToken) {
-                    const redirectEpisodeId = !episodeId
+                    const redirectEpisodeId = !episodeId.value
                         ? contentData.episode?.id || contentData.season?.episodes?.[0]?.id
                         : undefined;
-
-                    saveSessionTokenForRedirect(contentData.deviceSessionToken, redirectEpisodeId);
+                    saveSessionToken(contentData.deviceSessionToken);
+                    if (redirectEpisodeId) saveSessionToken(contentData.deviceSessionToken, redirectEpisodeId);
                     startStreamPing(contentData.deviceSessionToken);
                 } else {
                     clearSessionToken();
                 }
 
-                if (shouldRedirect(contentData, isShow.value, episodeId, contentId, replaceRoute)) return;
+                if (shouldRedirect(contentData, isShow.value, episodeId.value, contentId.value, replaceRoute)) return;
 
                 if (contentData.sources?.length) {
                     sources.value = processVideoSources(contentData.sources, siteSettings?.enable_google_drive_parser);
                 }
 
                 useHead({ title: contentData.content?.title });
+
+                // Restaurar progreso una vez que el player esté disponible
+                const progress = contentData.continue_watching?.progress;
+                if (progress) {
+                    await nextTick();
+                    if (videoPlayer.value) videoPlayer.value.currentTime = progress;
+                }
             } catch (error) {
                 const responseData = error?.response?.data || error;
 
@@ -232,59 +306,27 @@ export default defineComponent({
                 }
 
                 const action = handleFetchError(responseData);
-                if (action === 'redirect') {
-                    backToContent();
-                }
+                if (action === 'redirect') backToContent();
             }
         }
 
-        /* 
-            Mientras esté en este componente
-            El body debe tener la clase video-player
-            para aplicar estilos específicos
-        */
-
-
+        watch([() => route.params.contentId, () => route.params.episodeId], fetchData);
 
         onMounted(async () => {
             document.body.classList.add('video-player');
-
             await fetchData();
-
-            const player = videoPlayer.value;
-            if (!player) return;
-
-            player.addEventListener('fullscreenchange', () => {
-                isOnFullscreen.value = !!document.fullscreenElement;
-            });
-
-            if (watchData.value?.continue_watching?.progress) {
-                player.currentTime = watchData.value.continue_watching.progress;
-            }
-
-            const unsubscribeCurrentTime = player.subscribe(({ paused, playing, currentTime }) => {
-                if (paused || !playing) return;
-                updateProgress(currentTime, player.duration || 0);
-            });
-
-            return () => {
-                unsubscribeCurrentTime();
-            };
-
-
-
         });
 
         onBeforeUnmount(() => {
             document.body.classList.remove('video-player');
             stopStreamPing();
+            unsubscribePlayer?.();
         });
 
-
         const backToContent = () => {
-            if (!contentId) return;
+            if (!contentId.value) return;
             if (isOnFullscreen.value) document.exitFullscreen();
-            replaceRoute({ name: "content.show", params: { id: contentId } });
+            replaceRoute({ name: "content.show", params: { id: contentId.value } });
         };
 
         // ---------- Render ----------
@@ -316,9 +358,7 @@ export default defineComponent({
                             )}
 
                             <div class="stream-limit-actions">
-                                <CButton onClick={backToContent}>
-                                    Volver al contenido
-                                </CButton>
+                                <CButton onClick={backToContent}>Volver al contenido</CButton>
                             </div>
                         </div>
                     </div>
@@ -340,6 +380,7 @@ export default defineComponent({
             return (
                 <div class="video-container">
                     <media-player
+                        key={`player-${contentId.value}-${episodeId.value || 'movie'}`}
                         ref={videoPlayer}
                         class="video-shell w-full h-full min-w-0 min-h-0"
                         autoplay
@@ -375,6 +416,8 @@ export default defineComponent({
                                 googleCastEnabled={googleCastEnabled.value}
                                 backToContent={backToContent}
                                 content={watchData.value}
+                                currentTime={currentTime.value}
+                                isAdmin={true}
                             />
                             <div class="flex-1"></div>
                             <media-controls-group class="pointer-events-auto flex w-full justify-center items-center px-2">
@@ -399,6 +442,23 @@ export default defineComponent({
                             </media-controls-group>
                         </media-controls>
                     </media-player>
+
+                    <PlayerSkipButton
+                        segments={segments.value}
+                        currentTime={currentTime.value}
+                        onSkip={handleSkipSegment}
+                    />
+
+                    <PlayerNextEpisode
+                        key={`next-ep-${episodeId.value || 'movie'}`}
+                        segments={segments.value}
+                        currentTime={currentTime.value}
+                        duration={playerDuration.value}
+                        nextEpisode={nextEpisode.value}
+                        onNextEpisode={handleNextEpisode}
+                        onCancel={() => { }}
+                    />
+
                     <PluginOutlet name="player:after-media-player" />
                 </div>
             );

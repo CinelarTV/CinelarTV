@@ -72,14 +72,9 @@
                     </div>
                 </div>
 
-                <!-- Video Sources -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <h2 class="text-lg font-semibold text-white mb-4">
-                        Fuentes de video
-                    </h2>
-                    <CVideoableManager :content-id="content.id" :season-id="seasonId" :episode-id="episodeId"
-                        :initial-video-sources="content.video_sources" @video-source-added="fetchContent" />
-                </div>
+                <!-- Video Sources - Only for Movies -->
+                <CVideoableManager v-if="(editedData.content_type || content.content_type) !== 'TVSHOW'" :content-id="content.id" :season-id="seasonId" :episode-id="episodeId"
+                    :initial-video-sources="content.video_sources" @video-source-added="fetchContent" />
             </div>
 
             <!-- Right Column - Settings -->

@@ -134,7 +134,7 @@ export default defineComponent({
                                         </td>
                                         <td>{user.role || '-'}</td>
                                         <td class="text-center">
-                                            <CButton type="danger" icon="trash2" onClick={() => deleteUser(user.id)}>Eliminar</CButton>
+                                            <CButton variant="danger" icon="trash2" onClick={() => deleteUser(user.id)}>Eliminar</CButton>
                                         </td>
                                     </tr>
                                 ))}

@@ -2,105 +2,53 @@
 
 module Admin
   class ContentsController < Admin::BaseController
+    before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season]
+    before_action :set_season, only: [:create_episode, :episode_list, :reorder_episodes]
+    before_action :set_episode, only: [:edit_episode, :update_episode, :delete_episode]
+
     def find_recommended_metadata
-      if SiteSetting.tmdb_api_key.blank?
-        render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity
-        return
-      end
+      return render_error("TMDB API Key is not set") if SiteSetting.tmdb_api_key.blank?
+      return render_error("Title is required") if params[:title].blank?
 
-      if params[:title].blank?
-        render json: { error: "Title is required" }, status: :unprocessable_entity
-        return
-      end
+      configure_tmdb_api
+      search_data = fetch_tmdb_data(params[:title])
 
-      # Get the TMDB API Key from the Site Settings
-      api_key = SiteSetting.tmdb_api_key.strip
-      # Initialize the TMDB API
-      Tmdb::Api.key(api_key)
-
-      locale = SiteSetting.default_locale
-      Tmdb::Api.language(locale)
-
-      Rails.logger.info("Using TMDB API Key: #{api_key}")
-
-      normalized_title = params[:title].to_s.strip
-      cache_key = ["tmdb", "search", "multi", locale, normalized_title.downcase].join(":")
-
-      search_data = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
-        Tmdb::Search.multi(normalized_title).table
-      end
-
-      # Render as JSON
-      render json: {
-        data: search_data,
-        config: @config.as_json,
-      }
+      render json: { data: search_data, config: @config.as_json }
     rescue Tmdb::Error => e
-      render json: { error: "Error occurred: #{e.message}" }, status: :unprocessable_entity
+      render_error("Error occurred: #{e.message}")
     rescue StandardError => e
-      render json: { error: "An error occurred: #{e.message}" }, status: :unprocessable_entity
+      render_error("An error occurred: #{e.message}")
     end
 
     def create
       @content = Content.new(content_params)
-      # Await the uploaded images
-      handle_uploaded_images
-
-      # By default, new content is unavailable
       @content.available = false
 
-      if @content.save
+      ActiveRecord::Base.transaction do
+        handle_uploaded_images
+        @content.save!
         render json: { message: "Content created successfully", status: :ok }
-      else
-        render json: { errors: @content.errors.full_messages }, status: :unprocessable_entity
       end
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
     end
 
     def show
-      @content = Content.includes(:seasons, :video_sources).find(params[:id])
-      seasons_data = @content.seasons.order(position: :asc) if @content.content_type == "TVSHOW"
-
       respond_to do |format|
         format.html
-        format.json do
-          content_data = @content.as_json
-          content_data[:seasons] = seasons_data.map do |s|
-            { id: s.id, title: s.title, description: s.description, position: s.position }
-          end if seasons_data
-          content_data[:video_sources] = @content.video_sources.map do |vs|
-            { id: vs.id, url: vs.url, quality: vs.quality, storage_location: vs.storage_location }
-          end if @content.video_sources && @content.content_type == "MOVIE"
-          # Episodes are not included in the content data because they are loaded separately
-
-          render json: { data: content_data }
-        end
+        format.json { render json: { data: serialize_content(@content) } }
       end
     end
 
     def analytics
-      @content = Content.find(params[:id])
-
-      # Content doesn't have analytics, so we need to find manually
-
-      # Like count
-      @like_count = @content.liking_profiles.count
-
-      respond_to do |format|
-        format.html
-        format.json do
-          render json: {
-            data: {
-              content: @content.as_json.merge({
-                like_count: @like_count,
-              }),
-            },
-          }
-        end
-      end
+      render json: {
+        data: {
+          content: @content.as_json.merge(like_count: @content.liking_profiles.count)
+        }
+      }
     end
 
     def create_season
-      @content = Content.find(params[:content_id])
       @season = @content.seasons.new(season_params)
 
       if @season.save
@@ -111,7 +59,6 @@ module Admin
     end
 
     def create_episode
-      @season = Season.find(params[:season_id])
       @episode = @season.episodes.new(episode_params)
 
       if @episode.save
@@ -122,179 +69,187 @@ module Admin
     end
 
     def episode_list
-      # Find season based on the season_id (And check if it belongs to the content)
-      @season = Season.find(params[:season_id])
-      @content = @season.content
+      @episodes = @season.episodes.order(position: :asc)
 
-      if @content
-        @episodes = @season.episodes.order(position: :asc)
-
-        respond_to do |format|
-          format.html
-          format.json do
-            render json: {
-              data: {
-                episodes: @episodes.map do |e|
-                  { id: e.id, title: e.title, description: e.description,
-                    thumbnail: e.thumbnail || @content.banner, position: e.position }
-                end,
-              },
-            }
-          end
-        end
-      else
-        respond_to do |format|
-          format.html
-          format.json { head :not_found }
-        end
+      respond_to do |format|
+        format.html
+        format.json { render json: { data: { episodes: serialize_episodes(@episodes) } } }
       end
     end
 
     def reorder_episodes
-      @season = Season.find(params[:season_id])
-      episode_order = params[:episode_order]
+      return head :bad_request unless params[:episode_order].present?
 
-      return unless episode_order.present?
-
-      pairs = episode_order.each_with_index.map { |episode_id, index| [episode_id.to_i, index] }
-      ids = pairs.map(&:first)
-      case_statement = pairs.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
-
-      @season.episodes.where(id: ids).update_all("position = CASE id #{case_statement} END")
+      reorder_records(@season.episodes, params[:episode_order])
+      head :ok
     end
 
     def edit_episode
-      @episode = Episode.find(params[:episode_id])
-      @season = @episode.season
-      @content = @season.content
-
       respond_to do |format|
         format.html
         format.json do
           render json: {
             data: {
-              episode: @episode.as_json.merge({
+              episode: @episode.as_json.merge(
                 thumbnail: @episode.thumbnail || @content.banner,
-                video_sources: @episode.video_sources.as_json(only: %i[id url quality format storage_location status])
-              }),
-            },
+                video_sources: @episode.video_sources.as_json(only: %i[id url quality format storage_location status]),
+                segments: @episode.segments.as_json(only: %i[id segment_type start_time end_time])
+              )
+            }
           }
         end
       end
     end
 
     def reorder_seasons
-      @content = Content.find(params[:id])
-      season_order = params[:season_order]
+      return head :bad_request unless params[:season_order].present?
 
-      if season_order.present?
-        pairs = season_order.each_with_index.map { |season_id, index| [season_id.to_i, index] }
-        ids = pairs.map(&:first)
-        case_statement = pairs.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
-
-        @content.seasons.where(id: ids).update_all("position = CASE id #{case_statement} END")
-      end
-
+      reorder_records(@content.seasons, params[:season_order])
       render json: { message: "Temporadas reordenadas con éxito", status: :ok }
     end
 
     def delete_episode
-      @episode = Episode.find(params[:episode_id])
       @episode.destroy
       render json: { message: "Episode deleted successfully", status: :ok }
     end
 
     def update_episode
-      @episode = Episode.find(params[:episode_id])
-      if params[:thumbnail].present?
-        uploader = ContentImageUploader.new(type: :episode_thumbnail)
-        uploader.store!(params[:thumbnail])
-        @episode.thumbnail = uploader.url
-      end
+      process_episode_thumbnail if params[:thumbnail].present?
       @episode.update(episode_params)
       render json: { message: "Episode updated successfully", status: :ok }
     end
 
-
     def update
-      @content = Content.find(params[:id])
-
-      # Await the uploaded images
-      handle_uploaded_images
-
-      @content.assign_attributes(content_params.except(:banner, :cover))
-      # Ignore banner and cover because they are processed above
-
-      if @content.save
+      ActiveRecord::Base.transaction do
+        handle_uploaded_images
+        @content.update!(content_params.except(:banner, :cover))
         render json: { message: "Content updated successfully", status: :ok }
-      else
-        render json: { error: @content.errors.full_messages.join(", ") }, status: :unprocessable_entity
       end
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { error: e.record.errors.full_messages.join(", ") }, status: :unprocessable_entity
     end
 
     def destroy
-      @content = Content.find(params[:id])
       @content.destroy
       render json: { message: "Content deleted successfully", status: :ok }
     end
 
     def index
-      @contents = Content.all
+      @contents = Content.includes(:seasons, :video_sources).all
       respond_to do |format|
         format.html
-        format.json do
-          render json: {
-            data: @contents.as_json,
-          }
-        end
+        format.json { render json: { data: @contents.as_json } }
+      end
+    end
+
+    private
+
+    def set_content
+      @content = Content.includes(:seasons, :video_sources).find(params[:id])
+    end
+
+    def set_season
+      @season = Season.find(params[:season_id])
+      @content = @season.content
+    end
+
+    def set_episode
+      @episode = Episode.find(params[:episode_id])
+      @season = @episode.season
+      @content = @season.content
+    end
+
+    def configure_tmdb_api
+      api_key = SiteSetting.tmdb_api_key.strip
+      Tmdb::Api.key(api_key)
+      Tmdb::Api.language(SiteSetting.default_locale)
+      Rails.logger.info("Using TMDB API Key: #{api_key}")
+    end
+
+    def fetch_tmdb_data(title)
+      normalized_title = title.to_s.strip
+      cache_key = ["tmdb", "search", "multi", SiteSetting.default_locale, normalized_title.downcase].join(":")
+
+      Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+        Tmdb::Search.multi(normalized_title).table
       end
     end
 
     def handle_uploaded_images
-      # Process banner image
-      Rails.logger.info("Banner: #{params[:content][:banner]}")
-
-      if params[:content][:banner].present? || !params[:content][:banner].nil? || !params[:content][:banner].blank?
-        if @content.banner&.starts_with?("tmdb://")
-          # Process TMDB reference here
-          tmdb_id = @content.banner.sub("tmdb://", "")
-          banner_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-          uploader = ContentImageUploader.new(type: :banner)
-          uploader.download!(banner_url)
-          uploader.store!
-          @content.banner = uploader.url
-        else
-          # Process uploaded banner image here
-          banner_uploader = ContentImageUploader.new(type: :banner)
-          banner_uploader.store!(params[:content][:banner])
-          @content.banner = banner_uploader.url
-          Rails.logger.info("Banner URL: #{banner_uploader.url}")
-        end
-      end
-
-      # Process cover image
-      if params[:content][:cover].present? || !params[:content][:cover].nil? || !params[:content][:cover].blank?
-        if @content.cover&.starts_with?("tmdb://")
-          # Process TMDB reference here
-          tmdb_id = @content.cover.sub("tmdb://", "")
-          cover_url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-          uploader = ContentImageUploader.new(type: :cover)
-          uploader.download!(cover_url)
-          uploader.store!
-          @content.cover = uploader.url
-        else
-          # Process uploaded cover image here
-          cover_uploader = ContentImageUploader.new(type: :cover)
-          cover_uploader.store!(params[:content][:cover])
-          @content.cover = cover_uploader.url
-          Rails.logger.info("Cover URL: #{cover_uploader.url}")
-        end
-      end
-
+      process_image(:banner) if params[:content][:banner].present?
+      process_image(:cover) if params[:content][:cover].present?
       @content.save
     end
 
-    private
+    def process_image(type)
+      image_value = @content.send(type)
+      uploader = ContentImageUploader.new(type: type)
+
+      if image_value&.starts_with?("tmdb://")
+        download_tmdb_image(uploader, image_value)
+      else
+        uploader.store!(params[:content][type])
+      end
+
+      @content.send("#{type}=", uploader.url)
+      Rails.logger.info("#{type.to_s.capitalize} URL: #{uploader.url}")
+    end
+
+    def download_tmdb_image(uploader, image_value)
+      tmdb_id = image_value.sub("tmdb://", "")
+      url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
+      uploader.download!(url)
+      uploader.store!
+    end
+
+    def process_episode_thumbnail
+      uploader = ContentImageUploader.new(type: :episode_thumbnail)
+      uploader.store!(params[:thumbnail])
+      @episode.thumbnail = uploader.url
+    end
+
+    def reorder_records(relation, order_array)
+      pairs = order_array.each_with_index.map { |id, index| [id.to_i, index] }
+      ids = pairs.map(&:first)
+      case_statement = pairs.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
+
+      relation.where(id: ids).update_all("position = CASE id #{case_statement} END")
+    end
+
+    def serialize_content(content)
+      content_data = content.as_json
+
+      if content.content_type == "TVSHOW"
+        seasons_data = content.seasons.order(position: :asc)
+        content_data[:seasons] = seasons_data.map do |s|
+          { id: s.id, title: s.title, description: s.description, position: s.position, episodes_count: s.episodes.count }
+        end
+      end
+
+      if content.content_type == "MOVIE" && content.video_sources.present?
+        content_data[:video_sources] = content.video_sources.map do |vs|
+          { id: vs.id, url: vs.url, quality: vs.quality, storage_location: vs.storage_location }
+        end
+      end
+
+      content_data
+    end
+
+    def serialize_episodes(episodes)
+      episodes.map do |e|
+        {
+          id: e.id,
+          title: e.title,
+          description: e.description,
+          thumbnail: e.thumbnail || @content.banner,
+          position: e.position
+        }
+      end
+    end
+
+    def render_error(message)
+      render json: { error: message }, status: :unprocessable_entity
+    end
 
     def content_params
       params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium,
@@ -307,10 +262,6 @@ module Admin
 
     def episode_params
       params.permit(:title, :description, :duration, :position, :premium)
-    end
-
-    def set_content
-      @content = Content.find(params[:id])
     end
   end
 end

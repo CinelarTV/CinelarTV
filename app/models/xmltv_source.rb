@@ -56,24 +56,25 @@ class XmltvSource < ApplicationRecord
       }
     end.compact
 
-    # Create or update programs
-    programs_data.each do |data|
-      channel = LiveTvChannel.find_by(xmltv_channel_id: data[:xmltv_id])
+    updated_channel_names = []
+
+    # Remove stale programs within the feed range for each channel before saving fresh data.
+    programs_data.group_by { |data| data[:xmltv_id] }.each do |xmltv_channel_id, channel_programs|
+      channel = LiveTvChannel.find_by(xmltv_channel_id: xmltv_channel_id)
       next unless channel
 
-      # Find existing program by xmltv_id and time, or create new
-      existing = TvProgram.find_by(
-        live_tv_channel_id: channel.id,
-        xmltv_id: data[:xmltv_id],
-        start_time: data[:start_time]
-      )
+      updated_channel_names << channel.name
+      start_range = channel_programs.map { |data| data[:start_time] }.min
+      end_range = channel_programs.map { |data| data[:end_time] }.max
 
-      if existing
-        existing.update!(data.except(:xmltv_id))
-      else
-        TvProgram.create!(
+      channel.tv_programs.where(xmltv_id: xmltv_channel_id)
+                     .where(start_time: start_range..end_range)
+                     .delete_all
+
+      channel_programs.each do |data|
+        channel.tv_programs.create!(
           live_tv_channel_id: channel.id,
-          xmltv_id: data[:xmltv_id],
+          xmltv_id: xmltv_channel_id,
           title: data[:title],
           description: data[:description],
           start_time: data[:start_time],
@@ -85,7 +86,10 @@ class XmltvSource < ApplicationRecord
     end
 
     update!(last_parsed_at: Time.current)
-    programs_data.size
+    {
+      programs_count: programs_data.size,
+      channels: updated_channel_names.uniq
+    }
   end
 
   private

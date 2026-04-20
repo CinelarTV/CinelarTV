@@ -128,7 +128,7 @@ export default defineComponent({
                                         <CInput v-model={suspendReason.value} placeholder="Razón" />
                                         <div class="mt-2 flex gap-2">
                                             <CButton onClick={suspendUser}>Suspender</CButton>
-                                            <CButton onClick={unsuspendUser} type="secondary">Reanudar</CButton>
+                                            <CButton onClick={unsuspendUser} variant="secondary">Reanudar</CButton>
                                         </div>
                                     </div>
 
@@ -136,8 +136,8 @@ export default defineComponent({
                                         <div class="mb-2 font-semibold">Desactivar usuario</div>
                                         <CInput v-model={deactivateReason.value} placeholder="Razón" />
                                         <div class="mt-2 flex gap-2">
-                                            <CButton onClick={deactivateUser} type="danger">Desactivar</CButton>
-                                            <CButton onClick={activateUser} type="secondary">Activar</CButton>
+                                            <CButton onClick={deactivateUser} variant="danger">Desactivar</CButton>
+                                            <CButton onClick={activateUser} variant="secondary">Activar</CButton>
                                         </div>
                                     </div>
                                 </div>

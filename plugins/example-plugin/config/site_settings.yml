@@ -1,0 +1,15 @@
+plugins:
+  example_plugin_enabled:
+    default: true
+    type: boolean
+    client: true
+  
+  example_plugin_setting1:
+    default: "default_value1"
+    type: string
+    client: true
+  
+  example_plugin_setting2:
+    default: 42
+    type: integer
+    client: true

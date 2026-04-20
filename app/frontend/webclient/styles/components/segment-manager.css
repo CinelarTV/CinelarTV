@@ -1,0 +1,67 @@
+/* Segment Manager Styles */
+.segment-manager {
+  --c-primary-100: rgba(255, 255, 255, 0.02);
+  --c-primary-200: rgba(255, 255, 255, 0.12);
+  --c-primary-300: rgba(255, 255, 255, 0.5);
+  --c-primary-900: rgba(255, 255, 255, 0.4);
+  --c-body-text-color: rgba(255, 255, 255, 0.9);
+}
+
+.segment-manager h2 {
+  color: var(--c-body-text-color);
+  font-weight: 600;
+}
+
+.segment-manager h3 {
+  color: var(--c-primary-900);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.segment-manager label {
+  color: var(--c-body-text-color);
+  font-weight: 500;
+}
+
+.segment-manager .c-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--c-body-text-color);
+}
+
+.segment-manager .c-input:focus {
+  border-color: var(--c-primary-300);
+  outline: none;
+}
+
+.segment-manager select.c-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+.segment-manager .c-button {
+  background: var(--c-primary-300);
+  color: rgba(0, 0, 0, 0.9);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.segment-manager .c-button:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.segment-manager .c-button[variant="ghost"] {
+  background: transparent;
+  color: var(--c-primary-900);
+}
+
+.segment-manager .c-button[variant="ghost"]:hover {
+  color: var(--c-body-text-color);
+  background: rgba(255, 255, 255, 0.05);
+}

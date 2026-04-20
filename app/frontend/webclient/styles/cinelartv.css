@@ -12,12 +12,17 @@
 @import "./components/hero-carousel.css";
 @import "./components/recyclerview.css";
 @import "./components/videoplayer.css";
+@import "./components/videoplayer/segment-admin.css";
+@import "./components/videoplayer/player-overlays.css";
 @import "./components/live-tv.css";
 @import "./components/banners.css";
 @import "./components/mobile-bottom-nav.css";
 @import "./common/components/offline-indicator.css";
 @import "./components/videoable-manager.css";
 @import "./components/account/billing.css";
+@import "./components/image-upload.css";
+@import "./components/video-upload.css";
+@import "./components/segment-manager.css";
 
 @utility animate-spin{
   animation: rotate-forever 1s infinite linear;

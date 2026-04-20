@@ -66,6 +66,11 @@ class SiteSetting < RailsSettings::Base
       clear_cache
     end
 
+    def get(key)
+      return nil unless respond_to?(key)
+      send(key)
+    end
+
     private
 
     def default_waiting_on_first_user_value

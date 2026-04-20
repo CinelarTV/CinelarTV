@@ -117,7 +117,7 @@ module Admin
 
       return if current_xmltv_id.blank?
 
-      # Reparse active sources so the channel gets its guide right after remapping.
+      # Trigger a sync for this channel immediately after saving.
       XmltvSource.active.find_each do |source|
         XmltvParseJob.perform_async(source.id)
       end

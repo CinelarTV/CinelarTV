@@ -20,20 +20,6 @@ type SvgIcon = string | null;
 
 let instance: PluginAPI | null = null;
 
-// ─── Helpers internos ─────────────────────────────────────────────────────────
-
-/** Devuelve el SVG sheet o lanza un error descriptivo. */
-function getIconSheet(): SVGElement {
-    const iconSheet = document.getElementById("cinelar-icon-sheet");
-    const svgSheet = iconSheet?.querySelector("svg");
-
-    if (!iconSheet || !svgSheet) {
-        throw new Error("CinelarTV icon sheet not found");
-    }
-
-    return svgSheet as unknown as SVGElement;
-}
-
 // ─── Clase ────────────────────────────────────────────────────────────────────
 
 class PluginAPI {
@@ -42,6 +28,20 @@ class PluginAPI {
 
     /** Cache del custom data ya parseado. */
     private _customDataCache: Record<string, unknown> | null = null;
+
+    /** Cache de stores para evitar llamadas repetidas */
+    private _storesCache: {
+        icons?: ReturnType<typeof useIconsStore>;
+        banners?: ReturnType<typeof useBanners>;
+        siteSettings?: ReturnType<typeof useSiteSettings>;
+        currentUser?: ReturnType<typeof useCurrentUser>;
+    } = {};
+
+    /** Cache de elementos DOM consultados frecuentemente */
+    private _domCache: {
+        iconSheet?: SVGElement;
+        stylesheetsContainer?: Element;
+    } = {};
 
     constructor(version: string, vueInstance: any) {
         if (instance) return instance;
@@ -53,6 +53,59 @@ class PluginAPI {
 
     static getInstance(): PluginAPI | null {
         return instance;
+    }
+
+    private _getIconsStore() {
+        if (!this._storesCache.icons) {
+            this._storesCache.icons = useIconsStore();
+        }
+        return this._storesCache.icons;
+    }
+
+    private _getBannersStore() {
+        if (!this._storesCache.banners) {
+            this._storesCache.banners = useBanners();
+        }
+        return this._storesCache.banners;
+    }
+
+    private _getSiteSettingsStore() {
+        if (!this._storesCache.siteSettings) {
+            this._storesCache.siteSettings = useSiteSettings();
+        }
+        return this._storesCache.siteSettings;
+    }
+
+    private _getCurrentUserStore() {
+        if (!this._storesCache.currentUser) {
+            this._storesCache.currentUser = useCurrentUser();
+        }
+        return this._storesCache.currentUser;
+    }
+
+    private _getIconSheet(): SVGElement {
+        if (!this._domCache.iconSheet) {
+            const iconSheet = document.getElementById("cinelar-icon-sheet");
+            const svgSheet = iconSheet?.querySelector("svg");
+
+            if (!iconSheet || !svgSheet) {
+                throw new Error("CinelarTV icon sheet not found");
+            }
+
+            this._domCache.iconSheet = svgSheet as unknown as SVGElement;
+        }
+        return this._domCache.iconSheet;
+    }
+
+    private _getStylesheetsContainer(): Element {
+        if (!this._domCache.stylesheetsContainer) {
+            const container = document.querySelector("cinelar-assets-stylesheets");
+            if (!container) {
+                throw new Error("Unable to find <cinelar-assets-stylesheets> tag");
+            }
+            this._domCache.stylesheetsContainer = container;
+        }
+        return this._domCache.stylesheetsContainer;
     }
 
     // ── Outlets ───────────────────────────────────────────────────────────────
@@ -94,7 +147,7 @@ class PluginAPI {
             this._injectNoticeCss(notice.id, notice.css);
         }
 
-        const { addBanner, findBanner, updateBanner } = useBanners();
+        const { addBanner, findBanner, updateBanner } = this._getBannersStore();
         const existing = findBanner(notice.id);
 
         // FIX: antes se reasignaba la variable local en vez de llamar al store
@@ -116,14 +169,14 @@ class PluginAPI {
     }
 
     removeGlobalNotice(id: string): void {
-        const { removeBanner } = useBanners();
+        const { removeBanner } = this._getBannersStore();
         removeBanner(id);
     }
 
     // ── Íconos ────────────────────────────────────────────────────────────────
 
     replaceIcon(iconName: string, svgIcon: string): void {
-        const svgSheet = getIconSheet();
+        const svgSheet = this._getIconSheet();
         const symbol = svgSheet.querySelector(`symbol#${iconName}`);
 
         if (!symbol) {
@@ -135,11 +188,11 @@ class PluginAPI {
 
     addIcon(iconName: string, svgIcon: SvgIcon = null): void {
         if (!svgIcon) {
-            useIconsStore().addIcon(iconName);
+            this._getIconsStore().addIcon(iconName);
             return;
         }
 
-        const svgSheet = getIconSheet();
+        const svgSheet = this._getIconSheet();
         const symbol = document.createElementNS("http://www.w3.org/2000/svg", "symbol");
         symbol.id = iconName;
         symbol.innerHTML = svgIcon;
@@ -149,18 +202,18 @@ class PluginAPI {
     // ── Usuario / Settings ────────────────────────────────────────────────────
 
     getCurrentUser() {
-        return useCurrentUser().currentUser;
+        return this._getCurrentUserStore().currentUser;
     }
 
     getSiteSettings() {
-        return useSiteSettings().siteSettings;
+        return this._getSiteSettingsStore().siteSettings;
     }
 
     getCustomData(): Record<string, unknown> | null {
         if (this._customDataCache) return this._customDataCache;
 
         try {
-            const raw = useSiteSettings().siteSettings.api_custom_data;
+            const raw = this._getSiteSettingsStore().siteSettings.api_custom_data;
             this._customDataCache = JSON.parse(raw);
             return this._customDataCache;
         } catch {
@@ -182,11 +235,7 @@ class PluginAPI {
         let styleTag = document.getElementById(styleId) as HTMLStyleElement | null;
 
         if (!styleTag) {
-            const container = document.querySelector("cinelar-assets-stylesheets");
-            if (!container) {
-                console.error("Unable to find <cinelar-assets-stylesheets> tag");
-                return;
-            }
+            const container = this._getStylesheetsContainer();
 
             styleTag = document.createElement("style");
             styleTag.id = styleId;

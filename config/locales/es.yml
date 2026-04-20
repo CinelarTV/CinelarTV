@@ -10,11 +10,28 @@ es:
           attributes:
             name:
               blank: "El nombre no puede estar en blanco"
-              too_short: "El nombre es demasiado corto, debe tener al menos %{count} caracteres"
+              too_short: "El nombre es demasiado corto, debe tener al menos %{count}
+                caracteres"
   dashboard:
-    memory_warning: "El servidor se está ejecutando con menos de 1 GB de RAM. CinelarTV recomienda al menos 1 GB de memoria para funcionar correctamente."
-    sidekiq_warning: "Sidekiq no se está ejecutando. Sidekiq ejecuta muchas tareas de forma asíncrona, como enviar correos electrónicos o procesar recomendaciones. Asegúrese de que se esté ejecutando al menos un proceso de Sidekiq. <a href='https://github.com/mperham/sidekiq' target='_blank'>Obtén más información sobre Sidekiq aquí. </a>"
-    updates_available: "Parece que hay actualizaciones disponibles para CinelarTV. <a href='/admin/updates'>Haga clic aquí para actualizar. </a>"
+    memory_warning: "El servidor se está ejecutando con menos de 1 GB de RAM.
+      CinelarTV recomienda al menos 1 GB de memoria para funcionar
+      correctamente."
+    sidekiq_warning: "Sidekiq no se está ejecutando. Sidekiq ejecuta muchas tareas
+      de forma asíncrona, como enviar correos electrónicos o procesar
+      recomendaciones. Asegúrese de que se esté ejecutando al menos un proceso
+      de Sidekiq. <a href='https://github.com/mperham/sidekiq'
+      target='_blank'>Obtén más información sobre Sidekiq aquí. </a>"
+    updates_available: "Parece que hay actualizaciones disponibles para CinelarTV.
+      <a href='/admin/updates'>Haga clic aquí para actualizar. </a>"
+  devise:
+    failure:
+      account_suspended: "Tu cuenta ha sido suspendida. Ponte en contacto con el
+        servicio de asistencia para obtener más información."
+      invalid: "Invalid email or password."
+      locked: "Your account is locked."
+      timeout: "Your session has expired. Please sign in again to continue."
+      unauthenticated: "You need to sign in or sign up before continuing."
+      unconfirmed: "You have to confirm your email address before continuing."
   js:
     admin:
       actions:
@@ -61,22 +78,33 @@ es:
           description: "Permite añadir iconos adicionales a la aplicación"
           title: "Iconos adicionales"
         additonal_player_settings:
-          description: "Proporciona una forma de añadir ajustes adicionales al reproductor. Esto puede resultar útil si desea ampliar la funcionalidad del reproductor. Documentación de la API: <a href='https://videojs.com/guides/options/' target='_blank'> https://videojs.com/guides/options/ </a>"
+          description: "Proporciona una forma de añadir ajustes adicionales al
+            reproductor. Esto puede resultar útil si desea ampliar la
+            funcionalidad del reproductor. Documentación de la API: <a
+            href='https://videojs.com/guides/options/' target='_blank'>
+            https://videojs.com/guides/options/ </a>"
           title: "Ajustes adicionales del reproductor"
         allow_admin_to_create_users:
-          description: "Permite al administrador crear usuarios desde el panel de administración"
+          description: "Permite al administrador crear usuarios desde el panel de
+            administración"
           title: "Permitir que el administrador cree usuarios"
         allow_plugins_replace_core_routes:
-          description: "Permite que los complementos reemplacen las rutas principales. Esto puede ser útil si se desea personalizar el comportamiento de la aplicación, pero también puede causar conflictos entre complementos y hacer que la aplicación sea inestable si no se usa con cuidado."
+          description: "Permite que los complementos reemplacen las rutas principales.
+            Esto puede ser útil si se desea personalizar el comportamiento de la
+            aplicación, pero también puede causar conflictos entre complementos
+            y hacer que la aplicación sea inestable si no se usa con cuidado."
           title: "Permitir que los complementos reemplacen las rutas principales"
         allow_registration:
           description: "Permite a los usuarios registrarse en el sitio"
           title: "¿Permitir el registro?"
         api_custom_data:
-          description: "Proporciona una forma de añadir datos personalizados a la API de dispositivos. Esto puede resultar útil si quieres añadir datos personalizados a la API, como la versión de tu aplicación"
+          description: "Proporciona una forma de añadir datos personalizados a la API de
+            dispositivos. Esto puede resultar útil si quieres añadir datos
+            personalizados a la API, como la versión de tu aplicación"
           title: "Datos personalizados de la API"
         background_color:
-          description: "El color de fondo de la aplicación, será el color de la pantalla de carga y el fondo de la aplicación"
+          description: "El color de fondo de la aplicación, será el color de la pantalla
+            de carga y el fondo de la aplicación"
           title: "Color de fondo"
         base_font_family:
           description: "La fuente de la aplicación"
@@ -97,24 +125,31 @@ es:
           security: "Seguridad"
           storage: "Almacenamiento"
         cdn_enabled:
-          description: "Activa la CDN, que se utilizará para servir los archivos multimedia de su sitio"
+          description: "Activa la CDN, que se utilizará para servir los archivos
+            multimedia de su sitio"
           title: "CDN habilitado"
         cdn_url:
           description: "La URL de tu proveedor de CDN"
           title: "CDN Url"
         content:
           enable_metadata_recommendation:
-            description: "Permite obtener metadatos de TheMovieDB al momento de añadir un nuevo contenido, esto te ayudará a rellenar los campos del contenido automáticamente"
+            description: "Permite obtener metadatos de TheMovieDB al momento de añadir un
+              nuevo contenido, esto te ayudará a rellenar los campos del
+              contenido automáticamente"
             title: "Habilitar la recomendación de metadatos"
           title: "Contenido"
           tmdb_api_key:
-            description: "La clave API de tu cuenta de TMDB, la puedes obtener <a href='https://www.themoviedb.org/settings/api' target='_blank'>aquí</a>."
+            description: "La clave API de tu cuenta de TMDB, la puedes obtener <a
+              href='https://www.themoviedb.org/settings/api'
+              target='_blank'>aquí</a>."
             title: "Clave de API TMDB"
         custom_css:
           description: "Permite personalizar el CSS de la aplicación"
           title: "CSS personalizado"
         custom_js:
-          description: "Permite personalizar el JavaScript mediante el Plugin API. Esto puede resultar útil si desea ampliar la funcionalidad de la aplicación"
+          description: "Permite personalizar el JavaScript mediante el Plugin API. Esto
+            puede resultar útil si desea ampliar la funcionalidad de la
+            aplicación"
           title: "JavaScript personalizado"
         default_locale:
           description: "El idioma predeterminado de tu sitio"
@@ -132,52 +167,72 @@ es:
           description: "Activa el carrusel en la página de inicio"
           title: "Activar carrusel"
         enable_chromecast:
-          description: "Habilita la funcionalidad Chromecast, esto permitirá a sus usuarios transmitir los videos a sus dispositivos compatibles con Chromecast"
+          description: "Habilita la funcionalidad Chromecast, esto permitirá a sus
+            usuarios transmitir los videos a sus dispositivos compatibles con
+            Chromecast"
           title: "Activar Chromecast"
         enable_custom_pages:
-          description: "Esto le permitirá crear páginas personalizadas en <a href='/admin/custom_pages'> /admin/custom_pages </a>"
+          description: "Esto le permitirá crear páginas personalizadas en <a
+            href='/admin/custom_pages'> /admin/custom_pages </a>"
           title: "Habilitar páginas personalizadas"
         enable_google_drive_parser:
-          description: "Habilita el analizador de Google Drive, lo que te permitirá analizar los enlaces de Google Drive y reproducir los vídeos directamente desde Google Drive."
+          description: "Habilita el analizador de Google Drive, lo que te permitirá
+            analizar los enlaces de Google Drive y reproducir los vídeos
+            directamente desde Google Drive."
           title: "Habilitar el analizador de Google Drive"
         enable_js_error_reporting:
-          description: "Permite informar de errores de JavaScript, esto enviará los errores al servidor y se mostrará en la consola. Puede ver los informes en <a href='/logs'>/logs</a>"
+          description: "Permite informar de errores de JavaScript, esto enviará los
+            errores al servidor y se mostrará en la consola. Puede ver los
+            informes en <a href='/logs'>/logs</a>"
           title: "Habilitar el informe de errores de JavaScript"
         enable_lemon_squeezy_provider:
           description: "Enable Lemon Squeezy as a subscription provider"
           title: "Enable Lemon Squeezy provider"
         enable_live_tv:
-          description: "Habilita la funcionalidad de televisión en directo, lo que te permitirá añadir canales de televisión en directo a tu sitio web y verlos en tiempo real."
+          description: "Habilita la funcionalidad de televisión en directo, lo que te
+            permitirá añadir canales de televisión en directo a tu sitio web y
+            verlos en tiempo real."
           title: "Habilitar la televisión en directo"
         enable_mercado_pago_provider:
           description: "Enable Mercado Pago as a subscription provider"
           title: "Enable Mercado Pago provider"
         enable_metadata_recommendation:
-          description: "Permite obtener metadatos de TheMovieDB al momento de añadir un nuevo contenido, esto te ayudará a rellenar los campos del contenido automáticamente"
+          description: "Permite obtener metadatos de TheMovieDB al momento de añadir un
+            nuevo contenido, esto te ayudará a rellenar los campos del contenido
+            automáticamente"
           title: "Habilitar la recomendación de metadatos"
         enable_plugins:
-          description: "Permite habilitar complementos en <a href='/admin/plugins'> /admin/plugins </a>"
+          description: "Permite habilitar complementos en <a href='/admin/plugins'>
+            /admin/plugins </a>"
           title: "Habilitar complementos"
         enable_sitemap:
-          description: "Activa el mapa del sitio, esto ayudará a los motores de búsqueda a indexar tu sitio"
+          description: "Activa el mapa del sitio, esto ayudará a los motores de búsqueda a
+            indexar tu sitio"
           title: "Habilitar mapa del sitio"
         enable_splash_screen:
           description: "Activa la pantalla de bienvenida cuando se carga la aplicación"
           title: "Habilitar pantalla de carga"
         enable_subscription:
-          description: "Activa el sistema de suscripción, esto le permitirá cobrar a sus usuarios por el acceso a su sitio"
+          description: "Activa el sistema de suscripción, esto le permitirá cobrar a sus
+            usuarios por el acceso a su sitio"
           title: "Habilitar la suscripción"
         enable_transcoding:
-          description: "Permite la transcodificación de vídeos, lo que te permitirá transcodificar los vídeos a diferentes formatos y resoluciones."
+          description: "Permite la transcodificación de vídeos, lo que te permitirá
+            transcodificar los vídeos a diferentes formatos y resoluciones."
           title: "Habilitar la transcodificación"
         enable_web_updater:
-          description: "Habilita la interfaz de actualización web en <a href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b> Como función experimental, la aplicación puede dejar de funcionar correctamente si algo sale mal durante la actualización"
+          description: "Habilita la interfaz de actualización web en <a
+            href='/admin/updates'>/admin/updateds.</a> <br><b>Precaución:</b>
+            Como función experimental, la aplicación puede dejar de funcionar
+            correctamente si algo sale mal durante la actualización"
           title: "Actualizador web experimental"
         external_scripts:
-          description: "Carga los scripts desde una URL externa, esto puede ser útil si quieres usar una CDN para cargar los scripts"
+          description: "Carga los scripts desde una URL externa, esto puede ser útil si
+            quieres usar una CDN para cargar los scripts"
           title: "Scripts externos"
         external_stylesheets:
-          description: "Carga las hojas de estilo desde una URL externa, esto puede ser útil si quieres usar una CDN para cargar las hojas de estilo"
+          description: "Carga las hojas de estilo desde una URL externa, esto puede ser
+            útil si quieres usar una CDN para cargar las hojas de estilo"
           title: "Hojas de estilo externas"
         header_background_color:
           description: "El color de fondo del encabezado de la aplicación"
@@ -186,7 +241,8 @@ es:
           description: "La fuente del encabezado de la aplicación"
           title: "Fuente del Encabezado"
         homescreen_cards_custom_html:
-          description: "Permite personalizar el HTML de las tarjetas en la pantalla de inicio"
+          description: "Permite personalizar el HTML de las tarjetas en la pantalla de
+            inicio"
           title: "HTML personalizado para Tarjetas de pantalla de inicio"
         homescreen_cards_style:
           description: "El estilo de las tarjetas en la pantalla de inicio"
@@ -207,28 +263,40 @@ es:
           description: "Webhook secret used to verify Lemon Squeezy notifications"
           title: "Lemon Squeezy webhook secret"
         live_tv_proxy_allowed_stream_hosts:
-          description: "Si el proxy para televisión en directo está activado, puede especificar una lista de servidores de transmisión permitidos. Esto resulta útil para evitar el uso indebido del proxy para transmitir contenido de fuentes no autorizadas. "
+          description: "Si el proxy para televisión en directo está activado, puede
+            especificar una lista de servidores de transmisión permitidos. Esto
+            resulta útil para evitar el uso indebido del proxy para transmitir
+            contenido de fuentes no autorizadas. "
           title: "Servidores de transmisión de TV en vivo con proxy permitido"
         live_tv_proxy_mode:
-          description: "Si se habilita el modo de proxy para la televisión en directo, las transmisiones se reenviarán a través del servidor. Esto puede ser útil si tus transmisiones no son compatibles con CORS o si impiden el acceso a contenido mixto.<b> Precaución:</b> Habilitar el proxy puede provocar problemas de rendimiento y aumentar la carga en su servidor, especialmente si tiene muchos usuarios viendo televisión en directo al mismo tiempo."
+          description: "Si se habilita el modo de proxy para la televisión en directo, las
+            transmisiones se reenviarán a través del servidor. Esto puede ser
+            útil si tus transmisiones no son compatibles con CORS o si impiden
+            el acceso a contenido mixto.<b> Precaución:</b> Habilitar el proxy
+            puede provocar problemas de rendimiento y aumentar la carga en su
+            servidor, especialmente si tiene muchos usuarios viendo televisión
+            en directo al mismo tiempo."
           title: "Modo proxy de TV en directo"
           values:
             disabled: "Desactivado"
             internal: "Interno (el servidor actuará como proxy para las transmisiones)"
         live_tv_section_title:
-          description: "El título de la sección de televisión en directo en la página de inicio y en la navegación."
+          description: "El título de la sección de televisión en directo en la página de
+            inicio y en la navegación."
           title: "Título de la sección de TV en vivo"
         mercadopago_access_token:
           description: "Mercado Pago access token for API requests"
           title: "Mercado Pago access token"
         mercadopago_application_id:
-          description: "Mercado Pago application ID used to filter plans and validate webhooks"
+          description: "Mercado Pago application ID used to filter plans and validate
+            webhooks"
           title: "Mercado Pago application ID"
         mercadopago_plan_id:
           description: "Subscription preapproval plan ID in Mercado Pago"
           title: "Mercado Pago subscription plan ID"
         mercadopago_public_key:
-          description: "Mercado Pago public key used to initialize MercadoPago.js on the frontend"
+          description: "Mercado Pago public key used to initialize MercadoPago.js on the
+            frontend"
           title: "Mercado Pago public key"
         mercadopago_site_id:
           description: "Mercado Pago site for your country (Uruguay = MLU)"
@@ -254,7 +322,8 @@ es:
           description: "El identificador de clave de acceso de su cuenta S3"
           title: "ID de clave de acceso S3"
         s3_bucket:
-          description: "El depósito que se utiliza para almacenar los archivos multimedia de su sitio"
+          description: "El depósito que se utiliza para almacenar los archivos multimedia
+            de su sitio"
           title: "S3 Bucket\n"
         s3_endpoint:
           description: "El punto final de su proveedor de S3"
@@ -270,25 +339,32 @@ es:
           description: "Se utiliza para algunos botones y enlaces"
           title: "Color secundario"
         site_description:
-          description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+          description: "Una breve descripción de tu sitio, tal y como aparecerá en la
+            metaetiqueta de descripción del navegador"
           title: "Descripción del sitio"
         site_favicon:
-          description: "El favicon de tu sitio, tal y como aparecerá en la pestaña del navegador"
+          description: "El favicon de tu sitio, tal y como aparecerá en la pestaña del
+            navegador"
           title: "Favicon del sitio"
         site_logo:
-          description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación"
+          description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de
+            la aplicación"
           title: "Logotipo del sitio"
         site_mobile_logo:
-          description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de la aplicación en los dispositivos móviles"
+          description: "El logotipo de su sitio, tal y como aparecerá en el encabezado de
+            la aplicación en los dispositivos móviles"
           title: "Logotipo del sitio móvil"
         site_name:
-          description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+          description: "El nombre de tu sitio, tal y como aparecerá en la barra de título
+            del navegador"
           title: "Nombre del sitio"
         storage_provider:
-          description: "El proveedor de almacenamiento de su sitio, se utilizará para almacenar los archivos multimedia de su sitio"
+          description: "El proveedor de almacenamiento de su sitio, se utilizará para
+            almacenar los archivos multimedia de su sitio"
           title: "Proveedor de almacenamiento"
         subscription_provider_primary:
-          description: "Primary subscription provider used to process checkouts and webhooks (legacy fallback when no provider feature flag is enabled)"
+          description: "Primary subscription provider used to process checkouts and
+            webhooks (legacy fallback when no provider feature flag is enabled)"
           title: "Primary subscription provider"
           values:
             lemon_squeezy: "Lemon Squeezy"
@@ -298,13 +374,15 @@ es:
           title: "Color terciario"
         title: "Configuración del sitio"
         tmdb_api_key:
-          description: "La clave API de tu cuenta de TMDB, la puedes obtener <a href='https://www.themoviedb.org/settings/api' target='_blank'>aquí</a>."
+          description: "La clave API de tu cuenta de TMDB, la puedes obtener <a
+            href='https://www.themoviedb.org/settings/api'
+            target='_blank'>aquí</a>."
           title: "Clave de API TMDB"
-        xmltv_refresh_interval:
-          description: "El intervalo en el que se actualizan los datos XMLTV"
-          title: "Intervalo de actualización de XMLTV"
       updater:
-        ready_description: "CinelarTV es un software que se actualiza constantemente, y tenemos en cuenta que es posible que desee estar a la vanguardia, por lo que hemos implementado esta función experimental para que sea tan simple como pulsar un botón."
+        ready_description: "CinelarTV es un software que se actualiza constantemente, y
+          tenemos en cuenta que es posible que desee estar a la vanguardia, por
+          lo que hemos implementado esta función experimental para que sea tan
+          simple como pulsar un botón."
         ready_title: "¿Listo para actualizar?"
     common:
       actions: "Acciones"
@@ -336,12 +414,34 @@ es:
       back: "Volver"
       next_episode: "Siguiente episodio"
       skip_intro: "Omitir intro"
+    segments:
+      skip_intro: "Omitir Intro"
+      skip_resume: "Omitir Resumen"
+      skip_credits: "Omitir Créditos"
+      next_episode: "Siguiente Episodio"
+      credits_start: "Inicio Créditos"
+      title: "Segmentos de Tiempo"
+      no_segments: "No hay segmentos"
+      add_segment: "Agregar segmento"
+      add_another: "Agregar otro segmento"
+      segment_type: "Tipo de segmento"
+      start_time: "Tiempo de inicio (MM:SS)"
+      end_time: "Tiempo de fin (MM:SS)"
+      time_range: "Rango de tiempo"
+      point: "Punto específico"
+      existing_segments: "Segmentos existentes"
+      error_duplicate: "Ya existe un segmento de este tipo"
+      error_required: "Se requieren tiempos de inicio y fin para este tipo de segmento"
+      error_start_required: "Se requiere tiempo de inicio para este tipo de segmento"
     wizard:
       introduction:
-        description: "🎉 ¡Bienvenido a CinelarTV! 🎉 <br><br>Antes de empezar, necesitamos configurar algunas cosas. No te preocupes, es muy sencillo y solo tendrás que hacerlo una vez."
+        description: "🎉 ¡Bienvenido a CinelarTV! 🎉 <br><br>Antes de empezar,
+          necesitamos configurar algunas cosas. No te preocupes, es muy sencillo
+          y solo tendrás que hacerlo una vez."
         title: "Introducción"
       license:
-        description: "Introduzca su clave de licencia para activar las funciones comerciales"
+        description: "Introduzca su clave de licencia para activar las funciones
+          comerciales"
         title: "Licencia"
       site_info:
         description: "Esta información se utilizará para configurar su sitio"
@@ -350,10 +450,12 @@ es:
             description: "El idioma predeterminado de tu sitio"
             title: "Idioma predeterminado"
           site_description:
-            description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+            description: "Una breve descripción de tu sitio, tal y como aparecerá en la
+              metaetiqueta de descripción del navegador"
             title: "Descripción del sitio"
           site_name:
-            description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+            description: "El nombre de tu sitio, tal y como aparecerá en la barra de título
+              del navegador"
             title: "Nombre del sitio"
         title: "Información del sitio"
       step: "Intervalo"
@@ -369,9 +471,11 @@ es:
           description: "El idioma predeterminado de tu sitio"
           title: "Idioma predeterminado"
         site_description:
-          description: "Una breve descripción de tu sitio, tal y como aparecerá en la metaetiqueta de descripción del navegador"
+          description: "Una breve descripción de tu sitio, tal y como aparecerá en la
+            metaetiqueta de descripción del navegador"
           title: "Descripción del sitio"
         site_name:
-          description: "El nombre de tu sitio, tal y como aparecerá en la barra de título del navegador"
+          description: "El nombre de tu sitio, tal y como aparecerá en la barra de título
+            del navegador"
           title: "Nombre del sitio"
       title: "Información del sitio"

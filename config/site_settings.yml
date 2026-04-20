@@ -168,13 +168,6 @@ live_tv:
     refresh: true
     default: false
     type: 'boolean'
-  xmltv_refresh_interval:
-    client: false
-    refresh: true
-    default: 3600
-    type: 'integer'
-    min: 300
-    max: 86400
   live_tv_section_title:
     client: true
     refresh: true

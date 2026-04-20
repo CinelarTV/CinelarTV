@@ -12,9 +12,24 @@ en:
               blank: "Name cannot be blank"
               too_short: "Name is too short, it must be at least %{count} characters"
   dashboard:
-    memory_warning: "Your server is running with less than 1 GB of total memory. CinelarTV recommends at least 1 GB of memory to run properly."
-    sidekiq_warning: "Sidekiq is not running. Many tasks, like sending emails or processing recommendations, are executed asynchronously by Sidekiq. Please ensure at least one Sidekiq process is running. <a href='https://github.com/mperham/sidekiq' target='_blank'>Learn about Sidekiq here</a>."
-    updates_available: "It seems that there are updates available for CinelarTV. <a href='/admin/updates'>Click here to update</a>."
+    memory_warning: "Your server is running with less than 1 GB of total memory.
+      CinelarTV recommends at least 1 GB of memory to run properly."
+    sidekiq_warning: "Sidekiq is not running. Many tasks, like sending emails or
+      processing recommendations, are executed asynchronously by Sidekiq. Please
+      ensure at least one Sidekiq process is running. <a
+      href='https://github.com/mperham/sidekiq' target='_blank'>Learn about
+      Sidekiq here</a>."
+    updates_available: "It seems that there are updates available for CinelarTV. <a
+      href='/admin/updates'>Click here to update</a>."
+  devise:
+    failure:
+      account_suspended: "Your account has been suspended. Please contact support for
+        more information."
+      invalid: "Invalid email or password."
+      locked: "Your account is locked."
+      timeout: "Your session has expired. Please sign in again to continue."
+      unauthenticated: "You need to sign in or sign up before continuing."
+      unconfirmed: "You have to confirm your email address before continuing."
   js:
     admin:
       actions:
@@ -61,22 +76,31 @@ en:
           description: "Allows to add additional icons to the application"
           title: "Additional icons"
         additonal_player_settings:
-          description: "Provides a way to add additional settings to the player. This can be useful if you want to extend the functionality of the player. API Documentation: <a href='https://videojs.com/guides/options/' target='_blank'>https://videojs.com/guides/options/</a>"
+          description: "Provides a way to add additional settings to the player. This can
+            be useful if you want to extend the functionality of the player. API
+            Documentation: <a href='https://videojs.com/guides/options/'
+            target='_blank'>https://videojs.com/guides/options/</a>"
           title: "Additonal player settings"
         allow_admin_to_create_users:
           description: "Allows the admin to create users from the admin panel"
           title: "Allow admin to create users"
         allow_plugins_replace_core_routes:
-          description: "Allows plugins to replace core routes. This can be useful if you want to customize the behavior of the application, but it can also cause conflicts between plugins and make the application unstable if not used carefully."
+          description: "Allows plugins to replace core routes. This can be useful if you
+            want to customize the behavior of the application, but it can also
+            cause conflicts between plugins and make the application unstable if
+            not used carefully."
           title: "Allow plugins to replace core routes"
         allow_registration:
           description: "Allows users to register on the site"
           title: "Allow registration"
         api_custom_data:
-          description: "Provides a way to add custom data to the Device API. This can be useful if you want to add custom data to the API, such as the version of your application"
+          description: "Provides a way to add custom data to the Device API. This can be
+            useful if you want to add custom data to the API, such as the
+            version of your application"
           title: "API custom data"
         background_color:
-          description: "The background color of the application, this will be the color of the splash screen and the background of the application"
+          description: "The background color of the application, this will be the color of
+            the splash screen and the background of the application"
           title: "Background color"
         base_font_family:
           description: "The font family of the application"
@@ -97,24 +121,31 @@ en:
           security: "Security"
           storage: "Storage"
         cdn_enabled:
-          description: "Enables the CDN, this will be used to serve the media files of your site"
+          description: "Enables the CDN, this will be used to serve the media files of
+            your site"
           title: "CDN enabled"
         cdn_url:
           description: "The URL of your CDN provider"
           title: "CDN URL"
         content:
           enable_metadata_recommendation:
-            description: "Allow to fetch metadata from TheMovieDB at the moment of adding a new content, this will help you to fill the fields of the content automatically"
+            description: "Allow to fetch metadata from TheMovieDB at the moment of adding a
+              new content, this will help you to fill the fields of the content
+              automatically"
             title: "Enable metadata recommendation"
           title: "Content"
           tmdb_api_key:
-            description: "The API key of your TMDB account, you can get it <a href='https://www.themoviedb.org/settings/api' target='_blank'>here</a>"
+            description: "The API key of your TMDB account, you can get it <a
+              href='https://www.themoviedb.org/settings/api'
+              target='_blank'>here</a>"
             title: "TMDB API key"
         custom_css:
           description: "Allows to customize the CSS of the application"
           title: "Custom CSS"
         custom_js:
-          description: "Allows to customize the JavaScript using the Plugin API. This can be useful if you want to extend the functionality of the application"
+          description: "Allows to customize the JavaScript using the Plugin API. This can
+            be useful if you want to extend the functionality of the
+            application"
           title: "Custom JavaScript"
         default_locale:
           description: "The default language of your site"
@@ -132,52 +163,69 @@ en:
           description: "Enables the carousel on the home page"
           title: "Enable carousel"
         enable_chromecast:
-          description: "Enables the Chromecast functionality, this will allow your users to cast the videos to their Chromecast capable devices"
+          description: "Enables the Chromecast functionality, this will allow your users
+            to cast the videos to their Chromecast capable devices"
           title: "Enable Chromecast"
         enable_custom_pages:
-          description: "This will allow you to create custom pages in <a href='/admin/custom_pages'>/admin/custom_pages</a>"
+          description: "This will allow you to create custom pages in <a
+            href='/admin/custom_pages'>/admin/custom_pages</a>"
           title: "Enable custom pages"
         enable_google_drive_parser:
-          description: "Enables the Google Drive parser, this will allow you to parse Google Drive links and play the videos directly from Google Drive"
+          description: "Enables the Google Drive parser, this will allow you to parse
+            Google Drive links and play the videos directly from Google Drive"
           title: "Enable Google Drive parser"
         enable_js_error_reporting:
-          description: "Enables the reporting of JavaScript errors, this will send the errors to the server and will be displayed in the console. You can see the reports in <a href='/logs'>/logs</a>"
+          description: "Enables the reporting of JavaScript errors, this will send the
+            errors to the server and will be displayed in the console. You can
+            see the reports in <a href='/logs'>/logs</a>"
           title: "Enable JavaScript error reporting"
         enable_lemon_squeezy_provider:
           description: "Enable Lemon Squeezy as a subscription provider"
           title: "Enable Lemon Squeezy provider"
         enable_live_tv:
-          description: "Enables the live TV functionality, this will allow you to add live TV channels to your site and watch them in real time"
+          description: "Enables the live TV functionality, this will allow you to add live
+            TV channels to your site and watch them in real time"
           title: "Enable live TV"
         enable_mercado_pago_provider:
           description: "Enable Mercado Pago as a subscription provider"
           title: "Enable Mercado Pago provider"
         enable_metadata_recommendation:
-          description: "Allow to fetch metadata from TheMovieDB at the moment of adding a new content, this will help you to fill the fields of the content automatically"
+          description: "Allow to fetch metadata from TheMovieDB at the moment of adding a
+            new content, this will help you to fill the fields of the content
+            automatically"
           title: "Enable metadata recommendation"
         enable_plugins:
-          description: "Allows to enable plugins in <a href='/admin/plugins'>/admin/plugins</a>"
+          description: "Allows to enable plugins in <a
+            href='/admin/plugins'>/admin/plugins</a>"
           title: "Enable plugins"
         enable_sitemap:
-          description: "Enables the sitemap, this will help search engines to index your site"
+          description: "Enables the sitemap, this will help search engines to index your
+            site"
           title: "Enable sitemap"
         enable_splash_screen:
           description: "Enables the splash screen when the application is loaded"
           title: "Enable splash screen"
         enable_subscription:
-          description: "Enables the subscription system, this will allow you to charge your users for access to your site"
+          description: "Enables the subscription system, this will allow you to charge
+            your users for access to your site"
           title: "Enable subscription"
         enable_transcoding:
-          description: "Enables the transcoding of videos, this will allow you to transcode the videos to different formats and resolutions"
+          description: "Enables the transcoding of videos, this will allow you to
+            transcode the videos to different formats and resolutions"
           title: "Enable transcoding"
         enable_web_updater:
-          description: "Enables the web update interface in <a href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an experimental feature, the application may stop working properly if something goes wrong during the update"
+          description: "Enables the web update interface in <a
+            href='/admin/updates'>/admin/updates</a>.<br><b>Caution:</b> As an
+            experimental feature, the application may stop working properly if
+            something goes wrong during the update"
           title: "Experimental web updater"
         external_scripts:
-          description: "Loads the scripts from an external URL, this can be useful if you want to use a CDN to load the scripts"
+          description: "Loads the scripts from an external URL, this can be useful if you
+            want to use a CDN to load the scripts"
           title: "External scripts"
         external_stylesheets:
-          description: "Loads the stylesheets from an external URL, this can be useful if you want to use a CDN to load the stylesheets"
+          description: "Loads the stylesheets from an external URL, this can be useful if
+            you want to use a CDN to load the stylesheets"
           title: "External stylesheets"
         header_background_color:
           description: "The background color of the application header"
@@ -207,28 +255,38 @@ en:
           description: "Webhook secret used to verify Lemon Squeezy notifications"
           title: "Lemon Squeezy webhook secret"
         live_tv_proxy_allowed_stream_hosts:
-          description: "If the live TV proxy is enabled, you can specify a list of allowed stream hosts. This is useful to prevent abuse of the proxy to stream content from unauthorized sources. "
+          description: "If the live TV proxy is enabled, you can specify a list of allowed
+            stream hosts. This is useful to prevent abuse of the proxy to stream
+            content from unauthorized sources. "
           title: "Live TV proxy allowed stream hosts"
         live_tv_proxy_mode:
-          description: "The mode of the live TV proxy, if enabled, the live TV streams will be proxied through the server. This can be useful if your streams don't support CORS or prevent mixed content. <b>Caution:</b> Enabling the proxy may cause performance issues and increase the load on your server, especially if you have many users watching live TV at the same time."
+          description: "The mode of the live TV proxy, if enabled, the live TV streams
+            will be proxied through the server. This can be useful if your
+            streams don't support CORS or prevent mixed content. <b>Caution:</b>
+            Enabling the proxy may cause performance issues and increase the
+            load on your server, especially if you have many users watching live
+            TV at the same time."
           title: "Live TV proxy mode"
           values:
             disabled: "Disabled"
             internal: "Internal (server will proxy the streams)"
         live_tv_section_title:
-          description: "The title of the live TV section on the home page and in the navigation"
+          description: "The title of the live TV section on the home page and in the
+            navigation"
           title: "Live TV section title"
         mercadopago_access_token:
           description: "Mercado Pago access token for API requests"
           title: "Mercado Pago access token"
         mercadopago_application_id:
-          description: "Mercado Pago application ID used to filter plans and validate webhooks"
+          description: "Mercado Pago application ID used to filter plans and validate
+            webhooks"
           title: "Mercado Pago application ID"
         mercadopago_plan_id:
           description: "Subscription preapproval plan ID in Mercado Pago"
           title: "Mercado Pago subscription plan ID"
         mercadopago_public_key:
-          description: "Mercado Pago public key used to initialize MercadoPago.js on the frontend"
+          description: "Mercado Pago public key used to initialize MercadoPago.js on the
+            frontend"
           title: "Mercado Pago public key"
         mercadopago_site_id:
           description: "Mercado Pago site for your country (Uruguay = MLU)"
@@ -270,7 +328,8 @@ en:
           description: "Used for some buttons and links"
           title: "Secondary color"
         site_description:
-          description: "A short description of your site, as it will appear in the description meta tag of the browser"
+          description: "A short description of your site, as it will appear in the
+            description meta tag of the browser"
           title: "Site description"
         site_favicon:
           description: "The favicon of your site, as it will appear in the browser tab"
@@ -279,16 +338,20 @@ en:
           description: "The logo of your site, as it will appear in the application header"
           title: "Site logo"
         site_mobile_logo:
-          description: "The logo of your site, as it will appear in the application header on mobile devices"
+          description: "The logo of your site, as it will appear in the application header
+            on mobile devices"
           title: "Site mobile logo"
         site_name:
-          description: "The name of your site, as it will appear in the title bar of the browser"
+          description: "The name of your site, as it will appear in the title bar of the
+            browser"
           title: "Site name"
         storage_provider:
-          description: "The storage provider of your site, this will be used to store the media files of your site"
+          description: "The storage provider of your site, this will be used to store the
+            media files of your site"
           title: "Storage provider"
         subscription_provider_primary:
-          description: "Primary subscription provider used to process checkouts and webhooks (legacy fallback when no provider feature flag is enabled)"
+          description: "Primary subscription provider used to process checkouts and
+            webhooks (legacy fallback when no provider feature flag is enabled)"
           title: "Primary subscription provider"
           values:
             lemon_squeezy: "Lemon Squeezy"
@@ -298,13 +361,15 @@ en:
           title: "Tertiary color"
         title: "Site settings"
         tmdb_api_key:
-          description: "The API key of your TMDB account, you can get it <a href='https://www.themoviedb.org/settings/api' target='_blank'>here</a>"
+          description: "The API key of your TMDB account, you can get it <a
+            href='https://www.themoviedb.org/settings/api'
+            target='_blank'>here</a>"
           title: "TMDB API key"
-        xmltv_refresh_interval:
-          description: "The interval at which to refresh the XMLTV data"
-          title: "XMLTV refresh interval"
       updater:
-        ready_description: "CinelarTV is software that is constantly being updated, and we keep in mind that you might want to be on the cutting edge, so we've implemented this experimental feature to make it as simple as pressing a button."
+        ready_description: "CinelarTV is software that is constantly being updated, and
+          we keep in mind that you might want to be on the cutting edge, so
+          we've implemented this experimental feature to make it as simple as
+          pressing a button."
         ready_title: "¿Ready for update?"
     common:
       actions: "Actions"
@@ -314,7 +379,9 @@ en:
       name: "Name"
       updated_at: "Updated at"
     errors:
-      chunk_loading_error: "An error ocurred when loading next page.\n Please reload"
+      chunk_loading_error: "An error ocurred when loading next page.
+
+        \ Please reload"
     home:
       added_recently: "Added recently"
       because_you_liked: "Because you liked %{title}"
@@ -336,9 +403,30 @@ en:
       back: "Back"
       next_episode: "Next episode"
       skip_intro: "Skip intro"
+    segments:
+      skip_intro: "Skip Intro"
+      skip_resume: "Skip Recap"
+      skip_credits: "Skip Credits"
+      next_episode: "Next Episode"
+      credits_start: "Credits Start"
+      title: "Time Segments"
+      no_segments: "No segments"
+      add_segment: "Add segment"
+      add_another: "Add another segment"
+      segment_type: "Segment type"
+      start_time: "Start time (MM:SS)"
+      end_time: "End time (MM:SS)"
+      time_range: "Time range"
+      point: "Point"
+      existing_segments: "Existing segments"
+      error_duplicate: "A segment of this type already exists"
+      error_required: "Start and end times are required for this segment type"
+      error_start_required: "Start time is required for this segment type"
     wizard:
       introduction:
-        description: "🎉 Welcome to CinelarTV! 🎉<br><br>Before you start, we need to configure some things. Don't worry, it's very simple and you'll only have to do it once."
+        description: "🎉 Welcome to CinelarTV! 🎉<br><br>Before you start, we need to
+          configure some things. Don't worry, it's very simple and you'll only
+          have to do it once."
         title: "Introduction"
       license:
         description: "Introduce your license key to enable Commercial features"
@@ -350,10 +438,12 @@ en:
             description: "The default language of your site"
             title: "Default language"
           site_description:
-            description: "A short description of your site, as it will appear in the description meta tag of the browser"
+            description: "A short description of your site, as it will appear in the
+              description meta tag of the browser"
             title: "Site description"
           site_name:
-            description: "The name of your site, as it will appear in the title bar of the browser"
+            description: "The name of your site, as it will appear in the title bar of the
+              browser"
             title: "Site name"
         title: "Site info"
       step: "Step"
@@ -369,9 +459,11 @@ en:
           description: "The default language of your site"
           title: "Default language"
         site_description:
-          description: "A short description of your site, as it will appear in the description meta tag of the browser"
+          description: "A short description of your site, as it will appear in the
+            description meta tag of the browser"
           title: "Site description"
         site_name:
-          description: "The name of your site, as it will appear in the title bar of the browser"
+          description: "The name of your site, as it will appear in the title bar of the
+            browser"
           title: "Site name"
       title: "Site info"

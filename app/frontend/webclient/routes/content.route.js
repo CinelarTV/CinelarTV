@@ -5,6 +5,7 @@ let ContentRoute = {
     component: () => import(/* webpackChunkName: "content" */ '../views/Content.tsx'),
     meta: {
         transition: 'fade',
+        forceRemount: true
     }
 }
 

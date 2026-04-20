@@ -5,7 +5,11 @@ export default defineComponent({
     name: 'CButton',
     props: {
         onClick: Function as PropType<(e: MouseEvent) => void>,
-        type: String as PropType<'danger' | null>,
+        variant: String as PropType<string | null>,
+        nativeType: {
+            type: String as PropType<'button' | 'submit' | 'reset'>,
+            default: 'button'
+        },
         loading: Boolean,
         icon: {
             type: String,
@@ -18,6 +22,7 @@ export default defineComponent({
             const disabledAttr = attrs.disabled;
             return disabledAttr === '' || disabledAttr === true || disabledAttr === 'true';
         };
+        const buttonType = (attrs.type as string) || props.nativeType;
 
         const handleClick = (e: MouseEvent) => {
             if (!props.loading) emit('click', e);
@@ -32,12 +37,13 @@ export default defineComponent({
                     <button
                         class={[
                             'c-button',
-                            props.type === 'danger' && 'c-button--danger',
+                            props.variant && `c-button--${props.variant}`,
                             props.loading && 'c-button--loading',
                             hasIcon && 'c-button--with-icon',
                             showOverlaySpinner && 'c-button--loading-no-icon',
                         ]}
                         {...attrs}
+                        type={buttonType}
                         disabled={props.loading || isAttrDisabled()}
                         aria-busy={props.loading ? 'true' : 'false'}
                         onClick={handleClick}

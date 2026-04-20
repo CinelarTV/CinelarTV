@@ -19,13 +19,22 @@ import Axios from './lib/Ajax'
 
 import 'vue3-toastify/dist/index.css';
 import iconLibrary from './lib/IconLibrary';
-import { install as VueMonacoEditorPlugin } from '@guolao/vue-monaco-editor'
 import MessageBus from "./lib/MessageBus";
 
 
 const CinelarTV = createApp(App)
 
 
+// Lazy loading para componentes pesados
+const loadHeavyComponents = async () => {
+    const [VueMonacoEditorPlugin] = await Promise.all([
+        import(/* webpackChunkName: "monaco-editor" */ '@guolao/vue-monaco-editor').then(module => module.install),
+    ]);
+
+    return { VueMonacoEditorPlugin };
+};
+
+// Componentes ligeros que se cargan inmediatamente
 let pluginMap = [
     EssentialsPreloaded,
     metaManager,
@@ -46,12 +55,25 @@ CinelarTV.use(Vue3Progress, {
     height: '4px'
 })
 
+// Cargar componentes pesados después del montaje inicial
+const initializeHeavyComponents = async () => {
+    try {
+        const { VueMonacoEditorPlugin } = await loadHeavyComponents();
 
-CinelarTV.use(VueMonacoEditorPlugin, {
-    paths: {
-        vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs'
+        CinelarTV.use(VueMonacoEditorPlugin, {
+            paths: {
+                vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.38.0/min/vs'
+            }
+        });
+
+        console.log('🚀 Heavy components loaded asynchronously');
+    } catch (error) {
+        console.error('❌ Error loading heavy components:', error);
     }
-})
+};
+
+// Inicializar componentes pesados en background
+setTimeout(initializeHeavyComponents, 100);
 
 pluginMap.forEach(plugin => {
     CinelarTV.use(plugin)

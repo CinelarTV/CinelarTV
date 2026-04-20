@@ -12,7 +12,19 @@ import(/* webpackChunkName: "cinelartv" */ '../webclient/application.js').then(a
     const CinelarTV = module.default;
     const { loadPlugins } = module;
 
-    // Mount app
+    // Iniciar carga de plugins en paralelo ANTES de montar la app
+    const pluginsPromise = loadPlugins().catch(e => {
+        console.error('❌ Error cargando plugins:', e);
+        return []; // Continuar aunque fallen plugins
+    });
+
+    const pluginApiPromise = import('../webclient/lib/PluginAPI.js').catch(e => {
+        console.error('❌ Error cargando PluginAPI:', e);
+        return { default: null };
+    });
+
+    // Mount app inmediatamente mientras los plugins cargan en background
+    console.log('🚀 Mounting CinelarTV app...');
     CinelarTV.mount('#cinelartv');
     document.querySelector("noscript")?.remove();
     window.CinelarTV = CinelarTV;
@@ -20,44 +32,34 @@ import(/* webpackChunkName: "cinelartv" */ '../webclient/application.js').then(a
     try {
         const { siteSettings } = useSiteSettings();
 
-        // Ejecutar en paralelo: loadPlugins + PluginAPI + custom_js
-        const [, pluginApiModule] = await Promise.all([
-            // Fase 1: plugins (el más lento usualmente)
-            loadPlugins().catch(e => {
-                console.error('❌ Error cargando plugins:', e);
-                return []; // Continuar aunque fallen plugins
-            }),
-
-            // Fase 2: PluginAPI
-            import('../webclient/lib/PluginAPI.js').catch(e => {
-                console.error('❌ Error cargando PluginAPI:', e);
-                return { default: null };
-            })
+        // Esperar a que terminen las cargas paralelas
+        const [plugins, pluginApiModule] = await Promise.all([
+            pluginsPromise,
+            pluginApiPromise
         ]);
 
         // Inicializar PluginAPI si se cargó correctamente
         if (pluginApiModule?.default) {
             window.PluginAPI = new pluginApiModule.default('1.0.0', CinelarTV);
+            console.log('✅ PluginAPI initialized');
         } else {
             console.warn('⚠️ PluginAPI no está disponible');
         }
 
+        console.log(`📦 Plugins loaded: ${plugins.length}`);
 
-
-        // Fase 3: Custom JS (no bloquea, pero después de PluginAPI listo)
-        try {
-            if (siteSettings.custom_js && siteSettings.custom_js.length > 0) {
-                console.log('🔧 Loading custom JavaScript');
-                await loadScript(null, siteSettings.custom_js);
-            }
-        } catch (error) {
-            console.error('❌ Error loading custom JS:', error);
+        // Custom JS (no bloquea, pero después de PluginAPI listo)
+        if (siteSettings.custom_js && siteSettings.custom_js.length > 0) {
+            console.log('🔧 Loading custom JavaScript');
+            loadScript(null, siteSettings.custom_js).catch(error => {
+                console.error('❌ Error loading custom JS:', error);
+            });
         }
+
+        console.log('🎉 CinelarTV boot completed successfully');
     } catch (error) {
         console.error('❌ Error en boot flow:', error);
     }
-
-
 
 }).catch(error => {
     console.error(error);

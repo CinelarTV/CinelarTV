@@ -5,6 +5,8 @@ Rails.application.reloader.to_prepare do
     #  config.force_ssl = SiteSettings.force_https
     config.i18n.load_path += Dir[Rails.root.join("config", "locales", "**", "*.{rb,yml}")]
     config.i18n.default_locale = SiteSetting.default_locale
+    config.i18n.fallbacks = [:en]
+
 
     config.hosts << [
       ENV["CINELAR_BASE_URL"],

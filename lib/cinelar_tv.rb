@@ -4,6 +4,17 @@ require "version"
 require "updater"
 
 module CinelarTV
+  @plugins = []
+  @plugins_by_name = {}
+
+  class << self
+    attr_reader :plugins, :plugins_by_name
+
+    def plugin_by_name(name)
+      @plugins_by_name[name]
+    end
+  end
+
   def self.git_version
     @git_version ||= try_git("git rev-parse HEAD", CinelarTV::Application::Version::FULL)
   end

@@ -36,6 +36,12 @@ module Api
         user = authenticate_user_from_params
 
         if user
+          if @inactive_account_type.present?
+            @current_user = user
+            handle_inactive_account(@inactive_account_type)
+            return
+          end
+
           # Create OAuth tokens via Doorkeeper
           token_response = create_oauth_token(user)
 
@@ -57,10 +63,7 @@ module Api
             }, status: :internal_server_error
           end
         else
-          render json: {
-            error: "invalid_credentials",
-            message: "The email/username or password you entered is incorrect"
-          }, status: :unauthorized
+          render json: create_errors_json("The email/username or password you entered is incorrect", type: "invalid_credentials"), status: :unauthorized
         end
       end
 
@@ -261,8 +264,8 @@ module Api
 
       # Authenticate user from login params
       def authenticate_user_from_params
-        login_param = params[:email] || params[:username]
-        password = params[:password]
+        login_param = params[:email] || params[:username] || params.dig(:auth, :email) || params.dig(:auth, :username)
+        password = params[:password] || params.dig(:auth, :password)
 
         return nil unless login_param.present? && password.present?
 
@@ -270,8 +273,12 @@ module Api
         user = User.find_by(email: login_param.downcase)
         user ||= User.find_by(username: login_param)
 
-        return nil unless user&.valid_for_authentication? { user.valid_password?(password) }
-        return nil unless user&.active_for_authentication?
+        return nil unless user&.valid_password?(password)
+
+        unless user.active_for_authentication?
+          @inactive_account_type = user.deactivated? ? :deactivated : :suspended
+          return user
+        end
 
         user
       end

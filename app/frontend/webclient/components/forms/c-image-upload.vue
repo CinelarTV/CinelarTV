@@ -1,71 +1,168 @@
 <template>
-  <div class="c-image-upload relative">
-    <div id="uppy-container"></div>
+  <div class="c-image-upload">
+    <!-- Upload area -->
+    <div
+      v-if="!previewImage"
+      class="upload-area"
+      :class="{ 'drag-over': isDragOver }"
+      @click="triggerFileInput"
+      @dragover.prevent="handleDragOver"
+      @dragleave.prevent="handleDragLeave"
+      @drop.prevent="handleDrop"
+    >
+      <input
+        ref="fileInput"
+        type="file"
+        class="hidden-input"
+        accept="image/*"
+        @change="handleFileChange"
+      />
+      
+      <div class="upload-content">
+        <div class="upload-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 15V3m0 0l-4 4m4-4l4 4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/>
+          </svg>
+        </div>
+        <div class="upload-text">
+          <p class="upload-title">Arrastra una imagen aquí</p>
+          <p class="upload-subtitle">o haz clic para seleccionar</p>
+        </div>
+        <div class="upload-hint">
+          <p>Formatos: JPG, PNG, GIF, WebP</p>
+          <p>Tamaño máximo: 10MB</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview area -->
+    <div v-else class="preview-area">
+      <div class="preview-image">
+        <img :src="previewImage" alt="Preview" />
+      </div>
+      <div class="preview-actions">
+        <button
+          type="button"
+          class="c-button c-button--danger"
+          @click="removeImage"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+          </svg>
+          Eliminar
+        </button>
+        <button
+          type="button"
+          class="c-button"
+          @click="triggerFileInput"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-5l5 5 5-5m-5 5V3"/>
+          </svg>
+          Cambiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div v-if="isUploading" class="upload-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Subiendo imagen...</p>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, defineEmits, defineModel, watch, onMounted } from 'vue';
-import Uppy from '@uppy/core';
-import Dashboard from '@uppy/dashboard';
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+  modelValue: [String, File]
+});
 
 const emit = defineEmits(['update:modelValue']);
 
+const fileInput = ref(null);
 const previewImage = ref(null);
-const modelValue = defineModel(() => previewImage.value, (value) => previewImage.value = value);
+const isDragOver = ref(false);
+const isUploading = ref(false);
+
+// Sync previewImage with modelValue
+watch(() => props.modelValue, (newValue) => {
+  if (newValue instanceof File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImage.value = reader.result;
+    };
+    reader.readAsDataURL(newValue);
+  } else if (typeof newValue === 'string') {
+    previewImage.value = newValue;
+  } else {
+    previewImage.value = null;
+  }
+}, { immediate: true });
+
+const triggerFileInput = () => {
+  fileInput.value?.click();
+};
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      previewImage.value = reader.result;
-      modelValue.value = '';
-      emit('update:modelValue', file);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    previewImage.value = null;
-    modelValue.value = '';
-    emit('update:modelValue', '');
+    processFile(file);
   }
 };
 
+const handleDragOver = () => {
+  isDragOver.value = true;
+};
 
-onMounted(() => {
-  const uppy = new Uppy({
-    autoProceed: true,
-    restrictions: {
-      allowedFileTypes: ['image/*'],
-    },
-    allowMultipleUploads: false,
-  })
-    .use(Dashboard, {
-      target: '#uppy-container',
-      inline: true,
-      height: 200,
-      width: '100%',
-    });
+const handleDragLeave = () => {
+  isDragOver.value = false;
+};
 
-  uppy.on('complete', (result) => {
-    if (result.successful.length > 0) {
-      // La carga fue exitosa
-      const uploadedFile = result.successful[0];
-
-      emit('update:modelValue', uploadedFile.data);
-    } else {
-      console.error('Error durante la carga de la imagen.');
+const handleDrop = (event: DragEvent) => {
+  isDragOver.value = false;
+  const files = event.dataTransfer?.files;
+  if (files && files.length > 0) {
+    const file = files[0];
+    if (file.type.startsWith('image/')) {
+      processFile(file);
     }
-  });
-});
+  }
+};
+
+const processFile = (file) => {
+  // Check file size (10MB limit)
+  if (file.size > 10 * 1024 * 1024) {
+    console.error('El archivo es demasiado grande. Máximo 10MB.');
+    return;
+  }
+
+  isUploading.value = true;
+  
+  const reader = new FileReader();
+  reader.onload = () => {
+    previewImage.value = reader.result;
+    emit('update:modelValue', file);
+    isUploading.value = false;
+  };
+  
+  reader.onerror = () => {
+    console.error('Error al leer el archivo.');
+    isUploading.value = false;
+  };
+  
+  reader.readAsDataURL(file);
+};
+
+const removeImage = () => {
+  previewImage.value = null;
+  emit('update:modelValue', '');
+  if (fileInput.value) {
+    fileInput.value.value = '';
+  }
+};
 </script>
 
-<style scoped>
-@import '@uppy/core/dist/style.min.css';
-@import '@uppy/dashboard/dist/style.min.css';
-
-.c-image-upload {
-  display: inline-block;
-  /* Personaliza los estilos según tus necesidades */
-}
-</style>

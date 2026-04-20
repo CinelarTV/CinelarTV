@@ -1,0 +1,88 @@
+.videoable-manager .video-upload-area {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.videoable-manager .video-upload-area:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.videoable-manager .video-upload-area.drag-over {
+  border-color: var(--c-primary-300);
+  background: rgba(var(--c-primary-300-rgb), 0.1);
+}
+
+.videoable-manager .upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+
+.videoable-manager .upload-content svg {
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.videoable-manager .upload-content p:first-of-type {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--c-body-text-color);
+  margin-bottom: 0.5rem;
+}
+
+.videoable-manager .upload-content p:nth-of-type(2) {
+  font-size: 0.875rem;
+  color: var(--c-primary-900);
+  margin-bottom: 0;
+}
+
+.videoable-manager .upload-content p:nth-of-type(3) {
+  font-size: 0.75rem;
+  color: var(--c-primary-900);
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.videoable-manager .selected-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.videoable-manager .selected-file .w-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.videoable-manager .selected-file .w-10 svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.videoable-manager .selected-file p:first-child {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--c-body-text-color);
+  margin-bottom: 0.25rem;
+}
+
+.videoable-manager .selected-file p:last-child {
+  font-size: 0.75rem;
+  color: var(--c-primary-900);
+  margin: 0;
+}

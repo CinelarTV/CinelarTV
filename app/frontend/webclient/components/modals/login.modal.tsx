@@ -48,10 +48,8 @@ export default defineComponent({
         })
         window.location.reload()
       } catch (error: any) {
-        /* {
-    "error": "Translation missing. Options considered were:\n- es.devise.failure.user.account_suspended\n- es.devise.failure.account_suspended"
-} */
-        errorMessage.value = error.response?.data?.error || 'Login failed. Please check your credentials and try again.'
+
+        errorMessage.value = error.response?.data?.errors?.[0] || 'An error occurred during login. Please try again.'
       } finally {
         loading.value = false
       }

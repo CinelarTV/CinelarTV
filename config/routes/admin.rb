@@ -70,7 +70,18 @@ namespace :admin do
   get "/episodes/:episode_id/video_sources", to: "video_sources#index"
   post "/episodes/:episode_id/video_sources", to: "video_sources#create"
 
-  
+  # For listing and creating segments associated with an episode
+  get "/episodes/:episode_id/segments", to: "segments#index"
+  post "/episodes/:episode_id/segments", to: "segments#create"
+  put "/episodes/:episode_id/segments/:id", to: "segments#update"
+  delete "/episodes/:episode_id/segments/:id", to: "segments#destroy"
+
+  # For listing and creating segments associated with a content
+  get "/contents/:content_id/segments", to: "segments#index"
+  post "/contents/:content_id/segments", to: "segments#create"
+  put "/contents/:content_id/segments/:id", to: "segments#update"
+  delete "/contents/:content_id/segments/:id", to: "segments#destroy"
+
   # For updating and deleting a specific video source
   get "/video_sources/broken", to: "video_sources#broken", defaults: { format: 'json' }
   put "/video_sources/:id", to: "video_sources#update"

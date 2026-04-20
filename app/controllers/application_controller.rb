@@ -97,14 +97,29 @@ class ApplicationController < ActionController::Base
   end
 
   def ensure_account_active
-    return unless current_user
+    # Support both Devise session users and Doorkeeper bearer-token users.
+    user = current_user
 
-    if current_user.deactivated?
+    # If there's no Devise session user, try to resolve a user from a valid
+    # Doorkeeper bearer token present in the Authorization header. We only
+    # accept tokens that exist and are not revoked/expired so we don't trust
+    # stale tokens when checking account state.
+    if user.nil?
+      token_user = user_from_bearer_token
+      if token_user
+        @current_user = token_user
+        user = token_user
+      end
+    end
+
+    return unless user
+
+    if user.deactivated?
       handle_inactive_account(:deactivated)
       return false
     end
 
-    if current_user.suspended?
+    if user.suspended?
       handle_inactive_account(:suspended)
       return false
     end
@@ -119,7 +134,7 @@ class ApplicationController < ActionController::Base
                 else
                   suspension_message
                 end
-      render json: { error: (type == :deactivated ? 'account_deactivated' : 'account_suspended'), message: message }, status: :forbidden
+      render json: create_errors_json(message, type: (type == :deactivated ? 'account_deactivated' : 'account_suspended')), status: :forbidden
     else
       sign_out(current_user) if defined?(sign_out)
       redirect_to "/", alert: (type == :deactivated ? 'Tu cuenta ha sido desactivada.' : 'Tu cuenta está suspendida.')
@@ -151,6 +166,30 @@ class ApplicationController < ActionController::Base
       render template: "exceptions/maintenance", layout: "maintenance", status: :service_unavailable
     end
     true
+  end
+
+  # Try to extract a bearer token from the Authorization header and resolve
+  # a valid Doorkeeper access token -> user. Returns nil if none found or the
+  # token is revoked/expired.
+  def user_from_bearer_token
+    token_str = bearer_token_from_header
+    return nil unless token_str
+
+    token = Doorkeeper::AccessToken.find_by(token: token_str)
+    return nil unless token && token.resource_owner_id.present?
+    return nil if token.revoked? || token.expired?
+
+    User.find_by(id: token.resource_owner_id)
+  rescue StandardError => e
+    Rails.logger.error("user_from_bearer_token failed: #{e.class} - #{e.message}")
+    nil
+  end
+
+  def bearer_token_from_header
+    auth = request.headers['Authorization'] || request.headers['HTTP_AUTHORIZATION']
+    return nil unless auth.present?
+    m = auth.match(/\ABearer\s+(.+)\z/i)
+    m && m[1]
   end
 
   def broadcast_profile_update(user, payload = {})

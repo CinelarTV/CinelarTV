@@ -3,6 +3,7 @@
 # app/models/episode.rb
 class Episode < ApplicationRecord
   include Videoable
+  include Segmenteable
 
   belongs_to :season
   has_one :content, through: :season

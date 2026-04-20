@@ -1,5 +1,19 @@
-cinelar_watchparty_enabled:
+plugins:
+  cinelar_watchparty_enabled:
     client: true
     refresh: true
     default: false
     type: 'boolean'
+    description: "Enable WatchParty functionality for synchronized viewing"
+  
+  cinelar_watchparty_max_participants:
+    client: true
+    default: 10
+    type: integer
+    description: "Maximum number of participants in a WatchParty session"
+  
+  cinelar_watchparty_chat_enabled:
+    client: true
+    default: true
+    type: boolean
+    description: "Enable chat functionality in WatchParty sessions"

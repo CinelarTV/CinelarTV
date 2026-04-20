@@ -141,17 +141,19 @@ class PlayerController < ApplicationController
     }
 
     if @content.content_type == "MOVIE"
-      data[:sources] = video_sources_data
+      sources_data = video_sources_data
+      data[:sources] = sources_data[:sources]
+      data[:content][:segments] = sources_data[:segments]
     elsif @content.content_type == "TVSHOW" && @episode
-      data[:sources] = episode_video_sources_data
-    end
-
-    if @content.content_type == "TVSHOW" && @episode
+      sources_data = episode_video_sources_data
+      data[:sources] = sources_data[:sources]
       data[:episode] = @episode.as_json(except: %i[created_at updated_at])
+      data[:episode][:segments] = sources_data[:segments]
     end
     data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
     data[:season][:episodes] = @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position]) if @season
 
+    
     response = { data: data }
     response[:deviceSessionToken] = @stream_session_result.session_id if @stream_session_result&.session_id.present?
 
@@ -159,23 +161,29 @@ class PlayerController < ApplicationController
   end
 
   def video_sources_data
-    @content.video_sources.map do |vs|
-      {
-        id: vs.id,
-        url: vs.url,
-        quality: vs.quality,
-      }
-    end
+    {
+      sources: @content.video_sources.map do |vs|
+        {
+          id: vs.id,
+          url: vs.url,
+          quality: vs.quality,
+        }
+      end,
+      segments: @content.segments.order(:start_time).as_json(only: %i[id segment_type start_time end_time])
+    }
   end
 
   def episode_video_sources_data
-    @episode.video_sources.map do |vs|
-      {
-        id: vs.id,
-        url: vs.url,
-        quality: vs.quality,
-      }
-    end
+    {
+      sources: @episode.video_sources.map do |vs|
+        {
+          id: vs.id,
+          url: vs.url,
+          quality: vs.quality,
+        }
+      end,
+      segments: @episode.segments.order(:start_time).as_json(only: %i[id segment_type start_time end_time])
+    }
   end
 
   def content_available?

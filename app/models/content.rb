@@ -2,6 +2,7 @@
 
 class Content < ApplicationRecord
   include Videoable
+  include Segmenteable
   include SimpleRecommender::Recommendable
 
   attribute :available, :boolean, default: false

@@ -1,0 +1,39 @@
+/* Example Plugin Styles */
+.example-plugin-widget {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.example-plugin-widget h3 {
+  color: #495057;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.example-plugin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.example-plugin-stat {
+  text-align: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.example-plugin-stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.example-plugin-stat-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+}

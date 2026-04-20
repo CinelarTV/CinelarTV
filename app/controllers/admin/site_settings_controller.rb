@@ -61,10 +61,6 @@ module Admin
 
         update_carrierwave_setting if is_storage_related?(setting_params.keys)
 
-        if (setting_params.keys & %w[xmltv_refresh_interval enable_live_tv]).any?
-          XmltvFetchJob.setup_schedule
-        end
-
         render json: { message: I18n.t("settings.saved_successfully") }, status: :ok
       end
     end

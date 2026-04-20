@@ -749,6 +749,14 @@ export const adminUsersPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2
 
 /**
  * Generates rails route to
+ * /admin/users/create_user(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminUsersCreateUserPath = /*#__PURE__*/ __jsr.r({"format":{"d":"json"}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"users"],[2,[7,"/"],[2,[6,"create_user"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
  * /admin/video_sources/broken(.:format)
  * @param {object | undefined} options
  * @returns {string} route path

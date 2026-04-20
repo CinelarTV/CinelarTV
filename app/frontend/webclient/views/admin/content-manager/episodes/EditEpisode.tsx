@@ -5,27 +5,18 @@ import CImageUpload from "@/components/forms/CImageUpload";
 import { ajax } from "@/lib/Ajax";
 import Episode, { EpisodeData } from "@/app/models/Episode";
 import CVideoableManager from "@/components/CVideoableManager";
+import CSegmentManager from "@/components/CSegmentManager";
 
 // Extend Episode type to include timing fields
 type ExtendedEpisode = Episode & {
-    skip_intro_start?: number;
-    skip_intro_end?: number;
-    episode_end?: number;
+    segments?: any[];
+    video_sources?: any[];
+    season_id?: number;
+    created_at?: string;
+    updated_at?: string;
     premium?: boolean;
+    thumbnail?: string | File;
 };
-
-function formatTime(seconds: number | null): string {
-    if (!seconds) return "";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-}
-
-function parseTime(timeString: string): number | null {
-    if (!timeString) return null;
-    const [mins, secs] = timeString.split(":").map(Number);
-    return mins * 60 + secs;
-}
 
 export default defineComponent({
     name: "EditEpisode",
@@ -59,18 +50,8 @@ export default defineComponent({
                 if (episodeData.value) {
                     formData.append('title', episodeData.value.title || '');
                     formData.append('description', episodeData.value.description || '');
-                    formData.append('url', episodeData.value.url || '');
                     if (episodeData.value.thumbnail) {
                         formData.append('thumbnail', episodeData.value.thumbnail);
-                    }
-                    if (episodeData.value.skip_intro_start) {
-                        formData.append('skip_intro_start', episodeData.value.skip_intro_start.toString());
-                    }
-                    if (episodeData.value.skip_intro_end) {
-                        formData.append('skip_intro_end', episodeData.value.skip_intro_end.toString());
-                    }
-                    if (episodeData.value.episode_end) {
-                        formData.append('episode_end', episodeData.value.episode_end.toString());
                     }
                     if (episodeData.value.premium !== undefined) {
                         formData.append('premium', episodeData.value.premium.toString());
@@ -94,18 +75,12 @@ export default defineComponent({
             if (episodeData.value) {
                 episodeData.value = {
                     ...episodeData.value,
-                    [field]: value,
-                    updated_at: new Date().toISOString()
+                    [field]: value
                 };
             }
         };
 
-        const handleTimeChange = (field: "skip_intro_start" | "skip_intro_end" | "episode_end", value: string) => {
-            const seconds = parseTime(value);
-            handleInputChange(field, seconds);
-        };
-
-        const handleImageUpload = (file: File) => {
+        const handleImageUpload = (file: File | string) => {
             handleInputChange("thumbnail", file);
         };
 
@@ -173,50 +148,12 @@ export default defineComponent({
                                     />
                                     <div class="text-xs text-gray-400 mt-1">{(episodeData.value.description || '').length}/500 caracteres</div>
                                 </div>
+                                {/* Segment Manager */}
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                                    <input
-                                        class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={episodeData.value.url || ''}
-                                        onInput={e => handleInputChange("url", (e.target as HTMLInputElement).value)}
-                                        placeholder="URL"
+                                    <CSegmentManager
+                                        initialSegments={episodeData.value.segments || []}
+                                        episodeId={route.params.episodeId?.toString()}
                                     />
-                                </div>
-                                {/* Timing Controls */}
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-                                            <svg class="h-4 w-4 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-                                            </svg>
-                                            Inicio Skip Intro
-                                        </label>
-                                        <input
-                                            type="text"
-                                            class="w-full px-3 py-2 border rounded font-mono"
-                                            placeholder="00:00"
-                                            value={formatTime(episodeData.value.skip_intro_start)}
-                                            onInput={e => handleTimeChange("skip_intro_start", (e.target as HTMLInputElement).value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
-                                            <svg class="h-4 w-4 text-orange-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-                                            </svg>
-                                            Fin Skip Intro
-                                        </label>
-                                        <input
-                                            type="text"
-                                            class="w-full px-3 py-2 border rounded font-mono"
-                                            placeholder="00:00"
-                                            value={formatTime(episodeData.value.skip_intro_end)}
-                                            onInput={e => handleTimeChange("skip_intro_end", (e.target as HTMLInputElement).value)}
-                                        />
-
-                                    </div>
-
-
                                 </div>
                                 <div>
                                     <CVideoableManager

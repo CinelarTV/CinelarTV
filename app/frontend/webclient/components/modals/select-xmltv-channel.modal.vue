@@ -94,6 +94,7 @@ const q = ref('')
 const selectedSourceId = ref('')
 
 let fetchTimer: number | null = null
+let fetchAbortController: AbortController | null = null
 
 const resetState = () => {
     channels.value = []
@@ -106,10 +107,17 @@ const resetState = () => {
 
 const setIsOpen = (v: boolean) => {
     isOpen.value = v
-    if (v) {
-        resetState()
-        fetchChannels()
+    if (!v) {
+        if (fetchTimer) {
+            window.clearTimeout(fetchTimer)
+            fetchTimer = null
+        }
+        cancelPendingFetch()
+        return
     }
+
+    resetState()
+    fetchChannels()
 }
 
 const openWith = ({ sourceId, initialXmltvId }: { sourceId?: string; initialXmltvId?: string } = {}) => {
@@ -119,6 +127,13 @@ const openWith = ({ sourceId, initialXmltvId }: { sourceId?: string; initialXmlt
 }
 
 defineExpose({ setIsOpen, openWith })
+
+const cancelPendingFetch = () => {
+    if (fetchAbortController) {
+        fetchAbortController.abort()
+        fetchAbortController = null
+    }
+}
 
 const debouncedFetch = () => {
     if (fetchTimer) window.clearTimeout(fetchTimer)
@@ -135,21 +150,32 @@ const fetchChannels = async (fetchRemote = false) => {
         return
     }
 
+    cancelPendingFetch()
+    fetchAbortController = new AbortController()
+
     loading.value = true
     try {
         const params: any = { page: page.value, per_page: perPage.value }
         if (q.value) params.q = q.value
         if (fetchRemote) params.fetch = true
 
-        const resp = await ajax.get(`/admin/xmltv_sources/${selectedSourceId.value}/channels.json`, { params })
+        const resp = await ajax.get(`/admin/xmltv_sources/${selectedSourceId.value}/channels.json`, {
+            params,
+            signal: fetchAbortController.signal,
+        })
         channels.value = resp.data.channels || []
         total.value = resp.data.total || 0
-    } catch (err) {
+    } catch (err: any) {
+        if (err?.name === 'CanceledError' || err?.name === 'AbortError') {
+            return
+        }
+
         console.error('Error fetching channels', err)
         channels.value = []
         total.value = 0
     } finally {
         loading.value = false
+        fetchAbortController = null
     }
 }
 

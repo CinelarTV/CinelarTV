@@ -1,23 +1,13 @@
-let VideoPlayerRoute =
-{
-    path: '/watch/:contentId',
+let VideoPlayerRoute = {
+    path: '/watch/:contentId/:episodeId?',
     name: 'videoplayer.show',
     component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.tsx'),
     meta: {
         transition: 'fade',
         requiresAuth: true,
-        showHeader: false
-    },
-    children: [
-        {
-            name: 'videoplayer.episode', // Cambiado para evitar duplicidad
-            path: ':episodeId',
-            component: () => import(/* webpackChunkName: "videoplayer" */ '../views/videoplayer.tsx'),
-        },
-    ]
-
+        showHeader: false,
+        forceRemount: true
+    }
 }
-
-
 
 export default VideoPlayerRoute

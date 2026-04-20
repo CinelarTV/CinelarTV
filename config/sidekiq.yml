@@ -26,6 +26,12 @@
       class: MediaScannerJob
       queue: 'default'
       description: 'Daily check for media integrity (broken links)'
+    fetch_xmltv:
+      every:
+        - '1h'
+      class: XmltvFetchJob
+      queue: 'xmltv'
+      description: 'Fetch and parse XMLTV sources for Live TV program guide (static)'
     unsuspend_expired_users:
       every: '1d'
       class: UnsuspendExpiredUsersJob

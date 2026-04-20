@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_19_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_19_220001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -85,9 +85,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_19_120000) do
     t.datetime "updated_at", null: false
     t.integer "position"
     t.string "thumbnail"
-    t.float "skip_intro_start"
-    t.float "skip_intro_end"
-    t.float "episode_end"
     t.boolean "premium", default: false
     t.index ["season_id"], name: "index_episodes_on_season_id"
   end
@@ -235,6 +232,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_19_120000) do
     t.datetime "updated_at", null: false
     t.integer "position"
     t.index ["content_id"], name: "index_seasons_on_content_id"
+  end
+
+  create_table "segments", force: :cascade do |t|
+    t.float "start_time"
+    t.float "end_time"
+    t.string "segment_type", null: false
+    t.string "segmentable_type", null: false
+    t.integer "segmentable_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["segment_type"], name: "index_segments_on_segment_type"
+    t.index ["segmentable_type", "segmentable_id"], name: "index_segments_on_segmentable_type_and_segmentable_id"
   end
 
   create_table "settings", force: :cascade do |t|

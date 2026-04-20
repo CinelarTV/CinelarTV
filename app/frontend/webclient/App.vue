@@ -8,7 +8,7 @@
             <SiteBanner />
             <router-view v-slot="{ Component, route }">
                 <transition :name="route.meta.transition">
-                    <component :is="Component" />
+                    <component :is="Component" :key="route.meta.forceRemount ? route.fullPath : undefined" />
                 </transition>
             </router-view>
         </cinelar-main>

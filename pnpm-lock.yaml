@@ -80,9 +80,6 @@ importers:
       hls.js:
         specifier: ^1.6.9
         version: 1.6.9
-      howler:
-        specifier: ^2.2.3
-        version: 2.2.4
       i18n-js:
         specifier: 3.9.2
         version: 3.9.2
@@ -140,9 +137,6 @@ importers:
       vanilla-jsoneditor:
         specifier: ^0.18.3
         version: 0.18.13
-      video.js:
-        specifier: ^8.23.3
-        version: 8.23.3
       videojs-youtube:
         specifier: ^3.0.1
         version: 3.0.1(video.js@8.23.3)
@@ -2455,9 +2449,6 @@ packages:
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
-
-  howler@2.2.4:
-    resolution: {integrity: sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==}
 
   i18n-js@3.9.2:
     resolution: {integrity: sha512-+Gm8h5HL0emzKhRx2avMKX+nKiVPXeaOZm7Euf2/pbbFcLQoJ3zZYiUykAzoRasijCoWos2Kl1tslmScTgAQKw==}
@@ -5758,8 +5749,6 @@ snapshots:
   hls.js@1.6.9: {}
 
   hookable@5.5.3: {}
-
-  howler@2.2.4: {}
 
   i18n-js@3.9.2: {}
 
