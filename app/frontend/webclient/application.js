@@ -83,11 +83,15 @@ pluginMap.forEach(plugin => {
 
 document.querySelector("noscript")?.remove();
 
-
 const bus = new MessageBus();
 
 bus.start();
 
+// Make the started instance globally accessible
+window.MessageBus = bus;
+
+// Export the instance for importing in components
+export const messageBus = bus;
 
 CinelarTV.destroy = () => {
     bus.stop()

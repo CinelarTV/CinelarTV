@@ -643,6 +643,8 @@ export class MessageBus {
         // Registrar callback
         this._callbacks.push({ channel, func, last_id: lastId });
 
+        console.log('[MessageBus] Subscribing to channel:', channel, 'with lastId:', lastId);
+
         // Abortar poll activo para aplicar nueva subscripción inmediatamente
         if (this._longPoll) {
             this._longPoll.abort();
@@ -772,8 +774,3 @@ export class MessageBus {
 
 // Export por defecto para ES Modules
 export default MessageBus;
-
-// Registro global para compatibilidad con scripts legacy
-if (typeof window !== 'undefined') {
-    (window as Record<string, any>).MessageBus = new MessageBus();
-}

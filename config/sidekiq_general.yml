@@ -1,0 +1,51 @@
+# frozen_string_literal: true
+
+# Sidekiq configuration for general workers that handle everything EXCEPT video transcoding
+# These workers process subscriptions, default, and xmltv jobs
+# Use this when you want dedicated workers for non-video tasks
+# Video transcoding should be handled by separate video-only workers
+
+:queues:
+  - [subscriptions, 5]
+  - [default, 3]
+  - [xmltv, 2]
+
+:concurrency: 25
+
+:scheduler:
+  :schedule:
+    # Run every 15 minutes
+    verify_instance_license:
+      every: '15m'
+      class: LicenseValidationJob
+      queue: 'default'
+      description: 'Verify if the license for this CinelarTV instance is valid'
+    check_for_updates:
+      every: '15m'
+      class: UpdateCheckJob
+      queue: 'default'
+      description: 'Refresh cached remote git version for updater checks'
+    get_top_10_for_country:
+      every: '1h'
+      class: Top10ContentJob
+      queue: 'default'
+      description: 'Get the top 10 movies for each country'
+    media_integrity_checker:
+      every: '1d' # Every 24 hours
+      class: MediaScannerJob
+      queue: 'default'
+      description: 'Daily check for media integrity (broken links)'
+    fetch_xmltv:
+      every:
+        - '1h'
+      class: XmltvFetchJob
+      queue: 'xmltv'
+      description: 'Fetch and parse XMLTV sources for Live TV program guide (static)'
+    unsuspend_expired_users:
+      every: '1d'
+      class: UnsuspendExpiredUsersJob
+      queue: 'default'
+      description: 'Unsuspend users whose suspended_until passed'
+
+:pidfile: tmp/pids/sidekiq_general.pid
+:logfile: log/sidekiq_general.log

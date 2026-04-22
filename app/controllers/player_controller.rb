@@ -150,10 +150,17 @@ class PlayerController < ApplicationController
       data[:episode] = @episode.as_json(except: %i[created_at updated_at])
       data[:episode][:segments] = sources_data[:segments]
     end
+    # Temporada actual con episodios
     data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
     data[:season][:episodes] = @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position]) if @season
 
-    
+    # Todas las temporadas para navegación entre temporadas
+    data[:seasons] = @content.seasons.order(position: :asc).map do |season|
+      season_data = season.as_json(except: %i[created_at updated_at])
+      season_data[:episodes] = season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position duration])
+      season_data
+    end if @content.content_type == "TVSHOW"
+
     response = { data: data }
     response[:deviceSessionToken] = @stream_session_result.session_id if @stream_session_result&.session_id.present?
 
@@ -162,7 +169,7 @@ class PlayerController < ApplicationController
 
   def video_sources_data
     {
-      sources: @content.video_sources.map do |vs|
+      sources: @content.video_sources.reload.map do |vs|
         {
           id: vs.id,
           url: vs.url,
@@ -175,7 +182,7 @@ class PlayerController < ApplicationController
 
   def episode_video_sources_data
     {
-      sources: @episode.video_sources.map do |vs|
+      sources: @episode.video_sources.reload.map do |vs|
         {
           id: vs.id,
           url: vs.url,

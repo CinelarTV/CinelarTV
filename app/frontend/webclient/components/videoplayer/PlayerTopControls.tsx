@@ -1,7 +1,6 @@
 import { defineComponent } from "vue";
 import CIcon from "../c-icon.vue";
 import PluginOutlet from "../PluginOutlet";
-import PlayerSegmentAdmin from "./PlayerSegmentAdmin";
 
 export default defineComponent({
     name: "PlayerTopControls",
@@ -17,14 +16,6 @@ export default defineComponent({
         backToContent: {
             type: Function,
             required: true
-        },
-        currentTime: {
-            type: Number,
-            default: 0
-        },
-        isAdmin: {
-            type: Boolean,
-            default: false
         }
     },
     setup(props) {
@@ -48,14 +39,6 @@ export default defineComponent({
                     </div>
 
                     <div class="flex items-center gap-2">
-                        {props.isAdmin && (
-                            <PlayerSegmentAdmin
-                                contentId={props.content?.id}
-                                episodeId={props.content?.episode?.id}
-                                currentTime={props.currentTime}
-                            />
-                        )}
-
                         <media-menu>
                             <media-menu-button
                                 class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4"
@@ -68,7 +51,6 @@ export default defineComponent({
                                 placement="top"
                                 offset="0"
                             >
-
                             </media-menu-items>
                         </media-menu>
 

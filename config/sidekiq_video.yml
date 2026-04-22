@@ -1,0 +1,17 @@
+# frozen_string_literal: true
+
+# Sidekiq configuration for video transcoding workers only
+# These workers ONLY process video transcoding jobs
+# Use this when you want dedicated workers for video processing
+# Video transcoding is CPU-intensive, so these workers should run on machines with more CPU resources
+
+:queues:
+  - [video_transcoding, 7]
+
+:concurrency: 5
+
+# Note: Scheduler is disabled for video-only workers
+# Scheduled tasks should be handled by general or standalone workers
+
+:pidfile: tmp/pids/sidekiq_video.pid
+:logfile: log/sidekiq_video.log

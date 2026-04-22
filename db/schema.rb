@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_19_220001) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -239,7 +239,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_19_220001) do
     t.float "end_time"
     t.string "segment_type", null: false
     t.string "segmentable_type", null: false
-    t.integer "segmentable_id", null: false
+    t.string "segmentable_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["segment_type"], name: "index_segments_on_segment_type"
@@ -393,6 +393,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_19_220001) do
     t.index ["user_id"], name: "idx_watch_party_session_users_on_user_id"
     t.index ["watch_party_session_id", "user_id"], name: "idx_watch_party_session_users_on_session_and_user", unique: true
     t.index ["watch_party_session_id"], name: "idx_watch_party_session_users_on_watch_party_session_id"
+    t.index ["watch_party_session_id"], name: "index_watch_party_session_users_on_watch_party_session_id"
   end
 
   create_table "watch_party_sessions", force: :cascade do |t|

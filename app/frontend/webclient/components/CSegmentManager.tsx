@@ -43,10 +43,10 @@ export default defineComponent({
                 const url = getApiBase();
                 if (!url) return;
 
-                const res = await fetch(url);
-                const data = await res.json();
+                const res = await ajax.get(url);
+                const data = res.data;
                 segments.value = Array.isArray(data) ? data : (data.segments || []);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching segments:', error);
             }
         };
@@ -113,7 +113,11 @@ export default defineComponent({
                     segmentData.segment.end_time = parseTime(endTime.value);
                 }
 
+                console.debug('[CSegmentManager] Creating segment', { url, segmentData });
+
                 const res = await ajax.post(url, segmentData);
+
+                console.debug('[CSegmentManager] Create response', res && res.data ? res.data : res);
 
                 if (res.data.error) {
                     throw new Error(res.data.error);

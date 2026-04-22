@@ -45,6 +45,8 @@ Rails.application.routes.draw do
 
   post "/contents/:id/like", to: "likes#like"
   post "/contents/:id/unlike", to: "likes#unlike"
+  post "/contents/:id/toggle_like", to: "likes#toggle_like"
+
 
   get "/contents/:id", to: "contents#show"
   get "/c/:id", to: redirect("/contents/%<id>s"), as: :content_short_url

@@ -31,7 +31,8 @@ ajax.interceptors.response.use(
   (response) => {
     CinelarTV.config.globalProperties.$progress.finish();
     document.body.classList.remove('ajax-loading');
-    if (response.status === 200 || response.status === 422) {
+    // Allow any successful 2xx response (201 created, 204 no content, etc.)
+    if ((response.status >= 200 && response.status < 300) || response.status === 422) {
       return response;
     }
   },

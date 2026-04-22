@@ -1,5 +1,6 @@
 import { defineComponent, ref, onMounted, PropType, nextTick, watch } from 'vue';
 import CButton from './forms/c-button';
+import CTranscodingProgress from './CTranscodingProgress.vue';
 import { ajax } from "@/lib/Ajax";
 import { isAxiosError } from "axios";
 
@@ -167,6 +168,13 @@ export default defineComponent({
 
                 xhr.open('POST', endpoint);
                 xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                // Add CSRF token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (csrfToken) {
+                    xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+                }
+
                 xhr.send(formData);
             } catch (error) {
                 uploadError.value = 'Error al subir el archivo';
@@ -277,6 +285,16 @@ export default defineComponent({
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Transcoding Progress */}
+                                        {vs.status === 'processing' && (
+                                            <div class="mt-4">
+                                                <CTranscodingProgress
+                                                    videoSourceId={vs.id!}
+                                                    on-transcoding-completed={fetchVideoSources}
+                                                />
+                                            </div>
+                                        )}
 
                                         {/* Status & Actions */}
                                         <div class="flex items-center gap-3 flex-shrink-0">

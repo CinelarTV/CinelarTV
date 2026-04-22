@@ -37,7 +37,7 @@ namespace :admin do
   get "/contents/recommended-metadata", to: "contents#find_recommended_metadata"
   post "/contents", to: "contents#create"
   delete "/content-manager/:id", to: "contents#destroy"
-  post "/content-manager/:content_id/seasons", to: "contents#create_season"
+  post "/content-manager/:id/seasons", to: "contents#create_season"
   put "/content-manager/:id/reorder-seasons", to: "contents#reorder_seasons"
   get "/content-manager/:id/seasons/:season_id/episodes", to: "contents#episode_list"
   post "/content-manager/:id/seasons/:season_id/episodes", to: "contents#create_episode"

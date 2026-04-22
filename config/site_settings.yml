@@ -1,3 +1,23 @@
+#
+# Site Settings Configuration
+# This file defines all configurable settings for the application
+# Each setting can be accessed via SiteSettings.<setting_key>
+#
+# Format:
+# <setting_key>:
+#   client: true/false # If the setting is exposed to the client
+#   refresh: true/false # If the setting reloads the page when changed
+#   default: <default_value>
+#   type: <type>
+#   secret: true/false
+#   hidden: true/false # If the setting is hidden and not modifiable on the client-side
+#   readonly: true/false # If the setting is readonly
+#   validator: <validator_name>
+#   allowed_values: <allowed_values>
+#   min: <min_value>
+#   max: <max_value>
+#   regex: <regex>
+#
 ---
 general:
   site_name:
@@ -12,17 +32,17 @@ general:
     client: true
     refresh: true
     default: /assets/default/cinelartv_default_logo.svg
-    type: 'image'
+    type: "image"
   site_mobile_logo:
     client: true
     refresh: true
     default: /assets/default/cinelartv_default_logo.png
-    type: 'image'
+    type: "image"
   site_favicon:
     client: true
     refresh: true
     default: /assets/default/cinelartv_default_favicon.png
-    type: 'image'
+    type: "image"
   site_description:
     client: true
     refresh: true
@@ -35,7 +55,7 @@ general:
     refresh: true
     default: es
     validator: "AllowedValuesValidator"
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - en
       - es
@@ -44,12 +64,12 @@ general:
     client: true
     refresh: false
     default: true
-    type: 'boolean'
+    type: "boolean"
   allow_registration:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
   base_url:
     client: true
     refresh: true
@@ -59,125 +79,177 @@ general:
     client: true
     refresh: false
     default: true
-    type: 'boolean'
+    type: "boolean"
 security:
   allow_admin_to_create_users:
     client: true
     refresh: true
     default: false
     hidden: true
-    type: 'boolean'  
+    type: "boolean"
   hard_delete_users:
     client: true
     refresh: true
     default: false
     hidden: true
-    type: 'boolean'
+    type: "boolean"
   enable_cors:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
   cors_allowed_origins:
     client: true
     refresh: true
     default: ""
-    type: 'list'
-  
+    type: "list"
+
 content:
   enable_metadata_recommendation:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
   tmdb_api_key:
     client: false
     refresh: false
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
+  enable_transcoding:
+    client: true
+    refresh: true
+    default: false
+    type: "boolean"
+  transcoding_qualities:
+    client: true
+    refresh: false
+    default: "240|480|720|1080"
+    type: "list"
+  transcoding_ffmpeg_args:
+    client: false
+    refresh: false
+    default: ""
+    type: "string"
+    # Cuando falla una calidad de transcodificación,
+    # se puede optar por saltarla o fallar la transcodificación completa
+  transcoding_fail_action:
+    client: false
+    refresh: false
+    default: "skip"
+    type: "enum"
+    allowed_values:
+      - skip
+      - fail
+  transcoding_hls_segment_duration:
+    client: true
+    refresh: false
+    default: 4
+    type: "integer"
+  transcoding_max_retries:
+    client: false
+    refresh: false
+    default: 3
+    type: "integer"
+
+  transcoding_retry_delay:
+    client: false
+    refresh: false
+    default: 60
+    type: "integer" # segundos
+
+  transcoding_video_codec:
+    client: false
+    refresh: false
+    default: "libx264"
+    type: "string"
+  transcoding_ffmpeg_threads:
+    client: false
+    refresh: false
+    default: 3
+    type: "integer"
 
 maintenance:
   enable_media_checker:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
   media_checker_failure_threshold:
     client: false
     refresh: true
     default: 3
-    type: 'integer'
+    type: "integer"
   media_checker_timeout:
     client: false
     refresh: true
     default: 5
-    type: 'integer'
+    type: "integer"
   media_checker_batch_size:
     client: false
     refresh: true
     default: 100
-    type: 'integer'
+    type: "integer"
 
 player:
   enable_chromecast:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
   additonal_player_settings:
     client: true
     refresh: true
     default: "{}"
-    type: 'code'
+    type: "code"
   enable_stream_limit:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
   max_simultaneous_streams_per_user:
     client: true
     refresh: true
     default: 2
-    type: 'integer'
+    type: "integer"
     min: 1
     max: 10
   stream_session_timeout_seconds:
     client: false
     refresh: true
     default: 60
-    type: 'integer'
+    type: "integer"
     min: 30
     max: 300
   stream_ping_interval_seconds:
     client: false
     refresh: true
     default: 10
-    type: 'integer'
+    type: "integer"
     min: 5
     max: 60
   stream_force_kill_enabled:
     client: false
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
 
 live_tv:
   enable_live_tv:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
   live_tv_section_title:
     client: true
     refresh: true
     default: "Live TV"
-    type: 'string'
+    type: "string"
   live_tv_proxy_mode:
     client: true
     refresh: true
     default: none
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - none
       - internal
@@ -185,20 +257,20 @@ live_tv:
     client: false
     refresh: true
     default: "provider.com|cdn.provider.com"
-    type: 'list'
+    type: "list"
 
 monetization:
   enable_subscription:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
 
   subscription_provider_primary:
     client: true
     refresh: true
     default: mercado_pago
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - mercado_pago
       - lemon_squeezy
@@ -207,51 +279,51 @@ monetization:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
 
   enable_lemon_squeezy_provider:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
 
   mercadopago_access_token:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
 
   mercadopago_public_key:
     client: true
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
 
   mercadopago_webhook_secret:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
 
   mercadopago_plan_id:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
 
   mercadopago_application_id:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
 
   mercadopago_site_id:
     client: true
     refresh: true
     default: MLU
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - MLA
       - MLB
@@ -265,7 +337,7 @@ monetization:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
     maxlength: 10000
 
@@ -273,30 +345,28 @@ monetization:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
 
   lemon_squeezy_plan_id:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
 
   lemonsqueezy_webhook_secret:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
     maxlength: 2000
-
-
 
 storage:
   storage_provider:
     client: true
     refresh: true
     default: local
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - local
       - s3
@@ -304,25 +374,25 @@ storage:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
   s3_secret_access_key:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
   s3_bucket:
     client: true
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: false
   s3_region:
     client: true
     refresh: true
     default: "us-east-1"
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - us-east-1
       - us-east-2
@@ -348,31 +418,31 @@ storage:
     client: true
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: false
   cdn_url:
     client: true
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: false
   cdn_enabled:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
 
 customization:
   enable_carousel:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
   homescreen_cards_style:
     client: true
     refresh: true
     default: "CinelarTV"
-    type: 'enum'
+    type: "enum"
     allowed_values:
       - poster
       - backdrop
@@ -382,22 +452,22 @@ customization:
     client: true
     refresh: true
     default: ""
-    type: 'code'
+    type: "code"
   background_color:
     client: true
     refresh: true
     default: "#0a0a0a"
-    type: 'color'
+    type: "color"
   body_text_color:
     client: true
     refresh: true
     default: "#ffffff"
-    type: 'color'
+    type: "color"
   header_background_color:
     client: true
     refresh: true
     default: "#000000"
-    type: 'color'
+    type: "color"
   base_font_family:
     client: true
     refresh: true
@@ -410,12 +480,12 @@ customization:
     client: true
     refresh: true
     default: "#181818FF"
-    type: 'color'
+    type: "color"
   secondary_color:
     client: true
     refresh: true
     default: "#181818FF"
-    type: 'color'
+    type: "color"
   tertiary_color:
     client: true
     refresh: true
@@ -435,91 +505,85 @@ customization:
     client: false # Javascript don't need to read it, because it's rendered on a <style> tag
     refresh: true
     default: ""
-    type: 'code'
+    type: "code"
   additional_icons:
     client: true
     refresh: true
     default: ""
-    type: 'list'
-  
+    type: "list"
+
 developer:
   enable_js_error_reporting:
     client: true
     refresh: true
     default: true
-    type: 'boolean'
+    type: "boolean"
   api_custom_data:
     client: true
     refresh: false
     default: "{}"
-    type: 'code'
+    type: "code"
     secret: false
 experimental:
   enable_web_updater:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
   external_stylesheets:
     client: true
     refresh: true
     default: https://fonts.cdnfonts.com/css/jost
-    type: 'list'
+    type: "list"
   external_scripts:
     client: true
     refresh: true
     default: ""
-    type: 'list'
+    type: "list"
   custom_js:
     client: true
     refresh: true
     default: ""
-    type: 'code'
+    type: "code"
   enable_custom_pages:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
   enable_plugins:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
   allow_plugins_replace_core_routes:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
     hidden: false
-  enable_transcoding:
-    client: true
-    refresh: true
-    default: false
-    type: 'boolean'
   enable_google_drive_parser:
     client: true
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
 
 internal:
   license_key:
     client: false
     refresh: true
     default: ""
-    type: 'string'
+    type: "string"
     secret: true
     hidden: true # It's setted on the wizard
   wizard_completed:
     client: true # Frontend can read it because it's used to show the wizard or banner
     refresh: true
     default: false
-    type: 'boolean'
+    type: "boolean"
     hidden: true # Internal use only
 backup:
   allow_restore:
     client: false
     refresh: true
     default: false
-    type: 'boolean'
-
+    type: "boolean"

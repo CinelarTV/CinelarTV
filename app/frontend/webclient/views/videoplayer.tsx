@@ -35,7 +35,9 @@ const STREAM_LIMIT_ERROR_MESSAGE = 'Has alcanzado el número máximo de transmis
 // ---------- Funciones puras ----------
 function shouldRedirect(data, isShow, episodeId, contentId, replaceRoute) {
     if (isShow && !episodeId && !data.episode?.id) {
-        const firstEpisode = data.season?.episodes?.[0];
+        // Buscar el primer episodio de todas las temporadas
+        const firstSeason = data.seasons?.[0];
+        const firstEpisode = firstSeason?.episodes?.[0];
         if (firstEpisode) {
             replaceRoute(`/watch/${contentId}/${firstEpisode.id}`);
             return true;
@@ -135,12 +137,32 @@ export default defineComponent({
         );
 
         const nextEpisode = computed(() => {
-            if (!isShow.value || !watchData.value?.season?.episodes) return null;
+            if (!isShow.value || !watchData.value?.seasons) return null;
             const currentEpisodeId = watchData.value?.episode?.id;
-            const episodes = watchData.value.season.episodes;
-            const currentIndex = episodes.findIndex(ep => ep.id === currentEpisodeId);
-            if (currentIndex === -1 || currentIndex >= episodes.length - 1) return null;
-            return episodes[currentIndex + 1];
+
+            // Buscar en todas las temporadas para encontrar el siguiente episodio
+            const seasons = watchData.value.seasons;
+            for (let seasonIndex = 0; seasonIndex < seasons.length; seasonIndex++) {
+                const season = seasons[seasonIndex];
+                const episodes = season.episodes || [];
+                const currentIndex = episodes.findIndex(ep => ep.id === currentEpisodeId);
+
+                if (currentIndex !== -1) {
+                    // Si hay más episodios en esta temporada
+                    if (currentIndex < episodes.length - 1) {
+                        return episodes[currentIndex + 1];
+                    }
+                    // Si es el último episodio de esta temporada, ir al primer episodio de la siguiente
+                    if (seasonIndex < seasons.length - 1) {
+                        const nextSeason = seasons[seasonIndex + 1];
+                        if (nextSeason.episodes?.length > 0) {
+                            return nextSeason.episodes[0];
+                        }
+                    }
+                    return null;
+                }
+            }
+            return null;
         });
 
         const handleSkipSegment = (endTime: number) => {
