@@ -116,6 +116,11 @@ content:
     default: ""
     type: "string"
     secret: true
+  enable_category_auto_assignment:
+    client: true
+    refresh: true
+    default: false
+    type: "boolean"
   enable_transcoding:
     client: true
     refresh: true
@@ -169,6 +174,18 @@ content:
     default: 3
     type: "integer"
 
+cinelar_intelligence:
+  enable_cinelar_intelligence:
+    client: true
+    refresh: true
+    default: false
+    type: "boolean"
+  enable_shuffle_recommendations:
+    client: true
+    refresh: true
+    default: false
+    type: "boolean"
+
 maintenance:
   enable_media_checker:
     client: true
@@ -217,9 +234,9 @@ player:
   stream_session_timeout_seconds:
     client: false
     refresh: true
-    default: 60
+    default: 10
     type: "integer"
-    min: 30
+    min: 5
     max: 300
   stream_ping_interval_seconds:
     client: false
@@ -360,6 +377,44 @@ monetization:
     type: "string"
     secret: true
     maxlength: 2000
+
+  enable_google_play_provider:
+    client: true
+    refresh: true
+    default: false
+    type: "boolean"
+
+  google_play_service_account_json:
+    client: false
+    refresh: true
+    default: ""
+    type: "code"
+    secret: true
+
+  google_play_package_name:
+    client: true
+    refresh: true
+    default: ""
+    type: "string"
+
+  google_play_pubsub_verification_token:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
+    secret: true
+
+  google_play_webhook_endpoint:
+    client: true
+    refresh: true
+    default: ""
+    type: "string"
+
+  google_play_product_id_map:
+    client: true
+    refresh: true
+    default: "{}"
+    type: "code"
 
 storage:
   storage_provider:

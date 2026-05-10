@@ -129,15 +129,31 @@ class ApplicationController < ActionController::Base
 
   def handle_inactive_account(type)
     if request.format.json? || request.xhr? || using_doorkeeper?
-      message = if type == :deactivated
+      message = if type == :unconfirmed
+                  I18n.t('devise.failure.unconfirmed')
+                elsif type == :deactivated
                   "La cuenta ha sido desactivada. Contacta con soporte."
                 else
                   suspension_message
                 end
-      render json: create_errors_json(message, type: (type == :deactivated ? 'account_deactivated' : 'account_suspended')), status: :forbidden
+      error_type = if type == :unconfirmed
+                     'unconfirmed'
+                   elsif type == :deactivated
+                     'account_deactivated'
+                   else
+                     'account_suspended'
+                   end
+      render json: create_errors_json(message, type: error_type), status: :forbidden
     else
       sign_out(current_user) if defined?(sign_out)
-      redirect_to "/", alert: (type == :deactivated ? 'Tu cuenta ha sido desactivada.' : 'Tu cuenta está suspendida.')
+      alert_message = if type == :unconfirmed
+                       I18n.t('devise.failure.unconfirmed')
+                     elsif type == :deactivated
+                       'Tu cuenta ha sido desactivada.'
+                     else
+                       'Tu cuenta está suspendida.'
+                     end
+      redirect_to "/", alert: alert_message
     end
   end
 

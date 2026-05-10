@@ -238,6 +238,50 @@ module Api
         }, status: :ok
       end
 
+      # POST /api/v1/auth/resend-confirmation
+      # Resend confirmation email for unconfirmed user
+      #
+      # Params:
+      # - email: string (required)
+      #
+      # Response:
+      # - message: Success message
+      def resend_confirmation
+        email = params[:email]
+
+        unless email.present?
+          render json: {
+            error: "missing_email",
+            message: "Email is required"
+          }, status: :unprocessable_entity
+          return
+        end
+
+        user = User.find_by(email: email.downcase)
+
+        unless user
+          render json: {
+            error: "user_not_found",
+            message: "User not found"
+          }, status: :not_found
+          return
+        end
+
+        if user.confirmed?
+          render json: {
+            error: "already_confirmed",
+            message: "Email is already confirmed"
+          }, status: :unprocessable_entity
+          return
+        end
+
+        user.send_confirmation_instructions
+
+        render json: {
+          message: "Confirmation instructions sent successfully"
+        }, status: :ok
+      end
+
       # DELETE /api/v1/auth/logout
       # Revoke the current access token
       # Requires: Bearer token in Authorization header
@@ -276,7 +320,13 @@ module Api
         return nil unless user&.valid_password?(password)
 
         unless user.active_for_authentication?
-          @inactive_account_type = user.deactivated? ? :deactivated : :suspended
+          if !user.confirmed?
+            @inactive_account_type = :unconfirmed
+          elsif user.deactivated?
+            @inactive_account_type = :deactivated
+          else
+            @inactive_account_type = :suspended
+          end
           return user
         end
 

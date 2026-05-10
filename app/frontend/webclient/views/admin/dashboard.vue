@@ -238,7 +238,7 @@ const getClassByType = (type) => {
     case 'warning':
       return 'bg-yellow-500'
     case 'info':
-      return 'bg-[var(--c-primary-100)]'
+      return 'bg-[var(--c-primary-500)]'
     default:
       return 'bg-gray-500'
   }

@@ -7,7 +7,9 @@ class ContentsController < ApplicationController
         format.html
         format.json do
           render json: {
-            errors: ["Query is required or too short"],
+            errors: [
+              I18n.t("contents.search.query_required")
+            ],
             error_type: "query_required",
           }, status: :unprocessable_entity
         end

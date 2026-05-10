@@ -12,6 +12,28 @@ module HomeHelper
     end
   end
 
+  def load_shuffle_recommendations
+    liked_ids = liked_content_ids
+
+    Content.where(available: true)
+           .where.not(trailer_url: nil)
+           .order("RANDOM()")
+           .limit(10)
+           .pluck(:id, :title, :description, :banner, :trailer_url, :content_type, :year)
+           .map { |id, title, desc, banner, trailer_url, content_type, year|
+             {
+               id: id,
+               title: title,
+               description: desc,
+               banner: banner,
+               trailer_url: trailer_url,
+               content_type: content_type,
+               year: year,
+               liked: liked_ids.include?(id)
+             }
+           }
+  end
+
   private
 
   def liked_content_ids
@@ -118,4 +140,8 @@ module HomeHelper
   def get_ip_address
     @ip_address ||= request.remote_ip
   end
+
+  private
+
+  
 end

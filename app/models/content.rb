@@ -6,9 +6,16 @@ class Content < ApplicationRecord
   include SimpleRecommender::Recommendable
 
   attribute :available, :boolean, default: false
+  attribute :tmdb_id, :string
 
   has_many :content_categories
   has_many :categories, through: :content_categories
+  has_many :reproductions, dependent: :destroy
+
+  def as_json(options = {})
+    super(options.merge(only: %i[id title description banner cover content_type year available premium trailer_url tmdb_id]))
+  end
+
   has_many :seasons, dependent: :destroy
   has_many :continue_watchings, dependent: :destroy
   has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"

@@ -11,7 +11,12 @@ import { vite as vidstack } from 'vidstack/plugins';
 
 export default defineConfig({
   server: {
-    hmr: true,
+    hmr: {
+      host: 'localhost',
+      port: 3036,
+      protocol: 'ws'
+    },
+    port: 3036
   },
   build: {
     target: "esnext",

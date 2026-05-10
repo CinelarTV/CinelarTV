@@ -16,11 +16,11 @@ class StreamSessionManager
   end
 
   class << self
-    def start_session(user, device_name:, device_type:, profile_id: nil, requested_session_id: nil)
+    def start_session(user, device_name:, device_type:, profile_id: nil, requested_session_id: nil, content_title: nil, episode_title: nil)
       return Result.new(success: true, skipped: true) unless SiteSetting.enable_stream_limit
 
       if requested_session_id.present?
-        resumed = resume_session(user, requested_session_id, device_name: device_name, device_type: device_type, profile_id: profile_id)
+        resumed = resume_session(user, requested_session_id, device_name: device_name, device_type: device_type, profile_id: profile_id, content_title: content_title, episode_title: episode_title)
         return resumed if resumed
       end
 
@@ -42,7 +42,9 @@ class StreamSessionManager
           user.id.to_s,
           profile_id.to_s,
           device_name.to_s,
-          device_type.to_s
+          device_type.to_s,
+          content_title.to_s,
+          episode_title.to_s
         ]
       )
 
@@ -58,18 +60,26 @@ class StreamSessionManager
       Result.new(success: true, skipped: true)
     end
 
-    def resume_session(user, session_id, device_name:, device_type:, profile_id: nil)
+    def resume_session(user, session_id, device_name:, device_type:, profile_id: nil, content_title: nil, episode_title: nil)
       key = session_key(session_id)
+      Rails.logger.info("[StreamSessionManager] Attempting to resume session #{session_id}, key: #{key}")
+
       return nil unless redis.exists?(key)
+      Rails.logger.info("[StreamSessionManager] Session exists in Redis")
 
       owner_id = redis.hget(key, "user_id")
+      Rails.logger.info("[StreamSessionManager] Session owner_id: #{owner_id}, current user_id: #{user.id}")
+
       return nil unless owner_id.to_s == user.id.to_s
+      Rails.logger.info("[StreamSessionManager] Owner matches, resuming session")
 
       now = Time.current.iso8601
       ttl = session_ttl_seconds
 
       redis.multi do |multi|
         multi.hset(key, "last_seen_at", now)
+        multi.hset(key, "content_title", content_title.to_s) if content_title
+        multi.hset(key, "episode_title", episode_title.to_s) if episode_title
         multi.pexpire(key, ttl * 1000)
       end
       redis.sadd(user_sessions_key(user.id), session_id)
@@ -159,6 +169,8 @@ class StreamSessionManager
           device_type: meta["device_type"],
           created_at: meta["created_at"],
           last_seen_at: meta["last_seen_at"],
+          content_title: meta["content_title"].presence,
+          episode_title: meta["episode_title"].presence,
           ttl: (ttl / 1000).to_i
         }
       end
@@ -197,6 +209,8 @@ class StreamSessionManager
         local profile_id = ARGV[8]
         local device_name = ARGV[9]
         local device_type = ARGV[10]
+        local content_title = ARGV[11]
+        local episode_title = ARGV[12]
 
         local session_ids = redis.call("SMEMBERS", user_sessions_key)
         local active_sessions = {}
@@ -212,12 +226,14 @@ class StreamSessionManager
           else
             if ttl_remain >= (grace * 1000) then
               active_count = active_count + 1
-              local info = redis.call("HMGET", key, "device_name", "device_type", "last_seen_at")
+              local info = redis.call("HMGET", key, "device_name", "device_type", "last_seen_at", "content_title", "episode_title")
               table.insert(active_sessions, {
                 session_id = sid,
                 device_name = info[1],
                 device_type = info[2],
                 last_seen_at = info[3],
+                content_title = info[4],
+                episode_title = info[5],
                 ttl = math.floor(ttl_remain / 1000)
               })
             end
@@ -234,7 +250,9 @@ class StreamSessionManager
           "device_name", device_name,
           "device_type", device_type,
           "created_at", created_at,
-          "last_seen_at", last_seen_at
+          "last_seen_at", last_seen_at,
+          "content_title", content_title,
+          "episode_title", episode_title
         )
         redis.call("PEXPIRE", session_key, ttl * 1000)
         redis.call("SADD", user_sessions_key, session_id)
@@ -250,7 +268,7 @@ class StreamSessionManager
     def session_ttl_seconds
       [
         SiteSetting.stream_session_timeout_seconds.to_i,
-        SiteSetting.stream_ping_interval_seconds.to_i * 3
+        SiteSetting.stream_ping_interval_seconds.to_i
       ].max
     end
 

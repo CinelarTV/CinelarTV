@@ -46,6 +46,39 @@
                             :rows="4" />
 
                         <c-input type="number" placeholder="Año" v-model="editedData.year" label="Año" />
+
+                        <!-- Categories -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-white/80">
+                                    Categorías
+                                </label>
+                                <button v-if="content.tmdb_id && SiteSettings.enable_category_auto_assignment"
+                                    @click="syncCategoriesFromTmdb"
+                                    :disabled="syncingCategories"
+                                    class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span v-if="syncingCategories">Sincronizando...</span>
+                                    <span v-else>Sincronizar de TMDB</span>
+                                </button>
+                            </div>
+                            <div v-if="categoriesLoading" class="text-white/60 text-sm">
+                                Cargando categorías...
+                            </div>
+                            <div v-else class="space-y-2 max-h-48 overflow-y-auto">
+                                <label v-for="category in categories" :key="category.id"
+                                    class="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                                    <input type="checkbox" :value="category.id" v-model="editedData.category_ids"
+                                        class="w-4 h-4 rounded border-white/30 bg-white/10 text-[#00A8E1] focus:ring-[#00A8E1] focus:ring-offset-0" />
+                                    <span class="text-white/80 text-sm">{{ category.name }}</span>
+                                </label>
+                            </div>
+                            <p v-if="categories.length === 0 && !categoriesLoading" class="text-white/40 text-sm mt-2">
+                                No hay categorías disponibles.
+                                <a href="/admin/content-manager/categories" class="text-[#00A8E1] hover:underline ml-1">
+                                    Crear categorías
+                                </a>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -221,17 +254,52 @@ const contentTypes = ref([
     { value: 'TVSHOW', label: 'Serie' }
 ]);
 const loadingButton = ref(false);
+const categories = ref([]);
+const categoriesLoading = ref(false);
+const syncingCategories = ref(false);
 
 const fetchContent = async () => {
     try {
         const response = await ajax.get(`/admin/content-manager/${contentId}.json`);
         content.value = response.data.data;
         editedData.value = Object.fromEntries(Object.entries(content.value).filter(([key, value]) => !['banner', 'cover'].includes(key)));
+        // Initialize category_ids from content
+        editedData.value.category_ids = content.value.categories?.map(c => c.id) || [];
     } catch (error) {
         console.log(error);
         toast.error('Error al cargar el contenido');
     } finally {
         loading.value = false;
+    }
+};
+
+const fetchCategories = async () => {
+    categoriesLoading.value = true;
+    try {
+        const response = await ajax.get('/admin/categories.json');
+        categories.value = response.data.data || [];
+    } catch (error) {
+        console.error('Failed to fetch categories:', error);
+    } finally {
+        categoriesLoading.value = false;
+    }
+};
+
+const syncCategoriesFromTmdb = async () => {
+    if (!confirm('This will sync categories from TMDB. Continue?')) {
+        return;
+    }
+
+    syncingCategories.value = true;
+    try {
+        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-categories.json`);
+        toast.success(`Categories synced successfully: ${response.data.assigned_count} categories assigned`);
+        await fetchContent();
+    } catch (error) {
+        console.error('Failed to sync categories from TMDB:', error);
+        toast.error('Failed to sync categories from TMDB. Check console for details.');
+    } finally {
+        syncingCategories.value = false;
     }
 };
 
@@ -276,7 +344,14 @@ const saveContent = async (e) => {
             if (value === undefined || value === null) {
                 return;
             }
-            formData.append(`content[${key}]`, value);
+            // Handle category_ids array
+            if (key === 'category_ids' && Array.isArray(value)) {
+                value.forEach(id => {
+                    formData.append(`content[category_ids][]`, id);
+                });
+            } else {
+                formData.append(`content[${key}]`, value);
+            }
         });
 
         if (formData.entries().next().done) {
@@ -345,5 +420,6 @@ const deleteSeason = async (season) => {
 
 onMounted(() => {
     fetchContent();
+    fetchCategories();
 });
 </script>

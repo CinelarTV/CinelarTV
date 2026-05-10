@@ -9,7 +9,7 @@ const PLAYER_ICONS = new Set(["play", "pause", "maximize", "minimize", "volume2"
 
 const BASE_ICONS = new Set([
     "activity", "award", "airplay", "arrowRightLeft", "arrowRight", "box", "check",
-    "compass", "copy", "checkCircle", "chevronDown", "chevronLeft", "chevronRight",
+    "copy", "checkCircle", "chevronDown", "chevronLeft", "chevronRight",
     "chevronUp", "clapperboard", "creditCard", "gripVertical", "helpCircle", "info",
     "calendar", "clock", "lock",
     "loader", "logOut", "pause", "maximize", "minimize", "play", "frown", "fastForward",
@@ -18,7 +18,7 @@ const BASE_ICONS = new Set([
     "circleDollarSign", "brush", "testTube2", "telescope", "code2", "cpu", "star", "satelliteDish",
     "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2",
     "volumeX", "home", "packageOpen", "webhook", "cast", "shrink", "messageCircleMore",
-    "messageCircleOff"
+    "messageCircleOff", "mail", "shield-check", "shuffle"
 ]);
 
 const toKebabCase = (str: string): string =>

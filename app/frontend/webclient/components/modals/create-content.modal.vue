@@ -263,6 +263,8 @@ const contentData = ref({
     content_cover: '',
     content_banner: '',
     premium: false,
+    tmdb_id: null,
+    tmdb_genre_ids: [],
 })
 const recommendedContent = ref(null)
 const metadataModal = ref()
@@ -318,6 +320,8 @@ const clearData = () => {
         content_cover: '',
         content_banner: '',
         premium: false,
+        tmdb_id: null,
+        tmdb_genre_ids: [],
     }
     errors.value = {}
     generalError.value = ''
@@ -330,6 +334,8 @@ const recommendedMetadataSelected = (content) => {
     contentData.value.content_description = content.overview
     contentData.value.content_cover = 'tmdb://' + content.poster_path.replace('/', '')
     contentData.value.content_banner = 'tmdb://' + content.backdrop_path.replace('/', '')
+    contentData.value.tmdb_id = content.id
+    contentData.value.tmdb_genre_ids = content.genre_ids || []
 }
 
 const submitCreateContent = async () => {
@@ -347,11 +353,19 @@ const submitCreateContent = async () => {
         cover: contentData.value.content_cover,
         banner: contentData.value.content_banner,
         premium: contentData.value.premium,
+        tmdb_id: contentData.value.tmdb_id,
+        tmdb_genre_ids: contentData.value.tmdb_genre_ids,
     }
 
     for (const key in data) {
         if (data[key]) {
-            formData.append(`content[${key}]`, data[key])
+            if (key === 'tmdb_genre_ids' && Array.isArray(data[key])) {
+                data[key].forEach(id => {
+                    formData.append(`tmdb_genre_ids[]`, id)
+                })
+            } else {
+                formData.append(`content[${key}]`, data[key])
+            }
         }
     }
 

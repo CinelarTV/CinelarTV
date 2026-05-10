@@ -3,7 +3,24 @@
 class DeviseFailureApp < Devise::FailureApp
 
   def respond
-    if json_request? || api_request?
+    if warden_message == :unconfirmed
+      # For SPA, return JSON for unconfirmed users using JsonError format
+      self.status = 401
+      self.content_type = 'application/json'
+      body = begin
+        if defined?(JsonError) && JsonError.respond_to?(:create_errors_json)
+          JsonError.create_errors_json(i18n_message, type: "unconfirmed", extras: { needs_confirmation: true })
+        elsif defined?(JsonError)
+          Object.new.extend(JsonError).create_errors_json(i18n_message, type: "unconfirmed", extras: { needs_confirmation: true })
+        else
+          { errors: [i18n_message], error_type: "unconfirmed", extras: { needs_confirmation: true } }
+        end
+      rescue => e
+        Rails.logger.error("DeviseFailureApp unconfirmed response failed: #{e.class} - #{e.message}")
+        { errors: [i18n_message], error_type: "unconfirmed", extras: { needs_confirmation: true } }
+      end
+      self.response_body = body.to_json
+    elsif json_request? || api_request?
       json_error_response
     else
       super
@@ -17,7 +34,13 @@ class DeviseFailureApp < Devise::FailureApp
     self.content_type = 'application/json'
     # Resolve JsonError at runtime (avoids autoload/initializer ordering issues)
     body = begin
-      if defined?(JsonError) && JsonError.respond_to?(:create_errors_json)
+      if warden_message == :unconfirmed
+        {
+          error: "unconfirmed",
+          message: i18n_message,
+          needs_confirmation: true
+        }
+      elsif defined?(JsonError) && JsonError.respond_to?(:create_errors_json)
         JsonError.create_errors_json(i18n_message)
       elsif defined?(JsonError)
         # JsonError defines instance methods (module style). Extend a temporary

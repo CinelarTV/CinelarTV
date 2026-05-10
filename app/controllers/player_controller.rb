@@ -29,7 +29,9 @@ class PlayerController < ApplicationController
         device_name: stream_device_name,
         device_type: stream_device_type,
         profile_id: profile&.id,
-        requested_session_id: params[:deviceSessionToken].presence || params[:streamSessionToken].presence
+        requested_session_id: params[:deviceSessionToken].presence || params[:streamSessionToken].presence,
+        content_title: @content&.title,
+        episode_title: @episode&.title
       )
 
       if @stream_session_result.limit_reached?
@@ -160,10 +162,10 @@ class PlayerController < ApplicationController
       season_data[:episodes] = season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position duration])
       season_data
     end if @content.content_type == "TVSHOW"
-
+    
+    data[:deviceSessionToken] = @stream_session_result.session_id if @stream_session_result&.session_id.present?
+    
     response = { data: data }
-    response[:deviceSessionToken] = @stream_session_result.session_id if @stream_session_result&.session_id.present?
-
     render json: response
   end
 

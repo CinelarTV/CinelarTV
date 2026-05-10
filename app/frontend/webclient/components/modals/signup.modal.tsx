@@ -21,6 +21,7 @@ export default defineComponent({
         const password = ref('')
         const loading = ref(false)
         const errorMessage = ref('')
+        const successMessage = ref('')
 
         const canSubmit = computed(() => {
             return (
@@ -37,6 +38,7 @@ export default defineComponent({
             password.value = ''
             loading.value = false
             errorMessage.value = ''
+            successMessage.value = ''
         }
 
         const setIsOpen = (value: boolean) => {
@@ -49,19 +51,28 @@ export default defineComponent({
 
             loading.value = true
             errorMessage.value = ''
+            successMessage.value = ''
 
             try {
-                await ajax.post('/signup.json', {
+                const response = await ajax.post('/signup.json', {
                     user: {
                         username: username.value,
                         email: email.value,
                         password: password.value,
                         password_confirmation: password.value,
                     },
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
                 })
 
-                setIsOpen(false)
-                window.location.reload()
+                const message = response.data?.message || 'Registration successful. Please check your email to confirm your account.'
+                successMessage.value = message
+                username.value = ''
+                email.value = ''
+                password.value = ''
             } catch (error: any) {
                 errorMessage.value =
                     error?.response?.data?.message
@@ -100,9 +111,9 @@ export default defineComponent({
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-2"
                         >
-                            <DialogPanel class="w-full max-w-md overflow-hidden rounded-2xl bg-[var(--c-primary-100)] shadow-2xl ring-1 ring-[var(--c-primary-200)]">
+                            <DialogPanel class="w-full max-w-md overflow-hidden rounded-2xl bg-[var(--c-primary-600)] shadow-2xl ring-1 ring-[var(--c-primary-400)]">
 
-                                <div class="border-b border-[var(--c-primary-200)] bg-[var(--c-primary-color)] px-8 pb-10 pt-8 text-center">
+                                <div class="border-b border-[var(--c-primary-400)] bg-[var(--c-primary-color)] px-8 pb-10 pt-8 text-center">
                                     {SiteSettings.site_logo && (
                                         <img
                                             src={SiteSettings.site_logo}
@@ -113,7 +124,7 @@ export default defineComponent({
                                     <DialogTitle as="h2" class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
                                         Create your account
                                     </DialogTitle>
-                                    <p class="mt-1 text-sm text-[var(--c-primary-900)]">
+                                    <p class="mt-1 text-sm text-[var(--c-body-text-color)]">
                                         Join {SiteSettings.site_name}
                                     </p>
                                 </div>
@@ -125,7 +136,7 @@ export default defineComponent({
                                             <div>
                                                 <label
                                                     for="signup-username-input"
-                                                    class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]"
+                                                    class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-body-text-color)]"
                                                 >
                                                     Username
                                                 </label>
@@ -143,7 +154,7 @@ export default defineComponent({
                                             <div>
                                                 <label
                                                     for="signup-email-input"
-                                                    class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]"
+                                                    class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-body-text-color)]"
                                                 >
                                                     Email
                                                 </label>
@@ -161,7 +172,7 @@ export default defineComponent({
                                             <div>
                                                 <label
                                                     for="signup-password-input"
-                                                    class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]"
+                                                    class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-body-text-color)]"
                                                 >
                                                     Password
                                                 </label>
@@ -176,6 +187,12 @@ export default defineComponent({
                                                 />
                                             </div>
                                         </div>
+
+                                        {successMessage.value && (
+                                            <p class="mt-3 text-xs font-medium text-emerald-400">
+                                                {successMessage.value}
+                                            </p>
+                                        )}
 
                                         {errorMessage.value && (
                                             <p class="mt-3 text-xs font-medium text-rose-400">

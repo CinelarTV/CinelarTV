@@ -10,4 +10,15 @@ class HomeController < ApplicationController
       format.json { render json: homepage_data }
     end
   end
+
+  def shuffle_recommendations
+    unless SiteSetting.enable_shuffle_recommendations
+      render json: { error: "Shuffle recommendations is disabled" }, status: :forbidden
+      return
+    end
+
+    recommendations = load_shuffle_recommendations
+    Rails.logger.info("Shuffle recommendations: #{recommendations}")
+    render json: recommendations, root: false
+  end
 end

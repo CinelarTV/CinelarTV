@@ -7,7 +7,7 @@ class Profile < ApplicationRecord
 
 
 # Lista de IDs de avatares por defecto. Úsese como fuente única para el json y validaciones.
-DEFAULT_AVATAR_IDS = %w[coolCat cuteCat dino_boy dino baby_unicorn shy-pigeon little-cow].freeze
+DEFAULT_AVATAR_IDS = %w[coolCat cuteCat dino_boy dino baby_unicorn shy-pigeon little-cow cool-alien].freeze
 
 def self.default_avatars
   DEFAULT_AVATAR_IDS.map do |id|

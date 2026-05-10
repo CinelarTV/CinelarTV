@@ -30,6 +30,11 @@ const adminLinks = [
     to: '/admin/dashboard'
   },
   {
+    title: $t("js.admin.nav.settings"),
+    icon: 'settings',
+    to: '/admin/settings'
+  },
+  {
     title: $t("js.admin.nav.content"),
     to: '/admin/content-manager'
   },
@@ -49,9 +54,9 @@ const adminLinks = [
     enabled: SiteSettings.enable_live_tv || false // Only show if Live TV is enabled
   },
   {
-    title: $t("js.admin.nav.settings"),
-    icon: 'settings',
-    to: '/admin/settings'
+    title: 'Email Templates',
+    icon: 'mail',
+    to: '/admin/email-templates'
   },
   {
     title: 'Webhooks',

@@ -1,5 +1,25 @@
 ---
 en:
+  email_templates:
+    devise_confirmation_instructions:
+      subject: "Confirm your account"
+      body: "<p>Welcome %{username}!</p><p>You can confirm your account email through
+        the link below:</p><p>%{confirmation_url}</p>"
+    devise_reset_password_instructions:
+      subject: "Reset your password"
+      body: "<p>Hello %{username},</p><p>Someone has requested a link to change your
+        password. You can do this through the link
+        below.</p><p>%{edit_password_url}</p><p>If you didn't request this,
+        please ignore this email.</p>"
+    devise_unlock_instructions:
+      subject: "Unlock your account"
+      body: "<p>Hello %{username},</p><p>Your account has been locked due to too many
+        failed sign in attempts.</p><p>Click the link below to unlock your
+        account:</p><p>%{unlock_url}</p>"
+    devise_email_changed:
+      subject: "Email changed"
+      body: "<p>Hello %{username},</p><p>We're contacting you to notify you that your
+        email has been changed to %{new_email}.</p>"
   activerecord:
     errors:
       messages:
@@ -389,9 +409,38 @@ en:
       categories: "Categories"
       continue_watching: "Continue watching"
       top_10_content_by_country: "Top 10 on %{country}"
+    shuffle_recommendations:
+      title: "Not sure what to watch?"
+      description: "Choose Play Something and we'll pick things for you to watch based
+        on your tastes"
+      play_something: "Play Something"
+      shuffle: "Shuffle"
+      watch_trailer: "Watch Trailer"
+      hide_trailer: "Hide Trailer"
+      more_info: "More Info"
+      counter: "%{current} of %{total}"
     offline_indicator:
       no_internet: "No internet connection"
       reload: "Reload page"
+    segments:
+      add_another: "Add another segment"
+      add_segment: "Add segment"
+      credits_start: "Credits Start"
+      end_time: "End time (MM:SS)"
+      error_duplicate: "A segment of this type already exists"
+      error_required: "Start and end times are required for this segment type"
+      error_start_required: "Start time is required for this segment type"
+      existing_segments: "Existing segments"
+      next_episode: "Next Episode"
+      no_segments: "No segments"
+      point: "Point"
+      segment_type: "Segment type"
+      skip_credits: "Skip Credits"
+      skip_intro: "Skip Intro"
+      skip_resume: "Skip Recap"
+      start_time: "Start time (MM:SS)"
+      time_range: "Time range"
+      title: "Time Segments"
     user:
       added_to_favorites: "\"{{title}}\" added to your favorites"
       nav:
@@ -403,25 +452,6 @@ en:
       back: "Back"
       next_episode: "Next episode"
       skip_intro: "Skip intro"
-    segments:
-      skip_intro: "Skip Intro"
-      skip_resume: "Skip Recap"
-      skip_credits: "Skip Credits"
-      next_episode: "Next Episode"
-      credits_start: "Credits Start"
-      title: "Time Segments"
-      no_segments: "No segments"
-      add_segment: "Add segment"
-      add_another: "Add another segment"
-      segment_type: "Segment type"
-      start_time: "Start time (MM:SS)"
-      end_time: "End time (MM:SS)"
-      time_range: "Time range"
-      point: "Point"
-      existing_segments: "Existing segments"
-      error_duplicate: "A segment of this type already exists"
-      error_required: "Start and end times are required for this segment type"
-      error_start_required: "Start time is required for this segment type"
     wizard:
       introduction:
         description: "🎉 Welcome to CinelarTV! 🎉<br><br>Before you start, we need to
@@ -431,12 +461,25 @@ en:
       license:
         description: "Introduce your license key to enable Commercial features"
         title: "License"
+      tmdb:
+        description: "Configure TMDB (The Movie Database) to automatically fetch movie
+          and TV show metadata. This will greatly simplify content management.
+          Optional: you can configure this later."
+        fields:
+          enable_metadata_recommendation:
+            description: "Enable metadata recommendations from TMDB"
+            title: "Enable TMDB"
+          tmdb_api_key:
+            description: "Your TMDB API key. Get one for free at themoviedb.org"
+            title: "TMDB API Key"
+        title: "Configure TMDB"
       site_info:
         description: "This information will be used to configure your site"
         fields:
           default_locale:
             description: "The default language of your site"
             title: "Default language"
+          populate_from_tmdb: "Populate from TMDB"
           site_description:
             description: "A short description of your site, as it will appear in the
               description meta tag of the browser"
@@ -445,6 +488,11 @@ en:
             description: "The name of your site, as it will appear in the title bar of the
               browser"
             title: "Site name"
+        populating_from_tmdb: "Populating categories from TMDB..."
+        populate_success: "Categories populated successfully"
+        sync_categories_from_tmdb: "Sync Categories from TMDB"
+        syncing_categories: "Syncing categories..."
+        sync_success: "Categories synced successfully"
         title: "Site info"
       step: "Step"
   settings:

@@ -324,7 +324,7 @@ AppRouter.beforeEach((to, from, next) => {
     }
 
     // Rutas de login/signup: redirigir a home y mostrar modal
-    if (to.path === '/login' || to.path === '/signup') {
+    if (to.path === '/login' || to.path === '/signup' || to.path === '/users/sign_in') {
         next({ name: 'home.index', replace: true });
         return;
     }

@@ -31,12 +31,14 @@ namespace :admin do
   # Content Management related routes
   get "/content-manager/all", to: "contents#index"
   get "/content-manager/media-integrity", to: "dashboard#index" # Redirigir al dashboard#index para que Vue maneje la ruta
+  get "/content-manager/categories", to: "dashboard#index" # Redirigir al dashboard#index para que Vue maneje la ruta
   get "/content-manager/:id", to: "contents#show"
   get "/content-manager/:id/analytics", to: "contents#analytics"
   put "/content-manager/:id", to: "contents#update"
   get "/contents/recommended-metadata", to: "contents#find_recommended_metadata"
   post "/contents", to: "contents#create"
   delete "/content-manager/:id", to: "contents#destroy"
+  post "/content-manager/:id/sync-categories", to: "contents#sync_categories_from_tmdb"
   post "/content-manager/:id/seasons", to: "contents#create_season"
   put "/content-manager/:id/reorder-seasons", to: "contents#reorder_seasons"
   get "/content-manager/:id/seasons/:season_id/episodes", to: "contents#episode_list"
@@ -100,4 +102,20 @@ namespace :admin do
       get :channels
     end
   end
+
+  # Categories Management routes
+  get "/categories", to: "dashboard#index", constraints: ->(req) { req.format.html? }
+  resources :categories, only: [:index, :create, :update, :destroy] do
+    collection do
+      post :populate_from_tmdb
+    end
+  end
+
+  # Email Templates Management routes
+  get "/email-templates" => "dashboard#index", constraints: ->(req) { req.format.html? }
+  get "/email-templates" => "email_templates#index", defaults: { format: 'json' }
+  get "/email-templates/:key" => "dashboard#index", constraints: ->(req) { req.format.html? }
+  get "/email-templates/:key" => "email_templates#show", defaults: { format: 'json' }
+  put "/email-templates/:key" => "email_templates#update", defaults: { format: 'json' }
+  delete "/email-templates/:key" => "email_templates#destroy", defaults: { format: 'json' }
 end

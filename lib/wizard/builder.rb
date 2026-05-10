@@ -80,6 +80,29 @@ class Wizard
         end
       end
 
+      @wizard.append_step("tmdb") do |step|
+        step.emoji = "🎬"
+        step.description = I18n.t("js.wizard.tmdb.description")
+
+        step.add_field(
+          id: "enable_metadata_recommendation",
+          type: "checkbox",
+          required: false,
+          value: SiteSetting.enable_metadata_recommendation || true
+        )
+
+        step.add_field(
+          id: "tmdb_api_key",
+          type: "text",
+          required: false,
+          value: SiteSetting.tmdb_api_key || ""
+        )
+
+        step.on_update do |updater|
+          updater.apply_settings(:enable_metadata_recommendation, :tmdb_api_key)
+        end
+      end
+
       @wizard.append_step("ready") do |step|
         step.emoji = "🎉"
         step.banner = "/images/wizard/ready.png"

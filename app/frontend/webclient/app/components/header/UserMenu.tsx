@@ -87,7 +87,7 @@ export default defineComponent({
       await router.isReady();
       if (route.redirectedFrom && !currentUser) {
         const { path } = route.redirectedFrom;
-        if (path === '/login') openLoginModal();
+        if (path === '/login' || path === '/users/sign_in') openLoginModal();
         else if (path === '/signup') openSignupModal();
       }
     };
@@ -113,7 +113,7 @@ export default defineComponent({
                 src={profileAvatar.value}
                 alt={`Avatar de ${displayName.value}`}
                 title={displayName.value}
-                class="h-9 w-9 rounded-full object-cover ring-2 ring-[var(--c-primary-300)] transition-all group-hover:ring-[var(--c-tertiary-color)]"
+                class="h-9 w-9 rounded-full object-cover ring-2 ring-[var(--c-primary-400)] transition-all group-hover:ring-[var(--c-tertiary-color)]"
               />
             </MenuButton>
 
@@ -126,19 +126,19 @@ export default defineComponent({
               leaveFromClass="opacity-100 scale-100 translate-y-0"
               leaveToClass="opacity-0 scale-95 -translate-y-1"
             >
-              <MenuItems class="absolute right-0 mt-2 w-[min(92vw,520px)] origin-top-right rounded-2xl bg-[var(--c-primary-100)] ring-1 ring-[var(--c-primary-300)] shadow-2xl backdrop-blur-xl focus:outline-none overflow-hidden z-50">
+              <MenuItems class="absolute right-0 mt-2 w-[min(92vw,520px)] origin-top-right rounded-2xl bg-[var(--c-primary-500)] ring-1 ring-[var(--c-primary-300)] shadow-2xl backdrop-blur-xl focus:outline-none overflow-hidden z-50">
 
                 {/* User header strip */}
-                <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--c-primary-200)]">
+                <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--c-primary-400)]">
                   <img
                     src={profileAvatar.value}
-                    class="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--c-primary-300)]"
+                    class="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--c-primary-400)]"
                   />
                   <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-[var(--c-body-text-color)]">
                       {displayName.value}
                     </p>
-                    <p class="truncate text-xs text-[var(--c-primary-900)]">
+                    <p class="truncate text-xs text-[var(--c-primary-200)]">
                       {currentUser.email}
                     </p>
                   </div>
@@ -148,8 +148,8 @@ export default defineComponent({
                 <div class="flex flex-col sm:flex-row">
 
                   {/* Column: Mi cuenta */}
-                  <div class="flex-1 px-3 py-3 sm:border-r border-[var(--c-primary-200)]">
-                    <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--c-primary-900)]">
+                  <div class="flex-1 px-3 py-3 sm:border-r border-[var(--c-primary-400)]">
+                    <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--c-body-text-color)]">
                       Mi cuenta
                     </p>
                     <ul class="flex flex-col gap-0.5">
@@ -158,7 +158,7 @@ export default defineComponent({
                           {item.href ? (
                             <router-link
                               to={item.href}
-                              class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-200)] hover:text-[var(--c-tertiary-color)]"
+                              class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
                             >
                               <c-icon icon={item.icon} size={16} class="shrink-0 opacity-60" />
                               {item.text}
@@ -166,7 +166,7 @@ export default defineComponent({
                           ) : (
                             <button
                               onClick={item.onClick}
-                              class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-200)] hover:text-[var(--c-tertiary-color)]"
+                              class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
                             >
                               <c-icon icon={item.icon} size={16} class="shrink-0 opacity-60" />
                               {item.text}
@@ -176,7 +176,7 @@ export default defineComponent({
                       ))}
 
                       {/* Divider + Logout */}
-                      <li class="mt-1 pt-1 border-t border-[var(--c-primary-200)]">
+                      <li class="mt-1 pt-1 border-t border-[var(--c-primary-400)]">
                         <button
                           onClick={handleLogout}
                           class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-rose-400 transition-colors hover:bg-rose-500/10"
@@ -190,7 +190,7 @@ export default defineComponent({
 
                   {/* Column: Perfiles */}
                   <div class="flex-1 px-3 py-3 border-t sm:border-t-0 border-[var(--c-primary-200)]">
-                    <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--c-primary-900)]">
+                    <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--c-body-text-color)]">
                       Perfiles
                     </p>
                     <ul class="flex flex-col gap-0.5">
@@ -199,7 +199,7 @@ export default defineComponent({
                           <button
                             onClick={() => handleProfileSelect(profile)}
                             aria-label={`Seleccionar perfil ${profile.name}`}
-                            class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-200)] hover:text-[var(--c-tertiary-color)]"
+                            class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
                           >
                             <img
                               src={avatarUrl(profile.avatar_id)}
@@ -214,7 +214,7 @@ export default defineComponent({
                         <li>
                           <button
                             onClick={handleProfileSwitch}
-                            class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-primary-900)] transition-colors hover:bg-[var(--c-primary-200)] hover:text-[var(--c-body-text-color)]"
+                            class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
                           >
                             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--c-primary-300)]">
                               <Plus size={13} />
@@ -226,11 +226,11 @@ export default defineComponent({
                     </ul>
 
                     {/* Secondary links */}
-                    <ul class="mt-1 pt-1 border-t border-[var(--c-primary-200)] flex flex-col gap-0.5">
+                    <ul class="mt-1 pt-1 border-t border-[var(--c-primary-400)] flex flex-col gap-0.5">
                       <li>
                         <router-link
                           to="/profiles/edit"
-                          class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-200)] hover:text-[var(--c-tertiary-color)]"
+                          class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
                         >
                           <Pencil size={16} class="shrink-0 opacity-60" />
                           Editar perfiles
@@ -239,7 +239,7 @@ export default defineComponent({
                       <li>
                         <router-link
                           to="/info"
-                          class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-200)] hover:text-[var(--c-tertiary-color)]"
+                          class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
                         >
                           <Info size={16} class="shrink-0 opacity-60" />
                           Más información
@@ -258,7 +258,7 @@ export default defineComponent({
               <button
                 onClick={openSignupModal}
                 aria-label="Registrarse"
-                class="rounded-lg border border-[var(--c-primary-300)] bg-transparent px-4 py-1.5 text-sm font-medium text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-200)]"
+                class="rounded-lg border border-[var(--c-primary-400)] bg-transparent px-4 py-1.5 text-sm font-medium text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
               >
                 Sign up
               </button>
@@ -266,7 +266,7 @@ export default defineComponent({
             <button
               onClick={openLoginModal}
               aria-label="Iniciar sesión"
-              class="flex items-center gap-2 rounded-lg bg-[var(--c-tertiary-color)] px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--c-tertiary-100)]"
+              class="flex items-center gap-2 rounded-lg bg-[var(--c-tertiary-color)] px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--c-tertiary-200)]"
             >
               <CIcon icon="user" size={16} class="shrink-0" />
               Login

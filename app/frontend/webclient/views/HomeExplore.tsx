@@ -8,6 +8,7 @@ import ContentRow from '../components/content-row.vue';
 import CIconButton from '../components/forms/c-icon-button.vue';
 import HomeCarousel from '../components/HomeCarousel';
 import LiveTvSection from '../components/LiveTvSection';
+import ShuffleRecommendations from '../components/ShuffleRecommendations';
 import PluginOutlet from "@/components/PluginOutlet";
 
 export default defineComponent({
@@ -23,11 +24,74 @@ export default defineComponent({
         // State
         const homepage = ref<any>(null);
         const loading = ref(true);
+        const randomSeed = ref(0);
 
         // Computed
         const bannerItems = computed(() => homepage.value?.banner_content || []);
         const contentCategories = computed(() => homepage.value?.content || []);
         const shouldShowCarousel = computed(() => SiteSettings?.enable_carousel && bannerItems.value.length > 0);
+
+        // Seeded random number generator for consistent positions
+        const seededRandom = (seed: number) => {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        };
+
+        // Generate consistent random positions for special sections
+        const generateRandomPositions = (total: number, count: number, seed: number) => {
+            if (total < 2) return [];
+            const positions = new Set<number>();
+            const minPosition = 1; // Don't place at the very beginning
+            const maxPosition = total - 1; // Don't place at the very end
+
+            let currentSeed = seed;
+            while (positions.size < count && positions.size < maxPosition - minPosition) {
+                currentSeed += 1;
+                const randomValue = seededRandom(currentSeed);
+                const pos = Math.floor(randomValue * (maxPosition - minPosition + 1)) + minPosition;
+                positions.add(pos);
+            }
+            return Array.from(positions).sort((a, b) => a - b);
+        };
+
+        // Mix content categories with special sections
+        const mixedContent = computed(() => {
+            const categories = contentCategories.value;
+            if (!categories.length) return [];
+
+            // Generate a seed based on category titles for consistency
+            const seed = categories.reduce((acc: number, cat: any) => {
+                return acc + cat.title.split('').reduce((a: number, c: string) => a + c.charCodeAt(0), 0);
+            }, 0);
+
+            const specialSections = [];
+            if (SiteSettings?.enable_shuffle_recommendations) {
+                specialSections.push({ type: 'shuffle', component: ShuffleRecommendations });
+            }
+            if (SiteSettings?.enable_live_tv) {
+                specialSections.push({ type: 'livetv', component: LiveTvSection });
+            }
+
+            if (!specialSections.length) return categories;
+
+            const positions = generateRandomPositions(categories.length + specialSections.length, specialSections.length, seed);
+            const result = [];
+            let specialIndex = 0;
+
+            for (let i = 0; i < categories.length + specialSections.length; i++) {
+                if (positions.includes(i) && specialIndex < specialSections.length) {
+                    result.push(specialSections[specialIndex]);
+                    specialIndex++;
+                } else if (result.length < categories.length + specialSections.length) {
+                    const categoryIndex = result.filter((item: any) => !item.type).length;
+                    if (categoryIndex < categories.length) {
+                        result.push(categories[categoryIndex]);
+                    }
+                }
+            }
+
+            return result;
+        });
 
         // Head
         useHead({
@@ -148,26 +212,30 @@ export default defineComponent({
 
                         <PluginOutlet name="home:after-carousel" />
 
-                        {/* Live TV Section */}
-                        <LiveTvSection />
-
-                        {/* Content sections */}
+                        {/* Content sections with randomly interleaved special sections */}
                         <section id="main-content" class="pb-8">
-                            {contentCategories.value.map((category: any) => {
-                                if (!category.content?.length) return null;
+                            {mixedContent.value.map((item: any, index: number) => {
+                                // Special sections (ShuffleRecommendations, LiveTvSection)
+                                if (item.type) {
+                                    const SpecialComponent = item.component;
+                                    return <SpecialComponent key={`special-${item.type}-${index}`} />;
+                                }
+
+                                // Regular content categories
+                                if (!item.content?.length) return null;
 
                                 return (
-                                    <div key={category.title}>
-                                        {category.title === 'Continuar viendo' ? (
+                                    <div key={item.title}>
+                                        {item.title === 'Continuar viendo' ? (
                                             <ContentRow
-                                                title={category.title}
-                                                items={category.content}
+                                                title={item.title}
+                                                items={item.content}
                                                 itemType="landscape"
                                             />
                                         ) : (
                                             <ContentRow
-                                                title={category.title}
-                                                items={category.content}
+                                                title={item.title}
+                                                items={item.content}
                                                 itemType="landscape"
                                             />
                                         )}

@@ -18,7 +18,8 @@ class WebhooksController < ApplicationController
       "body"    => request.raw_post.to_s,
       "params"  => request.query_parameters.to_h
     }
-    ProcessSubscriptionWebhookJob.perform_async(provider_key, snapshot)
+
+    ProcessSubscriptionWebhookJob.perform_async(provider_key, snapshot)
 
     # Respond immediately so MP doesn't timeout and retry.
     render plain: "accepted", status: :accepted
@@ -65,6 +66,9 @@ class WebhooksController < ApplicationController
       X-Request-Id x-request-id
       X-Topic x-topic
       Content-Type
+      Authorization
+      X-Play-Verification-Token
+      X-Goog-Channel-Token
     ]
 
     relevant_keys.each_with_object({}) do |key, hash|

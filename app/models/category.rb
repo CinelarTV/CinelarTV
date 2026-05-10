@@ -7,27 +7,15 @@ class Category < ApplicationRecord
 
   validates :name, presence: true
   validates :description, presence: true
-  validates :image, presence: true, allow_blank: true # Assuming image is stored as a URL
-
-  def description_with_format
-    "Description: #{description}"
-  end
-
-  def has_image?
-    image.present?
-  end
-
-  def image_url
-    "https://example.com/images/#{image}" if image.present?
-  end
+  validates :tmdb_id, uniqueness: true, allow_nil: true
 
   def as_json(options = {})
-    super(options.merge(only: %i[id name description image]))
+    super(options.merge(only: %i[id name description tmdb_id]))
   end
 
   def update_data(data)
     self.name = data[:name] if data[:name]
     self.description = data[:description] if data[:description]
-    self.image = data[:image] if data[:image]
+    self.tmdb_id = data[:tmdb_id] if data[:tmdb_id]
   end
 end

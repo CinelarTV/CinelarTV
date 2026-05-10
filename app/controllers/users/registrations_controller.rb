@@ -11,18 +11,42 @@ module Users
     end
 
     def create
+      Rails.logger.info "[RegistrationsController] create called with format: #{request.format}"
+      Rails.logger.info "[RegistrationsController] params: #{params.inspect}"
+
       @user = User.new(sign_up_params)
 
       if @user.save
+        Rails.logger.info "[RegistrationsController] User saved successfully: #{@user.id}"
         respond_to do |format|
-          format.json { render json: @user, status: :created }
-          sign_in(@user) # Sign in the newly registered user
-          format.html { redirect_to "/", notice: "User registered successfully!" }
+          format.json do
+            Rails.logger.info "[RegistrationsController] Rendering JSON response"
+            render json: { message: "Registration successful. Please check your email to confirm your account.", error_type: "unconfirmed", needs_confirmation: true }, status: :created
+          end
+          format.html { redirect_to "/", notice: "Registration successful. Please check your email to confirm your account." }
+          format.any { render json: { message: "Registration successful. Please check your email to confirm your account.", error_type: "unconfirmed", needs_confirmation: true }, status: :created }
         end
       else
+        Rails.logger.info "[RegistrationsController] User save failed: #{@user.errors.full_messages}"
         respond_to do |format|
           format.html { render :new }
-          format.json { render json: @user.errors, status: :unprocessable_entity }
+          format.json do
+            # Normalize errors to a consistent format
+            error_messages = @user.errors.full_messages
+            render json: {
+              error: error_messages.first,
+              errors: error_messages,
+              message: error_messages.first
+            }, status: :unprocessable_entity
+          end
+          format.any do
+            error_messages = @user.errors.full_messages
+            render json: {
+              error: error_messages.first,
+              errors: error_messages,
+              message: error_messages.first
+            }, status: :unprocessable_entity
+          end
         end
       end
     end

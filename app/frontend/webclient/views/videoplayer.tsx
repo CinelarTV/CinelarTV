@@ -177,36 +177,22 @@ export default defineComponent({
         };
 
         // ---------- Session helpers ----------
-        const storageKey = (epId?: string) =>
-            `cinelar_stream_session:${contentId.value}:${epId || episodeId.value || 'movie'}`;
+        const DEVICE_TOKEN_KEY = 'cinelar_device_session_token';
 
         const getStoredSessionToken = (): string | null => {
             if (typeof window === 'undefined') return null;
-            const token = window.sessionStorage.getItem(storageKey());
-            if (token) return token;
-
-            if (!episodeId.value) {
-                const prefix = `cinelar_stream_session:${contentId.value}:`;
-                for (let i = 0; i < window.sessionStorage.length; i++) {
-                    const key = window.sessionStorage.key(i);
-                    if (key?.startsWith(prefix)) {
-                        const stored = window.sessionStorage.getItem(key);
-                        if (stored) return stored;
-                    }
-                }
-            }
-            return null;
+            return window.localStorage.getItem(DEVICE_TOKEN_KEY);
         };
 
-        const saveSessionToken = (token: string, epId?: string) => {
+        const saveSessionToken = (token: string) => {
             if (typeof window === 'undefined' || !token) return;
-            window.sessionStorage.setItem(storageKey(epId), token);
+            window.localStorage.setItem(DEVICE_TOKEN_KEY, token);
             streamPingToken.value = token;
         };
 
         const clearSessionToken = () => {
             if (typeof window === 'undefined') return;
-            window.sessionStorage.removeItem(storageKey());
+            window.localStorage.removeItem(DEVICE_TOKEN_KEY);
             streamPingToken.value = null;
         };
 
@@ -293,11 +279,7 @@ export default defineComponent({
                 streamLimitSessions.value = [];
 
                 if (contentData.deviceSessionToken) {
-                    const redirectEpisodeId = !episodeId.value
-                        ? contentData.episode?.id || contentData.season?.episodes?.[0]?.id
-                        : undefined;
                     saveSessionToken(contentData.deviceSessionToken);
-                    if (redirectEpisodeId) saveSessionToken(contentData.deviceSessionToken, redirectEpisodeId);
                     startStreamPing(contentData.deviceSessionToken);
                 } else {
                     clearSessionToken();
@@ -371,6 +353,10 @@ export default defineComponent({
                                                 <div class="stream-limit-item__heading">
                                                     <CIcon icon="tv" size={16} class="stream-limit-item__icon" />
                                                     <span class="stream-limit-item__name">{session.device_name || 'Dispositivo desconocido'}</span>
+                                                </div>
+                                                <div class="stream-limit-item__content">
+                                                    {session.content_title || 'Contenido desconocido'}
+                                                    {session.episode_title && ` · ${session.episode_title}`}
                                                 </div>
                                                 <div class="stream-limit-item__meta">{session.device_type || 'desconocido'} · TTL: {session.ttl}s</div>
                                             </li>

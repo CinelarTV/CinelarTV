@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -35,6 +35,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
     t.string "image"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "tmdb_id"
+    t.index ["tmdb_id"], name: "index_categories_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
+  end
+
+  create_table "content_categories", force: :cascade do |t|
+    t.uuid "content_id", null: false
+    t.integer "category_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_content_categories_on_category_id"
+    t.index ["content_id", "category_id"], name: "index_content_categories_on_content_id_and_category_id", unique: true
+    t.index ["content_id"], name: "index_content_categories_on_content_id"
   end
 
   create_table "contents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -49,6 +61,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
     t.string "trailer_url"
     t.boolean "available", default: true
     t.boolean "premium", default: false
+    t.integer "tmdb_id"
+    t.index ["tmdb_id"], name: "index_contents_on_tmdb_id"
   end
 
   create_table "continue_watchings", force: :cascade do |t|
@@ -75,6 +89,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_custom_pages_on_slug", unique: true
+  end
+
+  create_table "email_templates", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "locale", null: false
+    t.text "subject"
+    t.text "body"
+    t.jsonb "interpolation_variables", default: []
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key", "locale"], name: "index_email_templates_on_key_and_locale", unique: true
+    t.index ["key"], name: "index_email_templates_on_key"
+    t.index ["locale"], name: "index_email_templates_on_locale"
   end
 
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -322,8 +349,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
     t.datetime "granted_until"
     t.datetime "cancelled_at"
     t.jsonb "metadata", default: {}, null: false
+    t.string "purchase_token"
+    t.string "google_product_id"
+    t.string "external_id"
+    t.index ["external_id"], name: "index_user_subscriptions_on_external_id"
     t.index ["provider", "provider_subscription_id"], name: "idx_user_subscriptions_provider_external_id", unique: true, where: "(provider_subscription_id IS NOT NULL)"
     t.index ["provider"], name: "index_user_subscriptions_on_provider"
+    t.index ["purchase_token"], name: "index_user_subscriptions_on_purchase_token"
     t.index ["user_id"], name: "index_user_subscriptions_on_user_id", unique: true
   end
 
@@ -349,6 +381,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
     t.datetime "deactivated_at"
     t.text "deactivated_reason"
     t.uuid "deactivated_by_id"
+    t.string "confirmation_token"
+    t.datetime "confirmed_at"
+    t.datetime "confirmation_sent_at"
+    t.string "unconfirmed_email"
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deactivated_at"], name: "index_users_on_deactivated_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -432,6 +469,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_21_210000) do
     t.index ["url"], name: "index_xmltv_sources_on_url", unique: true
   end
 
+  add_foreign_key "content_categories", "categories", on_delete: :cascade
+  add_foreign_key "content_categories", "contents", on_delete: :cascade
   add_foreign_key "continue_watchings", "contents"
   add_foreign_key "continue_watchings", "episodes"
   add_foreign_key "continue_watchings", "profiles"

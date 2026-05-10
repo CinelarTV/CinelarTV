@@ -148,6 +148,48 @@ body.wizard #wizard-main {
     color: var(--wizard-muted);
 }
 
+.wizard-field-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.wizard-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.wizard-switch--on {
+    background: var(--c-tertiary-400, #0095d9);
+}
+
+.wizard-switch--off {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.wizard-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+}
+
+.wizard-switch-thumb--on {
+    transform: translateX(18px);
+}
+
 .wizard-container__step-empty {
     padding: 1.1rem;
     border-radius: 12px;

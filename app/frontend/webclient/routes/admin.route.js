@@ -1,6 +1,6 @@
 const AdminBase = () => import( /* webpackChunkName: "admin-base" */ '../views/admin/base.vue');
 const AdminDashboard = () => import( /* webpackChunkName: "admin-dashboard" */ '../views/admin/dashboard.vue');
-const AdminSettingsLayout = () => import('../views/admin/settings/base.vue');
+const AdminSettingsLayout = () => import('../views/admin/settings/SettingsBase.tsx');
 
 import Updater from "../views/admin/updater.vue";
 
@@ -59,6 +59,22 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.email_templates',
+            path: 'email-templates',
+            component: () => import('../views/admin/email-templates/EmailTemplates.tsx'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
+            name: 'admin.email_template_edit',
+            path: 'email-templates/:key',
+            component: () => import('../views/admin/email-templates/EmailTemplateEditor.tsx'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.customization.iconmap',
             path: 'icons',
             component: () => import('../views/admin/IconLibrary')
@@ -108,6 +124,14 @@ const AdminRoutes = {
                     name: 'admin.content.manager.media_integrity',
                     path: 'media-integrity',
                     component: () => import('../views/admin/content-manager/MediaIntegrity.vue'),
+                    meta: {
+                        requireAdmin: true
+                    }
+                },
+                {
+                    name: 'admin.content.manager.categories',
+                    path: 'categories',
+                    component: () => import('../views/admin/content-manager/categories.vue'),
                     meta: {
                         requireAdmin: true
                     }

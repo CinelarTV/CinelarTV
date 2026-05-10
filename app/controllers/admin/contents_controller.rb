@@ -2,7 +2,7 @@
 
 module Admin
   class ContentsController < Admin::BaseController
-    before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season]
+    before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season, :sync_categories_from_tmdb]
     before_action :set_season, only: [:create_episode, :episode_list, :reorder_episodes]
     before_action :set_episode, only: [:edit_episode, :update_episode, :delete_episode]
 
@@ -26,6 +26,17 @@ module Admin
 
       ActiveRecord::Base.transaction do
         handle_uploaded_images
+        
+        # Auto-assign categories from TMDB if enabled and category_ids not provided manually
+        if SiteSetting.enable_category_auto_assignment && params[:tmdb_genre_ids].present? && content_params[:category_ids].blank?
+          assign_categories_from_tmdb(params[:tmdb_genre_ids])
+        end
+        
+        # Auto-assign tmdb_id if provided and not set manually
+        if params[:tmdb_id].present? && content_params[:tmdb_id].blank?
+          @content.tmdb_id = params[:tmdb_id]
+        end
+        
         @content.save!
         render json: { message: "Content created successfully", status: :ok }
       end
@@ -134,6 +145,51 @@ module Admin
       render json: { message: "Content deleted successfully", status: :ok }
     end
 
+    def sync_categories_from_tmdb
+      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
+      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+      return render json: { error: "Category auto-assignment is not enabled" }, status: :unprocessable_entity unless SiteSetting.enable_category_auto_assignment
+
+      configure_tmdb_api
+      
+      # Fetch content from TMDB using tmdb_id
+      tmdb_data = if @content.content_type == "MOVIE"
+        Tmdb::Movie.detail(@content.tmdb_id)
+      elsif @content.content_type == "TVSHOW"
+        Tmdb::TV.detail(@content.tmdb_id)
+      else
+        return render json: { error: "Unsupported content type" }, status: :unprocessable_entity
+      end
+
+      genre_ids = tmdb_data["genres"]&.map { |g| g["id"] } || []
+      
+      if genre_ids.empty?
+        return render json: { message: "No genres found in TMDB for this content" }, status: :ok
+      end
+
+      # Map TMDB genre IDs to category IDs
+      categories_by_tmdb_id = Category.where.not(tmdb_id: nil).pluck(:tmdb_id, :id).to_h
+      category_ids = genre_ids.map { |tmdb_id| categories_by_tmdb_id[tmdb_id] }.compact
+
+      if category_ids.empty?
+        return render json: { message: "No matching categories found for TMDB genres" }, status: :ok
+      end
+
+      # Assign categories to content
+      @content.category_ids = category_ids
+      @content.save!
+
+      render json: { 
+        message: "Categories synchronized successfully", 
+        assigned_count: category_ids.count,
+        category_ids: category_ids 
+      }, status: :ok
+    rescue Tmdb::Error => e
+      render json: { error: "TMDB API error: #{e.message}" }, status: :unprocessable_entity
+    rescue StandardError => e
+      render json: { error: "An error occurred: #{e.message}" }, status: :unprocessable_entity
+    end
+
     def index
       @contents = Content.includes(:seasons, :video_sources).all
       respond_to do |format|
@@ -173,6 +229,28 @@ module Admin
       Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
         Tmdb::Search.multi(normalized_title).table
       end
+    end
+
+    def map_tmdb_genres_to_categories(search_data)
+      return {} unless SiteSetting.enable_category_auto_assignment
+
+      # Get all categories with tmdb_id
+      categories_by_tmdb_id = Category.where.not(tmdb_id: nil).pluck(:tmdb_id, :id).to_h
+
+      mapping = {}
+      search_data.each do |item|
+        genre_ids = item["genre_ids"] || []
+        category_ids = genre_ids.map { |tmdb_id| categories_by_tmdb_id[tmdb_id.to_i] }.compact
+        mapping[item["id"]] = category_ids if category_ids.any?
+      end
+
+      mapping
+    end
+
+    def assign_categories_from_tmdb(tmdb_genre_ids)
+      categories_by_tmdb_id = Category.where.not(tmdb_id: nil).pluck(:tmdb_id, :id).to_h
+      category_ids = tmdb_genre_ids.map { |tmdb_id| categories_by_tmdb_id[tmdb_id.to_i] }.compact
+      @content.category_ids = category_ids if category_ids.any?
     end
 
     def handle_uploaded_images
@@ -219,6 +297,10 @@ module Admin
     def serialize_content(content)
       content_data = content.as_json
 
+      # Include categories
+      content_data[:categories] = content.categories.map { |c| { id: c.id, name: c.name } }
+      content_data[:category_ids] = content.category_ids
+
       if content.content_type == "TVSHOW"
         seasons_data = content.seasons.order(position: :asc)
         content_data[:seasons] = seasons_data.map do |s|
@@ -252,7 +334,7 @@ module Admin
     end
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium,
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium, :tmdb_id,
                                       category_ids: [])
     end
 

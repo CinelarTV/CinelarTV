@@ -8,13 +8,15 @@ Rails.application.routes.draw do
 
   root to: "application#index", as: "app"
 
-  devise_for :users, { controllers: { registrations: "users/registrations", sessions: "users/sessions" } }
+  devise_for :users, { controllers: { registrations: "users/registrations", sessions: "users/sessions", confirmations: "users/confirmations" } }
   devise_scope :user do
     get "/login" => "users/sessions#new"
     get "/signup" => "users/registrations#new"
     post "/signup" => "users/registrations#create"
     post "/login" => "users/sessions#create"
     delete "/logout" => "users/sessions#destroy"
+    post "/confirmation" => "users/confirmations#create"
+    get "/confirmation" => "users/confirmations#show"
   end
 
   use_doorkeeper
@@ -25,6 +27,7 @@ Rails.application.routes.draw do
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
   get "explore" => "home#homepage", as: :explore
+  get "shuffle_recommendations" => "home#shuffle_recommendations"
 
   get "/user/profiles", to: "session#profiles"
   # Routes that don't need a controller, can fallback to the application controller
@@ -121,6 +124,7 @@ Rails.application.routes.draw do
       get "auth/profile-status", to: "auth#profile_status"
       post "auth/select-profile", to: "auth#select_profile"
       post "auth/deassign-profile", to: "auth#deassign_profile"
+      post "auth/resend-confirmation", to: "auth#resend_confirmation"
       delete "auth/logout", to: "auth#logout"
     end
   end

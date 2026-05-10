@@ -16,12 +16,14 @@ class ContentSerializer < ApplicationSerializer
              :updated_at,
              :trailer_url,
              :available,
-             :premium
+             :premium,
+             :tmdb_id
 
   attribute :seasons, if: :include_seasons?
   attribute :liked, key: "liked"
   attribute :similar_items, key: "related_content"
   attribute :continue_watching, key: "continue_watching"
+  attribute :categories
 
   def include_seasons?
     object.content_type == Content.content_types["TVSHOW"]
@@ -52,6 +54,10 @@ class ContentSerializer < ApplicationSerializer
     return false unless profile&.respond_to?(:liked_contents)
 
     profile.liked_contents.include?(object)
+  end
+
+  def categories
+    object.categories.map { |category| { id: category.id, name: category.name } }
   end
 
   private

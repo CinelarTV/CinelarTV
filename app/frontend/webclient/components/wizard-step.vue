@@ -32,8 +32,22 @@
           <div v-for="step in props.wizardData.steps" :key="step.id" :class="{ hidden: currentStep.id !== step.id }">
             <div class="wizard-container__fields" v-if="step.fields?.length">
               <div v-for="field in step.fields" :key="field.id" class="wizard-container__field">
-                <label class="wizard-container__field-label">{{ field.id }}</label>
-                <component :is="getFieldComponent(field)" v-model="field.value" v-bind="getFieldProps(field)" />
+                <label class="wizard-container__field-label">{{
+                  i18n.t(`js.wizard.${currentStep.id}.fields.${field.id}.title`) }}</label>
+                <template v-if="field.type === 'checkbox'">
+                  <div class="wizard-field-control">
+                    <Switch v-model="field.value" :class="[
+                      'wizard-switch',
+                      field.value ? 'wizard-switch--on' : 'wizard-switch--off',
+                    ]">
+                      <span aria-hidden="true" :class="[
+                        'wizard-switch-thumb',
+                        field.value ? 'wizard-switch-thumb--on' : '',
+                      ]" />
+                    </Switch>
+                  </div>
+                </template>
+                <component v-else :is="getFieldComponent(field)" v-model="field.value" v-bind="getFieldProps(field)" />
               </div>
             </div>
             <div v-else class="wizard-container__step-empty">
@@ -72,6 +86,7 @@ import {
   defineProps,
   inject,
 } from 'vue';
+import { Switch } from '@headlessui/vue';
 import CInput from './forms/c-input.vue';
 import CSelect from './forms/c-select.vue';
 import { useRouter } from 'vue-router';
@@ -140,6 +155,8 @@ const getFieldComponent = (field) => {
       return CInput;
     case 'select':
       return CSelect;
+    case 'checkbox':
+      return Switch;
     case 'image':
       return 'ImageFieldComponent';
     default:
@@ -148,6 +165,15 @@ const getFieldComponent = (field) => {
 };
 
 const getFieldProps = (field) => {
+  if (field.type === 'checkbox') {
+    return {
+      class: [
+        'wizard-switch',
+        field.value ? 'wizard-switch--on' : 'wizard-switch--off',
+      ]
+    };
+  }
+
   if (field.type !== 'select') {
     return {};
   }

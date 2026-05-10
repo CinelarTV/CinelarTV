@@ -1,5 +1,25 @@
 ---
 pt-BR:
+  email_templates:
+    devise_confirmation_instructions:
+      subject: "Confirme sua conta"
+      body: "<p>Bem-vindo %{username}!</p><p>Você pode confirmar sua conta de email
+        através do link abaixo:</p><p>%{confirmation_url}</p>"
+    devise_reset_password_instructions:
+      subject: "Redefinir sua senha"
+      body: "<p>Olá %{username},</p><p>Alguém solicitou um link para alterar sua
+        senha. Você pode fazer isso através do link
+        abaixo.</p><p>%{edit_password_url}</p><p>Se você não solicitou isso, por
+        favor ignore este email.</p>"
+    devise_unlock_instructions:
+      subject: "Desbloquear sua conta"
+      body: "<p>Olá %{username},</p><p>Sua conta foi bloqueada devido a muitas
+        tentativas de login falhadas.</p><p>Clique no link abaixo para
+        desbloquear sua conta:</p><p>%{unlock_url}</p>"
+    devise_email_changed:
+      subject: "Email alterado"
+      body: "<p>Olá %{username},</p><p>Estamos entrando em contato para notificá-lo
+        que seu email foi alterado para %{new_email}.</p>"
   activerecord:
     errors:
       messages:
@@ -390,9 +410,38 @@ pt-BR:
       categories: "Categorias"
       continue_watching: "Continue watching"
       top_10_content_by_country: "Top 10 on %{country}"
+    shuffle_recommendations:
+      title: "Não sabe o que assistir?"
+      description: "Escolha Reproduzir algo e selecionaremos conteúdo para você
+        assistir com base em seus gostos"
+      play_something: "Reproduzir algo"
+      shuffle: "Embaralhar"
+      watch_trailer: "Ver trailer"
+      hide_trailer: "Ocultar trailer"
+      more_info: "Mais informações"
+      counter: "%{current} de %{total}"
     offline_indicator:
       no_internet: "No internet connection"
       reload: "Reload page"
+    segments:
+      add_another: "Add another segment"
+      add_segment: "Add segment"
+      credits_start: "Credits Start"
+      end_time: "End time (MM:SS)"
+      error_duplicate: "A segment of this type already exists"
+      error_required: "Start and end times are required for this segment type"
+      error_start_required: "Start time is required for this segment type"
+      existing_segments: "Existing segments"
+      next_episode: "Next Episode"
+      no_segments: "No segments"
+      point: "Point"
+      segment_type: "Segment type"
+      skip_credits: "Skip Credits"
+      skip_intro: "Skip Intro"
+      skip_resume: "Skip Recap"
+      start_time: "Start time (MM:SS)"
+      time_range: "Time range"
+      title: "Time Segments"
     user:
       added_to_favorites: "\"{{title}}\" added to your favorites"
       nav:
@@ -404,25 +453,6 @@ pt-BR:
       back: "Back"
       next_episode: "Next episode"
       skip_intro: "Skip intro"
-    segments:
-      skip_intro: "Pular Intro"
-      skip_resume: "Pular Resumo"
-      skip_credits: "Pular Créditos"
-      next_episode: "Próximo Episódio"
-      credits_start: "Início Créditos"
-      title: "Segmentos de Tempo"
-      no_segments: "Sem segmentos"
-      add_segment: "Adicionar segmento"
-      add_another: "Adicionar outro segmento"
-      segment_type: "Tipo de segmento"
-      start_time: "Tempo de início (MM:SS)"
-      end_time: "Tempo de fim (MM:SS)"
-      time_range: "Intervalo de tempo"
-      point: "Ponto"
-      existing_segments: "Segmentos existentes"
-      error_duplicate: "Um segmento deste tipo já existe"
-      error_required: "Tempos de início e fim são necessários para este tipo de segmento"
-      error_start_required: "Tempo de início é necessário para este tipo de segmento"
     wizard:
       introduction:
         description: "🎉 Welcome to CinelarTV! 🎉<br><br>Before you start, we need to
@@ -432,6 +462,19 @@ pt-BR:
       license:
         description: "Introduce your license key to enable Commercial features"
         title: "License"
+      tmdb:
+        description: "Configure o TMDB (The Movie Database) para buscar automaticamente
+          metadados de filmes e séries. Isso simplificará muito o gerenciamento
+          de conteúdo. Opcional: você pode configurar isso mais tarde."
+        fields:
+          enable_metadata_recommendation:
+            description: "Habilitar recomendações de metadados do TMDB"
+            title: "Habilitar TMDB"
+          tmdb_api_key:
+            description: "Sua chave de API do TMDB. Obtenha uma gratuitamente em
+              themoviedb.org"
+            title: "Chave de API do TMDB"
+        title: "Configurar TMDB"
       site_info:
         description: "Essas informações serão usadas para configurar seu site"
         fields:

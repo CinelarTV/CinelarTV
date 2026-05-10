@@ -191,10 +191,18 @@ export default defineComponent({
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         };
 
-        const truncateUrl = (url: string | undefined, maxLength: number = 50) => {
-            if (!url) return 'Sin URL';
-            if (url.length <= maxLength) return url;
-            return url.substring(0, maxLength) + '...';
+        const getFileName = (url: string | undefined) => {
+            if (!url) return 'Sin nombre';
+            try {
+                const urlObj = new URL(url);
+                const pathname = urlObj.pathname;
+                const fileName = pathname.split('/').pop() || 'video';
+                return decodeURIComponent(fileName);
+            } catch {
+                // Si no es URL válida, extraer última parte
+                const parts = url.split('/');
+                return parts[parts.length - 1] || url;
+            }
         };
 
         const getQualityBadgeColor = (quality?: string) => {
@@ -248,72 +256,71 @@ export default defineComponent({
                 {/* Video Sources List */}
                 {videoSources.value.length > 0 && (
                     <div class="space-y-3">
-                        <h3 class="text-sm font-medium text-[var(--c-primary-900)] uppercase tracking-wider">
-                            Fuentes disponibles
-                        </h3>
-                        <div class="space-y-3">
-                            {videoSources.value.map((vs) => (
-                                <div key={vs.id} class="bg-[var(--c-primary-100)] rounded-xl p-6 ring-1 ring-[var(--c-primary-200)]">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-4 flex-1 min-w-0">
-                                            {/* Quality Badge */}
-                                            <div class={`px-3 py-1.5 rounded-lg text-xs font-semibold text-white ${getQualityBadgeColor(vs.quality)}`}>
-                                                {vs.quality || 'Unknown'}
-                                            </div>
-
-                                            {/* Format */}
-                                            <span class="text-xs text-[var(--c-primary-900)] font-mono uppercase bg-[var(--c-primary-200)] px-2 py-1 rounded">
-                                                {vs.format || 'N/A'}
-                                            </span>
-
-                                            {/* URL/File Info */}
-                                            <div class="flex-1 min-w-0 overflow-hidden">
-                                                <div class="flex items-center gap-3 min-w-0">
-                                                    <div class="flex-shrink-0 w-8 h-8 bg-[var(--c-primary-200)] rounded-lg flex items-center justify-center">
-                                                        <span class="text-sm">
-                                                            {vs.storage_location === 'url' ? '🌐' : '📁'}
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="text-sm text-[var(--c-body-text-color)] font-medium truncate" title={vs.url}>
-                                                            {truncateUrl(vs.url)}
-                                                        </p>
-                                                        <p class="text-xs text-[var(--c-primary-900)] mt-0.5">
-                                                            {vs.storage_location === 'url' ? 'URL externa' : 'Archivo local'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                        {videoSources.value.map((vs) => (
+                            <div key={vs.id} class="bg-[var(--c-primary-100)] rounded-xl p-4 ring-1 ring-[var(--c-primary-200)] hover:ring-[var(--c-primary-300)] transition-all">
+                                <div class="flex items-start justify-between gap-4">
+                                    {/* Columna principal */}
+                                    <div class="flex items-start gap-3 flex-1 min-w-0">
+                                        {/* Icono */}
+                                        <div class="flex-shrink-0 w-10 h-10 bg-[var(--c-primary-200)] rounded-lg flex items-center justify-center">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-[var(--c-primary-300)]">
+                                                <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
                                         </div>
 
-                                        {/* Transcoding Progress */}
-                                        {vs.status === 'processing' && (
-                                            <div class="mt-4">
-                                                <CTranscodingProgress
-                                                    videoSourceId={vs.id!}
-                                                    on-transcoding-completed={fetchVideoSources}
-                                                />
-                                            </div>
-                                        )}
+                                        {/* Info principal */}
+                                        <div class="flex-1 min-w-0">
+                                            {/* Título: nombre del archivo */}
+                                            <h4 class="text-sm font-medium text-[var(--c-body-text-color)] truncate mb-1" title={vs.url}>
+                                                {getFileName(vs.url)}
+                                            </h4>
 
-                                        {/* Status & Actions */}
-                                        <div class="flex items-center gap-3 flex-shrink-0">
-                                            {vs.status && (
-                                                <span class={`px-3 py-1.5 rounded-full text-xs font-medium ${vs.status === 'active' ? 'bg-green-900/50 text-green-300' :
-                                                    vs.status === 'processing' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-red-900/50 text-red-300'}`}>
-                                                    {vs.status}
+                                            {/* Metadata en línea */}
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class={`px-2 py-0.5 rounded text-xs font-medium text-white ${getQualityBadgeColor(vs.quality)}`}>
+                                                    {vs.quality || 'SD'}
                                                 </span>
+                                                <span class="text-xs text-[var(--c-primary-900)]">
+                                                    {vs.format?.toUpperCase() || 'MP4'}
+                                                </span>
+                                                <span class="text-xs text-[var(--c-primary-900)]">•</span>
+                                                <span class="text-xs text-[var(--c-primary-900)]">
+                                                    {vs.storage_location === 'url' ? 'Externa' : 'Local'}
+                                                </span>
+                                                {vs.status && (
+                                                    <>
+                                                        <span class="text-xs text-[var(--c-primary-900)]">•</span>
+                                                        <span class={`text-xs font-medium ${vs.status === 'active' ? 'text-green-400' :
+                                                            vs.status === 'processing' ? 'text-yellow-400' : 'text-red-400'
+                                                            }`}>
+                                                            {vs.status === 'active' ? 'Activo' : vs.status === 'processing' ? 'Procesando' : vs.status}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {/* Progress bar si está procesando */}
+                                            {vs.status === 'processing' && (
+                                                <div class="mt-3">
+                                                    <CTranscodingProgress
+                                                        videoSourceId={vs.id!}
+                                                        on-transcoding-completed={fetchVideoSources}
+                                                    />
+                                                </div>
                                             )}
-                                            <CButton
-                                                icon="trash"
-                                                class="text-red-400 hover:text-red-300 hover:bg-red-900/20 transition-colors"
-                                                onClick={() => removeVideoSource(vs.id!)}
-                                            />
                                         </div>
                                     </div>
+
+                                    {/* Botón de eliminar */}
+                                    <CButton
+                                        icon="trash2"
+                                        variant="ghost"
+                                        class="text-[var(--c-primary-900)] hover:text-red-400 hover:bg-red-900/10"
+                                        onClick={() => removeVideoSource(vs.id!)}
+                                    />
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 
@@ -367,7 +374,7 @@ export default defineComponent({
                                                     <p class="text-xs text-[var(--c-primary-900)]">{formatFileSize(selectedFile.value.size)}</p>
                                                 </div>
                                             </div>
-                                            <CButton icon="trash" class="text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => selectedFile.value = null} />
+                                            <CButton icon="trash2" class="text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => selectedFile.value = null} />
                                         </div>
                                     </div>
                                 )}
