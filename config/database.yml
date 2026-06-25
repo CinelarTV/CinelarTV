@@ -9,6 +9,14 @@
     db_pass = uri.password || 'cinelar'
     query_params = URI.decode_www_form(uri.query || '').to_h
     db_sslmode = query_params['sslmode'] || ENV['CINELAR_DB_SSL_MODE'] || 'prefer'
+
+    endpoint_id = db_host&.split('.')&.first
+    if endpoint_id && endpoint_id.start_with?('ep-')
+      query_params['options'] ||= "endpoint=#{endpoint_id}"
+    end
+
+    db_url_rebuilt = "postgresql://#{db_user}:#{db_pass}@#{db_host}:#{db_port}/#{db_name}"
+    db_url_rebuilt += "?#{URI.encode_www_form(query_params)}" if query_params.any?
   else
     db_name = ENV['CINELAR_DB'] || 'cinelar'
     db_host = ENV['CINELAR_DB_HOSTNAME'] || 'localhost'
@@ -16,6 +24,7 @@
     db_pass = ENV['CINELAR_DB_PASSWORD'] || 'cinelar'
     db_port = ENV['CINELAR_DB_PORT'] || 5432
     db_sslmode = ENV['CINELAR_DB_SSL_MODE'] || 'prefer'
+    db_url_rebuilt = nil
   end
 %>
 
@@ -27,25 +36,37 @@ default: &default
 
 development:
   <<: *default
+  <% if db_url_rebuilt %>
+  url: <%= db_url_rebuilt %>
+  <% else %>
   database: <%= db_name %>
   host: <%= db_host %>
   username: <%= db_user %>
   password: <%= db_pass %>
   port: <%= db_port %>
+  <% end %>
 
 test:
   <<: *default
+  <% if db_url_rebuilt %>
+  url: <%= db_url_rebuilt.sub(/\/([^\/]+)$/, '/\1_test') %>
+  <% else %>
   database: <%= db_name %>_test
   host: <%= db_host %>
   username: <%= db_user %>
   password: <%= db_pass %>
   port: <%= db_port %>
+  <% end %>
 
 production:
   <<: *default
+  <% if db_url_rebuilt %>
+  url: <%= db_url_rebuilt %>
+  <% else %>
   database: <%= db_name %>
   host: <%= db_host %>
   username: <%= db_user %>
   password: <%= db_pass %>
   port: <%= db_port %>
+  <% end %>
 
