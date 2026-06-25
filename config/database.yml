@@ -7,12 +7,15 @@
     db_port = uri.port || 5432
     db_user = uri.user || 'cinelar'
     db_pass = uri.password || 'cinelar'
+    query_params = URI.decode_www_form(uri.query || '').to_h
+    db_sslmode = query_params['sslmode'] || ENV['CINELAR_DB_SSL_MODE'] || 'prefer'
   else
     db_name = ENV['CINELAR_DB'] || 'cinelar'
     db_host = ENV['CINELAR_DB_HOSTNAME'] || 'localhost'
     db_user = ENV['CINELAR_DB_USERNAME'] || 'cinelar'
     db_pass = ENV['CINELAR_DB_PASSWORD'] || 'cinelar'
     db_port = ENV['CINELAR_DB_PORT'] || 5432
+    db_sslmode = ENV['CINELAR_DB_SSL_MODE'] || 'prefer'
   end
 %>
 
@@ -20,7 +23,7 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
+  sslmode: <%= db_sslmode %>
 
 development:
   <<: *default
