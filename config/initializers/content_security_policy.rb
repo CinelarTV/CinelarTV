@@ -20,9 +20,7 @@ Rails.application.configure do
     policy.script_src *policy.script_src, :blob
     policy.worker_src  :self, :blob
 
-    policy.style_src   :self, :https
-    # Allow @vite/client to hot reload style changes in development
-    policy.style_src *policy.style_src, :unsafe_inline if Rails.env.development?
+    policy.style_src   :self, :https, :unsafe_inline
 
     # Allow @vite/client to connect via WebSocket in development
     policy.connect_src :self, :https
