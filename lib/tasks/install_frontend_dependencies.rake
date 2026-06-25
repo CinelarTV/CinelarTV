@@ -4,14 +4,14 @@ namespace :assets do
     next unless File.exist?("package.json")
 
     # Detect Node.js
-    node_version = `node --version 2>&1`.strip
+    node_version = `node --version 2>/dev/null`.strip
     unless $?.success? && node_version.match?(/^v\d+/)
       raise "Node.js is not installed or not in PATH. Install it from https://nodejs.org (detected: '#{node_version}')"
     end
     Rails.logger.info "Node.js #{node_version} detected"
 
-    # Detect pnpm (v6+)
-    pnpm_version = `pnpm --version 2>&1`.strip
+    # Detect pnpm (v6+) — redirect stderr to /dev/null to avoid mixing warnings into version string
+    pnpm_version = `pnpm --version 2>/dev/null`.strip
     unless $?.success? && pnpm_version.match?(/^\d+\.\d+/)
       raise "pnpm is not installed or not in PATH. Install it with: npm install -g pnpm (detected: '#{pnpm_version}')"
     end
