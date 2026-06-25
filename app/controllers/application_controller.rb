@@ -93,6 +93,7 @@ class ApplicationController < ActionController::Base
     return if request.path == "/profiles/select"
     return unless user_signed_in? && !current_profile
 
+    session[:pending_return_to] = request.fullpath
     redirect_to "/profiles/select"
   end
 

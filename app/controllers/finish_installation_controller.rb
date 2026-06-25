@@ -18,8 +18,8 @@ class FinishInstallationController < ApplicationController
       if @allowed_emails.include?(email)
         @user = User.new(email:, username:, password: params[:password])
         if @user.save
-          # Set devise session
           sign_in(@user)
+          session[:current_profile_id] = @user.profiles.first&.id
           format.html { redirect_to "/wizard" }
           format.json { render json: { message: "User created successfully", status: :ok } }
         else

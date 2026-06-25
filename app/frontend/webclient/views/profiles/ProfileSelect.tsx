@@ -80,6 +80,17 @@ export default defineComponent({
             return `/assets/default/avatars/${avatar}.png`;
         };
 
+        const getPendingReturnTo = () => {
+            try {
+                const el = document.getElementById('data-preloaded');
+                if (!el) return '/';
+                const data = JSON.parse(el.dataset.preloaded || '{}');
+                return data.pendingReturnTo || '/';
+            } catch {
+                return '/';
+            }
+        };
+
         const selectProfile = (profile: Profile) => {
             if (editMode.value) return;
             profileSelected.value = profile;
@@ -92,7 +103,7 @@ export default defineComponent({
                 ajax.post('/session/select-profile.json', {
                     profile_id: profile.id
                 }).then(() => {
-                    window.location.href = '/';
+                    window.location.href = getPendingReturnTo();
                 }).catch(console.log);
             }, 1500);
         };

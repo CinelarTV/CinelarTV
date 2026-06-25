@@ -18,6 +18,7 @@ module ApplicationHelper
       SiteSettings: SiteSetting.exposed_settings,
       isMobile: device == "mobile",
       currentUser: user_data,
+      pendingReturnTo: session.delete(:pending_return_to),
     }
 
     preloaded[:homepageData] = homepage_data if request.path == "/"
