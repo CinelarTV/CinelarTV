@@ -26,15 +26,18 @@ namespace :assets do
     build_env = {}
 
     heap_mb = `node -e "console.log(v8.getHeapStatistics().heap_size_limit/1024/1024)" 2>/dev/null`.to_f
+    Rails.logger.info "Node.js heap_size_limit: #{heap_mb.round}MB"
 
     if heap_mb > 0 && heap_mb < 2048
-      Rails.logger.warn "Node.js heap_size_limit is #{heap_mb.round}MB (<2048MB). " \
+      Rails.logger.warn "Low memory environment detected (#{heap_mb.round}MB). " \
                         "Setting --max-old-space-size=2048, CHEAP_SOURCE_MAPS=1 and JOBS=1"
       build_env["NODE_OPTIONS"]      = "--max_old_space_size=2048"
+      build_env["CHEAP_SOURCE_MAPS"] = "1"
+      build_env["JOBS"]              = "1"
     end
 
-    # Install dependencies
-    unless system(build_env, "pnpm install --frozen-lockfile")
+    # Install dependencies — args must be separate for env hash to take effect
+    unless system(build_env, "pnpm", "install", "--frozen-lockfile")
       raise "pnpm install --frozen-lockfile failed (exit code #{$?.exitstatus}). " \
             "Run 'pnpm install' locally and commit the updated lockfile."
     end
