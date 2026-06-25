@@ -1,19 +1,18 @@
 import { defineStore } from 'pinia';
-import { PLUGIN_OUTLET_NAMES, PluginOutletName } from './pluginOutletNames';
 
 export const usePluginOutlets = defineStore('pluginOutlets', {
     state: () => ({
-        outlets: Object.fromEntries(PLUGIN_OUTLET_NAMES.map(name => [name, []])) as Record<PluginOutletName, any[]>
+        outlets: {} as Record<string, any[]>
     }),
     actions: {
-        register(name: PluginOutletName, component: any) {
+        register(name: string, component: any) {
+            if (!this.outlets[name]) {
+                this.outlets[name] = [];
+            }
             this.outlets[name].push(component);
         },
-        get(name: PluginOutletName) {
+        get(name: string) {
             return this.outlets[name] || [];
-        },
-        getAllOutletsNames() {
-            return PLUGIN_OUTLET_NAMES;
         }
     }
 });

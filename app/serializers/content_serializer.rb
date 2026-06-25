@@ -10,6 +10,8 @@ class ContentSerializer < ApplicationSerializer
              :description,
              :banner,
              :cover,
+             :banner_resized,
+             :cover_resized,
              :content_type,
              :year,
              :created_at,
@@ -75,14 +77,15 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def episode_attributes(episode, continue_watching_data = nil)
-    attributes = episode.as_json(only: %i[id title description position thumbnail premium])
+    attributes = episode.as_json(only: %i[id title description position thumbnail thumbnail_resized premium])
     attributes[:thumbnail] = episode.thumbnail.presence || object.banner
-    
+    attributes[:thumbnail_resized] = episode.thumbnail_resized.presence || object.banner_resized
+
     # Agregar continue_watching si existe
     if continue_watching_data
       attributes[:continue_watching] = continue_watching_data.as_json(only: %i[progress duration])
     end
-    
+
     attributes
   end
 
@@ -91,7 +94,7 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def similar_items_attributes(related)
-    related.as_json(only: %i[id title description banner cover])
+    related.as_json(only: %i[id title description banner cover banner_resized cover_resized])
   end
 
   def continue_watching

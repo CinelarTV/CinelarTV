@@ -1,17 +1,15 @@
 // Carga dinámica de plugins (excluyendo archivos .route.js)
 // Similar a la lógica de router-map.js
+// También descubre connectors por naming convention:
+//   plugins/*/assets/javascripts/connectors/{outlet-name}/{name}.{vue,tsx}
 
 const loadPlugins = async () => {
     console.log('🔌 Buscando plugins para cargar...');
-    // Vite glob: buscar entry points en dos ubicaciones comunes
-    // 1. plugins/[nombre]/index.ts
-    // 2. plugins/[nombre]/app/index.ts
     // @ts-ignore
     const globPattern1 = (import.meta as any).glob('@plugins/*/index.ts', { eager: false });
     // @ts-ignore
     const globPattern2 = (import.meta as any).glob('@plugins/*/app/index.ts', { eager: false });
 
-    // Combinar ambos globs
     const pluginModules = { ...globPattern1, ...globPattern2 };
     const filteredEntries = Object.entries(pluginModules);
 
@@ -46,7 +44,37 @@ const loadPlugins = async () => {
         }
     }
 
-    // Fase 2: Inicializar todos en paralelo (sin romper si alguno falla)
+    // Fase 1.5: Descubrir connectors por naming convention
+    //   plugins/*/assets/javascripts/connectors/{outlet-name}/{name}.{vue,tsx}
+    try {
+        // @ts-ignore
+        const connectorModules = (import.meta as any).glob(
+            '@plugins/*/assets/javascripts/connectors/**/*.{vue,tsx}',
+            { eager: true }
+        );
+        const { registerPluginOutlet } = await import('@/components/PluginOutlet');
+
+        for (const [connectorPath, mod] of Object.entries(connectorModules)) {
+            // Extraer outlet name del path: .../connectors/{outlet-name}/{file}
+            const match = connectorPath.match(/connectors\/([^\/]+)\//);
+            if (!match) continue;
+
+            const outletName = match[1];
+            const component = (mod as any).default;
+            if (!component) {
+                console.warn(`⚠️ Connector ${connectorPath} no tiene default export`);
+                continue;
+            }
+
+            registerPluginOutlet(outletName, component);
+            console.log(`🔌 Connector registrado: ${outletName} <- ${connectorPath}`);
+        }
+    } catch (err) {
+        // Los connectors son opcionales — no romper si no hay
+        console.log('ℹ️ No se encontraron connectors (opcional)');
+    }
+
+    // Fase 2: Inicializar todos en paralelo
     if (pluginsToInit.length > 0) {
         const initPromises = pluginsToInit.map(({ path, plugin }) =>
             Promise.resolve().then(() => {
@@ -54,11 +82,10 @@ const loadPlugins = async () => {
                 console.log(`🚀 Plugin inicializado: ${plugin.name}`);
             }).catch((e) => {
                 console.error(`❌ Error al inicializar plugin ${plugin.name} (${path}):`, e);
-                // No re-throw: continuamos con otros plugins
             })
         );
 
-        await Promise.all(initPromises); // Seguro: catch individual previene rechazos
+        await Promise.all(initPromises);
     }
 
     console.log(`📦 Total plugins cargados: ${loadedPlugins.length}`);

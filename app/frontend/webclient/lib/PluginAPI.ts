@@ -9,8 +9,8 @@ import deprecated from "./deprecated";
 import { useSiteSettings } from "../app/services/site-settings";
 import { useCurrentUser } from "../app/services/current-user";
 import { Banner, useBanners } from "../app/services/banner-store";
-import { PLUGIN_OUTLET_NAMES, PluginOutletName } from "@/stores/pluginOutletNames";
 import { registerPluginOutlet } from "@/components/PluginOutlet";
+import pluginEvents from "./plugin-events";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -110,12 +110,7 @@ class PluginAPI {
 
     // ── Outlets ───────────────────────────────────────────────────────────────
 
-    addOutletComponent(outlet: PluginOutletName, component: any): void {
-        if (!PLUGIN_OUTLET_NAMES.includes(outlet)) {
-            console.warn(`⚠️ Outlet "${outlet}" not found`);
-            return;
-        }
-
+    addOutletComponent(outlet: string, component: any): void {
         registerPluginOutlet(outlet, component);
     }
 
@@ -220,6 +215,16 @@ class PluginAPI {
             console.error("Unable to parse custom data");
             return null;
         }
+    }
+
+    // ── Event bus (pub/sub) ───────────────────────────────────────────────────
+
+    onAppEvent(event: string, callback: (...args: any[]) => void): () => void {
+        return pluginEvents.on(event, callback);
+    }
+
+    offAppEvent(event: string, callback: (...args: any[]) => void): void {
+        pluginEvents.off(event, callback);
     }
 
     // ── Vue helpers ───────────────────────────────────────────────────────────

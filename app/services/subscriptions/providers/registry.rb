@@ -6,7 +6,8 @@ module Subscriptions
       PROVIDERS = {
         "mercado_pago" => "Subscriptions::Providers::MercadoPagoProvider",
         "lemon_squeezy" => "Subscriptions::Providers::LemonSqueezyProvider",
-        "google_play" => "Subscriptions::Providers::GooglePlayProvider"
+        "google_play" => "Subscriptions::Providers::GooglePlayProvider",
+        "manual" => "Subscriptions::Providers::ManualProvider"
       }.freeze
 
       PROVIDER_FEATURE_FLAGS = {
@@ -20,7 +21,8 @@ module Subscriptions
         "lemon_squeezy" => "Lemon Squeezy",
         "stripe"        => "Stripe",
         "paypal"        => "PayPal",
-        "google_play"   => "Google Play"
+        "google_play"   => "Google Play",
+        "manual"        => "Manual"
       }.freeze
 
       class << self

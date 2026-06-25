@@ -11,12 +11,14 @@ Rails.application.configure do
     policy.font_src    :self, :https, :data
     policy.img_src     :self, :https, :data
     policy.object_src  :none
-    policy.script_src  :self, :https
+    policy.media_src   :self, :https, :blob
+    policy.script_src  :self, :https, "http://www.gstatic.com", "https://www.gstatic.com"
     # Allow @vite/client to hot reload javascript changes in development
     policy.script_src *policy.script_src, :unsafe_eval, :unsafe_inline, "http://#{ ViteRuby.config.host_with_port }" if Rails.env.development?
 
-    # You may need to enable this in production as well depending on your setup.
-    policy.script_src *policy.script_src, :blob if Rails.env.test?
+    # Allow blob: for MSE/EME video playback and web workers
+    policy.script_src *policy.script_src, :blob
+    policy.worker_src  :self, :blob
 
     policy.style_src   :self, :https
     # Allow @vite/client to hot reload style changes in development
@@ -31,8 +33,13 @@ Rails.application.configure do
   end
 
   # Generate session nonces for permitted importmap and inline scripts
-  config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-  config.content_security_policy_nonce_directives = %w(script-src)
+  if Rails.env.development?
+    config.content_security_policy_nonce_generator = nil
+    config.content_security_policy_nonce_directives = []
+  else
+    config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
+    config.content_security_policy_nonce_directives = %w(script-src)
+  end
 
   # Report violations without enforcing the policy.
   # config.content_security_policy_report_only = true

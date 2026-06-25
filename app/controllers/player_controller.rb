@@ -15,6 +15,10 @@ class PlayerController < ApplicationController
     find_episode_and_season if @content.content_type == "TVSHOW"
 
     profile = current_profile
+
+    return respond_to do |format|
+      format.json { render json: { error: "No profile selected" }, status: :unprocessable_entity }
+    end unless profile
     continue_watching = create_or_find_continue_watching(profile)
 
     reproduction = Reproduction.new(
@@ -67,23 +71,33 @@ class PlayerController < ApplicationController
 
   def update_current_progress
     profile = current_profile
-    @content = Content.find_by(id: params[:id])
+    return render json: { error: "No profile" }, status: :unprocessable_entity unless profile
 
-    return render_content_not_found unless @content
+    content_id = params[:id]
+    episode_id = params[:episode_id].presence
+    progress = params[:progress].to_d
+    duration = params[:duration].to_d
 
-    if @content.content_type == "TVSHOW"
-      handle_tvshow_update(profile)
-    elsif @content.content_type == "MOVIE"
-      handle_movie_update(profile)
-    else
-      render_invalid_content_type
-    end
+    cw = ContinueWatching.find_or_create_by!(
+      profile_id: profile.id,
+      content_id: content_id,
+      episode_id: episode_id
+    )
+
+    cw.update_columns(
+      progress: progress,
+      duration: duration,
+      last_watched_at: Time.current
+    )
+
+    head :no_content
   end
 
   private
 
   def find_content
-    @content = Content.find_by(id: params[:id])
+    @content = Content.includes(:video_sources, :segments, seasons: { episodes: :video_sources })
+                       .find_by(id: params[:id])
   end
 
   def check_content_availability
@@ -171,7 +185,7 @@ class PlayerController < ApplicationController
 
   def video_sources_data
     {
-      sources: @content.video_sources.reload.map do |vs|
+      sources: @content.video_sources.map do |vs|
         {
           id: vs.id,
           url: vs.url,
@@ -184,7 +198,7 @@ class PlayerController < ApplicationController
 
   def episode_video_sources_data
     {
-      sources: @episode.video_sources.reload.map do |vs|
+      sources: @episode.video_sources.map do |vs|
         {
           id: vs.id,
           url: vs.url,
@@ -249,60 +263,10 @@ class PlayerController < ApplicationController
     end
   end
 
-  def handle_tvshow_update(profile)
-    episode = Episode.find_by(id: params[:episode_id])
-
-    if episode
-      continue_watching = ContinueWatching.find_or_create_by(
-        profile_id: profile.id,
-        content_id: @content.id,
-        episode_id: episode.id,
-      )
-
-      update_continue_watching(continue_watching)
-    else
-      render_episode_not_found
-    end
-  end
-
-  def handle_movie_update(profile)
-    continue_watching = ContinueWatching.find_or_create_by(
-      profile_id: profile.id,
-      content_id: @content.id,
-    )
-
-    update_continue_watching(continue_watching)
-  end
-
-  def update_continue_watching(continue_watching)
-    progress = params[:progress].to_d
-    duration = params[:duration].to_d
-
-    continue_watching.update(
-      progress: progress,
-      duration: duration,
-      last_watched_at: Time.current,
-    )
-
-    head :no_content
-  end
-
   def render_content_not_found
     render json: {
       errors: ["Content not found"],
       error_type: "content_not_found",
     }, status: :not_found
-  end
-
-  def render_episode_not_found
-    render json: {
-      message: "Episodio no encontrado.",
-    }, status: :not_found
-  end
-
-  def render_invalid_content_type
-    render json: {
-      message: "Tipo de contenido no válido.",
-    }, status: :unprocessable_entity
   end
 end

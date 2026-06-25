@@ -7,9 +7,9 @@ class ContentImageUploader < BaseUploader
   IMAGE_TYPE_ALLOWLIST = %i[png jpg jpeg webp].freeze
   CONTENT_TYPE_ALLOWLIST = %w[image/png image/jpg image/jpeg image/webp].freeze
 
-  def initialize(*args, type: nil, **kwargs)
-    super(*args)
-    @image_type = type # :banner o :cover
+  def initialize(model = nil, mounted_as = nil, type: nil, **kwargs)
+    super(model, mounted_as)
+    @image_type = type # :banner, :cover, :episode_thumbnail
   end
 
   def store_dir
@@ -39,21 +39,34 @@ class ContentImageUploader < BaseUploader
   end
 
   def filename
-    prefix = @image_type ? @image_type.to_s : "content_image"
-    "#{prefix}_#{random_string}.#{file.extension}"
+    return nil unless model
+
+    "#{model.id}.webp"
   end
+
+  # Convert to WebP with specified quality
+  process convert_to_webp: [:file]
 
   version :resized_image do
     process resize_to_limit: [800, nil]
+    process convert_to_webp: [:file]
 
     def full_filename(_for_file = file)
-      "resized_#{@image_type || "content_image"}_#{random_string}.#{file.extension}"
+      "#{model.id}.webp" if model
     end
   end
 
   private
 
-  def random_string
-    SecureRandom.alphanumeric(20)
+  def convert_to_webp(file)
+    return unless file
+
+    quality = SiteSetting.image_uploads_quality || 85
+
+    manipulate! do |img|
+      img.format("webp")
+      img.quality(quality)
+      img
+    end
   end
 end

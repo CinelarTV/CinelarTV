@@ -25,6 +25,7 @@ import PlayerTopControls from "@/components/videoplayer/PlayerTopControls";
 import { useContinueWatching } from "@/composables/useContinueWatching";
 import { AxiosError } from "axios";
 import PluginOutlet from "@/components/PluginOutlet";
+import pluginEvents from "@/lib/plugin-events";
 import { MediaPlayer } from "vidstack";
 import PlayerSkipButton from "@/components/videoplayer/PlayerSkipButton";
 import PlayerNextEpisode from "@/components/videoplayer/PlayerNextEpisode";
@@ -228,8 +229,8 @@ export default defineComponent({
         };
 
         // ---------- useContinueWatching reactivo ----------
-        // Se recrea cada vez que cambia contentId o episodeId
         let updateProgress: ReturnType<typeof useContinueWatching>['updateProgress'];
+        let forceSaveProgress: ReturnType<typeof useContinueWatching>['forceSave'];
 
         const initContinueWatching = () => {
             const cw = useContinueWatching({
@@ -237,14 +238,34 @@ export default defineComponent({
                 episodeId: episodeId.value
             });
             updateProgress = cw.updateProgress;
+            forceSaveProgress = cw.forceSave;
         };
 
         // ---------- Player subscription ----------
         let unsubscribePlayer: (() => void) | null = null;
 
+        let isPaused = true;
+
+        let lastSeekTime = 0;
+
         const setupPlayerSubscription = (player: MediaPlayer) => {
             unsubscribePlayer?.();
-            unsubscribePlayer = player.subscribe(({ paused, playing, currentTime: time }) => {
+            unsubscribePlayer = player.subscribe(({ paused, playing, currentTime: time, seeking }) => {
+                if (isPaused !== paused) {
+                    isPaused = paused;
+                    if (paused) forceSaveProgress?.();
+                    pluginEvents.emit(paused ? 'playback:pause' : 'playback:play', {
+                        contentId: contentId.value,
+                        episodeId: episodeId.value,
+                        currentTime: time,
+                    });
+                }
+                // Guardar después de un seek (cuando seeking pasa de true a false)
+                if (seeking) lastSeekTime = Date.now();
+                if (!seeking && lastSeekTime > 0 && Date.now() - lastSeekTime > 100) {
+                    lastSeekTime = 0;
+                    forceSaveProgress?.();
+                }
                 if (paused || !playing) return;
                 updateProgress(time, player.duration || 0);
                 currentTime.value = time;

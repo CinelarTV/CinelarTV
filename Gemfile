@@ -134,6 +134,8 @@ gem "sidekiq" # To run background jobs
 # gem 'mini_scheduler' # To schedule background jobs
 gem "sidekiq-scheduler"
 
+gem "with_advisory_lock"
+
 gem "countries" # To get Countries information
 gem "maxminddb" # To get user's location
 gem "pry", "~> 0.14.2"

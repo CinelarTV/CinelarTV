@@ -31,7 +31,7 @@ class StreamSessionManager
 
       payload = redis.eval(
         session_create_script,
-        [user_sessions_key(user.id), session_key(session_id)],
+        [user_sessions_key(user.id, profile_id), session_key(session_id)],
         [
           session_id,
           max_simultaneous_streams_per_user,
@@ -76,25 +76,59 @@ class StreamSessionManager
       now = Time.current.iso8601
       ttl = session_ttl_seconds
 
-      redis.multi do |multi|
-        multi.hset(key, "last_seen_at", now)
-        multi.hset(key, "content_title", content_title.to_s) if content_title
-        multi.hset(key, "episode_title", episode_title.to_s) if episode_title
-        multi.pexpire(key, ttl * 1000)
-      end
-      redis.sadd(user_sessions_key(user.id), session_id)
+      # Usamos Lua para atomicidad — evitar race entre exists? y pexpire
+      resume_script = <<~LUA
+        local key = KEYS[1]
+        local user_key = KEYS[2]
+        local session_id = ARGV[1]
+        local now = ARGV[2]
+        local ttl = tonumber(ARGV[3])
+        local content_title = ARGV[4]
+        local episode_title = ARGV[5]
 
-      Result.new(success: true, session_id: session_id)
+        if redis.call("EXISTS", key) == 0 then
+          return 0
+        end
+
+        redis.call("HSET", key, "last_seen_at", now)
+        if content_title and content_title ~= "" then
+          redis.call("HSET", key, "content_title", content_title)
+        end
+        if episode_title and episode_title ~= "" then
+          redis.call("HSET", key, "episode_title", episode_title)
+        end
+        redis.call("PEXPIRE", key, ttl * 1000)
+        redis.call("SADD", user_key, session_id)
+        return 1
+      LUA
+
+      result = redis.eval(
+        resume_script,
+        [key, user_sessions_key(user.id, profile_id)],
+        [session_id, now, ttl, content_title.to_s, episode_title.to_s]
+      )
+
+      if result == 1
+        Result.new(success: true, session_id: session_id)
+      else
+        nil
+      end
     rescue Redis::BaseError => e
       Rails.logger.error("[StreamSessionManager] Redis error while resuming session #{session_id}: #{e.message}")
       nil
     end
 
-    def ping_session(session_id)
+    def ping_session(session_id, user = nil)
       return if session_id.blank?
 
       key = session_key(session_id)
       return unless redis.exists?(key)
+
+      # Si se proporciona user, verificar ownership
+      if user
+        owner_id = redis.hget(key, "user_id")
+        return unless owner_id.to_s == user.id.to_s
+      end
 
       now = Time.current.iso8601
       ttl = session_ttl_seconds
@@ -113,16 +147,44 @@ class StreamSessionManager
       nil
     end
 
-    def end_session(session_id)
+    def end_session(session_id, user = nil)
       return false if session_id.blank?
 
-      key = session_key(session_id)
-      user_id = redis.hget(key, "user_id")
-      return false if user_id.blank?
+      # Lua script atómico: verifica ownership, elimina hash, remueve del set
+      script = <<~LUA
+        local key = KEYS[1]
+        local expected_user_id = ARGV[1]
 
-      redis.del(key)
-      redis.srem(user_sessions_key(user_id), session_id)
-      true
+        if redis.call("EXISTS", key) == 0 then
+          return {0, ""}
+        end
+
+        local owner_id = redis.call("HGET", key, "user_id") or ""
+        local profile_id = redis.call("HGET", key, "profile_id") or ""
+
+        if expected_user_id ~= "" and owner_id ~= expected_user_id then
+          return {0, ""}
+        end
+
+        redis.call("DEL", key)
+
+        local user_key
+        if profile_id ~= "" then
+          user_key = "stream:user_sessions:" .. owner_id .. ":" .. profile_id
+        else
+          user_key = "stream:user_sessions:" .. owner_id
+        end
+
+        local session_id = ARGV[2]
+        redis.call("SREM", user_key, session_id)
+
+        return {1, profile_id}
+      LUA
+
+      expected_user_id = user ? user.id.to_s : ""
+      result = redis.eval(script, [session_key(session_id)], [expected_user_id, session_id])
+
+      result[0] == 1
     rescue Redis::BaseError => e
       Rails.logger.error("[StreamSessionManager] Redis error while ending session #{session_id}: #{e.message}")
       false
@@ -137,18 +199,20 @@ class StreamSessionManager
       return false if owner_id.blank?
       return :forbidden unless owner_id.to_s == user.id.to_s
 
+      profile_id = redis.hget(key, "profile_id")
+
       redis.del(key)
-      redis.srem(user_sessions_key(user.id), session_id)
+      redis.srem(user_sessions_key(user.id, profile_id), session_id)
       true
     rescue Redis::BaseError => e
       Rails.logger.error("[StreamSessionManager] Redis error while killing session #{session_id}: #{e.message}")
       false
     end
 
-    def list_sessions(user)
+    def list_sessions(user, profile_id = nil)
       return [] unless SiteSetting.enable_stream_limit
 
-      session_ids = redis.smembers(user_sessions_key(user.id))
+      session_ids = redis.smembers(user_sessions_key(user.id, profile_id))
       sessions = []
 
       session_ids.each do |session_id|
@@ -156,14 +220,13 @@ class StreamSessionManager
         ttl = redis.pttl(key)
 
         if ttl <= 0
-          redis.srem(user_sessions_key(user.id), session_id)
+          redis.srem(user_sessions_key(user.id, profile_id), session_id)
           next
         end
 
         meta = redis.hgetall(key)
         sessions << {
           session_id: session_id,
-          user_id: meta["user_id"],
           profile_id: meta["profile_id"].presence,
           device_name: meta["device_name"],
           device_type: meta["device_type"],
@@ -191,8 +254,12 @@ class StreamSessionManager
       "stream:session:#{session_id}"
     end
 
-    def user_sessions_key(user_id)
-      "stream:user_sessions:#{user_id}"
+    def user_sessions_key(user_id, profile_id = nil)
+      if profile_id.present?
+        "stream:user_sessions:#{user_id}:#{profile_id}"
+      else
+        "stream:user_sessions:#{user_id}"
+      end
     end
 
     def session_create_script

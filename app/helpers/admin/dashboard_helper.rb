@@ -9,6 +9,7 @@ module Admin
       end_of_week = Date.today.end_of_week
 
       most_liked_content_of_the_week = Content
+                                       .select("contents.*, COUNT(liking_profiles.id) AS likes_count")
                                        .joins(:liking_profiles)
                                        .where(liking_profiles: { created_at: start_of_week..end_of_week })
                                        .group("contents.id")
@@ -22,7 +23,7 @@ module Admin
             title: content.title,
             description: content.description,
             banner: content.banner,
-            likes: content.liking_profiles.count
+            likes: content.likes_count
           }
         end
       }

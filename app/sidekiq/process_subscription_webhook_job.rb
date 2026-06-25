@@ -33,19 +33,71 @@ class ProcessSubscriptionWebhookJob
   end
 end
 
+# Wraps a plain Hash to provide case-insensitive header lookups,
+# matching ActionDispatch::Http::Headers behavior.
+class CaseInsensitiveHeadersHash
+  def initialize(hash)
+    @store = hash.to_h { |k, v| [k.to_s.downcase, v] }
+  end
+
+  def [](key)
+    @store[key.to_s.downcase]
+  end
+
+  def dig(key, *args)
+    @store.dig(key.to_s.downcase, *args)
+  end
+
+  def fetch(key, *args, &block)
+    @store.fetch(key.to_s.downcase, *args, &block)
+  end
+
+  def key?(key)
+    @store.key?(key.to_s.downcase)
+  end
+
+  def each(&block)
+    @store.each(&block)
+  end
+
+  def empty?
+    @store.empty?
+  end
+
+  def to_h
+    @store.dup
+  end
+
+  def to_hash
+    @store.dup
+  end
+
+  def respond_to_missing?(method, include_private = false)
+    @store.respond_to?(method) || super
+  end
+
+  def method_missing(method, *args, &block)
+    if @store.respond_to?(method)
+      @store.send(method, *args, &block)
+    else
+      super
+    end
+  end
+end
+
 # Lightweight struct that mimics the ActionDispatch::Request interface used
 # inside the provider's process_webhook! and verify_webhook! methods.
 # Only exposes what the providers actually read.
 class WebhookRequestSnapshot
   def initialize(snapshot)
-    @headers = snapshot["headers"] || {}
-    @body    = snapshot["body"].to_s
-    @params  = snapshot["params"] || {}
+    @raw_headers = snapshot["headers"] || {}
+    @body        = snapshot["body"].to_s
+    @params      = snapshot["params"] || {}
   end
 
-  # ActionDispatch::Request#headers interface
+  # ActionDispatch::Request#headers interface (case-insensitive)
   def headers
-    @headers
+    @headers ||= CaseInsensitiveHeadersHash.new(@raw_headers)
   end
 
   # ActionDispatch::Request#raw_post

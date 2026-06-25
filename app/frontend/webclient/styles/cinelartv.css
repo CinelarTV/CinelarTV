@@ -86,7 +86,7 @@ main {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--c-primary-50);
+  background: var(--c-primary-500);
   border-radius: 4px;
 }
 

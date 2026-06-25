@@ -32,24 +32,6 @@ module Admin
       head :ok
     end
 
-    def check_progress
-      # Ensure that the update is running, and extract the progress and output
-      if CinelarTV::Updater.update_running?
-        render json: {
-          progress: CinelarTV::Updater.progress,
-          output: CinelarTV::Updater.output
-        }
-      else
-        render json: {
-                 errors: [
-                   "No update running"
-                 ],
-                 error_type: "no_update_running"
-               },
-               status: 404
-      end
-    end
-
     private
 
     def check_web_updater_enabled

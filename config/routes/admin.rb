@@ -7,9 +7,9 @@ namespace :admin do
   get "site_settings" => "site_settings#index"
   put "site_settings" => "site_settings#update"
   get "site_settings/:category" => "site_settings#index"
+  post "site_settings/test_connection" => "site_settings#test_storage_connection"
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
-  get "updates/progress" => "updates#check_progress"
   post "restart" => "updates#restart_server"
 
   get "webhooks/logs" => "dashboard#webhook_logs"
@@ -27,6 +27,7 @@ namespace :admin do
   post "subscriptions/:id/cancel" => "subscriptions#cancel"
   post "subscriptions/:id/sync" => "subscriptions#sync"
   post "subscriptions/:id/grant" => "subscriptions#grant"
+  post "subscriptions/create_grant" => "subscriptions#create_grant"
 
   # Content Management related routes
   get "/content-manager/all", to: "contents#index"
@@ -116,6 +117,7 @@ namespace :admin do
   get "/email-templates" => "email_templates#index", defaults: { format: 'json' }
   get "/email-templates/:key" => "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/email-templates/:key" => "email_templates#show", defaults: { format: 'json' }
+  post "/email-templates/:key/preview" => "email_templates#preview", defaults: { format: 'json' }
   put "/email-templates/:key" => "email_templates#update", defaults: { format: 'json' }
   delete "/email-templates/:key" => "email_templates#destroy", defaults: { format: 'json' }
 end

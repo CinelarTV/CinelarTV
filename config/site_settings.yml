@@ -378,6 +378,14 @@ monetization:
     secret: true
     maxlength: 2000
 
+  lemonsqueezy_pending_lookup_minutes:
+    client: false
+    refresh: true
+    default: 30
+    type: "integer"
+    min: 1
+    max: 1440
+
   enable_google_play_provider:
     client: true
     refresh: true
@@ -425,6 +433,13 @@ storage:
     allowed_values:
       - local
       - s3
+  image_uploads_quality:
+    client: false
+    refresh: true
+    default: 85
+    type: "integer"
+    min: 50
+    max: 100
   s3_access_key_id:
     client: false
     refresh: true
@@ -447,28 +462,7 @@ storage:
     client: true
     refresh: true
     default: "us-east-1"
-    type: "enum"
-    allowed_values:
-      - us-east-1
-      - us-east-2
-      - us-west-1
-      - us-west-2
-      - ap-east-1
-      - ap-south-1
-      - ap-northeast-2
-      - ap-southeast-1
-      - ap-southeast-2
-      - ap-northeast-1
-      - ca-central-1
-      - cn-north-1
-      - cn-northwest-1
-      - eu-central-1
-      - eu-west-1
-      - eu-west-2
-      - eu-west-3
-      - eu-north-1
-      - me-south-1
-      - sa-east-1
+    type: "string"
   s3_endpoint:
     client: true
     refresh: true

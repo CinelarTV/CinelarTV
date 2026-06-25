@@ -65,6 +65,16 @@ module Admin
       end
     end
 
+    def test_storage_connection
+      result = test_connection
+
+      if result[:success]
+        render json: { success: true, message: result[:message], details: result[:details] }, status: :ok
+      else
+        render json: { success: false, error: result[:error], details: result[:details] }, status: :unprocessable_entity
+      end
+    end
+
     private
 
     def setting_params
@@ -88,6 +98,84 @@ module Admin
 
     def update_carrierwave_setting
       BaseUploader.configure_storage
+    end
+
+    def test_connection
+      storage_provider = SiteSetting.storage_provider
+
+      if storage_provider == 'local'
+        return {
+          success: true,
+          message: "Local storage is configured",
+          details: { storage_provider: "local" }
+        }
+      end
+
+      # Check required S3 settings
+      required_settings = %w[s3_access_key_id s3_secret_access_key s3_bucket]
+      missing_settings = required_settings.reject { |setting| SiteSetting.send(setting).present? }
+
+      if missing_settings.any?
+        return {
+          success: false,
+          error: "Missing required settings",
+          details: { missing_settings: missing_settings }
+        }
+      end
+
+      # Build S3 client
+      s3_client = Aws::S3::Client.new(
+        access_key_id: SiteSetting.s3_access_key_id,
+        secret_access_key: SiteSetting.s3_secret_access_key,
+        region: SiteSetting.s3_region || 'us-east-1',
+        endpoint: SiteSetting.s3_endpoint.presence
+      )
+
+      # Test connection by checking bucket access
+      begin
+        bucket_name = SiteSetting.s3_bucket
+
+        # Try to list objects in the bucket (works for both AWS S3 and R2)
+        response = s3_client.list_objects_v2(bucket: bucket_name, max_keys: 1)
+
+        details = {
+          storage_provider: "s3",
+          bucket: bucket_name,
+          region: SiteSetting.s3_region || 'us-east-1',
+          endpoint: SiteSetting.s3_endpoint.presence || 'AWS Standard',
+          bucket_accessible: true
+        }
+
+        {
+          success: true,
+          message: "Connection successful and bucket is accessible",
+          details: details
+        }
+      rescue Aws::S3::Errors::NoSuchBucket => e
+        {
+          success: false,
+          error: "Bucket '#{SiteSetting.s3_bucket}' does not exist or you don't have access",
+          details: { error_type: e.class.name }
+        }
+      rescue Aws::S3::Errors::AccessDenied => e
+        {
+          success: false,
+          error: "Access denied to bucket '#{SiteSetting.s3_bucket}'. Check your credentials and permissions",
+          details: { error_type: e.class.name }
+        }
+      rescue Aws::S3::Errors::ServiceError => e
+        {
+          success: false,
+          error: "Connection failed: #{e.message}",
+          details: { error_type: e.class.name }
+        }
+      rescue StandardError => e
+        {
+          success: false,
+          error: "Unexpected error: #{e.message}",
+          details: { error_type: e.class.name }
+        }
+      end
     end
   end
 end

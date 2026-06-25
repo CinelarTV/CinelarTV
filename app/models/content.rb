@@ -55,7 +55,37 @@ class Content < ApplicationRecord
     )
   }
 
+  before_destroy :cleanup_images
+
   def update_categories(category_ids)
     self.category_ids = category_ids
+  end
+
+  private
+
+  def cleanup_images
+    cleanup_image_file(banner, "banners")
+    cleanup_image_file(cover, "covers")
+  end
+
+  def cleanup_image_file(url, subfolder)
+    return unless url.present?
+
+    url_without_query = url.split("?").first
+    filename = url_without_query.split("/").last
+
+    # Handle both local and S3 storage
+    if SiteSetting.storage_provider == "local"
+      store_dir = Rails.root.join("public", "uploads", "content_images", subfolder, filename)
+      File.delete(store_dir) if File.exist?(store_dir)
+
+      # Clean up resized version
+      resized_filename = "resized_#{filename}"
+      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, resized_filename)
+      File.delete(resized_path) if File.exist?(resized_path)
+    else
+      # S3 storage cleanup - rely on overwrite for now
+      Rails.logger.info("S3 storage detected - old image cleanup skipped (relying on overwrite)")
+    end
   end
 end

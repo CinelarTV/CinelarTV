@@ -18,22 +18,19 @@ module Subscriptions
         return false if signature_header.blank?
 
         signature_parts = parse_signature_header(signature_header)
-        
-        if signature_parts[:v1].present? && signature_parts[:ts].present?
-          request_id = request.headers["X-Request-Id"].to_s
-          request_id = request.headers["x-request-id"].to_s if request_id.blank?
-          data_id = request.query_parameters["data.id"].presence || 
-                    request.query_parameters["id"].presence ||
-                    parse_payload(request).dig("data", "id")
 
-          manifest = webhook_manifest(data_id: data_id, request_id: request_id, ts: signature_parts[:ts])
-          local_signature = OpenSSL::HMAC.hexdigest("SHA256", SiteSetting.mercadopago_webhook_secret, manifest)
-          return secure_compare_hex(local_signature, signature_parts[:v1])
-        end
+        # Require both v1 signature and timestamp for replay protection.
+        return false if signature_parts[:v1].blank? || signature_parts[:ts].blank?
 
-        # Backward compatibility: some integrations send only the raw HMAC signature.
-        local_signature = OpenSSL::HMAC.hexdigest("SHA256", SiteSetting.mercadopago_webhook_secret, request.raw_post.to_s)
-        secure_compare_hex(local_signature, signature_header)
+        request_id = request.headers["X-Request-Id"].to_s
+        request_id = request.headers["x-request-id"].to_s if request_id.blank?
+        data_id = request.query_parameters["data.id"].presence ||
+                  request.query_parameters["id"].presence ||
+                  parse_payload(request).dig("data", "id")
+
+        manifest = webhook_manifest(data_id: data_id, request_id: request_id, ts: signature_parts[:ts])
+        local_signature = OpenSSL::HMAC.hexdigest("SHA256", SiteSetting.mercadopago_webhook_secret, manifest)
+        secure_compare_hex(local_signature, signature_parts[:v1])
       end
 
       def process_webhook!(request)

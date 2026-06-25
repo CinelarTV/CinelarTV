@@ -5,6 +5,7 @@ import { SafeMode } from '../pre-initializers/safe-mode.ts'
 import { useSiteSettings } from '../app/services/site-settings'
 import { useCurrentUser } from '../app/services/current-user'
 import { PiniaStore } from '../app/lib/Pinia'
+import { pluginEvents } from '../lib/plugin-events'
 
 const { siteSettings } = useSiteSettings(PiniaStore)
 
@@ -346,6 +347,7 @@ AppRouter.afterEach((to, from) => {
     document.body.setAttribute('data-current-path', to.path);
     CinelarTV.config.globalProperties.$progress.finish();
     document.body.classList.remove('route-transition');
+    pluginEvents.emit('navigation', to, from);
 });
 
 AppRouter.onError((err) => {

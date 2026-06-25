@@ -35,7 +35,6 @@ class SessionController < ApplicationController
       return
     end
 
-    selected_profile.update(user_id: current_user_with_doorkeeper.id)
     set_current_profile_id(selected_profile.id)
 
     render json: { message: "Profile selection updated successfully" }
@@ -61,7 +60,7 @@ class SessionController < ApplicationController
 
   # Get current user from either Devise or Doorkeeper
   def current_user_with_doorkeeper
-    current_user || User.find(doorkeeper_token.resource_owner_id)
+    current_user || User.find_by(id: doorkeeper_token.resource_owner_id)
   end
 
   def using_doorkeeper?
@@ -70,20 +69,16 @@ class SessionController < ApplicationController
 
   def get_current_profile_id
     if using_doorkeeper?
-      # Para Doorkeeper, usar cache con el token como key
-      CinelarTV.cache.read("profile_#{doorkeeper_token.token}")
+      doorkeeper_token.current_profile_id
     else
-      # Para sesiones normales
       session[:current_profile_id]
     end
   end
 
   def set_current_profile_id(profile_id)
     if using_doorkeeper?
-      # Para Doorkeeper, guardar en cache por 1 día
-      CinelarTV.cache.write("profile_#{doorkeeper_token.token}", profile_id, expires_in: 1.day)
+      doorkeeper_token&.update_column(:current_profile_id, profile_id)
     else
-      # Para sesiones normales
       session[:current_profile_id] = profile_id
     end
   end

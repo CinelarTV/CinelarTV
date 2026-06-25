@@ -44,8 +44,42 @@ module Admin
       render json: { data: subscription.as_json(include: { user: { only: %i[id email username] } }) }
     end
 
+    def create_grant
+      user = User.find(params[:user_id])
+      duration_days = params[:days].to_i.positive? ? params[:days].to_i : 30
+
+      if user.user_subscriptions.active.exists?
+        render json: { error: "El usuario ya tiene una suscripción activa" }, status: :unprocessable_entity
+        return
+      end
+
+      subscription = Subscriptions::Providers::ManualProvider.new.create_subscription!(
+        user: user,
+        days: duration_days
+      )
+
+      render json: { data: subscription.reload.as_json(include: { user: { only: %i[id email username] } }) }
+    rescue ActiveRecord::RecordNotFound
+      render json: { error: "User not found" }, status: :not_found
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     def cancel
       subscription = UserSubscription.find(params[:id])
+
+      if subscription.provider == "manual"
+        subscription.update!(
+          cancelled: true,
+          cancelled_at: Time.zone.now,
+          status: "cancelled",
+          status_formatted: "Cancelled",
+          external_status: "cancelled_by_admin"
+        )
+        render json: { data: subscription.reload.as_json }
+        return
+      end
+
       provider = provider_for(subscription)
 
       provider.cancel_subscription!(subscription)
@@ -60,11 +94,9 @@ module Admin
       remote = provider.fetch_subscription!(subscription)
 
       if remote.is_a?(Hash)
-        status = remote["status"].to_s
-        subscription.update(
-          external_status: status.presence || subscription.external_status,
-          metadata: subscription.metadata.merge("remote_sync" => remote)
-        )
+        # Use provider normalization for consistent status handling
+        normalized_data = provider.normalize_remote_for_update(subscription, remote)
+        subscription.update(normalized_data)
       end
 
       render json: { data: subscription.reload.as_json, remote: remote }
@@ -117,16 +149,15 @@ module Admin
       provider = provider_for(subscription)
       
       begin
-        # Fetch the subscription from MercadoPago
+        # Fetch the subscription from provider
         remote = provider.fetch_subscription!(subscription)
         
         if remote.is_a?(Hash)
-          # Update the subscription with fresh data
-          status = remote["status"].to_s
-          subscription.update(
-            external_status: status.presence || subscription.external_status,
-            metadata: subscription.metadata.merge("last_test_sync" => Time.zone.now.iso8601, "remote_data" => remote)
-          )
+          # Use provider normalization for consistent status handling
+          normalized_data = provider.normalize_remote_for_update(subscription, remote)
+          # Add test-specific metadata
+          normalized_data[:metadata] = normalized_data[:metadata].merge("last_test_sync" => Time.zone.now.iso8601, "remote_data" => remote)
+          subscription.update(normalized_data)
           
           render json: {
             message: 'Webhook test successful',
@@ -220,11 +251,18 @@ module Admin
     end
 
     def available_provider_options
+      # Get all enabled providers from Registry
       provider_keys = ::Subscriptions::Providers::Registry.enabled_provider_keys
+      
+      # Also include providers that have existing subscriptions (for historical data)
       provider_keys += UserSubscription.distinct.pluck(:provider).compact
+
+      # Always include "manual" (house subscriptions created by admins)
+      provider_keys << "manual"
 
       provider_keys
         .uniq
+        .sort
         .map do |provider_key|
           {
             key: provider_key,
@@ -247,7 +285,7 @@ module Admin
       if SiteSetting.respond_to?(method_name)
         SiteSetting.public_send(method_name).to_s
       else
-        SiteSetting.mercadopago_plan_id.to_s
+        nil
       end
     end
 
@@ -257,7 +295,8 @@ module Admin
       if SiteSetting.respond_to?(method_name)
         SiteSetting.public_send(method_name, plan_id)
       else
-        SiteSetting.mercadopago_plan_id = plan_id
+        # Do nothing if the provider doesn't have a dedicated setting
+        Rails.logger.warn "No plan setting method found for provider: #{provider_key}"
       end
     end
 

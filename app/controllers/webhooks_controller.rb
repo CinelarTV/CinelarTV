@@ -7,6 +7,10 @@ class WebhooksController < ApplicationController
 
   def subscription
     payload    = parse_payload
+    if payload.blank?
+      return render plain: "Empty body", status: :bad_request
+    end
+
     event_name = request.headers["X-Topic"].presence || payload["type"].presence || "payment"
 
     WebhookLog.create!(event_name: "#{provider_key}:#{event_name}", payload: payload.to_json)
@@ -33,7 +37,7 @@ class WebhooksController < ApplicationController
   def set_provider
     @provider = ::Subscriptions::Providers::Registry.build(provider_key)
   rescue ArgumentError
-    render plain: "Unknown provider", status: :unprocessable_entity
+    render plain: "Unknown provider", status: :unprocessable_entity and return
   end
 
   def provider_key
@@ -43,17 +47,11 @@ class WebhooksController < ApplicationController
   def verify_signature
     return if @provider.verify_webhook!(request)
 
-    render plain: "Invalid signature", status: :unauthorized
+    render plain: "Invalid signature", status: :unauthorized and return
   end
 
   def parse_payload
-    payload = request.raw_post.to_s
-    if payload.blank?
-      render plain: "Invalid signature", status: :unauthorized
-      return {}
-    end
-
-    JSON.parse(payload)
+    JSON.parse(request.raw_post.to_s)
   rescue JSON::ParserError
     {}
   end

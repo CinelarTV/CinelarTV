@@ -47,6 +47,9 @@ module CinelarTV
 
     config.active_job.queue_adapter = :sidekiq
 
+    require_relative "../app/middleware/silence_live_proxy_logger"
+    config.middleware.insert_before(Rails::Rack::Logger, SilenceLiveProxyLogger)
+
     # Ejecutar after_initialize de cada plugin DESPUÉS del boot completo
     config.after_initialize do
       CinelarTV.plugins.each(&:notify_after_initialize)

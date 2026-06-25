@@ -126,10 +126,10 @@ window.onbeforeunload = function () {
 
 
 const handleFailed = () => {
-    let expandableLogs = getElementById("expandable-logs")
+    let expandableLogs = document.getElementById("expandable-logs")
     MessageBus.unsubscribe('/admin/upgrade')
     currentLine.value = 'Failed to update CinelarTV. Please check the logs for more information.';
-    expandableLogs.setAttribute("open", "true");
+    if (expandableLogs) expandableLogs.setAttribute("open", "true");
 }
 
 onMounted(() => {
@@ -143,13 +143,12 @@ onMounted(() => {
         })
 
     MessageBus.subscribe("/admin/upgrade", (data) => {
-        if (data) {
-            updating.value = true
-        }
         if (data.type == "percent") {
+            updating.value = true
             updateProgress.value = data.value
         }
         if (data.type == "log") {
+            updating.value = true
             outputMessage.value.push(data.value)
             currentLine.value = data.value
         }

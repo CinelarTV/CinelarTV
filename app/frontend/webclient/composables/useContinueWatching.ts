@@ -1,4 +1,4 @@
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onBeforeUnmount } from 'vue';
 import { ajax } from '@/lib/Ajax';
 
 export interface ContinueWatchingOptions {
@@ -15,16 +15,14 @@ export function useContinueWatching(options: ContinueWatchingOptions) {
     const duration = ref(options.initialDuration || 0);
     const lastSent = ref(Date.now());
     const enabled = options.enabled !== false;
-    const interval = options.interval || 5000;
+    const interval = options.interval || 30000;
 
-    // Llama esto cuando el usuario avanza el video
     function updateProgress(newProgress: number, newDuration?: number) {
         progress.value = newProgress;
         if (typeof newDuration === 'number') duration.value = newDuration;
         maybeSendProgress();
     }
 
-    // Envía el progreso al backend si corresponde
     async function maybeSendProgress(force = false) {
         if (!enabled) return;
         if (!options.contentId) return;
@@ -42,15 +40,22 @@ export function useContinueWatching(options: ContinueWatchingOptions) {
         }
     }
 
-    // Forzar envío al desmontar
-    onBeforeUnmount(() => {
-        maybeSendProgress(true);
-    });
-
-    // Permite forzar el guardado desde fuera
     function forceSave() {
         maybeSendProgress(true);
     }
+
+    // Guardar al cerrar / ocultar tab
+    const handleVisibility = () => { if (document.hidden) maybeSendProgress(true); };
+    const handleBeforeUnload = () => maybeSendProgress(true);
+
+    onBeforeUnmount(() => {
+        maybeSendProgress(true);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener('visibilitychange', handleVisibility);
+    });
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return {
         progress,

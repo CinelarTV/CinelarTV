@@ -48,14 +48,14 @@ class ApplicationController < ActionController::Base
   def current_profile
     return @current_profile if defined?(@current_profile)
 
-    profile_id = using_doorkeeper? ? CinelarTV.cache.read("profile_#{doorkeeper_token.token}") : session[:current_profile_id]
+    profile_id = using_doorkeeper? ? doorkeeper_token.current_profile_id : session[:current_profile_id]
 
     @current_profile = current_user&.profiles&.find_by(id: profile_id) if profile_id.present?
     @current_profile
   end
 
   def is_app_request?
-    request.format.json?
+    request.format.json? || request.content_type == "application/json" || using_doorkeeper?
   end
 
   def authenticate_user!

@@ -33,19 +33,19 @@ class ContentsController < ApplicationController
 
     raise CinelarTV::NotFound unless @content
 
-    @data = {
-      content: @content.as_json(except: %i[created_at updated_at url available]),
-      liked: current_profile&.liked_contents&.include?(@content),
-      related_content: @content.similar_items.as_json(only: %i[id title description banner]),
-    }
-
-    @data[:content][:available] = available?
-
-    handle_seasons_and_episodes if @content.content_type == "TVSHOW"
-    handle_continue_watching if @content.content_type == "MOVIE"
-
     respond_to do |format|
-      format.html
+      format.html {
+        @data = {
+          content: @content.as_json(except: %i[created_at updated_at url available]),
+          liked: current_profile&.liked_content_ids&.include?(@content.id),
+          related_content: @content.similar_items.as_json(only: %i[id title description banner]),
+        }
+
+        @data[:content][:available] = available?
+
+        handle_seasons_and_episodes if @content.content_type == "TVSHOW"
+        handle_continue_watching
+      }
       format.json {
         render json: ContentSerializer.new(@content, current_profile: current_profile).serializable_hash
       }

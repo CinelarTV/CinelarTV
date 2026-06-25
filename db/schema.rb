@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_04_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -62,6 +62,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.boolean "available", default: true
     t.boolean "premium", default: false
     t.integer "tmdb_id"
+    t.string "banner_resized"
+    t.string "cover_resized"
+    t.index ["available"], name: "index_contents_on_available_true", where: "(available = true)"
+    t.index ["content_type"], name: "index_contents_on_content_type"
     t.index ["tmdb_id"], name: "index_contents_on_tmdb_id"
   end
 
@@ -77,7 +81,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "updated_at", null: false
     t.index ["content_id"], name: "index_continue_watchings_on_content_id"
     t.index ["episode_id"], name: "index_continue_watchings_on_episode_id"
+    t.index ["last_watched_at"], name: "index_continue_watchings_on_last_watched_at"
     t.index ["profile_id", "content_id", "episode_id"], name: "unique_continue_watchings_index", unique: true
+    t.index ["profile_id", "last_watched_at"], name: "index_continue_watchings_on_profile_id_and_last_watched_at"
     t.index ["profile_id"], name: "index_continue_watchings_on_profile_id"
   end
 
@@ -113,6 +119,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.integer "position"
     t.string "thumbnail"
     t.boolean "premium", default: false
+    t.string "thumbnail_resized"
+    t.index ["season_id", "position"], name: "index_episodes_on_season_id_and_position"
     t.index ["season_id"], name: "index_episodes_on_season_id"
   end
 
@@ -123,6 +131,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "updated_at", null: false
     t.index ["content_id"], name: "index_likes_on_content_id"
     t.index ["profile_id"], name: "index_likes_on_profile_id"
+    t.index ["updated_at"], name: "index_likes_on_updated_at"
   end
 
   create_table "live_tv_channels", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -165,6 +174,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "created_at", null: false
     t.datetime "revoked_at"
     t.string "previous_refresh_token", default: "", null: false
+    t.uuid "current_profile_id"
     t.index ["application_id"], name: "index_oauth_access_tokens_on_application_id"
     t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true
     t.index ["resource_owner_id"], name: "index_oauth_access_tokens_on_resource_owner_id"
@@ -225,6 +235,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["content_id"], name: "index_reproductions_on_content_id"
+    t.index ["country_code"], name: "index_reproductions_on_country_code"
+    t.index ["played_at"], name: "index_reproductions_on_played_at"
     t.index ["profile_id"], name: "index_reproductions_on_profile_id"
   end
 
@@ -258,6 +270,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "position"
+    t.index ["content_id", "position"], name: "index_seasons_on_content_id_and_position"
     t.index ["content_id"], name: "index_seasons_on_content_id"
   end
 
@@ -270,6 +283,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["segment_type"], name: "index_segments_on_segment_type"
+    t.index ["segmentable_type", "segmentable_id", "start_time"], name: "index_segments_on_type_and_id_and_start_time"
     t.index ["segmentable_type", "segmentable_id"], name: "index_segments_on_segmentable_type_and_segmentable_id"
   end
 
@@ -352,6 +366,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.string "purchase_token"
     t.string "google_product_id"
     t.string "external_id"
+    t.index ["created_at"], name: "index_user_subscriptions_on_created_at"
     t.index ["external_id"], name: "index_user_subscriptions_on_external_id"
     t.index ["provider", "provider_subscription_id"], name: "idx_user_subscriptions_provider_external_id", unique: true, where: "(provider_subscription_id IS NOT NULL)"
     t.index ["provider"], name: "index_user_subscriptions_on_provider"
@@ -386,6 +401,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.datetime "confirmation_sent_at"
     t.string "unconfirmed_email"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
+    t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["deactivated_at"], name: "index_users_on_deactivated_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -417,6 +433,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_09_000100) do
     t.integer "failure_count", default: 0
     t.index ["last_checked_at"], name: "index_video_sources_on_last_checked_at"
     t.index ["media_status"], name: "index_video_sources_on_media_status"
+    t.index ["status"], name: "index_video_sources_on_status"
     t.index ["videoable_type", "videoable_id"], name: "index_video_sources_on_videoable"
   end
 

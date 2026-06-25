@@ -2,6 +2,7 @@
 
 module Admin
   class EmailTemplatesController < BaseController
+    include ActionView::Helpers::SanitizeHelper
     AVAILABLE_LOCALES = %w[en es pt-BR].freeze
     TEMPLATE_KEYS = %w[
       devise_confirmation_instructions
@@ -71,6 +72,88 @@ module Admin
       Rails.logger.info "[EmailTemplate] Reverted DB override for #{params[:key]}/#{params[:locale]}"
 
       render json: { success: true }
+    end
+
+    def preview
+      template = find_template
+      subject = template[:subject]
+      body = template[:body]
+      
+      # Get interpolation variables
+      variables = get_interpolation_variables(params[:key])
+      
+      # Create sample data for interpolation
+      sample_data = {}
+      variables.each do |var|
+        case var
+        when 'username'
+          sample_data[var] = 'John Doe'
+        when 'confirmation_url'
+          sample_data[var] = "#{SiteSetting.site_url}/users/confirmation?confirmation_token=sample_token"
+        when 'edit_password_url'
+          sample_data[var] = "#{SiteSetting.site_url}/users/password/edit?reset_password_token=sample_token"
+        when 'unlock_url'
+          sample_data[var] = "#{SiteSetting.site_url}/users/unlock?unlock_token=sample_token"
+        when 'site_name'
+          sample_data[var] = SiteSetting.site_name || 'CinelarTV'
+        when 'site_url'
+          sample_data[var] = SiteSetting.site_url || 'https://example.com'
+        when 'new_email'
+          sample_data[var] = 'newemail@example.com'
+        else
+          sample_data[var] = "[#{var.upcase}]"
+        end
+      end
+      
+      # Interpolate variables
+      interpolated_subject = subject.dup
+      interpolated_body = body.dup
+      
+      sample_data.each do |key, value|
+        interpolated_subject.gsub!("%{#{key}}", value.to_s)
+        interpolated_body.gsub!("%{#{key}}", value.to_s)
+      end
+      
+      # Create a temporary mailer instance for preview
+      mailer = Class.new(ActionMailer::Base) do
+        layout "mailer"
+        def preview_email(subject, body, recipient_email)
+          @subject = subject
+          @recipient_email = recipient_email
+          mail(
+            to: recipient_email,
+            subject: subject,
+            from: ENV['CINELAR_SMTP_FROM'] || 'from@example.com'
+          ) do |format|
+            format.html { render html: body.html_safe }
+          end
+        end
+      end
+      
+      # Generate the preview
+      mail_instance = mailer.new.preview_email(interpolated_subject, interpolated_body, 'preview@example.com')
+      
+      # Get rendered HTML with layout
+      layout_file = Rails.root.join('app', 'views', 'layouts', 'mailer.html.erb')
+      layout_template = File.read(layout_file)
+      
+      # Replace ERB variables manually
+      layout_content = layout_template.dup
+      layout_content.gsub!('<%= @subject || SiteSetting.site_name || "CinelarTV" %>', interpolated_subject)
+      layout_content.gsub!('<%= SiteSetting.site_name || "CinelarTV" %>', SiteSetting.site_name || 'CinelarTV')
+      layout_content.gsub!('<%= Time.current.year %>', Time.current.year.to_s)
+      layout_content.gsub!('<%= @recipient_email || \'you\' %>', 'preview@example.com')
+      layout_content.gsub!('<%= SiteSetting.site_name || "CinelarTV" %>', SiteSetting.site_name || 'CinelarTV')
+      layout_content.gsub!('<%= SiteSetting.site_url %>', SiteSetting.site_url || 'https://example.com')
+      
+      # Replace the yield placeholder with the actual email content
+      final_html = layout_content.gsub('<%= yield %>', interpolated_body)
+      
+      render json: {
+        subject: interpolated_subject,
+        html: final_html,
+        text: strip_tags(interpolated_body)
+      }
     end
 
     private

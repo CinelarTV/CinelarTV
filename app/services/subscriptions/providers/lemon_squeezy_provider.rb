@@ -293,10 +293,13 @@ module Subscriptions
       end
 
       def fallback_user_from_recent_pending_subscription(attributes)
+        timeout_minutes = SiteSetting.lemonsqueezy_pending_lookup_minutes.to_i
+        timeout_minutes = 30 if timeout_minutes <= 0
+
         scope = UserSubscription
           .where(provider: provider_key, status: "pending")
           .where(provider_subscription_id: [nil, ""])
-          .where("updated_at >= ?", 30.minutes.ago)
+          .where("updated_at >= ?", timeout_minutes.minutes.ago)
 
         variant_id = attributes["variant_id"].to_s
         scope = scope.where(provider_plan_id: variant_id) if variant_id.present?
@@ -417,9 +420,7 @@ module Subscriptions
       end
 
       def lemon_api_key
-        token = SiteSetting.lemonsqueezy_api_key.to_s.strip
-        token = token.sub(/\ABearer\s+/i, "").gsub(/['"\s]/, "")
-        token
+        SiteSetting.lemonsqueezy_api_key.to_s.strip.sub(/\ABearer\s+/i, "")
       end
 
       def raise_api_error!(response, action:)

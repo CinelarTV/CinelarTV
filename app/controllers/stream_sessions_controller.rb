@@ -7,7 +7,7 @@ class StreamSessionsController < ApplicationController
     session_id = stream_session_id_param
     return render json: { error: "MISSING_SESSION_ID" }, status: :bad_request if session_id.blank?
 
-    session_data = StreamSessionManager.ping_session(session_id)
+    session_data = StreamSessionManager.ping_session(session_id, current_user)
     if session_data
       render json: { success: true, session: session_data }
     else
@@ -19,7 +19,7 @@ class StreamSessionsController < ApplicationController
     session_id = stream_session_id_param
     return render json: { error: "MISSING_SESSION_ID" }, status: :bad_request if session_id.blank?
 
-    if StreamSessionManager.end_session(session_id)
+    if StreamSessionManager.end_session(session_id, current_user)
       head :no_content
     else
       render json: { error: "STREAM_SESSION_NOT_FOUND" }, status: :not_found
@@ -43,7 +43,7 @@ class StreamSessionsController < ApplicationController
   end
 
   def index
-    sessions = StreamSessionManager.list_sessions(current_user)
+    sessions = StreamSessionManager.list_sessions(current_user, current_profile&.id)
     render json: { sessions: sessions }
   end
 

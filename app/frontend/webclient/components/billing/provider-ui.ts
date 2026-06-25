@@ -21,6 +21,7 @@ const PROVIDER_LABELS: Record<string, string> = {
     lemon_squeezy: 'Lemon Squeezy',
     stripe: 'Stripe',
     paypal: 'PayPal',
+    google_play: 'Google Play',
 };
 
 export const formatProviderLabel = (provider?: string | null): string => {
@@ -63,26 +64,45 @@ export const buildBillingProviderUiProfile = (
     const key = String(providerKey || 'mercado_pago').trim().toLowerCase();
     const profile = baseProfile(key);
 
-    if (key !== 'mercado_pago') {
-        return profile;
+    if (key === 'mercado_pago') {
+        const mercadoPagoPublicKey = String(siteSettings?.mercadopago_public_key || '').trim();
+
+        return {
+            ...profile,
+            supportsInlineCardForm: Boolean(mercadoPagoPublicKey),
+            supportsWalletCheckout: true,
+            sdkPublicKey: mercadoPagoPublicKey,
+            secureBadgeText: 'Card tokenization powered by MercadoPago.js',
+            subscribeDescription: 'Complete your payment details or continue in checkout to activate your subscription.',
+            checkoutCta: 'Continue with Mercado Pago checkout',
+            checkoutLoadingCta: 'Opening checkout...',
+            walletCta: 'Use Mercado Pago balance',
+            walletLoadingCta: 'Opening Mercado Pago wallet...',
+            cardCta: 'Subscribe with card',
+            cardLoadingCta: 'Processing card...',
+            supportedRegions: ['AR', 'BR', 'CL', 'CO', 'MX', 'PE', 'UY'],
+            checkoutType: 'redirect',
+        };
     }
 
-    const mercadoPagoPublicKey = String(siteSettings?.mercadopago_public_key || '').trim();
+    if (key === 'google_play') {
+        return {
+            ...profile,
+            supportsInlineCardForm: false,
+            supportsWalletCheckout: false,
+            sdkPublicKey: '',
+            secureBadgeText: 'Powered by Google Play Billing',
+            subscribeDescription: 'Subscribe through Google Play to activate your subscription.',
+            checkoutCta: 'Continue in Google Play',
+            checkoutLoadingCta: 'Opening Google Play...',
+            walletCta: 'Use Google Play balance',
+            walletLoadingCta: 'Opening Google Play wallet...',
+            cardCta: 'Subscribe with card',
+            cardLoadingCta: 'Processing card...',
+            supportedRegions: [], // Global
+            checkoutType: 'redirect',
+        };
+    }
 
-    return {
-        ...profile,
-        supportsInlineCardForm: Boolean(mercadoPagoPublicKey),
-        supportsWalletCheckout: true,
-        sdkPublicKey: mercadoPagoPublicKey,
-        secureBadgeText: 'Card tokenization powered by MercadoPago.js',
-        subscribeDescription: 'Complete your payment details or continue in checkout to activate your subscription.',
-        checkoutCta: 'Continue with Mercado Pago checkout',
-        checkoutLoadingCta: 'Opening checkout...',
-        walletCta: 'Use Mercado Pago balance',
-        walletLoadingCta: 'Opening Mercado Pago wallet...',
-        cardCta: 'Subscribe with card',
-        cardLoadingCta: 'Processing card...',
-        supportedRegions: ['AR', 'BR', 'CL', 'CO', 'MX', 'PE', 'UY'],
-        checkoutType: 'redirect',
-    };
+    return profile;
 };

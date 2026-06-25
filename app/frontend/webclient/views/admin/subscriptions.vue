@@ -21,16 +21,23 @@
 
         <!-- Tabs -->
         <div class="subscriptions-admin__tabs">
-            <button class="subscriptions-admin__tab" :class="{ 'subscriptions-admin__tab--active': currentTab === 'overview' }" @click="currentTab = 'overview'">
+            <button class="subscriptions-admin__tab"
+                :class="{ 'subscriptions-admin__tab--active': currentTab === 'overview' }"
+                @click="currentTab = 'overview'">
                 <CIcon icon="pie-chart" :size="16" /> Overview
             </button>
-            <button class="subscriptions-admin__tab" :class="{ 'subscriptions-admin__tab--active': currentTab === 'subscriptions' }" @click="currentTab = 'subscriptions'">
+            <button class="subscriptions-admin__tab"
+                :class="{ 'subscriptions-admin__tab--active': currentTab === 'subscriptions' }"
+                @click="currentTab = 'subscriptions'">
                 <CIcon icon="users" :size="16" /> Subscriptions
             </button>
-            <button class="subscriptions-admin__tab" :class="{ 'subscriptions-admin__tab--active': currentTab === 'plans' }" @click="currentTab = 'plans'">
+            <button class="subscriptions-admin__tab"
+                :class="{ 'subscriptions-admin__tab--active': currentTab === 'plans' }" @click="currentTab = 'plans'">
                 <CIcon icon="package" :size="16" /> Plans
             </button>
-            <button class="subscriptions-admin__tab" :class="{ 'subscriptions-admin__tab--active': currentTab === 'logs' }" @click="currentTab = 'logs'; fetchLogs()">
+            <button class="subscriptions-admin__tab"
+                :class="{ 'subscriptions-admin__tab--active': currentTab === 'logs' }"
+                @click="currentTab = 'logs'; fetchLogs()">
                 <CIcon icon="terminal" :size="16" /> Logs
             </button>
         </div>
@@ -52,7 +59,8 @@
                     </div>
                     <div class="subscriptions-admin__stat-content">
                         <span class="subscriptions-admin__stat-label">Total Subscriptions</span>
-                        <strong class="subscriptions-admin__stat-value">{{ realStats.total || subscriptions.length }}</strong>
+                        <strong class="subscriptions-admin__stat-value">{{ realStats.total || subscriptions.length
+                            }}</strong>
                     </div>
                 </div>
                 <div class="subscriptions-admin__stat-card">
@@ -61,7 +69,8 @@
                     </div>
                     <div class="subscriptions-admin__stat-content">
                         <span class="subscriptions-admin__stat-label">Active</span>
-                        <strong class="subscriptions-admin__stat-value">{{ realStats.active || activeSubscriptionsCount }}</strong>
+                        <strong class="subscriptions-admin__stat-value">{{ realStats.active || activeSubscriptionsCount
+                            }}</strong>
                     </div>
                 </div>
                 <div class="subscriptions-admin__stat-card">
@@ -97,7 +106,8 @@
                     </div>
                     <div class="subscriptions-admin__stat-content">
                         <span class="subscriptions-admin__stat-label">Active Plan</span>
-                        <strong class="subscriptions-admin__stat-value subscriptions-admin__stat-value--small">{{ activePlanName }}</strong>
+                        <strong class="subscriptions-admin__stat-value subscriptions-admin__stat-value--small">{{
+                            activePlanName }}</strong>
                     </div>
                 </div>
             </div>
@@ -116,6 +126,60 @@
                     </p>
                 </div>
             </div>
+
+            <!-- Create Manual Subscription -->
+            <div class="subscriptions-admin__manual-section">
+                <button class="subscriptions-admin__manual-toggle" @click="showManualForm = !showManualForm">
+                    <CIcon :icon="showManualForm ? 'chevron-down' : 'chevron-right'" :size="16" />
+                    <CIcon icon="user-plus" :size="16" />
+                    Create Manual Subscription
+                </button>
+                <div v-if="showManualForm" class="subscriptions-admin__manual-form">
+                    <div class="subscriptions-admin__filters">
+                        <div class="subscriptions-admin__field">
+                            <label class="subscriptions-admin__label">Search User</label>
+                            <input v-model="manualUserQuery" class="subscriptions-admin__input"
+                                placeholder="Type email or username..." @input="onUserSearchInput" />
+                            <div v-if="userSearchResults.length > 0" class="subscriptions-admin__user-results">
+                                <button v-for="u in userSearchResults" :key="u.id"
+                                    class="subscriptions-admin__user-result"
+                                    :class="{ 'subscriptions-admin__user-result--selected': manualUserId === u.id }"
+                                    @click="selectUser(u)">
+                                    <span class="subscriptions-admin__user-result-name">{{ u.username }}</span>
+                                    <span class="subscriptions-admin__user-result-email">{{ u.email }}</span>
+                                </button>
+                            </div>
+                            <div v-if="manualUserId" class="subscriptions-admin__user-selected">
+                                <CIcon icon="check-circle" :size="16" />
+                                {{ manualUserName }} &lt;{{ manualUserEmail }}&gt;
+                                <button class="subscriptions-admin__user-clear" @click="clearSelectedUser">
+                                    <CIcon icon="x" :size="14" />
+                                </button>
+                            </div>
+                        </div>
+                        <div class="subscriptions-admin__field">
+                            <label class="subscriptions-admin__label">Duration</label>
+                            <select v-model="manualGrantDays" class="subscriptions-admin__select">
+                                <option :value="1">1 Day</option>
+                                <option :value="7">7 Days</option>
+                                <option :value="15">15 Days</option>
+                                <option :value="30">30 Days</option>
+                                <option :value="90">90 Days</option>
+                                <option :value="365">1 Year</option>
+                            </select>
+                        </div>
+                        <div class="subscriptions-admin__field subscriptions-admin__field--actions">
+                            <button class="subscriptions-admin__btn subscriptions-admin__btn--primary"
+                                @click="createManualSubscription" :disabled="!manualUserId || manualCreating">
+                                <CIcon icon="gift" :size="16" :class="{ 'subscriptions-admin__btn--spinning': manualCreating }" />
+                                {{ manualCreating ? 'Creating...' : 'Create & Grant' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subscriptions-admin__divider"></div>
 
             <!-- Filters -->
             <div class="subscriptions-admin__filters">
@@ -172,7 +236,8 @@
                     <div class="subscription__header">
                         <div class="subscription__info">
                             <span class="subscription__id">#{{ sub.id }}</span>
-                            <span class="subscription__user">{{ sub.user?.email || sub.user?.username || 'Unknown' }}</span>
+                            <span class="subscription__user">{{ sub.user?.email || sub.user?.username || 'Unknown'
+                                }}</span>
                             <span class="subscription__date" v-if="sub.renews_at">
                                 <CIcon icon="calendar" :size="14" />
                                 Renews: {{ formatDate(sub.renews_at) }}
@@ -197,7 +262,7 @@
                             <CIcon icon="refresh-cw" :size="14" />
                             Sync
                         </button>
-                        
+
                         <!-- Grant Access Group -->
                         <div class="subscription__grant-group">
                             <select v-model="sub._grantDays" class="subscription__grant-select">
@@ -213,8 +278,9 @@
                                 Grant
                             </button>
                         </div>
-                        
-                        <button class="subscription__btn subscription__btn--danger" @click="cancelSubscription(sub)" :disabled="sub.cancelled">
+
+                        <button class="subscription__btn subscription__btn--danger" @click="cancelSubscription(sub)"
+                            :disabled="sub.cancelled">
                             <CIcon icon="x-circle" :size="14" />
                             Cancel
                         </button>
@@ -232,74 +298,106 @@
                         Plans
                     </h2>
                     <p class="subscriptions-admin__card-description">
-                        Select a plan from {{ currentProviderLabel }} or create a new one
+                        Manage plans for {{ currentProviderLabel }}
                     </p>
                 </div>
-                <label class="subscriptions-admin__toggle">
-                    <input type="checkbox" v-model="showAllPlans" @change="fetchPlans" />
-                    <span class="subscriptions-admin__toggle-label">
-                        <CIcon :icon="showAllPlans ? 'check-square' : 'square'" :size="18" />
-                        Show all merchant plans
-                    </span>
-                </label>
+                <div class="subscriptions-admin__provider-controls">
+                    <div class="subscriptions-admin__field">
+                        <label class="subscriptions-admin__label">Provider</label>
+                        <select v-model="selectedProviderKey" class="subscriptions-admin__select"
+                            @change="onProviderChange">
+                            <option v-for="provider in providerOptions" :key="provider.key" :value="provider.key">
+                                {{ provider.label }}
+                            </option>
+                        </select>
+                    </div>
+                    <label class="subscriptions-admin__toggle" v-if="supportsPlanManagement">
+                        <input type="checkbox" v-model="showAllPlans" @change="fetchPlans" />
+                        <span class="subscriptions-admin__toggle-label">
+                            <CIcon :icon="showAllPlans ? 'check-square' : 'square'" :size="18" />
+                            Show all merchant plans
+                        </span>
+                    </label>
+                </div>
             </div>
 
-            <div v-if="!plans.length" class="subscriptions-admin__empty">
+            <div v-if="!plans.length && !isGooglePlayProvider" class="subscriptions-admin__empty">
                 <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
                 <p class="subscriptions-admin__empty-title">No plans available</p>
                 <p class="subscriptions-admin__empty-description">
                     Create a plan from {{ currentProviderLabel }} or use the form below
                 </p>
             </div>
+            <div v-if="!plans.length && isGooglePlayProvider" class="subscriptions-admin__empty">
+                <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
+                <p class="subscriptions-admin__empty-title">No Google Play products configured</p>
+                <p class="subscriptions-admin__empty-description">
+                    Configure Google Play products in site settings to manage subscriptions
+                </p>
+            </div>
             <div v-else class="subscriptions-admin__plans">
-                <div v-for="plan in plans" :key="plan.id" class="plan__card"
-                    :class="{ 'plan__card--active': String(plan.id) === String(activePlanId) }">
+                <div v-for="plan in plans" :key="plan.id || plan.product_id" class="plan__card"
+                    :class="{ 'plan__card--active': (plan.id || plan.product_id) === String(activePlanId) }">
                     <div class="plan__content">
                         <div class="plan__header">
-                            <h3 class="plan__name">{{ plan.reason }}</h3>
-                            <span v-if="String(plan.id) === String(activePlanId)" class="plan__badge">
+                            <h3 class="plan__name">{{ plan.reason || plan.product_id || plan.name }}</h3>
+                            <span v-if="(plan.id || plan.product_id) === String(activePlanId)" class="plan__badge">
                                 <CIcon icon="check" :size="14" /> Active
                             </span>
                         </div>
                         <div class="plan__details">
-                            <div class="plan__detail">
+                            <div class="plan__detail" v-if="plan.auto_recurring?.transaction_amount">
                                 <CIcon icon="dollar-sign" :size="14" />
-                                <span>{{ plan.auto_recurring?.transaction_amount }} {{ plan.auto_recurring?.currency_id }}</span>
+                                <span>{{ plan.auto_recurring?.transaction_amount }} {{ plan.auto_recurring?.currency_id
+                                    }}</span>
                             </div>
-                            <div class="plan__detail">
+                            <div class="plan__detail" v-if="plan.auto_recurring?.frequency">
                                 <CIcon icon="calendar" :size="14" />
-                                <span>{{ plan.auto_recurring?.frequency }} {{ plan.auto_recurring?.frequency_type }}</span>
+                                <span>{{ plan.auto_recurring?.frequency }} {{ plan.auto_recurring?.frequency_type
+                                    }}</span>
+                            </div>
+                            <div class="plan__detail" v-if="plan.price">
+                                <CIcon icon="dollar-sign" :size="14" />
+                                <span>{{ plan.price }} {{ plan.currency || 'USD' }}</span>
+                            </div>
+                            <div class="plan__detail" v-if="plan.billing_period">
+                                <CIcon icon="calendar" :size="14" />
+                                <span>{{ plan.billing_period }}</span>
                             </div>
                             <div class="plan__detail">
                                 <CIcon icon="hash" :size="14" />
-                                <span class="plan__id">ID: {{ plan.id }}</span>
+                                <span class="plan__id">ID: {{ plan.id || plan.product_id }}</span>
                             </div>
                         </div>
                     </div>
                     <div class="plan__actions">
                         <button class="plan__btn"
-                            :class="{ 'plan__btn--active': String(plan.id) === String(activePlanId) }"
-                            @click="selectPlan(plan)" :disabled="String(plan.id) === String(activePlanId)">
-                            <CIcon :icon="String(plan.id) === String(activePlanId) ? 'check-circle' : 'arrow-right'" :size="16" />
-                            {{ String(plan.id) === String(activePlanId) ? 'Active Plan' : 'Select Plan' }}
+                            :class="{ 'plan__btn--active': (plan.id || plan.product_id) === String(activePlanId) }"
+                            @click="selectPlan(plan)" :disabled="(plan.id || plan.product_id) === String(activePlanId)">
+                            <CIcon
+                                :icon="(plan.id || plan.product_id) === String(activePlanId) ? 'check-circle' : 'arrow-right'"
+                                :size="16" />
+                            {{ (plan.id || plan.product_id) === String(activePlanId) ? 'Active Plan' : 'Select Plan' }}
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="subscriptions-admin__divider">
+            <div class="subscriptions-admin__divider" v-if="supportsPlanManagement">
                 <span class="subscriptions-admin__divider-text">Or create a new plan</span>
             </div>
 
-            <form class="subscriptions-admin__form" @submit.prevent="createPlan">
+            <form class="subscriptions-admin__form" @submit.prevent="createPlan" v-if="supportsPlanManagement">
                 <div class="subscriptions-admin__form-grid">
                     <div class="subscriptions-admin__field">
                         <label class="subscriptions-admin__label">Plan Name</label>
-                        <input v-model="planForm.reason" class="subscriptions-admin__input" placeholder="e.g., Monthly Plan" required />
+                        <input v-model="planForm.reason" class="subscriptions-admin__input"
+                            placeholder="e.g., Monthly Plan" required />
                     </div>
                     <div class="subscriptions-admin__field">
                         <label class="subscriptions-admin__label">Amount</label>
-                        <input v-model.number="planForm.amount" type="number" step="0.01" min="0" class="subscriptions-admin__input" required />
+                        <input v-model.number="planForm.amount" type="number" step="0.01" min="0"
+                            class="subscriptions-admin__input" required />
                     </div>
                     <div class="subscriptions-admin__field">
                         <label class="subscriptions-admin__label">Currency</label>
@@ -327,6 +425,15 @@
                     </button>
                 </div>
             </form>
+
+            <div v-if="!supportsPlanManagement" class="subscriptions-admin__info-box">
+                <CIcon icon="info" :size="20" class="subscriptions-admin__info-icon" />
+                <div class="subscriptions-admin__info-content">
+                    <h4>Provider Configuration</h4>
+                    <p>{{ currentProviderLabel }} does not support inline plan management. Plans must be configured
+                        directly in the {{ currentProviderLabel }} console.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Logs Tab -->
@@ -342,7 +449,8 @@
                     </p>
                 </div>
                 <button class="subscriptions-admin__btn" @click="fetchLogs" :disabled="loadingLogs">
-                    <CIcon icon="refresh-cw" :size="16" :class="{ 'subscriptions-admin__btn--spinning': loadingLogs }" /> Refresh
+                    <CIcon icon="refresh-cw" :size="16"
+                        :class="{ 'subscriptions-admin__btn--spinning': loadingLogs }" /> Refresh
                 </button>
             </div>
 
@@ -358,12 +466,14 @@
             <div v-else class="subscriptions-admin__logs">
                 <div v-for="log in logs" :key="log.id" class="log__item">
                     <div class="log__header">
-                        <span class="log__provider" :class="`log__provider--${log.provider}`">{{ formatProvider(log.provider) }}</span>
+                        <span class="log__provider" :class="`log__provider--${log.provider}`">{{
+                            formatProvider(log.provider) }}</span>
                         <span class="log__event">{{ log.event_type }}</span>
                         <span class="log__date">{{ formatDateTime(log.created_at) }}</span>
                     </div>
                     <div class="log__body">
-                        <span class="log__status" :class="log.status === 200 ? 'status-ok' : 'status-err'">Status: {{ log.status }}</span>
+                        <span class="log__status" :class="log.status === 200 ? 'status-ok' : 'status-err'">Status: {{
+                            log.status }}</span>
                         <details class="log__details">
                             <summary>Payload</summary>
                             <pre class="log__pre">{{ formatJson(log.payload) }}</pre>
@@ -386,6 +496,17 @@ const loading = ref(false)
 const loadingLogs = ref(false)
 const error = ref('')
 
+// Manual subscription creation
+const showManualForm = ref(false)
+const manualUserQuery = ref('')
+const userSearchResults = ref([])
+const manualUserId = ref(null)
+const manualUserName = ref('')
+const manualUserEmail = ref('')
+const manualGrantDays = ref(30)
+const manualCreating = ref(false)
+let userSearchTimeout = null
+
 const subscriptions = ref([])
 const plans = ref([])
 const logs = ref([])
@@ -394,6 +515,7 @@ const realStats = ref({})
 const showAllPlans = ref(false)
 const activePlanId = ref('')
 const currentProviderKey = ref('')
+const selectedProviderKey = ref('')
 const availableProviders = ref([])
 
 const filters = ref({ query: '', status: '', provider: '' })
@@ -413,9 +535,13 @@ const activeSubscriptionsCount = computed(() =>
 const providerOptions = computed(() => availableProviders.value.length > 0 ? availableProviders.value : [{ key: 'mercado_pago', label: 'Mercado Pago' }])
 
 const currentProviderLabel = computed(() => {
-    const provider = providerOptions.value.find((o) => o.key === currentProviderKey.value)
-    return provider ? provider.label : currentProviderKey.value ? currentProviderKey.value.replace(/_/g, ' ') : 'Current'
+    const provider = providerOptions.value.find((o) => o.key === selectedProviderKey.value)
+    return provider ? provider.label : selectedProviderKey.value ? selectedProviderKey.value.replace(/_/g, ' ') : 'Current'
 })
+
+const isGooglePlayProvider = computed(() => selectedProviderKey.value === 'google_play')
+
+const supportsPlanManagement = computed(() => !isGooglePlayProvider.value)
 
 const activePlanName = computed(() => {
     if (!activePlanId.value) return 'No plan selected'
@@ -434,7 +560,7 @@ const refreshStats = async () => {
 
 const refreshAll = async () => {
     loading.value = true
-    await Promise.all([ fetchSubscriptions(), fetchPlans(), refreshStats() ])
+    await Promise.all([fetchSubscriptions(), fetchPlans(), refreshStats()])
     loading.value = false
 }
 
@@ -446,6 +572,10 @@ const fetchSubscriptions = async () => {
         subscriptions.value = (data?.data || []).map(s => ({ ...s, _grantDays: 30 }))
         availableProviders.value = data?.meta?.available_providers || availableProviders.value
         currentProviderKey.value = data?.meta?.current_provider || currentProviderKey.value
+        // Initialize selected provider if not set
+        if (!selectedProviderKey.value && availableProviders.value.length > 0) {
+            selectedProviderKey.value = currentProviderKey.value || availableProviders.value[0].key
+        }
     } catch (e) {
         error.value = e?.response?.data?.error || 'Failed to load subscriptions'
     }
@@ -453,13 +583,51 @@ const fetchSubscriptions = async () => {
 
 const fetchPlans = async () => {
     try {
-        const { data } = await ajax.get('/admin/subscriptions/plans.json', { params: { managed_only: !showAllPlans.value } })
-        plans.value = data?.data || []
-        activePlanId.value = data?.meta?.active_plan_id || ''
-        currentProviderKey.value = data?.meta?.provider || currentProviderKey.value
+        if (isGooglePlayProvider.value) {
+            // For Google Play, load products from site settings
+            await loadGooglePlayProducts()
+        } else {
+            const { data } = await ajax.get('/admin/subscriptions/plans.json', {
+                params: {
+                    managed_only: !showAllPlans.value,
+                    provider: selectedProviderKey.value
+                }
+            })
+            plans.value = data?.data || []
+            activePlanId.value = data?.meta?.active_plan_id || ''
+        }
     } catch (e) {
         error.value = e?.response?.data?.error || 'Failed to load plans'
     }
+}
+
+const loadGooglePlayProducts = async () => {
+    try {
+        const { data } = await ajax.get('/admin/site_settings.json')
+        const productMap = data?.google_play_product_id_map || {}
+        plans.value = Object.entries(productMap).map(([productId, productName]) => ({
+            product_id: productId,
+            name: productName,
+            reason: productName,
+            id: productId
+        }))
+
+        // Get active plan for Google Play
+        const { data: plansData } = await ajax.get('/admin/subscriptions/plans.json', {
+            params: { provider: 'google_play' }
+        })
+        activePlanId.value = plansData?.meta?.active_plan_id || ''
+    } catch (e) {
+        console.warn('Failed to load Google Play products:', e)
+        plans.value = []
+    }
+}
+
+const onProviderChange = async () => {
+    // Reset plans and active plan when provider changes
+    plans.value = []
+    activePlanId.value = ''
+    await fetchPlans()
 }
 
 const fetchLogs = async () => {
@@ -476,8 +644,12 @@ const fetchLogs = async () => {
 
 const selectPlan = async (plan) => {
     try {
-        await ajax.post(`/admin/subscriptions/plans/${plan.id}/select`, { plan })
-        activePlanId.value = String(plan.id)
+        const planId = plan.id || plan.product_id
+        await ajax.post(`/admin/subscriptions/plans/${planId}/select`, {
+            plan_id: planId,
+            provider: selectedProviderKey.value
+        })
+        activePlanId.value = String(planId)
         error.value = ''
     } catch (e) {
         error.value = e?.response?.data?.error || 'Failed to select plan'
@@ -486,7 +658,10 @@ const selectPlan = async (plan) => {
 
 const createPlan = async () => {
     try {
-        await ajax.post('/admin/subscriptions/plans', planForm.value)
+        await ajax.post('/admin/subscriptions/plans', {
+            ...planForm.value,
+            provider: selectedProviderKey.value
+        })
         await fetchPlans()
         planForm.value.reason = 'Monthly Subscription Plan'
         error.value = ''
@@ -556,7 +731,64 @@ const formatJson = (payload) => {
 const formatProvider = (provider) => {
     if (!provider) return 'N/A'
     const opt = providerOptions.value.find((c) => c.key === String(provider))
-    return opt ? opt.label : String(provider).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    if (opt) return opt.label
+
+    // Use same formatting logic as provider-ui.ts
+    return String(provider)
+        .split('_')
+        .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+        .join(' ')
+}
+
+const onUserSearchInput = () => {
+    clearTimeout(userSearchTimeout)
+    const q = manualUserQuery.value.trim()
+    if (q.length < 2) {
+        userSearchResults.value = []
+        return
+    }
+    userSearchTimeout = setTimeout(async () => {
+        try {
+            const { data } = await ajax.get('/admin/users.json', { params: { query: q } })
+            userSearchResults.value = (data?.data || []).slice(0, 10)
+        } catch {
+            userSearchResults.value = []
+        }
+    }, 300)
+}
+
+const selectUser = (u) => {
+    manualUserId.value = u.id
+    manualUserName.value = u.username
+    manualUserEmail.value = u.email
+    manualUserQuery.value = ''
+    userSearchResults.value = []
+}
+
+const clearSelectedUser = () => {
+    manualUserId.value = null
+    manualUserName.value = ''
+    manualUserEmail.value = ''
+}
+
+const createManualSubscription = async () => {
+    if (!manualUserId.value) return
+    manualCreating.value = true
+    error.value = ''
+    try {
+        await ajax.post('/admin/subscriptions/create_grant', {
+            user_id: manualUserId.value,
+            days: manualGrantDays.value
+        })
+        clearSelectedUser()
+        showManualForm.value = false
+        await fetchSubscriptions()
+        await refreshStats()
+    } catch (e) {
+        error.value = e?.response?.data?.error || 'Failed to create subscription'
+    } finally {
+        manualCreating.value = false
+    }
 }
 
 onMounted(() => {
@@ -575,8 +807,15 @@ onMounted(() => {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ── Header ──────────────────────────────────────────────────────────── */
@@ -589,35 +828,59 @@ onMounted(() => {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.subscriptions-admin__header-content { flex: 1; }
-
-.subscriptions-admin__title {
-    display: flex; align-items: center; gap: 12px;
-    font-size: 1.5rem; font-weight: 600; color: #fff; margin: 0 0 8px 0;
+.subscriptions-admin__header-content {
+    flex: 1;
 }
 
-.subscriptions-admin__icon { color: var(--c-tertiary-400, #0095d9); }
+.subscriptions-admin__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 8px 0;
+}
+
+.subscriptions-admin__icon {
+    color: var(--c-tertiary-400, #0095d9);
+}
 
 .subscriptions-admin__description {
-    font-size: 0.85rem; color: rgba(255, 255, 255, 0.45); margin: 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────────── */
 .subscriptions-admin__tabs {
-    display: flex; gap: 4px; overflow-x: auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 0px; margin-bottom: 8px;
+    padding-bottom: 0px;
+    margin-bottom: 8px;
 }
 
 .subscriptions-admin__tab {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 16px; background: transparent; border: none;
-    color: rgba(255, 255, 255, 0.5); font-size: 0.9rem; font-weight: 500;
-    cursor: pointer; position: relative; border-bottom: 2px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    border-bottom: 2px solid transparent;
     transition: all 0.2s ease;
 }
 
-.subscriptions-admin__tab:hover { color: rgba(255, 255, 255, 0.9); }
+.subscriptions-admin__tab:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
 
 .subscriptions-admin__tab--active {
     color: var(--c-tertiary-400, #0095d9);
@@ -626,249 +889,899 @@ onMounted(() => {
 
 /* ── Stats Cards ─────────────────────────────────────────────────────── */
 .subscriptions-admin__stats {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
 }
 
 .subscriptions-admin__stat-card {
-    display: flex; align-items: center; gap: 14px; padding: 16px;
-    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 8px; transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    transition: all 0.15s ease;
 }
 
-.subscriptions-admin__stat-card:hover { background: rgba(255, 255, 255, 0.04); }
+.subscriptions-admin__stat-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
 
 .subscriptions-admin__stat-icon {
-    display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.6);
 }
 
-.subscriptions-admin__stat-icon--active { background: rgba(30, 192, 138, 0.15); color: #1ec08a; }
-.subscriptions-admin__stat-icon--primary { background: rgba(0, 149, 217, 0.15); color: var(--c-tertiary-400, #0095d9); }
-.subscriptions-admin__stat-icon--pending { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
-.subscriptions-admin__stat-icon--cancelled { background: rgba(255, 120, 120, 0.15); color: #ff7878; }
+.subscriptions-admin__stat-icon--active {
+    background: rgba(30, 192, 138, 0.15);
+    color: #1ec08a;
+}
 
-.subscriptions-admin__stat-content { flex: 1; }
+.subscriptions-admin__stat-icon--primary {
+    background: rgba(0, 149, 217, 0.15);
+    color: var(--c-tertiary-400, #0095d9);
+}
+
+.subscriptions-admin__stat-icon--pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.subscriptions-admin__stat-icon--cancelled {
+    background: rgba(255, 120, 120, 0.15);
+    color: #ff7878;
+}
+
+.subscriptions-admin__stat-content {
+    flex: 1;
+}
 
 .subscriptions-admin__stat-label {
-    display: block; font-size: 0.75rem; color: rgba(255, 255, 255, 0.45);
-    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500;
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
 }
 
-.subscriptions-admin__stat-value { display: block; font-size: 1.5rem; font-weight: 700; color: #fff; margin-top: 4px; }
-.subscriptions-admin__stat-value--small { font-size: 0.95rem; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
+.subscriptions-admin__stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+}
+
+.subscriptions-admin__stat-value--small {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
 
 /* ── Cards & Misc ────────────────────────────────────────────────────── */
 .subscriptions-admin__card {
-    padding: 20px; background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
 }
 
 .subscriptions-admin__card-header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    gap: 16px; margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
 .subscriptions-admin__card-title {
-    display: flex; align-items: center; gap: 10px; font-size: 1.05rem;
-    font-weight: 600; color: rgba(255, 255, 255, 0.9); margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
 }
 
-.subscriptions-admin__card-description { font-size: 0.8rem; color: rgba(255, 255, 255, 0.4); margin: 6px 0 0; }
+.subscriptions-admin__card-description {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 6px 0 0;
+}
 
-.subscriptions-admin__filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.subscriptions-admin__filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
 
-.subscriptions-admin__field { display: flex; flex-direction: column; gap: 6px; }
+.subscriptions-admin__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
-.subscriptions-admin__field--actions { justify-content: flex-end; }
+.subscriptions-admin__field--actions {
+    justify-content: flex-end;
+}
 
 .subscriptions-admin__label {
-    font-size: 0.75rem; font-weight: 500; color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .subscriptions-admin__input,
 .subscriptions-admin__select {
-    width: 100%; padding: 9px 12px; border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.25);
-    color: rgba(255, 255, 255, 0.9); font-size: 0.875rem; transition: border-color 0.15s ease;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease;
 }
 
-.subscriptions-admin__input:focus, .subscriptions-admin__select:focus { outline: none; border-color: var(--c-tertiary-400, #0095d9); }
+.subscriptions-admin__input:focus,
+.subscriptions-admin__select:focus {
+    outline: none;
+    border-color: var(--c-tertiary-400, #0095d9);
+}
 
-.subscriptions-admin__toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.subscriptions-admin__toggle input[type="checkbox"] { display: none; }
+.subscriptions-admin__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.subscriptions-admin__toggle input[type="checkbox"] {
+    display: none;
+}
+
 .subscriptions-admin__toggle-label {
-    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
-    border-radius: 6px; background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.65);
-    font-size: 0.825rem; font-weight: 500; transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.825rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
 }
-.subscriptions-admin__toggle:hover .subscriptions-admin__toggle-label { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.9); }
 
-.subscriptions-admin__loading, .subscriptions-admin__empty {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 48px 20px; text-align: center; color: rgba(255, 255, 255, 0.45);
+.subscriptions-admin__toggle:hover .subscriptions-admin__toggle-label {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
 }
 
-.subscriptions-admin__loading-icon { animation: spin 1s linear infinite; color: var(--c-tertiary-400, #0095d9); margin-bottom: 12px; }
+.subscriptions-admin__loading,
+.subscriptions-admin__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.45);
+}
 
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.subscriptions-admin__loading-icon {
+    animation: spin 1s linear infinite;
+    color: var(--c-tertiary-400, #0095d9);
+    margin-bottom: 12px;
+}
 
-.subscriptions-admin__empty-icon { color: rgba(255, 255, 255, 0.15); margin-bottom: 16px; }
-.subscriptions-admin__empty-title { font-size: 1rem; font-weight: 500; color: rgba(255, 255, 255, 0.6); margin: 0 0 6px 0; }
-.subscriptions-admin__empty-description { font-size: 0.8rem; color: rgba(255, 255, 255, 0.35); margin: 0; }
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
 
-.subscriptions-admin__list { display: flex; flex-direction: column; gap: 12px; }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.subscriptions-admin__empty-icon {
+    color: rgba(255, 255, 255, 0.15);
+    margin-bottom: 16px;
+}
+
+.subscriptions-admin__empty-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 6px 0;
+}
+
+.subscriptions-admin__empty-description {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.35);
+    margin: 0;
+}
+
+.subscriptions-admin__list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
 .subscription__card {
-    padding: 14px 16px; background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; transition: all 0.15s ease;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    transition: all 0.15s ease;
 }
-.subscription__card:hover { background: rgba(255, 255, 255, 0.04); }
 
-.subscription__header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
-.subscription__info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.subscription__id { font-size: 0.8rem; font-weight: 600; color: rgba(255, 255, 255, 0.5); }
-.subscription__user { font-size: 0.875rem; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
-.subscription__date { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.4); }
+.subscription__card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
 
-.subscription__badge { padding: 4px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-.subscription__badge.is-active { background: rgba(30, 192, 138, 0.15); color: #1ec08a; }
-.subscription__badge.is-pending { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
-.subscription__badge.is-cancelled { background: rgba(255, 120, 120, 0.15); color: #ff7878; }
-.subscription__badge.is-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+.subscription__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
 
-.subscription__meta { display: flex; gap: 16px; margin-bottom: 12px; }
-.subscription__meta-item { display: flex; align-items: center; gap: 6px; font-size: 0.775rem; color: rgba(255, 255, 255, 0.45); }
+.subscription__info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 
-.subscription__actions { display: flex; gap: 8px; align-items: center; }
+.subscription__id {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.subscription__user {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.subscription__date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.subscription__badge {
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.subscription__badge.is-active {
+    background: rgba(30, 192, 138, 0.15);
+    color: #1ec08a;
+}
+
+.subscription__badge.is-pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.subscription__badge.is-cancelled {
+    background: rgba(255, 120, 120, 0.15);
+    color: #ff7878;
+}
+
+.subscription__badge.is-neutral {
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+}
+
+.subscription__meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.subscription__meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.775rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.subscription__actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
 
 /* Grant group styling */
 .subscription__grant-group {
-    display: flex; align-items: stretch; border-radius: 6px; overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02);
+    display: flex;
+    align-items: stretch;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
 }
+
 .subscription__grant-select {
-    background: transparent; border: none; color: rgba(255, 255, 255, 0.8);
-    padding: 0 8px; font-size: 0.8rem; cursor: pointer; outline: none;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
-.subscription__grant-select option { background: #1a1a1a; color: #fff; }
-.subscription__grant-group .subscription__btn {
-    border: none; border-radius: 0; background: transparent;
+
+.subscription__grant-select option {
+    background: #1a1a1a;
+    color: #fff;
 }
-.subscription__grant-group .subscription__btn:hover { background: rgba(255, 255, 255, 0.05); }
+
+.subscription__grant-group .subscription__btn {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+.subscription__grant-group .subscription__btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
 
 .subscription__btn {
-    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
-    border-radius: 6px; background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.65);
-    font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
-.subscription__btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.9); }
-.subscription__btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.subscription__btn--danger { background: rgba(255, 120, 120, 0.1); border-color: rgba(255, 120, 120, 0.2); color: #ff7878; }
-.subscription__btn--danger:hover:not(:disabled) { background: rgba(255, 120, 120, 0.18); }
+
+.subscription__btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.subscription__btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.subscription__btn--danger {
+    background: rgba(255, 120, 120, 0.1);
+    border-color: rgba(255, 120, 120, 0.2);
+    color: #ff7878;
+}
+
+.subscription__btn--danger:hover:not(:disabled) {
+    background: rgba(255, 120, 120, 0.18);
+}
 
 /* ── Plans ───────────────────────────────────────────────────────────── */
-.subscriptions-admin__plans { display: flex; flex-direction: column; gap: 12px; }
+.subscriptions-admin__plans {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
 .plan__card {
-    display: flex; justify-content: space-between; align-items: center; gap: 16px;
-    padding: 14px 16px; background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; transition: all 0.15s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    transition: all 0.15s ease;
 }
-.plan__card:hover { background: rgba(255, 255, 255, 0.04); }
-.plan__card--active { border-color: var(--c-tertiary-400, #0095d9); background: rgba(0, 149, 217, 0.06); }
-.plan__content { flex: 1; }
-.plan__header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.plan__name { font-size: 0.95rem; font-weight: 600; color: rgba(255, 255, 255, 0.9); margin: 0; }
+
+.plan__card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.plan__card--active {
+    border-color: var(--c-tertiary-400, #0095d9);
+    background: rgba(0, 149, 217, 0.06);
+}
+
+.plan__content {
+    flex: 1;
+}
+
+.plan__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.plan__name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
 .plan__badge {
-    display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
-    border-radius: 10px; background: var(--c-tertiary-400, #0095d9); color: #fff;
-    font-size: 0.675rem; font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: var(--c-tertiary-400, #0095d9);
+    color: #fff;
+    font-size: 0.675rem;
+    font-weight: 600;
 }
-.plan__details { display: flex; gap: 16px; flex-wrap: wrap; }
-.plan__detail { display: flex; align-items: center; gap: 6px; font-size: 0.775rem; color: rgba(255, 255, 255, 0.45); }
-.plan__id { font-family: monospace; }
-.plan__actions { flex-shrink: 0; }
+
+.plan__details {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.plan__detail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.775rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.plan__id {
+    font-family: monospace;
+}
+
+.plan__actions {
+    flex-shrink: 0;
+}
+
 .plan__btn {
-    display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
-    border-radius: 6px; background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.65);
-    font-size: 0.825rem; font-weight: 500; cursor: pointer; transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.825rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
-.plan__btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.9); }
-.plan__btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.plan__btn--active { background: var(--c-tertiary-400, #0095d9); border-color: var(--c-tertiary-400, #0095d9); color: #fff; }
 
-.subscriptions-admin__divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; }
-.subscriptions-admin__divider::before, .subscriptions-admin__divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.06); }
-.subscriptions-admin__divider-text { font-size: 0.8rem; color: rgba(255, 255, 255, 0.4); white-space: nowrap; }
+.plan__btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+}
 
-.subscriptions-admin__form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.subscriptions-admin__form-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+.plan__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.plan__btn--active {
+    background: var(--c-tertiary-400, #0095d9);
+    border-color: var(--c-tertiary-400, #0095d9);
+    color: #fff;
+}
+
+.subscriptions-admin__divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.subscriptions-admin__divider::before,
+.subscriptions-admin__divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.subscriptions-admin__divider-text {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+}
+
+.subscriptions-admin__provider-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.subscriptions-admin__form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.subscriptions-admin__form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.subscriptions-admin__info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.subscriptions-admin__info-icon {
+    color: var(--c-tertiary-400, #0095d9);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.subscriptions-admin__info-content {
+    flex: 1;
+}
+
+.subscriptions-admin__info-content h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 8px 0;
+}
+
+.subscriptions-admin__info-content p {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    line-height: 1.5;
+}
 
 .subscriptions-admin__btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 8px 16px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.65);
-    font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
 }
-.subscriptions-admin__btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.9); }
-.subscriptions-admin__btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.subscriptions-admin__btn--primary { background: var(--c-tertiary-400, #0095d9); border-color: var(--c-tertiary-400, #0095d9); color: #fff; }
-.subscriptions-admin__btn--primary:hover:not(:disabled) { background: var(--c-tertiary-300, #00a8f0); }
-.subscriptions-admin__btn--spinning { animation: spin 1s linear infinite; }
+
+.subscriptions-admin__btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.subscriptions-admin__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.subscriptions-admin__btn--primary {
+    background: var(--c-tertiary-400, #0095d9);
+    border-color: var(--c-tertiary-400, #0095d9);
+    color: #fff;
+}
+
+.subscriptions-admin__btn--primary:hover:not(:disabled) {
+    background: var(--c-tertiary-300, #00a8f0);
+}
+
+.subscriptions-admin__btn--spinning {
+    animation: spin 1s linear infinite;
+}
 
 .subscriptions-admin__error {
-    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
-    border-radius: 8px; background: rgba(255, 120, 120, 0.08);
-    border: 1px solid rgba(255, 120, 120, 0.2); color: #ff9494; font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: rgba(255, 120, 120, 0.08);
+    border: 1px solid rgba(255, 120, 120, 0.2);
+    color: #ff9494;
+    font-size: 0.85rem;
 }
+
 .subscriptions-admin__error-close {
-    margin-left: auto; display: flex; align-items: center; justify-content: center;
-    padding: 4px; border-radius: 4px; background: transparent; border: none;
-    color: rgba(255, 148, 148, 0.7); cursor: pointer; transition: all 0.15s ease;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: rgba(255, 148, 148, 0.7);
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
-.subscriptions-admin__error-close:hover { background: rgba(255, 120, 120, 0.15); color: #ff9494; }
+
+.subscriptions-admin__error-close:hover {
+    background: rgba(255, 120, 120, 0.15);
+    color: #ff9494;
+}
 
 /* ── Logs ───────────────────────────────────────────────────────────── */
-.subscriptions-admin__logs { display: flex; flex-direction: column; gap: 10px; }
+.subscriptions-admin__logs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .log__item {
-    background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 8px; padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
 }
+
 .log__header {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
 }
+
 .log__provider {
-    padding: 2px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; background: rgba(255,255,255,0.1); color: #ddd;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ddd;
 }
-.log__provider--mercado_pago { background: rgba(0, 158, 227, 0.2); color: #009ee3; }
-.log__provider--lemon_squeezy { background: rgba(142, 67, 231, 0.2); color: #8e43e7; }
-.log__event { font-weight: 500; color: #fff; }
-.log__date { color: rgba(255, 255, 255, 0.4); margin-left: auto; }
-.log__status { font-family: monospace; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
-.status-ok { background: rgba(30, 192, 138, 0.1); color: #1ec08a; }
-.status-err { background: rgba(255, 120, 120, 0.1); color: #ff7878; }
+
+.log__provider--mercado_pago {
+    background: rgba(0, 158, 227, 0.2);
+    color: #009ee3;
+}
+
+.log__provider--lemon_squeezy {
+    background: rgba(142, 67, 231, 0.2);
+    color: #8e43e7;
+}
+
+.log__event {
+    font-weight: 500;
+    color: #fff;
+}
+
+.log__date {
+    color: rgba(255, 255, 255, 0.4);
+    margin-left: auto;
+}
+
+.log__status {
+    font-family: monospace;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: inline-block;
+}
+
+.status-ok {
+    background: rgba(30, 192, 138, 0.1);
+    color: #1ec08a;
+}
+
+.status-err {
+    background: rgba(255, 120, 120, 0.1);
+    color: #ff7878;
+}
+
 .log__details summary {
-    font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); cursor: pointer; padding: 4px 0; outline: none;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 4px 0;
+    outline: none;
 }
+
 .log__pre {
-    margin: 8px 0 0; padding: 12px; background: rgba(0, 0, 0, 0.4); border-radius: 6px;
-    font-family: monospace; font-size: 0.75rem; color: #ccc; overflow-x: auto;
+    margin: 8px 0 0;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #ccc;
+    overflow-x: auto;
+}
+
+/* ── Manual Subscription ───────────────────────────────────────────── */
+.subscriptions-admin__manual-section {
+    margin-bottom: 8px;
+}
+
+.subscriptions-admin__manual-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.15s ease;
+}
+
+.subscriptions-admin__manual-toggle:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+.subscriptions-admin__manual-form {
+    margin-top: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    background: rgba(0, 200, 83, 0.03);
+    border: 1px solid rgba(0, 200, 83, 0.12);
+}
+
+.subscriptions-admin__user-results {
+    margin-top: 4px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.subscriptions-admin__user-result {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.subscriptions-admin__user-result:hover,
+.subscriptions-admin__user-result--selected {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.subscriptions-admin__user-result-name {
+    font-weight: 600;
+    color: #fff;
+}
+
+.subscriptions-admin__user-result-email {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.subscriptions-admin__user-selected {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(30, 192, 138, 0.1);
+    color: #1ec08a;
+    font-size: 0.85rem;
+}
+
+.subscriptions-admin__user-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 2px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.subscriptions-admin__user-clear:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
 }
 
 @media (max-width: 1024px) {
-    .subscriptions-admin__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .subscriptions-admin__filters, .subscriptions-admin__form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .subscriptions-admin__stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .subscriptions-admin__filters,
+    .subscriptions-admin__form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
+
 @media (max-width: 767px) {
-    .subscriptions-admin { padding: 16px 12px; }
-    .subscriptions-admin__header, .subscriptions-admin__card-header, .subscription__header { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .subscriptions-admin__actions, .subscriptions-admin__btn, .plan__actions, .plan__btn { width: 100%; justify-content: center; }
-    .subscriptions-admin__stats, .subscriptions-admin__filters, .subscriptions-admin__form-grid { grid-template-columns: 1fr; }
-    .plan__card { flex-direction: column; align-items: flex-start; }
+    .subscriptions-admin {
+        padding: 16px 12px;
+    }
+
+    .subscriptions-admin__header,
+    .subscriptions-admin__card-header,
+    .subscription__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .subscriptions-admin__actions,
+    .subscriptions-admin__btn,
+    .plan__actions,
+    .plan__btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .subscriptions-admin__stats,
+    .subscriptions-admin__filters,
+    .subscriptions-admin__form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .plan__card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 </style>

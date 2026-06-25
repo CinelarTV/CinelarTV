@@ -14,22 +14,25 @@ class BaseUploader < CarrierWave::Uploader::Base
       Rails.logger.info("Using local file storage for uploads")
       storage :file
     else
-      Rails.logger.info("Using S3 for uploads")
+      Rails.logger.info("Using S3-compatible storage for uploads")
       storage :aws
-      # Set the endpoint to the SiteSetting if it exists, otherwise use the default endpoint for the region
-      @endpoint = SiteSetting.s3_endpoint || "https://s3.#{SiteSetting.s3_region}.amazonaws.com"
-      @cdn_url = ""
-      @cdn_url = (SiteSetting.cdn_url if SiteSetting.cdn_enabled && SiteSetting.cdn_url)
+
+      # Build endpoint (empty for AWS standard, custom for S3-compatible services)
+      endpoint = SiteSetting.s3_endpoint.presence
+
+      # Build asset_host with priority: CDN URL > S3 Endpoint > nil (AWS standard)
+      asset_host = build_asset_host
+
       configure do |config|
         config.aws_credentials = {
           access_key_id: SiteSetting.s3_access_key_id,
           secret_access_key: SiteSetting.s3_secret_access_key,
           region: SiteSetting.s3_region || "us-east-1",
-          endpoint: @endpoint
+          endpoint: endpoint
         }
         config.aws_bucket = SiteSetting.s3_bucket || "cinelartv"
         config.aws_acl = "public-read"
-        config.asset_host = @cdn_url
+        config.asset_host = asset_host
       end
     end
   end
@@ -75,6 +78,16 @@ class BaseUploader < CarrierWave::Uploader::Base
     raise CarrierWave::IntegrityError, "GIF contains too many frames. Max frame count allowed is #{FRAME_MAX}."
   end
 
+  def self.build_asset_host
+    # Priority: CDN URL > S3 Endpoint > nil (AWS standard)
+    if SiteSetting.cdn_enabled && SiteSetting.cdn_url.present?
+      SiteSetting.cdn_url
+    elsif SiteSetting.s3_endpoint.present?
+      SiteSetting.s3_endpoint
+    else
+      nil # Let carrierwave-aws use AWS standard endpoint
+    end
+  end
 
   configure_storage
 end

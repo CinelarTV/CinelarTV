@@ -1,6 +1,6 @@
 import { defineComponent, ref, computed, PropType, watch, getCurrentInstance } from 'vue';
 import { Switch, SwitchGroup } from '@headlessui/vue';
-import { UploadCloud, X } from 'lucide-vue-next';
+import { UploadCloud, X, RefreshCw } from 'lucide-vue-next';
 import { ajax } from '../../../lib/Ajax';
 import { toast } from 'vue-sonner';
 import CColorPicker from '@/components/forms/c-color-picker.vue';
@@ -159,6 +159,26 @@ export default defineComponent({
             }
         };
 
+        const testStorageConnection = async () => {
+            try {
+                const response = await ajax.post('/admin/site_settings/test_connection.json');
+
+                if (response.data.success) {
+                    toast(response.data.message || 'Connection successful', {
+                        class: ['c-notifier', 'success']
+                    });
+                } else {
+                    toast(response.data.error || 'Connection failed', {
+                        class: ['c-notifier', 'error']
+                    });
+                }
+            } catch (error) {
+                toast($t('js.core.generic_error') || 'Error testing connection', {
+                    class: ['c-notifier', 'error']
+                });
+            }
+        };
+
         watch(
             () => props.settingsData,
             (newData) => {
@@ -192,11 +212,24 @@ export default defineComponent({
                     <h2 class="settings-panel__title">
                         {$t(`js.admin.settings.categories.${category.value}`) || category.value}
                     </h2>
-                    {modifiedKeys.value.size > 0 && (
-                        <span class="settings-panel__badge">
-                            {modifiedKeys.value.size} cambio{modifiedKeys.value.size > 1 ? 's' : ''}
-                        </span>
-                    )}
+                    <div class="settings-panel__header-actions">
+                        {category.value === 'storage' && (
+                            <button
+                                type="button"
+                                onClick={testStorageConnection}
+                                class="settings-panel__test-btn"
+                                title={$t('js.admin.settings.test_connection') || 'Test Connection'}
+                            >
+                                <RefreshCw size={16} />
+                                <span>{$t('js.admin.settings.test_connection') || 'Test Connection'}</span>
+                            </button>
+                        )}
+                        {modifiedKeys.value.size > 0 && (
+                            <span class="settings-panel__badge">
+                                {modifiedKeys.value.size} cambio{modifiedKeys.value.size > 1 ? 's' : ''}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <form onSubmit={updateSettings} class="settings-panel__form">

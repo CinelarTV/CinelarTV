@@ -4,21 +4,15 @@
 class SiteSetting < RailsSettings::Base
   class << self
     def load_settings
-      settings_yaml = Rails.root.join("config", "site_settings.yml")
-      return unless File.exist?(settings_yaml)
+      settings = load_yaml_files("config", "site_settings.yml")
+      settings ||= load_yaml_files("config", "settings.yml")
 
-      settings = YAML.load_file(settings_yaml)
+      return unless settings
 
-      # Merge de settings de plugins
-      Dir.glob(Rails.root.join("plugins", "*", "config", "site_settings.yml")).each do |plugin_settings|
+      # Merge de settings de plugins (both naming conventions supported)
+      Dir.glob(Rails.root.join("plugins", "*", "config", "{settings,site_settings}.yml")).each do |plugin_settings|
         plugin_yaml = YAML.load_file(plugin_settings)
-        # Si el plugin no tiene categoría, lo mete bajo 'plugins'
-        if plugin_yaml.is_a?(Hash) && !plugin_yaml.keys.first.is_a?(String)
-          plugin_yaml = { 'plugins' => plugin_yaml }
-        elsif plugin_yaml.is_a?(Hash) && (plugin_yaml.keys & settings.keys).empty?
-          # Si no hay colisión de categorías, lo mete bajo 'plugins'
-          plugin_yaml = { 'plugins' => plugin_yaml } unless plugin_yaml.keys.include?('plugins')
-        end
+        plugin_yaml = { 'plugins' => plugin_yaml } if plugin_yaml.is_a?(Hash) && !plugin_yaml.keys.first.is_a?(String)
         settings.deep_merge!(plugin_yaml) if plugin_yaml
       end
 
@@ -71,7 +65,18 @@ class SiteSetting < RailsSettings::Base
       send(key)
     end
 
+    # This is an alias for base_url
+    def site_url
+      base_url
+    end
+
     private
+
+    def load_yaml_files(*segments)
+      path = Rails.root.join(*segments)
+      return nil unless File.exist?(path)
+      YAML.load_file(path)
+    end
 
     def default_waiting_on_first_user_value
       !User.exists?

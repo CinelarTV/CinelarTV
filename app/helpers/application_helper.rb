@@ -64,9 +64,12 @@ module ApplicationHelper
   def build_user_data
     return nil unless current_user
 
+    is_admin_page = request.path.start_with?("/admin")
+
     CurrentUserSerializer.new(current_user, {
-      include_profiles: true,
-      current_profile_id: session[:current_profile_id]
-    }).serializable_hash
+                                include_profiles: !is_admin_page,
+                                include_subscription: !is_admin_page,
+                                current_profile_id: session[:current_profile_id]
+                              }).serializable_hash
   end
 end

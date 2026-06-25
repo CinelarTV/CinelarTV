@@ -261,29 +261,54 @@ module Admin
 
     def process_image(type)
       image_value = @content.send(type)
-      uploader = ContentImageUploader.new(type: type)
 
       if image_value&.starts_with?("tmdb://")
-        download_tmdb_image(uploader, image_value)
+        download_tmdb_image(type, image_value)
       else
-        uploader.store!(params[:content][type])
+        # Save uploaded file to temp location and enqueue Sidekiq job
+        temp_file = save_temp_file(params[:content][type])
+        ImageProcessingJob.perform_async("Content", @content.id, type.to_s, temp_file)
       end
-
-      @content.send("#{type}=", uploader.url)
-      Rails.logger.info("#{type.to_s.capitalize} URL: #{uploader.url}")
     end
 
-    def download_tmdb_image(uploader, image_value)
+    def download_tmdb_image(type, image_value)
       tmdb_id = image_value.sub("tmdb://", "")
       url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
-      uploader.download!(url)
-      uploader.store!
+
+      # Download to temp file
+      temp_file = download_to_temp_file(url)
+      ImageProcessingJob.perform_async("Content", @content.id, type.to_s, temp_file)
+    end
+
+    def save_temp_file(uploaded_file)
+      temp_dir = Rails.root.join("tmp", "uploads")
+      FileUtils.mkdir_p(temp_dir)
+      
+      temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_#{uploaded_file.original_filename}")
+      File.open(temp_file, "wb") do |f|
+        f.write(uploaded_file.read)
+      end
+      
+      temp_file
+    end
+
+    def download_to_temp_file(url)
+      temp_dir = Rails.root.join("tmp", "uploads")
+      FileUtils.mkdir_p(temp_dir)
+      
+      temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_downloaded_image")
+      URI.open(url) do |downloaded_file|
+        File.open(temp_file, "wb") do |f|
+          f.write(downloaded_file.read)
+        end
+      end
+      
+      temp_file
     end
 
     def process_episode_thumbnail
-      uploader = ContentImageUploader.new(type: :episode_thumbnail)
-      uploader.store!(params[:thumbnail])
-      @episode.thumbnail = uploader.url
+      temp_file = save_temp_file(params[:thumbnail])
+      ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
     end
 
     def reorder_records(relation, order_array)

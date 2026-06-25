@@ -103,14 +103,13 @@ module Api
             new_token = create_oauth_token(owner)
 
             if new_token
-              # Copy profile cache from old token to new token so client keeps selected profile after refresh
+              # Copy current_profile_id from old token to new token so client keeps selected profile after refresh
               begin
-                old_profile_id = Rails.cache.read("profile_#{token.token}")
-                if old_profile_id.present?
-                  Rails.cache.write("profile_#{new_token.token}", old_profile_id, expires_in: 24.hours)
+                if token.current_profile_id.present?
+                  new_token.update_column(:current_profile_id, token.current_profile_id)
                 end
               rescue => e
-                Rails.logger.error "[API Auth#refresh] Failed to copy profile cache: #{e.class} - #{e.message}"
+                Rails.logger.error "[API Auth#refresh] Failed to copy current_profile_id: #{e.class} - #{e.message}"
               end
 
               # Revoke old token
@@ -376,21 +375,17 @@ module Api
 
       # Get stored profile ID for token
       def get_current_profile_id(token)
-        Rails.cache.read("profile_#{token.token}")
+        token.current_profile_id
       end
 
       # Set profile ID for token
       def set_current_profile_id(token, profile_id)
-        Rails.cache.write(
-          "profile_#{token.token}",
-          profile_id,
-          expires_in: 24.hours
-        )
+        token.update_column(:current_profile_id, profile_id)
       end
 
-      # Clear profile cache
+      # Clear profile from token
       def clear_profile_cache(token)
-        Rails.cache.delete("profile_#{token.token}")
+        token.update_column(:current_profile_id, nil)
       end
 
       # Serialize helpers

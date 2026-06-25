@@ -26,15 +26,18 @@ module PluginRegistry
       end
     end
 
+    REGISTER_TYPES = {
+      javascripts: Set,
+      stylesheets: {},
+      seed_data: ActiveSupport::HashWithIndifferentAccess,
+    }.freeze
+
     def clear_all
       instance_variables.each do |var|
         if var.to_s.start_with?('@_raw_')
           instance_variable_set(var, [])
-        elsif var.to_s.start_with?('@')
-          instance_variable_set(var, var.to_s.include?('javascripts') ? Set.new : 
-                                           var.to_s.include?('stylesheets') ? {} :
-                                           var.to_s.include?('seed_data') ? ActiveSupport::HashWithIndifferentAccess.new :
-                                           nil)
+        elsif (type = REGISTER_TYPES[var.to_s.delete("@").to_sym])
+          instance_variable_set(var, type.dup)
         end
       end
     end

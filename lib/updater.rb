@@ -3,6 +3,7 @@
 # lib/update.rb
 
 require "io/wait"
+require "open3"
 
 module CinelarTV
   module Updater
@@ -107,7 +108,7 @@ module CinelarTV
       pid = Process.pid
       log("")
       log("********************************************************")
-      log("***  CinelarTV Restart - This may take un par de minutos  ***")
+      log("***  CinelarTV Restart - This may take a couple of minutes  ***")
       log("********************************************************")
       log("")
       log("=> Puma PID: #{pid}")
@@ -120,9 +121,9 @@ module CinelarTV
     end
 
     def self.run_update
-     unless CinelarTV.is_git_repo?
-      log("Not a Git repository. Attempting to fix...")
-      
+      unless CinelarTV.is_git_repo?
+        log("Not a Git repository. Attempting to fix...")
+
         unless try_to_fix_git_repo
           publish("status", "failed")
           log("Update failed: Could not initialize Git repository.")
@@ -161,8 +162,8 @@ module CinelarTV
         run("git fetch origin test-passed")
         percent(25)
         log("*** Installing Ruby Gems ***")
-        run("bundle install --retry 3 --jobs 4")
         run("bundle config set --local without 'development test'")
+        run("bundle install --retry 3 --jobs 4")
         percent(30)
         log("*** Installing node modules ***")
         run("pnpm install --prefer-offline --no-audit")

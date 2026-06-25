@@ -139,6 +139,13 @@
     margin-bottom: 20px;
 }
 
+.settings-panel__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
 .settings-panel__title {
     font-size: 1.25rem;
     font-weight: 600;
@@ -153,6 +160,37 @@
     color: #fff;
     font-size: 0.7rem;
     font-weight: 600;
+}
+
+.settings-panel__test-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.settings-panel__test-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.settings-panel__test-btn span {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .settings-panel__test-btn span {
+        display: inline;
+    }
 }
 
 .settings-panel__form {

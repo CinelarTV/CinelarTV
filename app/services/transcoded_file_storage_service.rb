@@ -61,7 +61,7 @@ class TranscodedFileStorageService
       access_key_id: SiteSetting.s3_access_key_id,
       secret_access_key: SiteSetting.s3_secret_access_key,
       region: SiteSetting.s3_region || 'us-east-1',
-      endpoint: SiteSetting.s3_endpoint
+      endpoint: SiteSetting.s3_endpoint.presence
     )
 
     bucket = SiteSetting.s3_bucket
@@ -87,13 +87,8 @@ class TranscodedFileStorageService
     # Clean up local source directory after successful S3 upload
     FileUtils.rm_rf(source_dir)
 
-    # Build base URL
-    cdn_url = SiteSetting.cdn_enabled ? SiteSetting.cdn_url : nil
-    base_url = if cdn_url
-                 "#{cdn_url}/#{base_path}"
-               else
-                 "https://#{bucket}.s3.#{SiteSetting.s3_region}.amazonaws.com/#{base_path}"
-               end
+    # Build base URL with priority: CDN > S3 Endpoint > AWS Standard
+    base_url = build_base_url(bucket, base_path)
 
     { success: true, base_url: base_url }
   rescue StandardError => e
@@ -117,7 +112,7 @@ class TranscodedFileStorageService
       access_key_id: SiteSetting.s3_access_key_id,
       secret_access_key: SiteSetting.s3_secret_access_key,
       region: SiteSetting.s3_region || 'us-east-1',
-      endpoint: SiteSetting.s3_endpoint
+      endpoint: SiteSetting.s3_endpoint.presence
     )
 
     bucket = SiteSetting.s3_bucket
@@ -138,5 +133,17 @@ class TranscodedFileStorageService
     end
   rescue StandardError => e
     Rails.logger.error "Error cleaning up S3 transcoded files: #{e.message}"
+  end
+
+  def self.build_base_url(bucket, base_path)
+    # Priority: CDN URL > S3 Endpoint > AWS Standard
+    if SiteSetting.cdn_enabled && SiteSetting.cdn_url.present?
+      "#{SiteSetting.cdn_url}/#{base_path}"
+    elsif SiteSetting.s3_endpoint.present?
+      "#{SiteSetting.s3_endpoint}/#{bucket}/#{base_path}"
+    else
+      # AWS standard endpoint
+      "https://#{bucket}.s3.#{SiteSetting.s3_region || 'us-east-1'}.amazonaws.com/#{base_path}"
+    end
   end
 end

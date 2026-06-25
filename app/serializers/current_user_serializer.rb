@@ -10,16 +10,20 @@ class CurrentUserSerializer < ApplicationSerializer
              :username,
              :customer_id,
              :created_at,
-             :updated_at,
-             :is_subscribed,
-             :subscription
+             :updated_at
 
+  attribute :is_subscribed, if: :include_subscription?
+  attribute :subscription, if: :include_subscription?
   attribute :profiles, if: :include_profiles?
   attribute :current_profile, if: :include_profiles?
   attribute :admin
 
   def include_profiles?
     @options[:include_profiles]
+  end
+
+  def include_subscription?
+    @options.fetch(:include_subscription, true)
   end
 
   def current_profile

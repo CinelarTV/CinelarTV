@@ -52,6 +52,10 @@ Doorkeeper.configure do
   # Generar refresh tokens
   use_refresh_token
 
+  # Token TTLs — reducen frecuencia de 401 en clientes móviles
+  # Antes: default 2h (Doorkeeper default)
+  access_token_expires_in 30.days
+
   # Permitir URIs de redirección en blanco (ej: para device_code)
   allow_blank_redirect_uri true
 

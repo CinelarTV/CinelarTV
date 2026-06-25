@@ -142,9 +142,9 @@ Rails.application.routes.draw do
   end
 
   # Load plugin routes
-  Dir.glob(Rails.root.join("plugins", "*", "config", "routes.rb")).each do |plugin_routes_file|
-    instance_eval(File.read(plugin_routes_file))
-  end
+  #Dir.glob(Rails.root.join("plugins", "*", "config", "routes.rb")).each do |plugin_routes_file|
+  #  instance_eval(File.read(plugin_routes_file))
+  #end
 
   # Explicit 404 routes so the catch-all does not swallow them
   get "/404", to: "exceptions#not_found"

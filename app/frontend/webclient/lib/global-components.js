@@ -25,7 +25,7 @@ const Components = [
     },
     {
         name: 'plugin-outlet',
-        component: () => import('../components/plugin-outlet.vue')
+        component: () => import('../components/PluginOutlet.tsx')
     },
     {
         name: 'c-icon-button',

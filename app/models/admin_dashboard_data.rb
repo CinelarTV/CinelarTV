@@ -7,6 +7,10 @@ class AdminDashboardData
   end
 
   def problems
+    cache_key = "admin_dashboard_problems_#{I18n.locale}"
+    cached = Rails.cache.read(cache_key)
+    return cached if cached
+
     # Agrega los problemas verificados por símbolos a la lista de problemas
     problem_syms.each do |sym|
       send(sym)
@@ -29,7 +33,9 @@ class AdminDashboardData
       )
     end
 
-    @problems.sort_by { |p| [p[:type] == "critical" ? 0 : 1, p[:type] == "info" ? 2 : 1] }
+    result = @problems.sort_by { |p| [p[:type] == "critical" ? 0 : 1, p[:type] == "info" ? 2 : 1] }
+    Rails.cache.write(cache_key, result, expires_in: 5.minutes)
+    result
   end
 
   def problem_syms
