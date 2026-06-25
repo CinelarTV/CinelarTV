@@ -296,14 +296,17 @@ module Admin
     def download_to_temp_file(url)
       temp_dir = Rails.root.join("tmp", "uploads")
       FileUtils.mkdir_p(temp_dir)
-      
-      temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_downloaded_image")
+
+      ext = File.extname(URI.parse(url).path).delete(".")
+      ext = "jpg" if ext.blank?
+
+      temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_downloaded_image.#{ext}")
       URI.open(url) do |downloaded_file|
         File.open(temp_file, "wb") do |f|
           f.write(downloaded_file.read)
         end
       end
-      
+
       temp_file
     end
 
