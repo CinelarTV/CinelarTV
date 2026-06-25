@@ -8,7 +8,7 @@ rails_version = "7.2.0"
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem "dotenv", groups: %i[development test]
+gem "dotenv" #, groups: %i[development test]
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "actionmailer", rails_version
