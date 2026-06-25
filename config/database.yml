@@ -1,49 +1,48 @@
-# SQLite. Versions 3.8.0 and up are supported.
-#   gem install sqlite3
-#
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem "sqlite3"
-#
+<%
+  db_url = ENV['CINELAR_DB_URL']
+  if db_url
+    uri = URI.parse(db_url)
+    db_name = uri.path.delete('/')
+    db_host = uri.host
+    db_port = uri.port || 5432
+    db_user = uri.user || 'cinelar'
+    db_pass = uri.password || 'cinelar'
+  else
+    db_name = ENV['CINELAR_DB'] || 'cinelar'
+    db_host = ENV['CINELAR_DB_HOSTNAME'] || 'localhost'
+    db_user = ENV['CINELAR_DB_USERNAME'] || 'cinelar'
+    db_pass = ENV['CINELAR_DB_PASSWORD'] || 'cinelar'
+    db_port = ENV['CINELAR_DB_PORT'] || 5432
+  end
+%>
+
 default: &default
-  adapter: sqlite3
+  adapter: postgresql
+  encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
 
 development:
   <<: *default
-  adapter: postgresql
-  encoding: unicode
-  database: <%= ENV['CINELAR_DB'] || 'cinelar' %>
-  host: <%= ENV['CINELAR_DB_HOSTNAME'] || 'localhost' %>
-  username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
-  password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
-  port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
-  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
+  database: <%= db_name %>
+  host: <%= db_host %>
+  username: <%= db_user %>
+  password: <%= db_pass %>
+  port: <%= db_port %>
 
-
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
 test:
   <<: *default
-  adapter: postgresql
-  database: <%= ENV['CINELAR_DB'] || 'cinelar_test' %>
-  host: <%= ENV['CINELAR_DB_HOSTNAME'] || 'localhost' %>
-  username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
-  password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
-  port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
-  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
-
-
+  database: <%= db_name %>_test
+  host: <%= db_host %>
+  username: <%= db_user %>
+  password: <%= db_pass %>
+  port: <%= db_port %>
 
 production:
   <<: *default
-  adapter: postgresql
-  encoding: unicode
-  database: <%= ENV['CINELAR_DB'] || 'cinelar' %>
-  host: <%= ENV['CINELAR_DB_HOSTNAME'] || 'localhost' %>
-  username: <%= ENV['CINELAR_DB_USERNAME'] || 'cinelar' %>
-  password: <%= ENV['CINELAR_DB_PASSWORD'] || 'cinelar' %>
-  port: <%= ENV['CINELAR_DB_PORT'] || 5432 %>
-  sslmode: <%= ENV['CINELAR_DB_SSL_MODE'] || 'prefer' %>
+  database: <%= db_name %>
+  host: <%= db_host %>
+  username: <%= db_user %>
+  password: <%= db_pass %>
+  port: <%= db_port %>
 
