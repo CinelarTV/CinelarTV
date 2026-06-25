@@ -110,7 +110,8 @@ class User < ApplicationRecord
     allowed_emails = SiteSetting.developer_emails.split(",").map(&:strip)
     return false unless allowed_emails.include?(email)
 
-    add_role(:admin) # Add admin role to the user
+    skip_confirmation!
+    add_role(:admin)
   end
 
   def create_main_profile
