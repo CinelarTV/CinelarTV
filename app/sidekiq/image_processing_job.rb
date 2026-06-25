@@ -4,9 +4,18 @@ class ImageProcessingJob
   include Sidekiq::Job
 
   def perform(model_class, model_id, image_type, temp_file_path)
+    unless File.exist?(temp_file_path)
+      Rails.logger.error("ImageProcessingJob: temp file missing, skipping: #{temp_file_path}")
+      return
+    end
+
     model = model_class.constantize.find(model_id)
     image_type_sym = image_type.to_sym
     uploader = ContentImageUploader.new(model, nil, type: image_type_sym)
+
+    # Ensure store directory exists
+    store_path = Rails.root.join("public", uploader.store_dir)
+    FileUtils.mkdir_p(store_path)
 
     # Clean up old image if it exists
     cleanup_old_image(model, image_type_sym)
@@ -29,11 +38,12 @@ class ImageProcessingJob
 
     # Clean up temp file
     cleanup_temp_file(temp_file_path)
-  rescue StandardError => e
-    Rails.logger.error("Image processing failed: #{e.message}")
-    Rails.logger.error(e.backtrace.join("\n"))
-    # Clean up temp file on error
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error("ImageProcessingJob: record not found, not retrying: #{e.message}")
     cleanup_temp_file(temp_file_path)
+  rescue StandardError => e
+    Rails.logger.error("ImageProcessingJob failed: #{e.message}")
+    Rails.logger.error(e.backtrace.join("\n"))
     raise e
   end
 

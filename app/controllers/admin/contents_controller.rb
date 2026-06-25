@@ -23,20 +23,21 @@ module Admin
     def create
       @content = Content.new(content_params)
       @content.available = false
+      @content.save!
 
       ActiveRecord::Base.transaction do
         handle_uploaded_images
-        
+
         # Auto-assign categories from TMDB if enabled and category_ids not provided manually
         if SiteSetting.enable_category_auto_assignment && params[:tmdb_genre_ids].present? && content_params[:category_ids].blank?
           assign_categories_from_tmdb(params[:tmdb_genre_ids])
         end
-        
+
         # Auto-assign tmdb_id if provided and not set manually
         if params[:tmdb_id].present? && content_params[:tmdb_id].blank?
           @content.tmdb_id = params[:tmdb_id]
         end
-        
+
         @content.save!
         render json: { message: "Content created successfully", status: :ok }
       end
