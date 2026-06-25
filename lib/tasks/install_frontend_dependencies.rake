@@ -10,7 +10,7 @@ namespace :assets do
     end
     Rails.logger.info "Node.js #{node_version} detected"
 
-    # Detect pnpm (v6+) — redirect stderr to /dev/null to avoid mixing warnings into version string
+    # Detect pnpm (v6+)
     pnpm_version = `pnpm --version 2>/dev/null`.strip
     unless $?.success? && pnpm_version.match?(/^\d+\.\d+/)
       raise "pnpm is not installed or not in PATH. Install it with: npm install -g pnpm (detected: '#{pnpm_version}')"
@@ -22,8 +22,19 @@ namespace :assets do
     end
     Rails.logger.info "pnpm v#{pnpm_version} detected"
 
+    # Adjust build environment based on available Node.js heap memory
+    build_env = {}
+
+    heap_mb = `node -e "console.log(v8.getHeapStatistics().heap_size_limit/1024/1024)" 2>/dev/null`.to_f
+
+    if heap_mb > 0 && heap_mb < 2048
+      Rails.logger.warn "Node.js heap_size_limit is #{heap_mb.round}MB (<2048MB). " \
+                        "Setting --max-old-space-size=2048, CHEAP_SOURCE_MAPS=1 and JOBS=1"
+      build_env["NODE_OPTIONS"]      = "--max_old_space_size=2048"
+    end
+
     # Install dependencies
-    unless system("pnpm install --frozen-lockfile")
+    unless system(build_env, "pnpm install --frozen-lockfile")
       raise "pnpm install --frozen-lockfile failed (exit code #{$?.exitstatus}). " \
             "Run 'pnpm install' locally and commit the updated lockfile."
     end
