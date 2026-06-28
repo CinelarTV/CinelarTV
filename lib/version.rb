@@ -7,7 +7,7 @@ module CinelarTV
         MAJOR = 0
         MINOR = 1
         TINY = 0
-        PRE = "beta2"
+        PRE = "beta4"
 
         FULL = [MAJOR, MINOR, TINY, PRE].compact.join(".")
       end
