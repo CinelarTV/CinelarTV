@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_04_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_28_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -37,6 +37,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_04_000001) do
     t.datetime "updated_at", null: false
     t.integer "tmdb_id"
     t.index ["tmdb_id"], name: "index_categories_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
+  end
+
+  create_table "content_analytics", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "content_id", null: false
+    t.integer "total_views", default: 0, null: false
+    t.float "total_seconds_watched", default: 0.0, null: false
+    t.integer "unique_profiles", default: 0, null: false
+    t.float "completion_rate", default: 0.0, null: false
+    t.float "avg_watch_percentage", default: 0.0, null: false
+    t.datetime "last_watched_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_content_analytics_on_content_id"
+    t.index ["last_watched_at"], name: "index_content_analytics_on_last_watched_at"
+    t.index ["total_views"], name: "index_content_analytics_on_total_views"
   end
 
   create_table "content_categories", force: :cascade do |t|
@@ -466,6 +481,27 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_04_000001) do
     t.index ["user_id"], name: "idx_watch_party_sessions_on_user_id"
   end
 
+  create_table "watch_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "profile_id", null: false
+    t.uuid "content_id", null: false
+    t.uuid "episode_id"
+    t.datetime "started_at", null: false
+    t.datetime "ended_at"
+    t.float "duration_watched", default: 0.0, null: false
+    t.float "total_duration", default: 0.0, null: false
+    t.boolean "completed", default: false, null: false
+    t.string "country_code"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["completed"], name: "index_watch_sessions_on_completed"
+    t.index ["content_id", "started_at"], name: "index_watch_sessions_on_content_id_and_started_at"
+    t.index ["content_id"], name: "index_watch_sessions_on_content_id"
+    t.index ["episode_id"], name: "index_watch_sessions_on_episode_id"
+    t.index ["profile_id", "started_at"], name: "index_watch_sessions_on_profile_id_and_started_at"
+    t.index ["profile_id"], name: "index_watch_sessions_on_profile_id"
+    t.index ["started_at"], name: "index_watch_sessions_on_started_at"
+  end
+
   create_table "webhook_logs", force: :cascade do |t|
     t.string "event_name"
     t.text "payload"
@@ -486,6 +522,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_04_000001) do
     t.index ["url"], name: "index_xmltv_sources_on_url", unique: true
   end
 
+  add_foreign_key "content_analytics", "contents"
   add_foreign_key "content_categories", "categories", on_delete: :cascade
   add_foreign_key "content_categories", "contents", on_delete: :cascade
   add_foreign_key "continue_watchings", "contents"
@@ -510,4 +547,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_04_000001) do
   add_foreign_key "watch_party_session_users", "watch_party_sessions", name: "fk_watch_party_session_users_session"
   add_foreign_key "watch_party_sessions", "users", column: "host_id", name: "fk_watch_party_sessions_host"
   add_foreign_key "watch_party_sessions", "users", name: "fk_watch_party_sessions_user"
+  add_foreign_key "watch_sessions", "contents"
+  add_foreign_key "watch_sessions", "episodes"
+  add_foreign_key "watch_sessions", "profiles"
 end

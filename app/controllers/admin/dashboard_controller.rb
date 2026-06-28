@@ -37,6 +37,8 @@ module Admin
         signups: "Signups",
         likes: "Likes",
         reproductions: "Reproductions",
+        watch_time: "Hours Watched",
+        completion_rate: "Completion Rate",
       }
 
       report_types[:user_subscriptions] = "User Subscriptions" if SiteSetting.enable_subscription
@@ -70,6 +72,18 @@ module Admin
           report.data = Report.report_user_subscriptions(report)
         when :reproductions
           report.data = Report.report_reproductions(report)
+        when :watch_time
+          report.labels = [
+            { type: :date, property: :x, title: "Day" },
+            { type: :number, property: :y, title: "Hours" },
+          ]
+          report.data = Report.report_watch_time(report)
+        when :completion_rate
+          report.labels = [
+            { type: :date, property: :x, title: "Day" },
+            { type: :number, property: :y, title: "Percentage" },
+          ]
+          report.data = Report.report_completion_rate(report)
         end
 
         @reports << report

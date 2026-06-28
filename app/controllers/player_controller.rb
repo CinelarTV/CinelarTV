@@ -63,6 +63,8 @@ class PlayerController < ApplicationController
       Rails.logger.error "Error saving reproduction: #{e.message}"
     end
 
+    create_watch_session(profile, ip_address) if request.format.json?
+
     respond_to do |format|
       format.html
       format.json { render_json_response(continue_watching) }
@@ -89,6 +91,8 @@ class PlayerController < ApplicationController
       duration: duration,
       last_watched_at: Time.current
     )
+
+    update_watch_session(profile, content_id, episode_id, progress, duration)
 
     head :no_content
   end
@@ -261,6 +265,67 @@ class PlayerController < ApplicationController
         }, status: :forbidden
       }
     end
+  end
+
+  def create_watch_session(profile, ip_address)
+    country_code = nil
+    if ip_address.present?
+      ip_info = IpInfo.lookup(ip_address)
+      country_code = ip_info[:country_code] if ip_info[:country_code].present?
+    end
+
+    total_duration = determine_total_duration
+
+    WatchSession.create!(
+      profile: profile,
+      content: @content,
+      episode: @episode,
+      started_at: Time.current,
+      duration_watched: 0,
+      total_duration: total_duration,
+      completed: false,
+      country_code: country_code
+    )
+  rescue StandardError => e
+    Rails.logger.error "Error creating watch session: #{e.message}"
+  end
+
+  def update_watch_session(profile, content_id, episode_id, progress, duration)
+    session = WatchSession.active
+      .where(profile: profile, content_id: content_id)
+      .where(episode_id: episode_id)
+      .order(started_at: :desc)
+      .first
+
+    return unless session
+
+    new_watched = progress.to_i
+    completed = duration > 0 && (new_watched.to_f / duration) >= 0.9
+
+    session.update!(
+      duration_watched: new_watched,
+      total_duration: duration,
+      completed: completed,
+      ended_at: completed ? Time.current : nil
+    )
+
+    recalculate_content_analytic(session) if completed
+  end
+
+  def determine_total_duration
+    return 0 unless @content
+
+    if @content.content_type == "TVSHOW" && @episode
+      @episode.duration || 0
+    else
+      @content.video_sources.maximum(:duration) || 0
+    end
+  end
+
+  def recalculate_content_analytic(session)
+    ContentAnalytic.recalculate!(session.content)
+  rescue StandardError => e
+    Rails.logger.error "Error recalculating content analytic: #{e.message}"
   end
 
   def render_content_not_found

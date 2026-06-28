@@ -11,6 +11,8 @@ class Content < ApplicationRecord
   has_many :content_categories
   has_many :categories, through: :content_categories
   has_many :reproductions, dependent: :destroy
+  has_many :watch_sessions, dependent: :destroy
+  has_one :content_analytic, dependent: :destroy
 
   def as_json(options = {})
     super(options.merge(only: %i[id title description banner cover content_type year available premium trailer_url tmdb_id]))

@@ -53,9 +53,43 @@ module Admin
     end
 
     def analytics
+      analytics = @content.content_analytic
+      recent_sessions = @content.watch_sessions
+        .includes(:profile)
+        .order(started_at: :desc)
+        .limit(20)
+
+      daily_watch_time = @content.watch_sessions
+        .where("started_at >= ?", 30.days.ago)
+        .group("DATE(started_at)")
+        .sum(:duration_watched)
+        .transform_values { |seconds| (seconds / 3600.0).round(2) }
+
       render json: {
         data: {
-          content: @content.as_json.merge(like_count: @content.liking_profiles.count)
+          content: @content.as_json.merge(like_count: @content.liking_profiles.count),
+          analytics: analytics&.as_json || {
+            total_views: 0,
+            total_seconds_watched: 0,
+            unique_profiles: 0,
+            completion_rate: 0.0,
+            avg_watch_percentage: 0.0,
+            last_watched_at: nil
+          },
+          daily_watch_time: daily_watch_time.map { |date, hours| { x: date.to_s, y: hours } },
+          recent_sessions: recent_sessions.map do |session|
+            {
+              id: session.id,
+              profile_name: session.profile&.username,
+              started_at: session.started_at,
+              ended_at: session.ended_at,
+              duration_watched: session.duration_watched,
+              total_duration: session.total_duration,
+              watch_percentage: session.watch_percentage,
+              completed: session.completed,
+              country_code: session.country_code
+            }
+          end
         }
       }
     end

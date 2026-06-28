@@ -118,7 +118,7 @@
                   </h2>
                 </div>
                 <admin-reports-chart v-if="statisticsData" :chartData="createChartData(statistic)"
-                  :chartOptions="chartOptions" />
+                  :chartOptions="statistic.type === 'completion_rate' ? completionRateChartOptions : chartOptions" />
               </div>
             </template>
           </div>
@@ -228,6 +228,22 @@ const chartOptions = {
       },
     },
 
+  }
+}
+
+const completionRateChartOptions = {
+  ...chartOptions,
+  scales: {
+    ...chartOptions.scales,
+    y: {
+      ...chartOptions.scales.y,
+      min: 0,
+      max: 100,
+      ticks: {
+        ...chartOptions.scales.y.ticks,
+        callback: (value) => `${value}%`
+      }
+    }
   }
 }
 

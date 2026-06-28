@@ -9,6 +9,8 @@ class Report
   include Reports::Signups
   include Reports::UserSubscriptions
   include Reports::Reproductions
+  include Reports::WatchTime
+  include Reports::CompletionRate
 
   attr_accessor :type, :data, :start_date, :end_date, :labels, :filters, :available_filters, :icon, :title
 
