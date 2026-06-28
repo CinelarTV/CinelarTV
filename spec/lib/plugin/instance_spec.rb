@@ -102,11 +102,13 @@ RSpec.describe Plugin::Instance do
 
     context 'when SiteSetting exists and responds to setting' do
       it 'returns SiteSetting value' do
-        allow(SiteSetting).to receive(:respond_to?).and_call_original
-        allow(SiteSetting).to receive(:respond_to?).with(:test_plugin_enabled).and_return(true)
-        allow(SiteSetting).to receive(:test_plugin_enabled).and_return(false)
+        SiteSetting.define_singleton_method(:test_plugin_enabled) { false }
         
-        expect(instance.enabled?).to be false
+        begin
+          expect(instance.enabled?).to be false
+        ensure
+          SiteSetting.singleton_class.undef_method(:test_plugin_enabled) rescue nil
+        end
       end
     end
 
@@ -165,6 +167,10 @@ RSpec.describe Plugin::Instance do
         include ActiveSupport::Callbacks
         
         define_callbacks :create
+        
+        def self.after_create(*args, **options, &block)
+          set_callback(:create, :after, *args, **options, &block)
+        end
         
         def self.create
           run_callbacks :create do

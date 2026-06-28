@@ -69,7 +69,11 @@ class EmailTemplateResolver
 
   def interpolate(string)
     return string if string.blank?
+    return string if @variables.empty?
 
-    string % @variables
+    string.gsub(VARIABLE_PATTERN) do
+      var_name = Regexp.last_match(1)
+      @variables[var_name.to_sym] || @variables[var_name] || $&
+    end
   end
 end
