@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
   modelValue: [String, File]
@@ -84,24 +84,29 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const fileInput = ref(null);
-const previewImage = ref(null);
 const isDragOver = ref(false);
 const isUploading = ref(false);
 
-// Sync previewImage with modelValue
-watch(() => props.modelValue, (newValue) => {
-  if (newValue instanceof File) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      previewImage.value = reader.result;
-    };
-    reader.readAsDataURL(newValue);
-  } else if (typeof newValue === 'string') {
-    previewImage.value = newValue;
-  } else {
-    previewImage.value = null;
+const isTmdbUrl = computed(() => {
+  return typeof props.modelValue === 'string' && props.modelValue?.startsWith('tmdb://');
+});
+
+const displaySrc = computed(() => {
+  if (!props.modelValue) return null;
+  if (props.modelValue instanceof File) return null;
+  if (isTmdbUrl.value) {
+    const path = props.modelValue.replace('tmdb://', '/');
+    return `https://image.tmdb.org/t/p/w500${path}`;
   }
-}, { immediate: true });
+  return props.modelValue;
+});
+
+const previewImage = computed(() => {
+  if (props.modelValue instanceof File) {
+    return URL.createObjectURL(props.modelValue);
+  }
+  return displaySrc.value;
+});
 
 const triggerFileInput = () => {
   fileInput.value?.click();
@@ -142,23 +147,11 @@ const processFile = (file) => {
 
   isUploading.value = true;
   
-  const reader = new FileReader();
-  reader.onload = () => {
-    previewImage.value = reader.result;
-    emit('update:modelValue', file);
-    isUploading.value = false;
-  };
-  
-  reader.onerror = () => {
-    console.error('Error al leer el archivo.');
-    isUploading.value = false;
-  };
-  
-  reader.readAsDataURL(file);
+  emit('update:modelValue', file);
+  isUploading.value = false;
 };
 
 const removeImage = () => {
-  previewImage.value = null;
   emit('update:modelValue', '');
   if (fileInput.value) {
     fileInput.value.value = '';

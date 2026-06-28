@@ -14,7 +14,7 @@
                     leave="duration-200 ease-in" leave-from="opacity-100 scale-100 translate-y-0"
                     leave-to="opacity-0 scale-95 translate-y-2">
                     <DialogPanel
-                        class="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl ring-1 ring-[var(--c-primary-200)] bg-[var(--c-primary-100)]"
+                        class="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl ring-1 ring-[var(--c-primary-400)] bg-[var(--c-primary-600)]"
                         @click.stop>
 
                         <!-- Header with progress -->

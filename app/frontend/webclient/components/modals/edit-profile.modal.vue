@@ -12,7 +12,7 @@
                     leave="duration-200 ease-in" leave-from="opacity-100 scale-100 translate-y-0"
                     leave-to="opacity-0 scale-95 translate-y-2">
                     <DialogPanel
-                        class="w-full max-w-lg overflow-hidden rounded-2xl bg-[var(--c-primary-100)] shadow-2xl ring-1 ring-[var(--c-primary-200)]">
+                        class="w-full max-w-lg overflow-hidden rounded-2xl bg-[var(--c-primary-600)] shadow-2xl ring-1 ring-[var(--c-primary-400)]">
                         <div
                             class="border-b border-[var(--c-primary-200)] bg-[var(--c-primary-color)] px-8 pb-10 pt-8 text-center">
                             <img v-if="SiteSettings?.site_logo" :src="SiteSettings.site_logo"
