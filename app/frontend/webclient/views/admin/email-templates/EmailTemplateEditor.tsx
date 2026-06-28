@@ -240,7 +240,7 @@ export default defineComponent({
     });
 
     useHead({
-      title: computed(() => `Editar ${templateLabel.value} - Admin`),
+      title: computed(() => `Editar ${templateLabel.value} - Admin`).value,
     });
 
     return () => (
