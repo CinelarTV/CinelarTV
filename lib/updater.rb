@@ -166,7 +166,7 @@ module CinelarTV
         run("bundle install --retry 3 --jobs 4")
         percent(30)
         log("*** Installing node modules ***")
-        run("pnpm install --prefer-offline --no-audit")
+        run("pnpm install --prefer-offline --audit=false")
         percent(50)
         log("*** Running Database Migrations ***")
         run("rake db:migrate")
