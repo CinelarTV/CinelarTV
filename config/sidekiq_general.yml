@@ -46,6 +46,11 @@
       class: UnsuspendExpiredUsersJob
       queue: 'default'
       description: 'Unsuspend users whose suspended_until passed'
+    recalculate_content_analytics:
+      every: '1d'
+      class: RecalculateContentAnalyticsJob
+      queue: "default"
+      description: "Recalculate content analytics from watch sessions"
 
 :pidfile: tmp/pids/sidekiq_general.pid
 :logfile: log/sidekiq_general.log
