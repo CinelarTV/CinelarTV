@@ -79,8 +79,9 @@ module Plugin
       @initializers&.each { |cb| cb.call(self) }
     end
 
-    def enabled_site_setting(setting)
-      @enabled_site_setting = setting
+    def enabled_site_setting(setting = nil)
+      @enabled_site_setting = setting if setting
+      @enabled_site_setting
     end
 
     def reloadable_patch(plugin = self)

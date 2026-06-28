@@ -18,7 +18,7 @@ module AppEvent
 
     def clear(event_name = nil)
       if event_name
-        @callbacks[event_name].clear
+        @callbacks.delete(event_name)
       else
         @callbacks.clear
       end

@@ -102,6 +102,7 @@ RSpec.describe Plugin::Instance do
 
     context 'when SiteSetting exists and responds to setting' do
       it 'returns SiteSetting value' do
+        allow(SiteSetting).to receive(:respond_to?).and_call_original
         allow(SiteSetting).to receive(:respond_to?).with(:test_plugin_enabled).and_return(true)
         allow(SiteSetting).to receive(:test_plugin_enabled).and_return(false)
         
@@ -161,7 +162,7 @@ RSpec.describe Plugin::Instance do
     it 'adds callback to model with enable check' do
       # Define a test model class
       test_class = Class.new do
-        extend ActiveSupport::Callbacks
+        include ActiveSupport::Callbacks
         
         define_callbacks :create
         

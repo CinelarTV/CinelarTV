@@ -11,6 +11,9 @@ module Plugin
         # Skip frozen_string_literal directive
         next if line.strip == '# frozen_string_literal: true'
         
+        # Skip blank lines
+        next if line.strip.empty?
+        
         # Stop parsing at first non-comment line
         break unless line.start_with?('#')
         
@@ -41,6 +44,7 @@ module Plugin
 
     def meets_version?(app_version)
       return true if required_version.nil? || required_version.empty?
+      return true if app_version.nil? || app_version.empty?
       
       begin
         Gem::Version.new(app_version) >= Gem::Version.new(required_version)

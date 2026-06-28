@@ -74,20 +74,22 @@ RSpec.describe PluginRegistry do
 
     it 'has seed_data register' do
       expect(described_class.seed_data).to be_a(ActiveSupport::HashWithIndifferentAccess)
-      expect(described_class.respond_to?(:register_seed_data)).to be true
+      expect(described_class.respond_to?(:register_seed_datum)).to be true
     end
 
     it 'has filtered registers for various plugin data' do
       filtered_registers = [
-        :public_user_custom_fields,
-        :staff_user_custom_fields,
-        :api_key_scope_mappings,
+        :user_profile_fields,
+        :content_scopes,
         :admin_menu_items,
         :user_menu_items,
         :dashboard_widgets,
-        :content_scopes,
-        :notification_types,
-        :permission_types
+        :video_source_types,
+        :live_tv_features,
+        :subscription_providers,
+        :content_metadata_fields,
+        :player_controls,
+        :search_filters
       ]
       
       filtered_registers.each do |register|
@@ -102,10 +104,10 @@ RSpec.describe PluginRegistry do
       # Add some data to registers
       described_class.register_javascript('test.js')
       described_class.register_stylesheet('test.css', 'screen')
-      described_class.register_seed_data('test', 'value')
+      described_class.register_seed_datum('test', 'value')
       
       enabled_plugin = double('Plugin', enabled?: true)
-      described_class.register_public_user_custom_field('test_field', enabled_plugin)
+      described_class.register_admin_menu_item({ name: 'test_item' }, enabled_plugin)
       
       # Clear all registers
       described_class.clear_all
@@ -114,7 +116,7 @@ RSpec.describe PluginRegistry do
       expect(described_class.javascripts).to be_empty
       expect(described_class.stylesheets).to be_empty
       expect(described_class.seed_data).to be_empty
-      expect(described_class.public_user_custom_fields).to be_empty
+      expect(described_class.admin_menu_items).to be_empty
     end
   end
 

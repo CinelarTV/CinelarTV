@@ -5,9 +5,19 @@ module PluginRegistry
     def define_register(name, type)
       instance_variable_set(:"@#{name}", type.new)
       define_singleton_method(name) { instance_variable_get(:"@#{name}") }
-      define_singleton_method("register_#{name.to_s.singularize}") do |value|
-        Rails.logger.info "[PluginRegistry] Registering #{name.to_s.singularize}: #{value}"
-        instance_variable_get(:"@#{name}") << value
+      
+      singular = name.to_s.singularize
+      register_name = :"register_#{singular}"
+      
+      if type <= Hash
+        define_singleton_method(register_name) do |key, value|
+          instance_variable_get(:"@#{name}")[key] = value
+        end
+      else
+        define_singleton_method(register_name) do |value|
+          Rails.logger.info "[PluginRegistry] Registering #{singular}: #{value}"
+          instance_variable_get(:"@#{name}") << value
+        end
       end
     end
 
@@ -27,9 +37,9 @@ module PluginRegistry
     end
 
     REGISTER_TYPES = {
-      javascripts: Set,
+      javascripts: Set.new,
       stylesheets: {},
-      seed_data: ActiveSupport::HashWithIndifferentAccess,
+      seed_data: ActiveSupport::HashWithIndifferentAccess.new,
     }.freeze
 
     def clear_all

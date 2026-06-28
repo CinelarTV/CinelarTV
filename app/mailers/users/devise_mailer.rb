@@ -5,7 +5,11 @@ module Users
     default from: "from@example.com"
 
     def confirmation_instructions(record, token, options = {})
-      base_url = SiteSetting.base_url || Rails.application.routes.url_helpers.root_url
+      base_url = SiteSetting.base_url || begin
+        Rails.application.routes.url_helpers.root_url
+      rescue NoMethodError
+        "http://localhost:3000"
+      end
       confirmation_url = options[:confirmation_url] || "#{base_url}/confirmation?confirmation_token=#{token}"
       template = EmailTemplateResolver.resolve(
         "devise_confirmation_instructions",
@@ -24,7 +28,11 @@ module Users
     end
 
     def reset_password_instructions(record, token, options = {})
-      base_url = SiteSetting.base_url || Rails.application.routes.url_helpers.root_url
+      base_url = SiteSetting.base_url || begin
+        Rails.application.routes.url_helpers.root_url
+      rescue NoMethodError
+        "http://localhost:3000"
+      end
       edit_password_url = options[:edit_password_url] || "#{base_url}/users/password/edit?reset_password_token=#{token}"
       template = EmailTemplateResolver.resolve(
         "devise_reset_password_instructions",
@@ -43,7 +51,11 @@ module Users
     end
 
     def unlock_instructions(record, token, options = {})
-      base_url = SiteSetting.base_url || Rails.application.routes.url_helpers.root_url
+      base_url = SiteSetting.base_url || begin
+        Rails.application.routes.url_helpers.root_url
+      rescue NoMethodError
+        "http://localhost:3000"
+      end
       unlock_url = options[:unlock_url] || "#{base_url}/users/unlock?unlock_token=#{token}"
       template = EmailTemplateResolver.resolve(
         "devise_unlock_instructions",

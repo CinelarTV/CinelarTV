@@ -3,61 +3,61 @@ pt-BR:
   email_templates:
     devise_confirmation_instructions:
       subject: "Confirme sua conta no %{site_name}"
-      body: >
-        <h2>Bem-vindo, %{username}!</h2>
-        <p>Obrigado por se cadastrar no <strong>%{site_name}</strong>. Estamos felizes em tê-lo conosco.</p>
-        <p>Por favor confirme seu endereço de email clicando no botão abaixo. Isso verificará sua conta e lhe dará acesso completo.</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+      body: |
+        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Bem-vindo, %{username}!</h2>
+        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Obrigado por se cadastrar no <strong style="font-weight: 600;">%{site_name}</strong>. Estamos felizes em tê-lo conosco.</p>
+        <p style="margin: 0 0 24px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Por favor confirme seu endereço de email clicando no botão abaixo. Isso verificará sua conta e lhe dará acesso completo.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
           <tr>
             <td align="center">
-              <a href="%{confirmation_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Confirmar Minha Conta</a>
+              <a href="%{confirmation_url}" style="display: inline-block; background: #0084F0; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Confirmar Minha Conta</a>
             </td>
           </tr>
         </table>
-        <p style="font-size: 14px; color: #6c757d;">Se você não criou uma conta, pode ignorar este email com segurança.</p>
+        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Se você não criou uma conta, pode ignorar este email com segurança.</p>
     devise_reset_password_instructions:
       subject: "Redefina sua senha no %{site_name}"
-      body: >
-        <h2>Solicitação de redefinição de senha</h2>
-        <p>Olá <strong>%{username}</strong>,</p>
-        <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>%{site_name}</strong>. Clique no botão abaixo para escolher uma nova senha:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+      body: |
+        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Solicitação de redefinição de senha</h2>
+        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Olá <strong style="font-weight: 600;">%{username}</strong>,</p>
+        <p style="margin: 0 0 24px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Recebemos uma solicitação para redefinir a senha da sua conta no <strong style="font-weight: 600;">%{site_name}</strong>. Clique no botão abaixo para escolher uma nova senha:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
           <tr>
             <td align="center">
-              <a href="%{edit_password_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Redefinir Minha Senha</a>
+              <a href="%{edit_password_url}" style="display: inline-block; background: #0084F0; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Redefinir Minha Senha</a>
             </td>
           </tr>
         </table>
-        <p style="font-size: 14px; color: #6c757d;">Este link expirará em 24 horas. Se você não solicitou uma redefinição de senha, pode ignorar este email — sua senha permanecerá inalterada.</p>
+        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Este link expirará em 24 horas. Se você não solicitou uma redefinição de senha, pode ignorar este email &mdash; sua senha permanecerá inalterada.</p>
     devise_unlock_instructions:
       subject: "Desbloqueie sua conta no %{site_name}"
-      body: >
-        <h2>Conta bloqueada</h2>
-        <p>Olá <strong>%{username}</strong>,</p>
-        <p>Sua conta no <strong>%{site_name}</strong> foi bloqueada devido a muitas tentativas de login falhadas. Esta é uma medida de segurança para proteger sua conta.</p>
-        <p>Clique no botão abaixo para desbloquear sua conta e tentar fazer login novamente:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+      body: |
+        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Conta bloqueada</h2>
+        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Olá <strong style="font-weight: 600;">%{username}</strong>,</p>
+        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Sua conta no <strong style="font-weight: 600;">%{site_name}</strong> foi bloqueada devido a muitas tentativas de login falhadas. Esta é uma medida de segurança para proteger sua conta.</p>
+        <p style="margin: 0 0 24px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Clique no botão abaixo para desbloquear sua conta e tentar fazer login novamente:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
           <tr>
             <td align="center">
-              <a href="%{unlock_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Desbloquear Minha Conta</a>
+              <a href="%{unlock_url}" style="display: inline-block; background: #0084F0; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Desbloquear Minha Conta</a>
             </td>
           </tr>
         </table>
-        <p style="font-size: 14px; color: #6c757d;">Se você não tentou fazer login, por favor entre em contato com nossa equipe de suporte imediatamente.</p>
+        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Se você não tentou fazer login, por favor entre em contato com nossa equipe de suporte imediatamente.</p>
     devise_email_changed:
       subject: "Seu email foi alterado no %{site_name}"
-      body: >
-        <h2>Endereço de email atualizado</h2>
-        <p>Olá <strong>%{username}</strong>,</p>
-        <p>Estamos entrando em contato para informar que o endereço de email da sua conta no <strong>%{site_name}</strong> foi alterado para:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+      body: |
+        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Endereço de email atualizado</h2>
+        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Olá <strong style="font-weight: 600;">%{username}</strong>,</p>
+        <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Estamos entrando em contato para informar que o endereço de email da sua conta no <strong style="font-weight: 600;">%{site_name}</strong> foi alterado para:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px;">
           <tr>
-            <td align="center" style="background: #f8f9fa; border-radius: 8px; padding: 14px 20px;">
-              <span style="font-size: 16px; font-weight: 600; color: #333333;">%{new_email}</span>
+            <td align="center" style="background: #f0f4f8; border-radius: 8px; padding: 14px 20px; border: 1px solid #e2e8f0;">
+              <span style="font-size: 16px; font-weight: 600; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">%{new_email}</span>
             </td>
           </tr>
         </table>
-        <p style="font-size: 14px; color: #6c757d;">Se você não realizou esta alteração, por favor entre em contato com nossa equipe de suporte imediatamente para proteger sua conta.</p>
+        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Se você não realizou esta alteração, por favor entre em contato com nossa equipe de suporte imediatamente para proteger sua conta.</p>
   activerecord:
     errors:
       messages:
