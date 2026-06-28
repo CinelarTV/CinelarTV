@@ -173,7 +173,8 @@ RSpec.describe Plugin::Instance do
         end
         
         def self.create
-          run_callbacks :create do
+          instance = new
+          instance.run_callbacks :create do
             "created"
           end
         end
