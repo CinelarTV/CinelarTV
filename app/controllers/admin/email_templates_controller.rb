@@ -3,36 +3,41 @@
 module Admin
   class EmailTemplatesController < BaseController
     include ActionView::Helpers::SanitizeHelper
+
     AVAILABLE_LOCALES = %w[en es pt-BR].freeze
-    TEMPLATE_KEYS = %w[
-      devise_confirmation_instructions
-      devise_reset_password_instructions
-      devise_unlock_instructions
-      devise_email_changed
-    ].freeze
+
+    SAMPLE_DATA = {
+      'username' => 'John Doe',
+      'email' => 'john@example.com',
+      'confirmation_url' => ->(s) { "#{s}/users/confirmation?confirmation_token=sample_token" },
+      'edit_password_url' => ->(s) { "#{s}/users/password/edit?reset_password_token=sample_token" },
+      'unlock_url' => ->(s) { "#{s}/users/unlock?unlock_token=sample_token" },
+      'site_name' => ->(_s) { SiteSetting.site_name || 'CinelarTV' },
+      'site_url' => ->(_s) { SiteSetting.site_url || 'https://example.com' },
+      'new_email' => 'newemail@example.com'
+    }.freeze
 
     def index
       templates = {}
-      TEMPLATE_KEYS.each do |key|
+      template_keys.each do |key|
         templates[key] = {}
+        meta = EmailTemplateResolver.available_templates[key]
         AVAILABLE_LOCALES.each do |locale|
           override = EmailTemplate.for_key_and_locale(key, locale).first
           templates[key][locale] = {
             has_override: override.present?,
-            interpolation_variables: get_interpolation_variables(key)
+            interpolation_variables: meta ? meta[:variables] : []
           }
         end
+        templates[key][:meta] = {
+          label: I18n.t("js.admin.email_templates.keys.#{key}", default: key),
+          description: I18n.t("js.admin.email_templates.descriptions.#{key}", default: key)
+        }
       end
 
       respond_to do |format|
-        format.html do
-          # HTML requests are handled by the SPA via dashboard#index
-          # This shouldn't normally be hit, but if it does, redirect
-          redirect_to '/admin/email-templates'
-        end
-        format.json do
-          render json: { templates: }
-        end
+        format.html { redirect_to '/admin/email-templates' }
+        format.json { render json: { templates: } }
       end
     end
 
@@ -78,77 +83,14 @@ module Admin
       template = find_template
       subject = template[:subject]
       body = template[:body]
-      
-      # Get interpolation variables
-      variables = get_interpolation_variables(params[:key])
-      
-      # Create sample data for interpolation
-      sample_data = {}
-      variables.each do |var|
-        case var
-        when 'username'
-          sample_data[var] = 'John Doe'
-        when 'confirmation_url'
-          sample_data[var] = "#{SiteSetting.site_url}/users/confirmation?confirmation_token=sample_token"
-        when 'edit_password_url'
-          sample_data[var] = "#{SiteSetting.site_url}/users/password/edit?reset_password_token=sample_token"
-        when 'unlock_url'
-          sample_data[var] = "#{SiteSetting.site_url}/users/unlock?unlock_token=sample_token"
-        when 'site_name'
-          sample_data[var] = SiteSetting.site_name || 'CinelarTV'
-        when 'site_url'
-          sample_data[var] = SiteSetting.site_url || 'https://example.com'
-        when 'new_email'
-          sample_data[var] = 'newemail@example.com'
-        else
-          sample_data[var] = "[#{var.upcase}]"
-        end
-      end
-      
-      # Interpolate variables
-      interpolated_subject = subject.dup
-      interpolated_body = body.dup
-      
-      sample_data.each do |key, value|
-        interpolated_subject.gsub!("%{#{key}}", value.to_s)
-        interpolated_body.gsub!("%{#{key}}", value.to_s)
-      end
-      
-      # Create a temporary mailer instance for preview
-      mailer = Class.new(ActionMailer::Base) do
-        layout "mailer"
-        def preview_email(subject, body, recipient_email)
-          @subject = subject
-          @recipient_email = recipient_email
-          mail(
-            to: recipient_email,
-            subject: subject,
-            from: ENV['CINELAR_SMTP_FROM'] || 'from@example.com'
-          ) do |format|
-            format.html { render html: body.html_safe }
-          end
-        end
-      end
-      
-      # Generate the preview
-      mail_instance = mailer.new.preview_email(interpolated_subject, interpolated_body, 'preview@example.com')
-      
-      # Get rendered HTML with layout
+
+      interpolated_subject, interpolated_body = interpolate_templates(subject, body)
+
       layout_file = Rails.root.join('app', 'views', 'layouts', 'mailer.html.erb')
       layout_template = File.read(layout_file)
-      
-      # Replace ERB variables manually
-      layout_content = layout_template.dup
-      layout_content.gsub!('<%= @subject || SiteSetting.site_name || "CinelarTV" %>', interpolated_subject)
-      layout_content.gsub!('<%= SiteSetting.site_name || "CinelarTV" %>', SiteSetting.site_name || 'CinelarTV')
-      layout_content.gsub!('<%= Time.current.year %>', Time.current.year.to_s)
-      layout_content.gsub!('<%= @recipient_email || \'you\' %>', 'preview@example.com')
-      layout_content.gsub!('<%= SiteSetting.site_name || "CinelarTV" %>', SiteSetting.site_name || 'CinelarTV')
-      layout_content.gsub!('<%= SiteSetting.site_url %>', SiteSetting.site_url || 'https://example.com')
-      
-      # Replace the yield placeholder with the actual email content
-      final_html = layout_content.gsub('<%= yield %>', interpolated_body)
-      
+
+      final_html = render_with_layout(layout_template, interpolated_subject, interpolated_body)
+
       render json: {
         subject: interpolated_subject,
         html: final_html,
@@ -156,16 +98,42 @@ module Admin
       }
     end
 
+    def test_send
+      recipient = params[:recipient_email]
+      unless recipient.present? && URI::MailTo::EMAIL_REGEXP.match?(recipient)
+        return render json: { error: 'Invalid email address' }, status: :unprocessable_entity
+      end
+
+      template = find_template
+      subject = template[:subject]
+      body = template[:body]
+
+      interpolated_subject, interpolated_body = interpolate_templates(subject, body)
+
+      Users::DeviseMailer.test_email(
+        recipient,
+        interpolated_subject,
+        interpolated_body
+      ).deliver_later
+
+      Rails.logger.info "[EmailTemplate] Test email sent to #{recipient} for template #{params[:key]}"
+
+      render json: { success: true, message: "Test email sent to #{recipient}" }
+    end
+
     private
+
+    def template_keys
+      EmailTemplateResolver.available_templates.keys
+    end
 
     def find_template
       db_template = EmailTemplate.for_key_and_locale(params[:key], params[:locale]).first
       return { subject: db_template.subject, body: db_template.body } if db_template
 
-      # Fall back to i18n YAML
       locale = params[:locale] || I18n.locale
       yaml_template = I18n.t("email_templates.#{params[:key]}", locale: locale, default: nil)
-      
+
       unless yaml_template.is_a?(Hash) && yaml_template[:subject] && yaml_template[:body]
         raise ActiveRecord::RecordNotFound, "Template not found for key: #{params[:key]}, locale: #{locale}"
       end
@@ -174,18 +142,54 @@ module Admin
     end
 
     def get_interpolation_variables(key)
-      case key
-      when 'devise_confirmation_instructions'
-        %w[username confirmation_url site_name site_url]
-      when 'devise_reset_password_instructions'
-        %w[username edit_password_url site_name site_url]
-      when 'devise_unlock_instructions'
-        %w[username unlock_url site_name site_url]
-      when 'devise_email_changed'
-        %w[username new_email site_name site_url]
-      else
-        %w[username site_name site_url]
+      meta = EmailTemplateResolver.available_templates[key]
+      return meta[:variables] if meta
+
+      subject = I18n.t("email_templates.#{key}.subject", locale: :en, default: '')
+      body = I18n.t("email_templates.#{key}.body", locale: :en, default: '')
+      EmailTemplateResolver.extract_variables(subject, body)
+    end
+
+    def interpolate_templates(subject, body)
+      variables = get_interpolation_variables(params[:key])
+      site_url = SiteSetting.site_url || 'https://example.com'
+
+      interpolated_subject = subject.dup
+      interpolated_body = body.dup
+
+      variables.each do |var|
+        value = case SAMPLE_DATA[var]
+                when Proc then SAMPLE_DATA[var].call(site_url)
+                when String then SAMPLE_DATA[var]
+                else "[#{var.upcase}]"
+                end
+
+        interpolated_subject.gsub!("%{#{var}}", value.to_s)
+        interpolated_body.gsub!("%{#{var}}", value.to_s)
       end
+
+      [interpolated_subject, interpolated_body]
+    end
+
+    def render_with_layout(layout_content, subject, body)
+      html = layout_content.dup
+      site_name = SiteSetting.site_name || 'CinelarTV'
+      site_url = SiteSetting.site_url || 'https://example.com'
+
+      html.gsub!('<%= @subject || SiteSetting.site_name || "CinelarTV" %>', subject)
+      html.gsub!('<%= SiteSetting.site_name || "CinelarTV" %>', site_name)
+      html.gsub!('<%= Time.current.year %>', Time.current.year.to_s)
+      html.gsub!('<%= @recipient_email || \'you\' %>', 'preview@example.com')
+      html.gsub!('<%= SiteSetting.site_url %>', site_url)
+
+      # Handle conditional logo tag
+      html.gsub!(
+        /<% if SiteSetting\.site_logo\.present\? %>.*?<% else %>.*?<% end %>/m,
+        "<h1>#{site_name}</h1>"
+      )
+
+      html.gsub!('<%= yield %>', body)
+      html
     end
   end
 end

@@ -2,25 +2,62 @@
 es:
   email_templates:
     devise_confirmation_instructions:
-      subject: "Confirma tu cuenta"
-      body: "<p>¡Bienvenido %{username}!</p><p>Puedes confirmar tu cuenta de correo
-        electrónico a través del siguiente
-        enlace:</p><p>%{confirmation_url}</p>"
+      subject: "Confirma tu cuenta en %{site_name}"
+      body: >
+        <h2>¡Bienvenido, %{username}!</h2>
+        <p>Gracias por registrarte en <strong>%{site_name}</strong>. Estamos encantados de tenerte con nosotros.</p>
+        <p>Por favor confirma tu dirección de correo electrónico haciendo clic en el botón a continuación. Esto verificará tu cuenta y te dará acceso completo.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td align="center">
+              <a href="%{confirmation_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Confirmar Mi Cuenta</a>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">Si no creaste una cuenta, puedes ignorar este correo de forma segura.</p>
     devise_reset_password_instructions:
-      subject: "Restablecer tu contraseña"
-      body: "<p>Hola %{username},</p><p>Alguien ha solicitado un enlace para cambiar
-        tu contraseña. Puedes hacerlo a través del siguiente
-        enlace.</p><p>%{edit_password_url}</p><p>Si no solicitaste esto, por
-        favor ignora este correo.</p>"
+      subject: "Restablece tu contraseña en %{site_name}"
+      body: >
+        <h2>Solicitud de restablecimiento de contraseña</h2>
+        <p>Hola <strong>%{username}</strong>,</p>
+        <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>%{site_name}</strong>. Haz clic en el botón a continuación para elegir una nueva contraseña:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td align="center">
+              <a href="%{edit_password_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Restablecer Mi Contraseña</a>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">Este enlace expirará en 24 horas. Si no solicitaste un restablecimiento de contraseña, puedes ignorar este correo — tu contraseña permanecerá sin cambios.</p>
     devise_unlock_instructions:
-      subject: "Desbloquear tu cuenta"
-      body: "<p>Hola %{username},</p><p>Tu cuenta ha sido bloqueada debido a
-        demasiados intentos fallidos de inicio de sesión.</p><p>Haz clic en el
-        siguiente enlace para desbloquear tu cuenta:</p><p>%{unlock_url}</p>"
+      subject: "Desbloquea tu cuenta en %{site_name}"
+      body: >
+        <h2>Cuenta bloqueada</h2>
+        <p>Hola <strong>%{username}</strong>,</p>
+        <p>Tu cuenta en <strong>%{site_name}</strong> ha sido bloqueada debido a demasiados intentos fallidos de inicio de sesión. Esta es una medida de seguridad para proteger tu cuenta.</p>
+        <p>Haz clic en el botón a continuación para desbloquear tu cuenta e intentar iniciar sesión nuevamente:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td align="center">
+              <a href="%{unlock_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Desbloquear Mi Cuenta</a>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">Si no intentaste iniciar sesión, por favor contacta a nuestro equipo de soporte inmediatamente.</p>
     devise_email_changed:
-      subject: "Correo electrónico cambiado"
-      body: "<p>Hola %{username},</p><p>Te contactamos para notificarte que tu correo
-        electrónico ha sido cambiado a %{new_email}.</p>"
+      subject: "Tu correo ha sido cambiado en %{site_name}"
+      body: >
+        <h2>Dirección de correo actualizada</h2>
+        <p>Hola <strong>%{username}</strong>,</p>
+        <p>Te escribimos para informarte que la dirección de correo de tu cuenta en <strong>%{site_name}</strong> ha sido cambiada a:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+          <tr>
+            <td align="center" style="background: #f8f9fa; border-radius: 8px; padding: 14px 20px;">
+              <span style="font-size: 16px; font-weight: 600; color: #333333;">%{new_email}</span>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">Si no realizaste este cambio, por favor contacta a nuestro equipo de soporte inmediatamente para asegurar tu cuenta.</p>
   activerecord:
     errors:
       messages:
@@ -89,11 +126,23 @@ es:
       nav:
         content: "Administrar contenido"
         dashboard: "Panel de control"
+        email_templates: "Plantillas de email"
         live_tv: "Televisión en vivo"
         settings: "Configuración"
         subscriptions: "Suscripciones"
         updater: "Actualizador"
         users: "Usuarios"
+      email_templates:
+        keys:
+          devise_confirmation_instructions: "Confirmación de cuenta"
+          devise_reset_password_instructions: "Recuperación de contraseña"
+          devise_unlock_instructions: "Desbloqueo de cuenta"
+          devise_email_changed: "Cambio de email"
+        descriptions:
+          devise_confirmation_instructions: "Se envía cuando un usuario se registra y necesita confirmar su email"
+          devise_reset_password_instructions: "Se envía cuando un usuario solicita un enlace para restablecer su contraseña"
+          devise_unlock_instructions: "Se envía cuando la cuenta de un usuario se bloquea por intentos fallidos"
+          devise_email_changed: "Se envía para notificar a un usuario que su email ha sido cambiado"
       settings:
         additional_icons:
           description: "Permite añadir iconos adicionales a la aplicación"

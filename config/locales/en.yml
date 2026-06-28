@@ -2,24 +2,62 @@
 en:
   email_templates:
     devise_confirmation_instructions:
-      subject: "Confirm your account"
-      body: "<p>Welcome %{username}!</p><p>You can confirm your account email through
-        the link below:</p><p>%{confirmation_url}</p>"
+      subject: "Confirm your account on %{site_name}"
+      body: >
+        <h2>Welcome, %{username}!</h2>
+        <p>Thanks for signing up for <strong>%{site_name}</strong>. We're excited to have you on board.</p>
+        <p>Please confirm your email address by clicking the button below. This will verify your account and give you full access.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td align="center">
+              <a href="%{confirmation_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Confirm My Account</a>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">If you did not create an account, you can safely ignore this email.</p>
     devise_reset_password_instructions:
-      subject: "Reset your password"
-      body: "<p>Hello %{username},</p><p>Someone has requested a link to change your
-        password. You can do this through the link
-        below.</p><p>%{edit_password_url}</p><p>If you didn't request this,
-        please ignore this email.</p>"
+      subject: "Reset your password on %{site_name}"
+      body: >
+        <h2>Password Reset Request</h2>
+        <p>Hello <strong>%{username}</strong>,</p>
+        <p>We received a request to reset the password for your account on <strong>%{site_name}</strong>. Click the button below to choose a new password:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td align="center">
+              <a href="%{edit_password_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Reset My Password</a>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">This link will expire in 24 hours. If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.</p>
     devise_unlock_instructions:
-      subject: "Unlock your account"
-      body: "<p>Hello %{username},</p><p>Your account has been locked due to too many
-        failed sign in attempts.</p><p>Click the link below to unlock your
-        account:</p><p>%{unlock_url}</p>"
+      subject: "Unlock your account on %{site_name}"
+      body: >
+        <h2>Account Locked</h2>
+        <p>Hello <strong>%{username}</strong>,</p>
+        <p>Your account on <strong>%{site_name}</strong> has been locked due to too many failed sign-in attempts. This is a security measure to protect your account.</p>
+        <p>Click the button below to unlock your account and try signing in again:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 25px 0;">
+          <tr>
+            <td align="center">
+              <a href="%{unlock_url}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #0084F0 0%, #0066cc 100%); color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Unlock My Account</a>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">If you did not attempt to sign in, please contact our support team immediately.</p>
     devise_email_changed:
-      subject: "Email changed"
-      body: "<p>Hello %{username},</p><p>We're contacting you to notify you that your
-        email has been changed to %{new_email}.</p>"
+      subject: "Your email has been changed on %{site_name}"
+      body: >
+        <h2>Email Address Updated</h2>
+        <p>Hello <strong>%{username}</strong>,</p>
+        <p>We're writing to let you know that the email address for your <strong>%{site_name}</strong> account has been changed to:</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+          <tr>
+            <td align="center" style="background: #f8f9fa; border-radius: 8px; padding: 14px 20px;">
+              <span style="font-size: 16px; font-weight: 600; color: #333333;">%{new_email}</span>
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 14px; color: #6c757d;">If you did not make this change, please contact our support team immediately so we can secure your account.</p>
   activerecord:
     errors:
       messages:
@@ -86,11 +124,23 @@ en:
       nav:
         content: "Manage content"
         dashboard: "Dashboard"
+        email_templates: "Email Templates"
         live_tv: "Live TV"
         settings: "Settings"
         subscriptions: "Subscriptions"
         updater: "Upgrader"
         users: "Users"
+      email_templates:
+        keys:
+          devise_confirmation_instructions: "Account Confirmation"
+          devise_reset_password_instructions: "Password Reset"
+          devise_unlock_instructions: "Account Unlock"
+          devise_email_changed: "Email Changed"
+        descriptions:
+          devise_confirmation_instructions: "Sent when a user registers and needs to confirm their email address"
+          devise_reset_password_instructions: "Sent when a user requests a password reset link"
+          devise_unlock_instructions: "Sent when a user account is locked after too many failed attempts"
+          devise_email_changed: "Sent to notify a user that their email address was changed"
       settings:
         additional_icons:
           description: "Allows to add additional icons to the application"

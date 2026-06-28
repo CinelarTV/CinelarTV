@@ -4,6 +4,8 @@ class EmailTemplate < ApplicationRecord
   validates :key, presence: true
   validates :locale, presence: true
   validates :key, uniqueness: { scope: :locale }
+  validates :subject, presence: true
+  validates :body, presence: true
 
   scope :for_key_and_locale, ->(key, locale) { where(key:, locale:) }
   scope :for_key, ->(key) { where(key:) }

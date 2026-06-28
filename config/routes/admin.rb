@@ -118,6 +118,7 @@ namespace :admin do
   get "/email-templates/:key" => "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/email-templates/:key" => "email_templates#show", defaults: { format: 'json' }
   post "/email-templates/:key/preview" => "email_templates#preview", defaults: { format: 'json' }
+  post "/email-templates/:key/test_send" => "email_templates#test_send", defaults: { format: 'json' }
   put "/email-templates/:key" => "email_templates#update", defaults: { format: 'json' }
   delete "/email-templates/:key" => "email_templates#destroy", defaults: { format: 'json' }
 end

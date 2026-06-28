@@ -1,15 +1,42 @@
-import { defineComponent, ref, watch, onMounted, Fragment } from 'vue';
+import { defineComponent, ref, watch, onMounted, onBeforeUnmount, computed, Fragment } from 'vue';
 import { useHead } from 'unhead';
 import { useRouter, useRoute } from 'vue-router';
 import { ajax } from '@/lib/Ajax';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import { toast } from 'vue-sonner';
+import CIcon from '../../../components/c-icon.vue';
+import CButton from '../../../components/forms/c-button.tsx';
+
+const LOCALES = [
+  { code: 'en', label: 'EN' },
+  { code: 'es', label: 'ES' },
+  { code: 'pt-BR', label: 'PT-BR' },
+];
+
+const TEMPLATE_LABELS: Record<string, string> = {
+  devise_confirmation_instructions: 'Confirmación de cuenta',
+  devise_reset_password_instructions: 'Recuperación de contraseña',
+  devise_unlock_instructions: 'Desbloqueo de cuenta',
+  devise_email_changed: 'Cambio de email',
+};
+
+const VARIABLE_DESCRIPTIONS: Record<string, string> = {
+  username: 'Nombre del usuario',
+  email: 'Email del usuario',
+  confirmation_url: 'URL de confirmación de cuenta',
+  edit_password_url: 'URL para restablecer contraseña',
+  unlock_url: 'URL de desbloqueo de cuenta',
+  site_name: 'Nombre del sitio',
+  site_url: 'URL del sitio',
+  new_email: 'Nuevo email del usuario',
+};
 
 export default defineComponent({
   name: 'EmailTemplateEditor',
-  components: {
-    EditorContent
-  },
+  components: { EditorContent, CIcon, CButton },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -21,33 +48,44 @@ export default defineComponent({
     const saving = ref(false);
     const hasOverride = ref(false);
     const interpolationVariables = ref<string[]>([]);
-    const showPreview = ref(false);
+
+    // Preview
     const previewHtml = ref('');
     const previewSubject = ref('');
     const previewLoading = ref(false);
+    const previewDevice = ref<'desktop' | 'mobile'>('desktop');
+
+    // Test email modal
+    const showTestModal = ref(false);
+    const testEmail = ref('');
+    const testSending = ref(false);
 
     const editor = useEditor({
       content: '',
-      extensions: [StarterKit],
+      extensions: [
+        StarterKit,
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: { class: 'email-editor-link' },
+        }),
+        Placeholder.configure({
+          placeholder: 'Escribe el contenido del email aquí...',
+        }),
+      ],
       editorProps: {
         attributes: {
-          class: 'prose max-w-none min-h-[300px] p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-        }
-      }
+          class: 'prose max-w-none',
+        },
+      },
     });
 
-    const templateLabels: Record<string, string> = {
-      'devise_confirmation_instructions': 'Confirmation Instructions',
-      'devise_reset_password_instructions': 'Reset Password Instructions',
-      'devise_unlock_instructions': 'Unlock Instructions',
-      'devise_email_changed': 'Email Changed'
-    };
+    const templateLabel = computed(() => TEMPLATE_LABELS[key] || key);
 
     const fetchTemplate = async () => {
       loading.value = true;
       try {
         const response = await ajax.get(`/admin/email-templates/${key}.json`, {
-          params: { locale: locale.value }
+          params: { locale: locale.value },
         });
         subject.value = response.data.subject;
         editor.value?.commands.setContent(response.data.body);
@@ -55,6 +93,7 @@ export default defineComponent({
         interpolationVariables.value = response.data.interpolation_variables;
       } catch (error) {
         console.error('Failed to fetch email template:', error);
+        toast.error('Error al cargar la plantilla');
       } finally {
         loading.value = false;
       }
@@ -66,40 +105,36 @@ export default defineComponent({
         await ajax.put(`/admin/email-templates/${key}`, {
           locale: locale.value,
           subject: subject.value,
-          body: editor.value?.getHTML()
+          body: editor.value?.getHTML(),
         });
         hasOverride.value = true;
-        alert('Template saved successfully');
+        toast.success('Plantilla guardada correctamente');
       } catch (error) {
         console.error('Failed to save email template:', error);
-        alert('Failed to save template');
+        toast.error('Error al guardar la plantilla');
       } finally {
         saving.value = false;
       }
     };
 
     const handleRevert = async () => {
-      if (!confirm('Are you sure you want to revert to the default template? This will delete your custom override.')) {
+      if (!confirm('¿Estás seguro de que deseas revertir a la plantilla por defecto? Se eliminará tu personalización.')) {
         return;
       }
       saving.value = true;
       try {
         await ajax.delete(`/admin/email-templates/${key}`, {
-          params: { locale: locale.value }
+          params: { locale: locale.value },
         });
         hasOverride.value = false;
-        fetchTemplate();
-        alert('Template reverted to default');
+        await fetchTemplate();
+        toast.success('Plantilla revertida a los valores por defecto');
       } catch (error) {
         console.error('Failed to revert email template:', error);
-        alert('Failed to revert template');
+        toast.error('Error al revertir la plantilla');
       } finally {
         saving.value = false;
       }
-    };
-
-    const insertVariable = (variable: string) => {
-      editor.value?.chain().focus().insertContent(`%{${variable}}`).run();
     };
 
     const handlePreview = async () => {
@@ -108,216 +143,464 @@ export default defineComponent({
         const response = await ajax.post(`/admin/email-templates/${key}/preview`, {
           locale: locale.value,
           subject: subject.value,
-          body: editor.value?.getHTML()
+          body: editor.value?.getHTML(),
         });
         previewSubject.value = response.data.subject;
         previewHtml.value = response.data.html;
-        showPreview.value = true;
       } catch (error) {
         console.error('Failed to generate preview:', error);
-        alert('Failed to generate preview');
+        toast.error('Error al generar la vista previa');
       } finally {
         previewLoading.value = false;
       }
     };
 
+    const handleTestSend = async () => {
+      if (!testEmail.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail.value)) {
+        toast.error('Ingresa un email válido');
+        return;
+      }
+      testSending.value = true;
+      try {
+        await ajax.post(`/admin/email-templates/${key}/test_send`, {
+          locale: locale.value,
+          subject: subject.value,
+          body: editor.value?.getHTML(),
+          recipient_email: testEmail.value,
+        });
+        toast.success(`Email de prueba enviado a ${testEmail.value}`);
+        showTestModal.value = false;
+        testEmail.value = '';
+      } catch (error: any) {
+        const msg = error?.response?.data?.error || 'Error al enviar el email de prueba';
+        toast.error(msg);
+      } finally {
+        testSending.value = false;
+      }
+    };
+
+    const insertVariable = (variable: string) => {
+      editor.value?.chain().focus().insertContent(`%{${variable}}`).run();
+    };
+
+    // Toolbar actions
     const toggleBold = () => editor.value?.chain().focus().toggleBold().run();
     const toggleItalic = () => editor.value?.chain().focus().toggleItalic().run();
+    const toggleStrike = () => editor.value?.chain().focus().toggleStrike().run();
+    const toggleH1 = () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run();
+    const toggleH2 = () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run();
+    const toggleH3 = () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run();
     const toggleBulletList = () => editor.value?.chain().focus().toggleBulletList().run();
-    const isBold = () => editor.value?.isActive('bold');
-    const isItalic = () => editor.value?.isActive('italic');
-    const isBulletList = () => editor.value?.isActive('bulletList');
+    const toggleOrderedList = () => editor.value?.chain().focus().toggleOrderedList().run();
+    const toggleBlockquote = () => editor.value?.chain().focus().toggleBlockquote().run();
+    const toggleCodeBlock = () => editor.value?.chain().focus().toggleCodeBlock().run();
+    const setHorizontalRule = () => editor.value?.chain().focus().setHorizontalRule().run();
+    const undo = () => editor.value?.chain().focus().undo().run();
+    const redo = () => editor.value?.chain().focus().redo().run();
+
+    const setLink = () => {
+      const previousUrl = editor.value?.getAttributes('link').href;
+      const url = window.prompt('URL del enlace', previousUrl || 'https://');
+      if (url === null) return;
+      if (url === '') {
+        editor.value?.chain().focus().extendMarkRange('link').unsetLink().run();
+        return;
+      }
+      editor.value?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    };
+
+    const isActive = (name: string, attrs?: any) => editor.value?.isActive(name, attrs);
+
+    // Auto-fetch preview on content change (debounced)
+    let previewTimeout: ReturnType<typeof setTimeout> | null = null;
+    const schedulePreview = () => {
+      if (previewTimeout) clearTimeout(previewTimeout);
+      previewTimeout = setTimeout(() => {
+        if (subject.value || editor.value?.getHTML()) {
+          handlePreview();
+        }
+      }, 800);
+    };
 
     watch(locale, () => {
       fetchTemplate();
     });
 
+    watch([subject, editor], () => {
+      schedulePreview();
+    }, { deep: true });
+
     onMounted(() => {
       fetchTemplate();
     });
 
+    onBeforeUnmount(() => {
+      if (previewTimeout) clearTimeout(previewTimeout);
+      editor.value?.destroy();
+    });
+
     useHead({
-      title: `Edit ${templateLabels[key] || key} - Admin`
+      title: computed(() => `Editar ${templateLabel.value} - Admin`),
     });
 
     return () => (
-      <Fragment>
-        <div class="panel">
-          <div class="panel-header">
+      <div class="email-editor">
+        {/* Hero header */}
+        <header class="email-editor__hero">
+          <div class="email-editor__hero-top">
             <button
+              class="email-editor__back"
               onClick={() => router.push('/admin/email-templates')}
-              class="text-blue-600 hover:text-blue-800 mb-2"
             >
-              ← Back to Templates
+              <CIcon icon="arrow-left" size={16} />
+              Volver
             </button>
-            <h2 class="panel-title">Edit {templateLabels[key] || key}</h2>
           </div>
-          <div class="panel-body">
-            {loading.value ? (
-              <div class="text-center py-8 text-gray-500">Loading...</div>
-            ) : (
-              <div>
-                <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Locale
-                  </label>
-                  <select
-                    value={locale.value}
-                    onInput={(e: any) => locale.value = e.target.value}
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-                  >
-                    <option value="en">English (en)</option>
-                    <option value="es">Español (es)</option>
-                    <option value="pt-BR">Português (pt-BR)</option>
-                  </select>
+          <div style="display: flex; align-items: 'flex-start'; justify-content: 'space-between'; gap: '12px'; flex-wrap: 'wrap'">
+            <div>
+              <p class="email-editor__eyebrow">Email Template</p>
+              <h1 class="email-editor__title">{templateLabel.value}</h1>
+              <p class="email-editor__subtitle">
+                Edita el asunto y contenido de este email. Usa las variables de interpolación para personalizar el mensaje.
+              </p>
+            </div>
+            <div class="email-editor__locale-pills">
+              {LOCALES.map((l) => (
+                <button
+                  key={l.code}
+                  class={`email-editor__locale-pill ${locale.value === l.code ? 'is-active' : ''}`}
+                  onClick={() => locale.value = l.code}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </header>
+
+        {loading.value ? (
+          <div class="email-editor__card" style="padding: 2rem; text-align: center;">
+            <CIcon icon="loader" size={20} class="animate-spin size-8" />
+            <p style="color: rgba(255,255,255,0.45); margin: 8px 0 0; font-size: 0.85rem;">
+              Cargando plantilla...
+            </p>
+          </div>
+        ) : (
+          <Fragment>
+            {/* Override banner */}
+            {!hasOverride.value && (
+              <div class="email-editor__override-banner">
+                <CIcon icon="info" size={16} />
+                <span>
+                  Usando plantilla por defecto del YAML. Guarda para crear una personalización.
+                </span>
+              </div>
+            )}
+
+            {/* Two-column layout */}
+            <div class="email-editor__layout">
+              {/* Main editor column */}
+              <div class="email-editor__main">
+                {/* Subject */}
+                <div class="email-editor__card">
+                  <div class="email-editor__field">
+                    <label class="email-editor__field-label">Asunto del email</label>
+                    <input
+                      type="text"
+                      value={subject.value}
+                      onInput={(e: any) => subject.value = e.target.value}
+                      class="email-editor__input"
+                      placeholder="Asunto del email..."
+                    />
+                  </div>
                 </div>
 
-                <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    value={subject.value}
-                    onInput={(e: any) => subject.value = e.target.value}
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-                  />
-                </div>
+                {/* Rich text editor */}
+                <div class="email-editor__card" style="padding: 0; overflow: hidden;">
+                  <div class="email-editor__toolbar">
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('bold') ? 'is-active' : ''}`}
+                      onClick={toggleBold}
+                      title="Negrita"
+                    >
+                      <CIcon icon="bold" size={16} />
+                    </button>
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('italic') ? 'is-active' : ''}`}
+                      onClick={toggleItalic}
+                      title="Cursiva"
+                    >
+                      <CIcon icon="italic" size={16} />
+                    </button>
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('strike') ? 'is-active' : ''}`}
+                      onClick={toggleStrike}
+                      title="Tachado"
+                    >
+                      <CIcon icon="strikethrough" size={16} />
+                    </button>
 
-                <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Body
-                  </label>
-                  <div class="border rounded-lg">
-                    <div class="bg-[var(--c-primary-400)] border-b p-2 flex gap-2">
-                      <button
-                        onClick={toggleBold}
-                        class={`px-3 py-1 rounded ${isBold() ? 'bg-blue-100' : 'hover:bg-gray-200'}`}
-                      >
-                        Bold
-                      </button>
-                      <button
-                        onClick={toggleItalic}
-                        class={`px-3 py-1 rounded ${isItalic() ? 'bg-blue-100' : 'hover:bg-gray-200'}`}
-                      >
-                        Italic
-                      </button>
-                      <button
-                        onClick={toggleBulletList}
-                        class={`px-3 py-1 rounded ${isBulletList() ? 'bg-blue-100' : 'hover:bg-gray-200'}`}
-                      >
-                        Bullet List
-                      </button>
-                    </div>
+                    <div class="email-editor__toolbar-separator" />
+
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('heading', { level: 1 }) ? 'is-active' : ''}`}
+                      onClick={toggleH1}
+                      title="Título 1"
+                    >
+                      <CIcon icon="heading-1" size={16} />
+                    </button>
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('heading', { level: 2 }) ? 'is-active' : ''}`}
+                      onClick={toggleH2}
+                      title="Título 2"
+                    >
+                      <CIcon icon="heading-2" size={16} />
+                    </button>
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('heading', { level: 3 }) ? 'is-active' : ''}`}
+                      onClick={toggleH3}
+                      title="Título 3"
+                    >
+                      <CIcon icon="heading-3" size={16} />
+                    </button>
+
+                    <div class="email-editor__toolbar-separator" />
+
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('bulletList') ? 'is-active' : ''}`}
+                      onClick={toggleBulletList}
+                      title="Lista"
+                    >
+                      <CIcon icon="list" size={16} />
+                    </button>
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('orderedList') ? 'is-active' : ''}`}
+                      onClick={toggleOrderedList}
+                      title="Lista numerada"
+                    >
+                      <CIcon icon="list-ordered" size={16} />
+                    </button>
+
+                    <div class="email-editor__toolbar-separator" />
+
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('blockquote') ? 'is-active' : ''}`}
+                      onClick={toggleBlockquote}
+                      title="Cita"
+                    >
+                      <CIcon icon="quote" size={16} />
+                    </button>
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('codeBlock') ? 'is-active' : ''}`}
+                      onClick={toggleCodeBlock}
+                      title="Código"
+                    >
+                      <CIcon icon="code" size={16} />
+                    </button>
+                    <button
+                      class="email-editor__toolbar-btn"
+                      onClick={setHorizontalRule}
+                      title="Línea horizontal"
+                    >
+                      <CIcon icon="minus" size={16} />
+                    </button>
+
+                    <div class="email-editor__toolbar-separator" />
+
+                    <button
+                      class={`email-editor__toolbar-btn ${isActive('link') ? 'is-active' : ''}`}
+                      onClick={setLink}
+                      title="Enlace"
+                    >
+                      <CIcon icon="link" size={16} />
+                    </button>
+
+                    <div style="flex: 1" />
+
+                    <button
+                      class="email-editor__toolbar-btn"
+                      onClick={undo}
+                      title="Deshacer"
+                    >
+                      <CIcon icon="undo" size={16} />
+                    </button>
+                    <button
+                      class="email-editor__toolbar-btn"
+                      onClick={redo}
+                      title="Rehacer"
+                    >
+                      <CIcon icon="redo" size={16} />
+                    </button>
+                  </div>
+                  <div class="email-editor__content">
                     <EditorContent editor={editor.value} />
                   </div>
                 </div>
 
-                <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Interpolation Variables (click to insert)
-                  </label>
-                  <div class="flex flex-wrap gap-2">
+                {/* Actions */}
+                <div class="email-editor__card">
+                  <div class="email-editor__actions">
+                    <CButton
+                      icon="save"
+                      loading={saving.value}
+                      onClick={handleSave}
+                    >
+                      Guardar
+                    </CButton>
+                    <CButton
+                      icon="eye"
+                      loading={previewLoading.value}
+                      onClick={handlePreview}
+                    >
+                      Vista previa
+                    </CButton>
+                    <CButton
+                      icon="send"
+                      onClick={() => showTestModal.value = true}
+                    >
+                      Enviar prueba
+                    </CButton>
+                    <div class="email-editor__actions-spacer" />
+                    {hasOverride.value && (
+                      <CButton
+                        icon="rotate-ccw"
+                        variant="danger"
+                        loading={saving.value}
+                        onClick={handleRevert}
+                      >
+                        Revertir
+                      </CButton>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar */}
+              <div class="email-editor__sidebar">
+                {/* Preview */}
+                <div class="email-editor__card">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <h3 class="email-editor__card-title">
+                      <CIcon icon="eye" size={16} />
+                      Vista previa
+                    </h3>
+                    <div class="email-editor__preview-toggle">
+                      <button
+                        class={`email-editor__preview-toggle-btn ${previewDevice.value === 'desktop' ? 'is-active' : ''}`}
+                        onClick={() => previewDevice.value = 'desktop'}
+                      >
+                        <CIcon icon="monitor" size={14} />
+                      </button>
+                      <button
+                        class={`email-editor__preview-toggle-btn ${previewDevice.value === 'mobile' ? 'is-active' : ''}`}
+                        onClick={() => previewDevice.value = 'mobile'}
+                      >
+                        <CIcon icon="smartphone" size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {previewSubject.value && (
+                    <div style="padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 6px; font-size: 0.78rem;">
+                      <span style={{ color: 'rgba(255,255,255,0.45)' }}>Asunto: </span>
+                      <span style={{ color: 'rgba(255,255,255,0.85)' }}>{previewSubject.value}</span>
+                    </div>
+                  )}
+
+                  {previewLoading.value ? (
+                    <div style="padding: 2rem; text-align: center;">
+                      <CIcon icon="loader" size={18} class="animate-spin" />
+                    </div>
+                  ) : previewHtml.value ? (
+                    <iframe
+                      srcDoc={previewHtml.value}
+                      class={`email-editor__preview-frame ${previewDevice.value === 'mobile' ? 'is-mobile' : ''}`}
+                      style={{ height: '500px' }}
+                      title="Vista previa del email"
+                    />
+                  ) : (
+                    <div style="padding: 2rem; text-align: center; color: rgba(255,255,255,0.35); font-size: 0.82rem;">
+                      Haz cambios para ver la vista previa
+                    </div>
+                  )}
+                </div>
+
+                {/* Interpolation Variables */}
+                <div class="email-editor__card">
+                  <h3 class="email-editor__card-title">
+                    <CIcon icon="braces" size={16} />
+                    Variables
+                  </h3>
+                  <div class="email-editor__variables">
                     {interpolationVariables.value.map((variable) => (
                       <button
                         key={variable}
+                        class="email-editor__variable-chip"
                         onClick={() => insertVariable(variable)}
-                        class="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200 text-sm"
+                        title={VARIABLE_DESCRIPTIONS[variable] || variable}
                       >
                         {`%{${variable}}`}
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {!hasOverride.value && (
-                  <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                    <p class="text-sm text-yellow-800">
-                      ⚠️ Using default template from YAML. Save to create a custom override.
-                    </p>
-                  </div>
-                )}
-
-                <div class="flex gap-4">
-                  <button
-                    onClick={handleSave}
-                    disabled={saving.value}
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {saving.value ? 'Saving...' : 'Save'}
-                  </button>
-                  <button
-                    onClick={handlePreview}
-                    disabled={previewLoading.value}
-                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {previewLoading.value ? 'Generating...' : 'Preview'}
-                  </button>
-                  {hasOverride.value && (
-                    <button
-                      onClick={handleRevert}
-                      disabled={saving.value}
-                      class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                    >
-                      {saving.value ? 'Reverting...' : 'Revert to Default'}
-                    </button>
-                  )}
+                  <p style="margin: 0; font-size: 0.73rem; color: rgba(255,255,255,0.35); line-height: 1.4;">
+                    Haz clic en una variable para insertarla en el cursor del editor.
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          </Fragment>
+        )}
 
-        {/* Preview Modal */}
-        {showPreview.value && (
-          <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-              <div class="p-4 border-b flex justify-between items-center">
-                <h3 class="text-lg font-semibold">Email Preview</h3>
+        {/* Test Email Modal */}
+        {showTestModal.value && (
+          <div
+            class="email-editor__modal-overlay"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) showTestModal.value = false;
+            }}
+          >
+            <div class="email-editor__modal">
+              <div class="email-editor__modal-header">
+                <h3 class="email-editor__modal-title">Enviar email de prueba</h3>
                 <button
-                  onClick={() => showPreview.value = false}
-                  class="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                  class="email-editor__modal-close"
+                  onClick={() => showTestModal.value = false}
                 >
-                  ×
+                  <CIcon icon="x" size={16} />
                 </button>
               </div>
-              <div class="p-4 border-b bg-gray-50">
-                <p class="text-sm text-gray-600">
-                  <strong>Subject:</strong> {previewSubject.value}
-                </p>
-              </div>
-              <div class="flex-1 overflow-auto p-4">
-                <div class="border rounded-lg">
-                  <iframe
-                    srcDoc={previewHtml.value}
-                    class="w-full h-[600px] border-0"
-                    title="Email Preview"
+              <div class="email-editor__modal-body">
+                <div class="email-editor__field">
+                  <label class="email-editor__field-label">Dirección de email</label>
+                  <input
+                    type="email"
+                    value={testEmail.value}
+                    onInput={(e: any) => testEmail.value = e.target.value}
+                    class="email-editor__input"
+                    placeholder="test@ejemplo.com"
                   />
                 </div>
+                <p style="margin: 0; font-size: 0.78rem; color: rgba(255,255,255,0.4); line-height: 1.4;">
+                  Se enviará el email con los datos de prueba actuales a esta dirección.
+                </p>
               </div>
-              <div class="p-4 border-t flex justify-end gap-2">
-                <button
-                  onClick={() => {
-                    const printWindow = window.open('', '_blank');
-                    printWindow!.document.write(previewHtml.value);
-                    printWindow!.document.close();
-                    printWindow!.print();
-                  }}
-                  class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              <div class="email-editor__modal-footer">
+                <CButton onClick={() => showTestModal.value = false}>
+                  Cancelar
+                </CButton>
+                <CButton
+                  icon="send"
+                  loading={testSending.value}
+                  onClick={handleTestSend}
                 >
-                  Print
-                </button>
-                <button
-                  onClick={() => showPreview.value = false}
-                  class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Close
-                </button>
+                  Enviar prueba
+                </CButton>
               </div>
             </div>
           </div>
         )}
-      </Fragment>
+      </div>
     );
-  }
+  },
 });

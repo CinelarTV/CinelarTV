@@ -30,7 +30,7 @@ export const useCurrentUser = defineStore('current-user', {
       return this.currentUser !== null;
     },
     isMainProfile(): boolean {
-      return this.currentUser ? this.currentUser.current_profile ? this.currentUser.current_profile.id === this.currentUser.profiles[0].id : false : false;
+      return this.currentUser ? this.currentUser?.current_profile ? this.currentUser.current_profile?.id === this.currentUser.profiles?.[0]?.id : false : false;
     }
   },
 });

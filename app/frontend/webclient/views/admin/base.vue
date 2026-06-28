@@ -54,7 +54,7 @@ const adminLinks = [
     enabled: SiteSettings.enable_live_tv || false // Only show if Live TV is enabled
   },
   {
-    title: 'Email Templates',
+    title: $t("js.admin.nav.email_templates") || 'Email Templates',
     icon: 'mail',
     to: '/admin/email-templates'
   },

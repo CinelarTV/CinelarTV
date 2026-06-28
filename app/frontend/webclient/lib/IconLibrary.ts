@@ -8,7 +8,7 @@ const { siteSettings } = useSiteSettings(PiniaStore);
 const PLAYER_ICONS = new Set(["play", "pause", "maximize", "minimize", "volume2", "volumeX"]);
 
 const BASE_ICONS = new Set([
-    "activity", "award", "airplay", "arrowRightLeft", "arrowRight", "box", "check",
+    "activity", "award", "airplay", "arrowRightLeft", "arrowRight", "arrowLeft", "box", "check",
     "copy", "checkCircle", "chevronDown", "chevronLeft", "chevronRight",
     "chevronUp", "clapperboard", "creditCard", "gripVertical", "helpCircle", "info",
     "calendar", "clock", "lock",
@@ -18,7 +18,13 @@ const BASE_ICONS = new Set([
     "circleDollarSign", "brush", "testTube2", "telescope", "code2", "cpu", "star", "satelliteDish",
     "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2",
     "volumeX", "home", "packageOpen", "webhook", "cast", "shrink", "messageCircleMore",
-    "messageCircleOff", "mail", "shield-check", "shuffle"
+    "messageCircleOff", "mail", "shield-check", "shuffle",
+    // Email template editor icons
+    "eye", "save", "send", "bold", "italic", "strikethrough",
+    "heading-1", "heading-2", "heading-3",
+    "list", "list-ordered", "quote", "code", "minus", "link",
+    "undo", "redo", "braces", "monitor", "smartphone",
+    "mail-check", "key-round", "unlock"
 ]);
 
 const toKebabCase = (str: string): string =>

@@ -78,6 +78,18 @@ module Users
       end
     end
 
+    def test_email(recipient_email, subject, body)
+      @recipient_email = recipient_email
+
+      mail(
+        to: recipient_email,
+        subject: subject,
+        from: ENV['CINELAR_SMTP_FROM'] || 'from@example.com'
+      ) do |format|
+        format.html { render html: body.html_safe }
+      end
+    end
+
     private
 
     def build_variables(user, custom_vars = {})
