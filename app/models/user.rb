@@ -119,7 +119,7 @@ class User < ApplicationRecord
       user_id: id,
       name: username.upcase,
       profile_type: "OWNER",
-      avatar_id: "coolCat", # Default avatar
+      avatar_id: "dino", # Default avatar
     }
     Profile.create(main_profile_data)
   end
