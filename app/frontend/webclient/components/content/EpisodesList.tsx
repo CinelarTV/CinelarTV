@@ -32,6 +32,10 @@ export default defineComponent({
             type: String,
             required: true,
         },
+        disabled: {
+            type: Boolean,
+            default: false,
+        },
     },
     emits: ['update:activeSeason', 'playEpisode'],
     setup(props, { emit }) {
@@ -131,8 +135,8 @@ export default defineComponent({
                                             {season.episodes.map(({ data: episode }, index) => (
                                                 <div
                                                     key={episode.id}
-                                                    class="episode-card flex-shrink-0 w-[90vw] sm:w-[350px] max-w-[350px] min-w-[260px] cursor-pointer group/card snap-center"
-                                                    onClick={() => playEpisode(episode.id)}
+                                                    class={`episode-card flex-shrink-0 w-[90vw] sm:w-[350px] max-w-[350px] min-w-[260px] group/card snap-center ${props.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                    onClick={() => !props.disabled && playEpisode(episode.id)}
                                                 >
                                                     {/* Episode Thumbnail */}
                                                     <div class="relative overflow-hidden rounded-lg mb-3">

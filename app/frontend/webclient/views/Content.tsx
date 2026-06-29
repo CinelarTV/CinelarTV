@@ -76,6 +76,11 @@ export default defineComponent({
                 return;
             }
 
+            if (!contentData.value?.available) {
+                toast.error(t("content.not_available"));
+                return;
+            }
+
             // Find episode to check premium status
             const episode = contentData.value?.seasons?.flatMap(s => s.episodes).find(e => e.id === episodeId);
             if (episode?.premium && !(currentUser as any).is_subscribed) {
@@ -231,6 +236,7 @@ export default defineComponent({
                                                 <EpisodesList
                                                     seasons={seasons}
                                                     activeSeason={activeSeason.value || ''}
+                                                    disabled={!contentData.value?.available}
                                                     onUpdate:activeSeason={val => activeSeason.value = val}
                                                     onPlayEpisode={playEpisode}
                                                 />

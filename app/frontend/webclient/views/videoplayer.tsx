@@ -93,6 +93,7 @@ function handleFetchError(response: AxiosError['response']['data']) {
 
     if (errorType === 'content_not_available') {
         toast.error(errorMsg || 'Contenido no disponible');
+        return 'redirect';
     } else if (errorType === 'subscription_required') {
         toast.error(errorMsg || 'Se requiere suscripción activa.');
         return 'redirect';

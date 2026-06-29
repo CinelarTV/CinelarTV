@@ -84,7 +84,7 @@ class ContentsController < ApplicationController
 
   def handle_continue_watching
     most_recent_watched_episode = ContinueWatching.where(profile: current_profile,
-                                                         content: @content).order(updated_at: :desc).not(episode_id: nil).first if @content.content_type == "TVSHOW"
+                                                          content: @content).where.not(episode_id: nil).order(updated_at: :desc).first if @content.content_type == "TVSHOW"
     continue_watching = ContinueWatching.where(profile: current_profile,
                                                content: @content).order(updated_at: :desc).first
 
