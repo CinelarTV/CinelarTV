@@ -7,24 +7,28 @@ class PlayerController < ApplicationController
   before_action :check_subscription, only: :watch
 
   def watch
-    return respond_to do |format|
-      format.html { render_content_not_available }
-      format.json { render_content_not_available }
-    end unless @content
+    unless @content
+      return respond_to do |format|
+        format.html { render_content_not_available }
+        format.json { render_content_not_available }
+      end
+    end
 
     find_episode_and_season if @content.content_type == "TVSHOW"
 
     profile = current_profile
 
-    return respond_to do |format|
-      format.json { render json: { error: "No profile selected" }, status: :unprocessable_entity }
-    end unless profile
+    unless profile
+      return respond_to do |format|
+        format.json { render json: { error: "No profile selected" }, status: :unprocessable_entity }
+      end
+    end
     continue_watching = create_or_find_continue_watching(profile)
 
     reproduction = Reproduction.new(
       profile_id: profile.id,
       content_id: @content.id,
-      played_at: Time.now,
+      played_at: Time.now
     )
 
     if request.format.json?
@@ -40,8 +44,11 @@ class PlayerController < ApplicationController
 
       if @stream_session_result.limit_reached?
         return respond_to do |format|
-          format.html { render template: 'application/index', status: :forbidden }
-          format.json { render json: { error: 'STREAM_LIMIT_REACHED', sessions: @stream_session_result.active_sessions }, status: :forbidden }
+          format.html { render template: "application/index", status: :forbidden }
+          format.json do
+            render json: { error: "STREAM_LIMIT_REACHED", sessions: @stream_session_result.active_sessions },
+                   status: :forbidden
+          end
         end
       end
     else
@@ -101,7 +108,7 @@ class PlayerController < ApplicationController
 
   def find_content
     @content = Content.includes(:video_sources, :segments, seasons: { episodes: :video_sources })
-                       .find_by(id: params[:id])
+                      .find_by(id: params[:id])
   end
 
   def check_content_availability
@@ -142,7 +149,7 @@ class PlayerController < ApplicationController
     ContinueWatching.find_or_create_by(
       profile_id: profile.id,
       content_id: @content.id,
-      episode_id: @episode&.id,
+      episode_id: @episode&.id
     )
   end
 
@@ -157,7 +164,8 @@ class PlayerController < ApplicationController
         content_type: @content.content_type,
         banner: @content.banner,
       },
-      continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id id]),
+      continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id
+                                                               id]),
     }
 
     if @content.content_type == "MOVIE"
@@ -172,17 +180,22 @@ class PlayerController < ApplicationController
     end
     # Temporada actual con episodios
     data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
-    data[:season][:episodes] = @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position]) if @season
+    if @season
+      data[:season][:episodes] =
+        @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position])
+    end
 
     # Todas las temporadas para navegación entre temporadas
-    data[:seasons] = @content.seasons.order(position: :asc).map do |season|
-      season_data = season.as_json(except: %i[created_at updated_at])
-      season_data[:episodes] = season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position duration])
-      season_data
-    end if @content.content_type == "TVSHOW"
-    
+    if @content.content_type == "TVSHOW"
+      data[:seasons] = @content.seasons.order(position: :asc).map do |season|
+        season_data = season.as_json(except: %i[created_at updated_at])
+        season_data[:episodes] = season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position duration])
+        season_data
+      end
+    end
+
     data[:deviceSessionToken] = @stream_session_result.session_id if @stream_session_result&.session_id.present?
-    
+
     response = { data: data }
     render json: response
   end
@@ -225,13 +238,13 @@ class PlayerController < ApplicationController
 
   def render_content_not_available
     respond_to do |format|
-      format.html { render template: 'application/index', status: :unprocessable_entity }
-      format.json {
+      format.html { render template: "application/index", status: :unprocessable_entity }
+      format.json do
         render json: {
           errors: ["El contenido no está disponible para su reproducción."],
           error_type: "content_not_available",
         }, status: :unprocessable_entity
-      }
+      end
     end
   end
 
@@ -257,13 +270,13 @@ class PlayerController < ApplicationController
 
   def render_subscription_required
     respond_to do |format|
-      format.html { render template: 'application/index', status: :forbidden }
-      format.json {
+      format.html { render template: "application/index", status: :forbidden }
+      format.json do
         render json: {
           errors: ["Se requiere una suscripción activa para ver este contenido."],
           error_type: "subscription_required",
         }, status: :forbidden
-      }
+      end
     end
   end
 
@@ -292,24 +305,29 @@ class PlayerController < ApplicationController
 
   def update_watch_session(profile, content_id, episode_id, progress, duration)
     session = WatchSession.active
-      .where(profile: profile, content_id: content_id)
-      .where(episode_id: episode_id)
-      .order(started_at: :desc)
-      .first
+                          .where(profile: profile, content_id: content_id)
+                          .where(episode_id: episode_id)
+                          .order(started_at: :desc)
+                          .first
 
     return unless session
 
-    new_watched = progress.to_i
+    current_pos = progress.to_i
+    last_pos = session.last_progress.to_i
+
+    delta = [current_pos - last_pos, 0].max
+    new_watched = session.duration_watched + delta
+    new_watched = [new_watched, session.total_duration].min if session.total_duration > 0
+
     completed = duration > 0 && (new_watched.to_f / duration) >= 0.9
 
     session.update!(
       duration_watched: new_watched,
+      last_progress: current_pos,
       total_duration: duration,
       completed: completed,
       ended_at: completed ? Time.current : nil
     )
-
-    recalculate_content_analytic(session) if completed
   end
 
   def determine_total_duration
@@ -320,12 +338,6 @@ class PlayerController < ApplicationController
     else
       @content.video_sources.maximum(:duration) || 0
     end
-  end
-
-  def recalculate_content_analytic(session)
-    ContentAnalytic.recalculate!(session.content)
-  rescue StandardError => e
-    Rails.logger.error "Error recalculating content analytic: #{e.message}"
   end
 
   def render_content_not_found

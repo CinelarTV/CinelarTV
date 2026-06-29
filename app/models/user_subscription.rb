@@ -1,19 +1,28 @@
 # frozen_string_literal: true
 
 class UserSubscription < ApplicationRecord
-	belongs_to :user
-	has_many :subscription_payments, dependent: :destroy
+  belongs_to :user
+  has_many :subscription_payments, dependent: :destroy
 
-	scope :active, -> { 
-    where("status IN ('active', 'approved') OR (ends_at IS NOT NULL AND ends_at >= ?) OR (granted_until IS NOT NULL AND granted_until >= ?)", 
-          Time.zone.now, Time.zone.now)
-	}
-	scope :by_provider, ->(provider) { where(provider: provider) }
+  # Canonical statuses: active, trialing, pending, past_due, cancelled, expired, granted
+  ACTIVE_STATUSES = %w[active trialing approved].freeze
+  INACTIVE_STATUSES = %w[cancelled canceled rejected expired unpaid].freeze
 
-	def active?
-		%w[active approved].include?(status.to_s) || 
-		(ends_at.present? && ends_at >= Time.zone.now) || 
-		(renews_at.present? && renews_at >= Time.zone.now && !%w[unpaid expired].include?(status.to_s)) ||
-		(granted_until.present? && granted_until >= Time.zone.now)
-	end
+  scope :active, -> {
+    where(status: ACTIVE_STATUSES)
+      .or(where("ends_at IS NOT NULL AND ends_at >= ?", Time.zone.now))
+      .or(where("granted_until IS NOT NULL AND granted_until >= ?", Time.zone.now))
+  }
+  scope :by_provider, ->(provider) { where(provider: provider) }
+
+  def active?
+    return true if ACTIVE_STATUSES.include?(status.to_s)
+    return true if ends_at.present? && ends_at >= Time.zone.now
+    return true if granted_until.present? && granted_until >= Time.zone.now
+    false
+  end
+
+  def trialing?
+    status.to_s == "trialing" && trial_ends_at.present? && trial_ends_at >= Time.zone.now
+  end
 end

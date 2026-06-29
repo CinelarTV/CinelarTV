@@ -5,16 +5,16 @@
             <div class="subscriptions-admin__header-content">
                 <h1 class="subscriptions-admin__title">
                     <CIcon icon="credit-card" :size="28" class="subscriptions-admin__icon" />
-                    Subscriptions Manager
+                    Gestor de Suscripciones
                 </h1>
                 <p class="subscriptions-admin__description">
-                    Manage plans, monitor subscriptions, and handle administrative actions
+                    Administra planes, monitorea suscripciones y realiza acciones administrativas
                 </p>
             </div>
             <div class="subscriptions-admin__actions">
                 <button class="subscriptions-admin__btn" @click="refreshAll" :disabled="loading">
                     <CIcon icon="refresh-cw" :size="16" :class="{ 'subscriptions-admin__btn--spinning': loading }" />
-                    Refresh All
+                    Actualizar Todo
                 </button>
             </div>
         </div>
@@ -24,21 +24,21 @@
             <button class="subscriptions-admin__tab"
                 :class="{ 'subscriptions-admin__tab--active': currentTab === 'overview' }"
                 @click="currentTab = 'overview'">
-                <CIcon icon="pie-chart" :size="16" /> Overview
+                <CIcon icon="pie-chart" :size="16" /> Resumen
             </button>
             <button class="subscriptions-admin__tab"
                 :class="{ 'subscriptions-admin__tab--active': currentTab === 'subscriptions' }"
                 @click="currentTab = 'subscriptions'">
-                <CIcon icon="users" :size="16" /> Subscriptions
+                <CIcon icon="users" :size="16" /> Suscripciones
             </button>
             <button class="subscriptions-admin__tab"
                 :class="{ 'subscriptions-admin__tab--active': currentTab === 'plans' }" @click="currentTab = 'plans'">
-                <CIcon icon="package" :size="16" /> Plans
+                <CIcon icon="package" :size="16" /> Planes
             </button>
             <button class="subscriptions-admin__tab"
                 :class="{ 'subscriptions-admin__tab--active': currentTab === 'logs' }"
                 @click="currentTab = 'logs'; fetchLogs()">
-                <CIcon icon="terminal" :size="16" /> Logs
+                <CIcon icon="terminal" :size="16" /> Registros
             </button>
         </div>
 
@@ -58,7 +58,7 @@
                         <CIcon icon="users" :size="24" />
                     </div>
                     <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Total Subscriptions</span>
+                        <span class="subscriptions-admin__stat-label">Total de Suscripciones</span>
                         <strong class="subscriptions-admin__stat-value">{{ realStats.total || subscriptions.length
                             }}</strong>
                     </div>
@@ -68,7 +68,7 @@
                         <CIcon icon="check-circle" :size="24" />
                     </div>
                     <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Active</span>
+                        <span class="subscriptions-admin__stat-label">Activas</span>
                         <strong class="subscriptions-admin__stat-value">{{ realStats.active || activeSubscriptionsCount
                             }}</strong>
                     </div>
@@ -78,7 +78,7 @@
                         <CIcon icon="clock" :size="24" />
                     </div>
                     <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Pending</span>
+                        <span class="subscriptions-admin__stat-label">Pendientes</span>
                         <strong class="subscriptions-admin__stat-value">{{ realStats.pending || 0 }}</strong>
                     </div>
                 </div>
@@ -87,8 +87,18 @@
                         <CIcon icon="x-circle" :size="24" />
                     </div>
                     <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Cancelled</span>
+                        <span class="subscriptions-admin__stat-label">Canceladas</span>
                         <strong class="subscriptions-admin__stat-value">{{ realStats.cancelled || 0 }}</strong>
+                    </div>
+                </div>
+                <div class="subscriptions-admin__stat-card">
+                    <div class="subscriptions-admin__stat-icon subscriptions-admin__stat-icon--primary">
+                        <CIcon icon="dollar-sign" :size="24" />
+                    </div>
+                    <div class="subscriptions-admin__stat-content">
+                        <span class="subscriptions-admin__stat-label">Ingresos este mes</span>
+                        <strong class="subscriptions-admin__stat-value">{{ formatRevenue(realStats.revenue_this_month)
+                            }}</strong>
                     </div>
                 </div>
                 <div class="subscriptions-admin__stat-card">
@@ -96,18 +106,8 @@
                         <CIcon icon="package" :size="24" />
                     </div>
                     <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Available Plans</span>
+                        <span class="subscriptions-admin__stat-label">Planes Disponibles</span>
                         <strong class="subscriptions-admin__stat-value">{{ plans.length }}</strong>
-                    </div>
-                </div>
-                <div class="subscriptions-admin__stat-card">
-                    <div class="subscriptions-admin__stat-icon subscriptions-admin__stat-icon--primary">
-                        <CIcon icon="star" :size="24" />
-                    </div>
-                    <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Active Plan</span>
-                        <strong class="subscriptions-admin__stat-value subscriptions-admin__stat-value--small">{{
-                            activePlanName }}</strong>
                     </div>
                 </div>
             </div>
@@ -119,10 +119,10 @@
                 <div>
                     <h2 class="subscriptions-admin__card-title">
                         <CIcon icon="list" :size="20" />
-                        Subscriptions
+                        Suscripciones
                     </h2>
                     <p class="subscriptions-admin__card-description">
-                        Manage user subscriptions and perform administrative actions
+                        Administra suscripciones de usuarios y realiza acciones administrativas
                     </p>
                 </div>
             </div>
@@ -132,14 +132,14 @@
                 <button class="subscriptions-admin__manual-toggle" @click="showManualForm = !showManualForm">
                     <CIcon :icon="showManualForm ? 'chevron-down' : 'chevron-right'" :size="16" />
                     <CIcon icon="user-plus" :size="16" />
-                    Create Manual Subscription
+                    Crear Suscripción Manual
                 </button>
                 <div v-if="showManualForm" class="subscriptions-admin__manual-form">
                     <div class="subscriptions-admin__filters">
                         <div class="subscriptions-admin__field">
-                            <label class="subscriptions-admin__label">Search User</label>
+                            <label class="subscriptions-admin__label">Buscar Usuario</label>
                             <input v-model="manualUserQuery" class="subscriptions-admin__input"
-                                placeholder="Type email or username..." @input="onUserSearchInput" />
+                                placeholder="Escribe email o nombre de usuario..." @input="onUserSearchInput" />
                             <div v-if="userSearchResults.length > 0" class="subscriptions-admin__user-results">
                                 <button v-for="u in userSearchResults" :key="u.id"
                                     class="subscriptions-admin__user-result"
@@ -158,21 +158,21 @@
                             </div>
                         </div>
                         <div class="subscriptions-admin__field">
-                            <label class="subscriptions-admin__label">Duration</label>
+                            <label class="subscriptions-admin__label">Duración</label>
                             <select v-model="manualGrantDays" class="subscriptions-admin__select">
-                                <option :value="1">1 Day</option>
-                                <option :value="7">7 Days</option>
-                                <option :value="15">15 Days</option>
-                                <option :value="30">30 Days</option>
-                                <option :value="90">90 Days</option>
-                                <option :value="365">1 Year</option>
+                                <option :value="1">1 Día</option>
+                                <option :value="7">7 Días</option>
+                                <option :value="15">15 Días</option>
+                                <option :value="30">30 Días</option>
+                                <option :value="90">90 Días</option>
+                                <option :value="365">1 Año</option>
                             </select>
                         </div>
                         <div class="subscriptions-admin__field subscriptions-admin__field--actions">
                             <button class="subscriptions-admin__btn subscriptions-admin__btn--primary"
                                 @click="createManualSubscription" :disabled="!manualUserId || manualCreating">
                                 <CIcon icon="gift" :size="16" :class="{ 'subscriptions-admin__btn--spinning': manualCreating }" />
-                                {{ manualCreating ? 'Creating...' : 'Create & Grant' }}
+                                {{ manualCreating ? 'Creando...' : 'Crear y Otorgar' }}
                             </button>
                         </div>
                     </div>
@@ -184,24 +184,24 @@
             <!-- Filters -->
             <div class="subscriptions-admin__filters">
                 <div class="subscriptions-admin__field">
-                    <label class="subscriptions-admin__label">Search</label>
+                    <label class="subscriptions-admin__label">Buscar</label>
                     <input v-model="filters.query" class="subscriptions-admin__input"
-                        placeholder="Email, username or ID" @keyup.enter="fetchSubscriptions" />
+                        placeholder="Email, nombre de usuario o ID" @keyup.enter="fetchSubscriptions" />
                 </div>
                 <div class="subscriptions-admin__field">
-                    <label class="subscriptions-admin__label">Status</label>
+                    <label class="subscriptions-admin__label">Estado</label>
                     <select v-model="filters.status" class="subscriptions-admin__select" @change="fetchSubscriptions">
-                        <option value="">All</option>
-                        <option value="active">Active</option>
-                        <option value="approved">Approved</option>
-                        <option value="pending">Pending</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="">Todos</option>
+                        <option value="active">Activas</option>
+                        <option value="approved">Aprobadas</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="cancelled">Canceladas</option>
                     </select>
                 </div>
                 <div class="subscriptions-admin__field">
-                    <label class="subscriptions-admin__label">Provider</label>
+                    <label class="subscriptions-admin__label">Proveedor</label>
                     <select v-model="filters.provider" class="subscriptions-admin__select" @change="fetchSubscriptions">
-                        <option value="">All</option>
+                        <option value="">Todos</option>
                         <option v-for="provider in providerOptions" :key="provider.key" :value="provider.key">
                             {{ provider.label }}
                         </option>
@@ -211,7 +211,7 @@
                     <button class="subscriptions-admin__btn subscriptions-admin__btn--primary"
                         @click="fetchSubscriptions">
                         <CIcon icon="search" :size="16" />
-                        Apply
+                        Aplicar
                     </button>
                 </div>
             </div>
@@ -220,14 +220,14 @@
 
             <div v-if="loading" class="subscriptions-admin__loading">
                 <CIcon icon="loader" :size="32" class="subscriptions-admin__loading-icon" />
-                <p>Loading subscriptions...</p>
+                <p>Cargando suscripciones...</p>
             </div>
 
             <div v-else-if="!subscriptions.length" class="subscriptions-admin__empty">
                 <CIcon icon="inbox" :size="48" class="subscriptions-admin__empty-icon" />
-                <p class="subscriptions-admin__empty-title">No subscriptions found</p>
+                <p class="subscriptions-admin__empty-title">No se encontraron suscripciones</p>
                 <p class="subscriptions-admin__empty-description">
-                    No subscriptions match your current filters
+                    No hay suscripciones que coincidan con los filtros actuales
                 </p>
             </div>
 
@@ -260,29 +260,29 @@
                     <div class="subscription__actions">
                         <button class="subscription__btn" @click="syncSubscription(sub)">
                             <CIcon icon="refresh-cw" :size="14" />
-                            Sync
+                            Sincronizar
                         </button>
 
                         <!-- Grant Access Group -->
                         <div class="subscription__grant-group">
                             <select v-model="sub._grantDays" class="subscription__grant-select">
-                                <option :value="1">1 Day</option>
-                                <option :value="7">7 Days</option>
-                                <option :value="15">15 Days</option>
-                                <option :value="30">30 Days</option>
-                                <option :value="90">90 Days</option>
-                                <option :value="365">1 Year</option>
+                                <option :value="1">1 Día</option>
+                                <option :value="7">7 Días</option>
+                                <option :value="15">15 Días</option>
+                                <option :value="30">30 Días</option>
+                                <option :value="90">90 Días</option>
+                                <option :value="365">1 Año</option>
                             </select>
                             <button class="subscription__btn" @click="grantSubscription(sub)">
                                 <CIcon icon="gift" :size="14" />
-                                Grant
+                                Otorgar
                             </button>
                         </div>
 
                         <button class="subscription__btn subscription__btn--danger" @click="cancelSubscription(sub)"
                             :disabled="sub.cancelled">
                             <CIcon icon="x-circle" :size="14" />
-                            Cancel
+                            Cancelar
                         </button>
                     </div>
                 </div>
@@ -295,15 +295,15 @@
                 <div>
                     <h2 class="subscriptions-admin__card-title">
                         <CIcon icon="package" :size="20" />
-                        Plans
+                        Planes
                     </h2>
                     <p class="subscriptions-admin__card-description">
-                        Manage plans for {{ currentProviderLabel }}
+                        Administra planes para {{ currentProviderLabel }}
                     </p>
                 </div>
                 <div class="subscriptions-admin__provider-controls">
                     <div class="subscriptions-admin__field">
-                        <label class="subscriptions-admin__label">Provider</label>
+                        <label class="subscriptions-admin__label">Proveedor</label>
                         <select v-model="selectedProviderKey" class="subscriptions-admin__select"
                             @change="onProviderChange">
                             <option v-for="provider in providerOptions" :key="provider.key" :value="provider.key">
@@ -315,7 +315,7 @@
                         <input type="checkbox" v-model="showAllPlans" @change="fetchPlans" />
                         <span class="subscriptions-admin__toggle-label">
                             <CIcon :icon="showAllPlans ? 'check-square' : 'square'" :size="18" />
-                            Show all merchant plans
+                            Mostrar todos los planes del comercio
                         </span>
                     </label>
                 </div>
@@ -323,26 +323,32 @@
 
             <div v-if="!plans.length && !isOpenIapProvider" class="subscriptions-admin__empty">
                 <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
-                <p class="subscriptions-admin__empty-title">No plans available</p>
+                <p class="subscriptions-admin__empty-title">No hay planes disponibles</p>
                 <p class="subscriptions-admin__empty-description">
-                    Create a plan from {{ currentProviderLabel }} or use the form below
+                    Crea un plan desde {{ currentProviderLabel }} o usa el formulario a continuación
                 </p>
             </div>
             <div v-if="!plans.length && isOpenIapProvider" class="subscriptions-admin__empty">
                 <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
-                <p class="subscriptions-admin__empty-title">No OpenIAP products configured</p>
+                <p class="subscriptions-admin__empty-title">No hay productos OpenIAP configurados</p>
                 <p class="subscriptions-admin__empty-description">
-                    Configure OpenIAP products in site settings to manage subscriptions
+                    Configura productos OpenIAP en la configuración del sitio para administrar suscripciones
                 </p>
             </div>
             <div v-else class="subscriptions-admin__plans">
+                <div class="subscriptions-admin__info-box subscriptions-admin__info-box--plan">
+                    <CIcon icon="info" :size="18" class="subscriptions-admin__info-icon" />
+                    <div class="subscriptions-admin__info-content">
+                        <p>El plan seleccionado es el que verán los usuarios en su página de facturación. Los usuarios de cada región verán el plan del proveedor que les corresponde.</p>
+                    </div>
+                </div>
                 <div v-for="plan in plans" :key="plan.id || plan.product_id" class="plan__card"
                     :class="{ 'plan__card--active': (plan.id || plan.product_id) === String(activePlanId) }">
                     <div class="plan__content">
                         <div class="plan__header">
                             <h3 class="plan__name">{{ plan.reason || plan.product_id || plan.name }}</h3>
                             <span v-if="(plan.id || plan.product_id) === String(activePlanId)" class="plan__badge">
-                                <CIcon icon="check" :size="14" /> Active
+                                <CIcon icon="check" :size="14" /> Activo
                             </span>
                         </div>
                         <div class="plan__details">
@@ -377,51 +383,51 @@
                             <CIcon
                                 :icon="(plan.id || plan.product_id) === String(activePlanId) ? 'check-circle' : 'arrow-right'"
                                 :size="16" />
-                            {{ (plan.id || plan.product_id) === String(activePlanId) ? 'Active Plan' : 'Select Plan' }}
+                            {{ (plan.id || plan.product_id) === String(activePlanId) ? 'Plan de usuario activo' : 'Usar este plan' }}
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="subscriptions-admin__divider" v-if="supportsPlanManagement">
-                <span class="subscriptions-admin__divider-text">Or create a new plan</span>
+                <span class="subscriptions-admin__divider-text">O crea un nuevo plan</span>
             </div>
 
             <form class="subscriptions-admin__form" @submit.prevent="createPlan" v-if="supportsPlanManagement">
                 <div class="subscriptions-admin__form-grid">
                     <div class="subscriptions-admin__field">
-                        <label class="subscriptions-admin__label">Plan Name</label>
+                        <label class="subscriptions-admin__label">Nombre del Plan</label>
                         <input v-model="planForm.reason" class="subscriptions-admin__input"
-                            placeholder="e.g., Monthly Plan" required />
+                            placeholder="ej., Plan Mensual" required />
                     </div>
                     <div class="subscriptions-admin__field">
-                        <label class="subscriptions-admin__label">Amount</label>
+                        <label class="subscriptions-admin__label">Monto</label>
                         <input v-model.number="planForm.amount" type="number" step="0.01" min="0"
                             class="subscriptions-admin__input" required />
                     </div>
                     <div class="subscriptions-admin__field">
-                        <label class="subscriptions-admin__label">Currency</label>
+                        <label class="subscriptions-admin__label">Moneda</label>
                         <select v-model="planForm.currency_id" class="subscriptions-admin__select">
-                            <option value="UYU">UYU - Uruguayan Peso</option>
-                            <option value="USD">USD - US Dollar</option>
-                            <option value="ARS">ARS - Argentine Peso</option>
-                            <option value="BRL">BRL - Brazilian Real</option>
+                            <option value="UYU">UYU - Peso Uruguayo</option>
+                            <option value="USD">USD - Dólar Americano</option>
+                            <option value="ARS">ARS - Peso Argentino</option>
+                            <option value="BRL">BRL - Real Brasileño</option>
                         </select>
                     </div>
                     <div class="subscriptions-admin__field">
-                        <label class="subscriptions-admin__label">Billing Frequency</label>
+                        <label class="subscriptions-admin__label">Frecuencia de Facturación</label>
                         <select v-model.number="planForm.frequency" class="subscriptions-admin__select">
-                            <option :value="1">Monthly</option>
-                            <option :value="3">Quarterly</option>
-                            <option :value="6">Semi-annual</option>
-                            <option :value="12">Annual</option>
+                            <option :value="1">Mensual</option>
+                            <option :value="3">Trimestral</option>
+                            <option :value="6">Semestral</option>
+                            <option :value="12">Anual</option>
                         </select>
                     </div>
                 </div>
                 <div class="subscriptions-admin__form-actions">
                     <button class="subscriptions-admin__btn subscriptions-admin__btn--primary" type="submit">
                         <CIcon icon="plus" :size="16" />
-                        Create Plan
+                        Crear Plan
                     </button>
                 </div>
             </form>
@@ -429,9 +435,9 @@
             <div v-if="!supportsPlanManagement" class="subscriptions-admin__info-box">
                 <CIcon icon="info" :size="20" class="subscriptions-admin__info-icon" />
                 <div class="subscriptions-admin__info-content">
-                    <h4>Provider Configuration</h4>
-                    <p>{{ currentProviderLabel }} does not support inline plan management. Plans must be configured
-                        directly in the {{ currentProviderLabel }} console.</p>
+                    <h4>Configuración del Proveedor</h4>
+                    <p>{{ currentProviderLabel }} no soporta gestión de planes en línea. Los planes deben configurarse
+                        directamente en la consola de {{ currentProviderLabel }}.</p>
                 </div>
             </div>
         </div>
@@ -442,26 +448,26 @@
                 <div>
                     <h2 class="subscriptions-admin__card-title">
                         <CIcon icon="terminal" :size="20" />
-                        Webhook Logs
+                        Registros de Webhooks
                     </h2>
                     <p class="subscriptions-admin__card-description">
-                        Monitor incoming events from payment providers
+                        Monitorea los eventos entrantes de los proveedores de pago
                     </p>
                 </div>
                 <button class="subscriptions-admin__btn" @click="fetchLogs" :disabled="loadingLogs">
                     <CIcon icon="refresh-cw" :size="16"
-                        :class="{ 'subscriptions-admin__btn--spinning': loadingLogs }" /> Refresh
+                        :class="{ 'subscriptions-admin__btn--spinning': loadingLogs }" /> Actualizar
                 </button>
             </div>
 
             <div v-if="loadingLogs" class="subscriptions-admin__loading">
                 <CIcon icon="loader" :size="32" class="subscriptions-admin__loading-icon" />
-                <p>Loading logs...</p>
+                <p>Cargando registros...</p>
             </div>
             <div v-else-if="!logs.length" class="subscriptions-admin__empty">
                 <CIcon icon="inbox" :size="48" class="subscriptions-admin__empty-icon" />
-                <p class="subscriptions-admin__empty-title">No webhook logs found</p>
-                <p class="subscriptions-admin__empty-description">Events will appear here as webhooks arrive</p>
+                <p class="subscriptions-admin__empty-title">No se encontraron registros de webhooks</p>
+                <p class="subscriptions-admin__empty-description">Los eventos aparecerán aquí cuando lleguen los webhooks</p>
             </div>
             <div v-else class="subscriptions-admin__logs">
                 <div v-for="log in logs" :key="log.id" class="log__item">
@@ -738,6 +744,12 @@ const formatProvider = (provider) => {
         .split('_')
         .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
         .join(' ')
+}
+
+const formatRevenue = (amount) => {
+    if (!amount && amount !== 0) return '-'
+    const currency = realStats.value?.currency || 'UYU'
+    return new Intl.NumberFormat('es-UY', { style: 'currency', currency }).format(amount)
 }
 
 const onUserSearchInput = () => {
@@ -1448,6 +1460,13 @@ onMounted(() => {
     border: 1px solid rgba(255, 255, 255, 0.04);
     border-radius: 8px;
     margin-top: 20px;
+}
+
+.subscriptions-admin__info-box--plan {
+    margin-top: 0;
+    margin-bottom: 16px;
+    background: rgba(0, 149, 217, 0.06);
+    border-color: rgba(0, 149, 217, 0.12);
 }
 
 .subscriptions-admin__info-icon {

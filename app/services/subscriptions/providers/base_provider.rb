@@ -17,7 +17,8 @@ module Subscriptions
 
       def create_subscription!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _checkout_mode: nil, _card_token_id: nil,
         _start_date: nil, _end_date: nil, _amount: nil, _currency_id: nil, _frequency: nil, _frequency_type: nil,
-        _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil)
+        _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil, _purchase_token: nil, _product_id: nil,
+        _package_name: nil, _store: nil)
         raise NotImplementedError, "create_subscription! must be implemented"
       end
 
@@ -115,8 +116,10 @@ module Subscriptions
         status = value.to_s.downcase
 
         return "active" if %w[approved active authorized paid].include?(status)
+        return "trialing" if %w[trialing trial trial_active].include?(status)
         return "cancelled" if %w[cancelled canceled rejected refunded].include?(status)
         return "pending" if %w[pending in_process processing].include?(status)
+        return "past_due" if %w[past_due unpaid].include?(status)
 
         status
       end

@@ -63,7 +63,8 @@
 
         <!-- Content grid -->
         <div v-else class="content-manager-grid">
-            <div v-for="item in filteredContent" :key="item.id" class="content-manager-card" @click="editContent(item)">
+            <RouterLink v-for="item in filteredContent" :key="item.id" class="content-manager-card"
+                :to="{ name: 'admin.content.manager.edit', params: { id: item.id } }">
                 <div class="content-manager-card__image">
                     <img :src="item.cover || item.banner" :alt="item.title" loading="lazy" />
                     <div class="content-manager-card__type">
@@ -83,7 +84,7 @@
                         {{ $t("js.admin.actions.edit") || "Edit" }}
                     </button>
                 </div>
-            </div>
+            </RouterLink>
         </div>
 
         <CreateContentModal ref="createContentModalRef" @content-created="fetchContent" />

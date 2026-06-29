@@ -45,6 +45,34 @@ module Subscriptions
         true
       end
 
+      # Associates a userId with a tracked subscription in Kit via POST /v1/subscriptions/bind-user/{apiKey}.
+      # This enables the sync job to find subscriptions by userId.
+      def bind_user!(purchase_token:, user_id:)
+        base_url = SiteSetting.open_iap_base_url.to_s.presence || "https://kit.openiap.dev"
+        api_key = SiteSetting.open_iap_api_key.to_s
+        return if api_key.blank? || purchase_token.blank? || user_id.blank?
+
+        url = URI.parse("#{base_url}/v1/subscriptions/bind-user/#{api_key}")
+        http = Net::HTTP.new(url.host, url.port)
+        http.use_ssl = url.scheme == "https"
+        http.open_timeout = 10
+        http.read_timeout = 15
+
+        req = Net::HTTP::Post.new(url.request_uri)
+        req['Content-Type'] = 'application/json'
+        req.body = { purchaseToken: purchase_token, userId: user_id.to_s }.to_json
+
+        resp = http.request(req)
+
+        if resp.code.to_i >= 200 && resp.code.to_i < 300
+          Rails.logger.info("#{self.class.name}: Bound userId=#{user_id} to token=#{purchase_token&.truncate(20)}")
+        else
+          Rails.logger.warn("#{self.class.name}: bind-user failed HTTP #{resp.code}: #{resp.body}")
+        end
+      rescue StandardError => e
+        Rails.logger.error("#{self.class.name}: bind-user error: #{e.class} — #{e.message}")
+      end
+
       def list_plans!
         product_map = SiteSetting.open_iap_product_id_map
         return [] if product_map.blank?
@@ -98,6 +126,9 @@ module Subscriptions
         subscription.user_id ||= user.id if user.respond_to?(:id)
         subscription.save!
 
+        # Bind userId in Kit so the sync job can find this subscription
+        bind_user!(purchase_token: purchase_token, user_id: user.id)
+
         {
           subscription: subscription.as_json,
           plan_id: subscription.provider_plan_id,
@@ -139,14 +170,15 @@ module Subscriptions
       end
 
       def detect_store(remote)
-        remote["store"].to_s.presence || detect_store_from_product(remote["productId"])
+        raw = remote["store"].to_s.presence || detect_store_from_product(remote["productId"])
+        raw
       end
 
       def detect_store_from_product(product_id)
-        return "android" if product_id.to_s.start_with?("com.")
-        return "ios" if product_id.to_s.match?(/\A\d+\z/)
+        return "google" if product_id.to_s.start_with?("com.")
+        return "apple" if product_id.to_s.match?(/\A\d+\z/)
 
-        "android"
+        "google"
       end
     end
   end

@@ -68,7 +68,8 @@ module Subscriptions
 
       def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
         start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
-        repetitions: nil, billing_day: nil, billing_day_proportional: nil)
+        repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil,
+        package_name: nil, store: nil)
         plan_id = SiteSetting.mercadopago_plan_id.to_s
         validate_credentials_consistency!
         requested_checkout_mode = checkout_mode.to_s.presence

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_29_014453) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_29_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -493,6 +493,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_29_014453) do
     t.string "country_code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "last_progress", default: 0.0, null: false
     t.index ["completed"], name: "index_watch_sessions_on_completed"
     t.index ["content_id", "started_at"], name: "index_watch_sessions_on_content_id_and_started_at"
     t.index ["content_id"], name: "index_watch_sessions_on_content_id"

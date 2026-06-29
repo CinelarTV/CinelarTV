@@ -51,6 +51,16 @@
       class: RecalculateContentAnalyticsJob
       queue: "default"
       description: "Recalculate content analytics from watch sessions"
+    end_stale_watch_sessions:
+      every: '30m'
+      class: EndStaleWatchSessionsJob
+      queue: "default"
+      description: "Close stale watch sessions older than 2 hours"
+    sync_open_iap_subscriptions:
+      every: '15m'
+      class: OpenIapSyncJob
+      queue: 'subscriptions'
+      description: 'Sync OpenIAP subscription states from Kit REST API'
 
 :pidfile: tmp/pids/sidekiq_general.pid
 :logfile: log/sidekiq_general.log

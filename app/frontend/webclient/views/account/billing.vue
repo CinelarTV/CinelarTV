@@ -5,10 +5,10 @@
       <div class="billing-page__header-content">
         <h1 class="billing-page__title">
           <CIcon icon="credit-card" :size="28" class="billing-page__icon" />
-          Membresía
+          {{ $t('js.billing.title') }}
         </h1>
         <p class="billing-page__description">
-          Administra tu suscripción y métodos de pago
+          {{ $t('js.billing.description') }}
         </p>
       </div>
     </div>
@@ -16,9 +16,9 @@
     <!-- Subscriptions disabled -->
     <div v-if="!SiteSettings.enable_subscription" class="billing-page__disabled">
       <CIcon icon="credit-card-off" :size="48" class="billing-page__disabled-icon" />
-      <h2 class="billing-page__disabled-title">Suscripciones Desactivadas</h2>
+      <h2 class="billing-page__disabled-title">{{ $t('js.billing.disabled_title') }}</h2>
       <p class="billing-page__disabled-description">
-        El administrador ha desactivado temporalmente las suscripciones de la plataforma.
+        {{ $t('js.billing.disabled_description') }}
       </p>
     </div>
 
@@ -27,9 +27,9 @@
       <div class="billing-page__loading-icon-wrap">
         <CIcon icon="loader" :size="24" class="billing-page__loading-icon" />
       </div>
-      <h2 class="billing-page__loading-title">Cargando tu membresía</h2>
+      <h2 class="billing-page__loading-title">{{ $t('js.billing.loading_title') }}</h2>
       <p class="billing-page__loading-description">
-        Sincronizando estado de tu suscripción…
+        {{ $t('js.billing.loading_description') }}
       </p>
     </div>
 
@@ -49,21 +49,21 @@
 
         <!-- Plan name + cancellation notice -->
         <h2 class="billing-plan-card__title">{{ subscription.product_name || 'CinelarTV+' }}</h2>
-        <p class="billing-plan-card__variant">{{ subscription.variant_name || 'Suscripción Mensual' }}</p>
+        <p class="billing-plan-card__variant">{{ subscription.variant_name || $t('js.billing.active_plan') }}</p>
 
         <div v-if="subscription.cancelled" class="billing-plan-card__cancellation-notice">
           <CIcon icon="alert-circle" :size="16" />
-          Suscripción cancelada · Acceso hasta el {{ formatDate(subscription.ends_at) }}.
+          {{ $t('js.billing.cancelled_notice', { date: formatDate(subscription.ends_at) }) }}
         </div>
 
         <!-- Details grid -->
         <div class="billing-plan-card__details">
           <div class="billing-plan-detail" v-if="!subscription.cancelled && subscription.renews_at">
-            <span class="billing-plan-detail__label">Próximo cobro</span>
+            <span class="billing-plan-detail__label">{{ $t('js.billing.renews_at') }}</span>
             <span class="billing-plan-detail__value">{{ formatDate(subscription.renews_at) }}</span>
           </div>
           <div class="billing-plan-detail" v-if="subscription.cancelled && subscription.ends_at">
-            <span class="billing-plan-detail__label">Acceso hasta el</span>
+            <span class="billing-plan-detail__label">{{ $t('js.billing.ends_at') }}</span>
             <span class="billing-plan-detail__value">{{ formatDate(subscription.ends_at) }}</span>
           </div>
           <div class="billing-plan-detail" v-if="subscription.card_last_four">
@@ -73,16 +73,11 @@
             </span>
           </div>
           <div class="billing-plan-detail">
-            <span class="billing-plan-detail__label">Email de facturación</span>
+            <span class="billing-plan-detail__label">{{ $t('js.billing.billing_email') }}</span>
             <span class="billing-plan-detail__value">{{ subscription.user_email || currentUser?.email || '—' }}</span>
           </div>
-          <div class="billing-plan-detail" v-if="subscription.provider_subscription_id">
-            <span class="billing-plan-detail__label">ID de Suscripción</span>
-            <span class="billing-plan-detail__value billing-plan-detail__value--mono">{{
-              subscription.provider_subscription_id }}</span>
-          </div>
           <div class="billing-plan-detail" v-if="lastPaymentInfo">
-            <span class="billing-plan-detail__label">Último cobro</span>
+            <span class="billing-plan-detail__label">{{ $t('js.billing.last_payment') }}</span>
             <span class="billing-plan-detail__value">{{ lastPaymentInfo }}</span>
           </div>
         </div>
@@ -90,20 +85,23 @@
         <!-- Actions -->
         <div class="billing-plan-card__actions">
           <BillingActionButton icon="refresh-cw" :loading="isSyncing" variant="secondary" @click="manualSync">
-            {{ isSyncing ? 'Verificando…' : 'Refrescar estado' }}
+            {{ isSyncing ? $t('js.billing.syncing') : $t('js.billing.sync') }}
           </BillingActionButton>
           <BillingActionButton v-if="hasManagementUrl" icon="external-link" variant="secondary"
             @click="manageSubscription">
-            Administrar en {{ formatProvider(subscription.provider) }}
+            {{ $t('js.billing.manage_provider', { provider: formatProvider(subscription.provider) }) }}
           </BillingActionButton>
-          <BillingActionButton v-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
-            Cancelar plan
+          <BillingActionButton v-if="subscription.cancelled" icon="refresh-cw" variant="primary" @click="resubscribe">
+            {{ $t('js.billing.resubscribe') }}
+          </BillingActionButton>
+          <BillingActionButton v-else-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
+            {{ $t('js.billing.cancel') }}
           </BillingActionButton>
         </div>
       </div>
 
       <div v-if="payments && payments.length > 0" class="billing-page__history">
-        <h3 class="billing-page__history-title">Historial de pagos</h3>
+        <h3 class="billing-page__history-title">{{ $t('js.billing.payment_history') }}</h3>
         <div class="billing-page__history-list">
           <div v-for="payment in payments" :key="payment.id" class="billing-page__history-item">
             <div class="billing-page__history-item-left">
@@ -127,85 +125,83 @@
     <div v-else-if="isAwaitingActivation" class="billing-page__pending">
       <div class="billing-page__pending-card">
         <div class="billing-page__pending-pulse" />
-        <h2 class="billing-page__pending-title">Finalizando tu suscripción</h2>
+        <h2 class="billing-page__pending-title">{{ $t('js.billing.awaiting_title') }}</h2>
         <p class="billing-page__pending-description">
-          Recibimos tu pago correctamente. La confirmación oficial de {{ providerProfile.displayName }} puede tomar unos
-          momentos.
+          {{ $t('js.billing.awaiting_description', { provider: providerProfile.displayName }) }}
         </p>
         <BillingActionButton icon="refresh-cw" :loading="isSyncing" @click="manualSync">
-          {{ isSyncing ? 'Verificando…' : 'Verificar estado de cuenta' }}
+          {{ isSyncing ? $t('js.billing.syncing') : $t('js.billing.awaiting_sync') }}
         </BillingActionButton>
         <p class="billing-page__pending-hint">
-          ¿Ya se activó? Intenta recargar la página.
+          {{ $t('js.billing.awaiting_hint') }}
         </p>
       </div>
     </div>
 
     <!-- No subscription — subscribe -->
     <div v-else class="billing-page__subscribe">
-      <div class="billing-page__subscribe-card">
-        <!-- Hero -->
-        <div class="billing-page__subscribe-hero">
-          <CIcon icon="sparkles" :size="26" class="billing-page__subscribe-hero-icon" />
-          <span class="billing-page__subscribe-hero-kicker">CinelarTV Premium</span>
-        </div>
+      <!-- Web providers checkout card -->
+      <div v-if="hasWebProviders" class="billing-page__subscribe-card">
 
-        <h2 class="billing-page__subscribe-title">Streaming ilimitado, un solo plan</h2>
+        <!-- Price hero -->
+        <div v-if="isFetchingPlan" class="billing-page__price-hero billing-page__price-hero--loading">
+          <CIcon icon="loader" :size="20" class="animate-spin" />
+        </div>
+        <div v-else-if="planData" class="billing-page__price-hero">
+          <span class="billing-page__price-amount">${{ Number(planData.amount) || 0 }}</span>
+          <span class="billing-page__price-currency">{{ planData.currency }}</span>
+          <span class="billing-page__price-period">/{{ planFrequencyText }}</span>
+        </div>
+        <div v-else class="billing-page__price-hero billing-page__price-hero--unavailable">
+          <span class="billing-page__price-amount">{{ $t('js.billing.price_unavailable') }}</span>
+        </div>
 
         <!-- Benefits -->
         <ul class="billing-page__benefits">
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Acceso total a nuestro catálogo
+            {{ $t('js.billing.benefits.no_ads') }}
           </li>
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Continúa viendo en todos tus dispositivos
+            {{ $t('js.billing.benefits.early_premiere') }}
           </li>
           <li class="billing-page__benefit-item">
             <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
-            Soporte técnico prioritario
+            {{ $t('js.billing.benefits.quality') }}
+          </li>
+          <li class="billing-page__benefit-item">
+            <CIcon icon="check-circle" :size="16" class="billing-page__benefit-icon" />
+            {{ $t('js.billing.benefits.cancel_anytime') }}
           </li>
         </ul>
-        <!-- Provider selector (multi-provider) -->
-        <div v-if="showProviderSelector" class="billing-page__provider-selector">
-          <span class="billing-page__provider-selector-label">Paga inicialmente con:</span>
-          <div class="billing-page__provider-options">
-            <button v-for="provider in enabledProviders" :key="provider.key" class="billing-page__provider-option"
-              :class="{ 'billing-page__provider-option--active': activeProviderKey === provider.key }"
-              @click="selectProvider(provider.key)">
-              <CIcon icon="credit-card" :size="18" />
-              {{ provider.label }}
-            </button>
-          </div>
-        </div>
 
-        <!-- OpenIAP Alert -->
-        <div v-if="activeProviderKey === 'open_iap'" class="billing-page__open-iap-alert">
-          <div class="billing-page__alert-content">
-            <CIcon icon="smartphone" :size="20" class="billing-page__alert-icon" />
-            <div class="billing-page__alert-text">
-              <h4>Suscripciones con OpenIAP</h4>
-              <p>Las suscripciones con OpenIAP solo están disponibles en la app móvil de CinelarTV.</p>
-              <div class="billing-page__alert-actions">
-                <BillingActionButton @click="selectNonOpenIapProvider" variant="secondary">
-                  Ver otras opciones
-                </BillingActionButton>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Primary CTA -->
-        <BillingActionButton v-else id="billing-subscribe-btn" large icon="external-link" loading-icon="loader"
+        <!-- Primary CTA — recommended provider -->
+        <BillingActionButton id="billing-subscribe-btn" large icon="external-link" loading-icon="loader"
           variant="primary" :loading="isCreatingCheckout && selectedCheckoutMode === 'redirect'"
           :disabled="isCreatingCheckout" @click="createSubscription('redirect')">
           {{ isCreatingCheckout && selectedCheckoutMode === 'redirect'
             ? providerProfile.checkoutLoadingCta
-            : providerProfile.checkoutCta }}
+            : planPrice
+              ? $t('js.billing.subscribe_cta', { provider: providerProfile.displayName, price: planPrice })
+              : $t('js.billing.subscribe_cta_no_price', { provider: providerProfile.displayName }) }}
         </BillingActionButton>
 
-        <!-- Secondary payment options -->
+        <!-- Alternative providers -->
+        <div v-if="alternativeProviders.length > 0" class="billing-page__alt-providers">
+          <span class="billing-page__alt-providers-label">
+            {{ $t('js.billing.alternative_providers', {
+              provider: providerProfile.displayName,
+              alternative: alternativeProviders[0].label
+            }) }}
+          </span>
+          <button class="billing-page__alt-provider-btn" @click="switchProvider(alternativeProviders[0].key)">
+            <CIcon icon="credit-card" :size="15" />
+            {{ alternativeProviders[0].label }}
+          </button>
+        </div>
+
+        <!-- Secondary payment options (wallet + inline card) -->
         <div v-if="providerProfile.supportsWalletCheckout || providerProfile.supportsInlineCardForm"
           class="billing-page__alt-methods">
           <span class="billing-page__alt-methods-label">Otras formas de pago:</span>
@@ -221,12 +217,12 @@
               :class="{ 'billing-page__alt-btn--active': selectedPayMethod === 'card' }" :disabled="isCreatingCheckout"
               @click="toggleCardForm">
               <CIcon icon="credit-card" :size="15" />
-              Ingresar tarjeta
+              {{ $t('js.billing.card_form_title') }}
             </button>
           </div>
         </div>
 
-        <!-- Wallet CTA (secondary, shown when selected) -->
+        <!-- Wallet CTA -->
         <div v-if="selectedPayMethod === 'wallet'" class="billing-page__secondary-action">
           <BillingActionButton icon="dollar-sign" loading-icon="loader"
             :loading="isCreatingCheckout && selectedCheckoutMode === 'wallet_balance'" :disabled="isCreatingCheckout"
@@ -237,61 +233,63 @@
           </BillingActionButton>
         </div>
 
-        <!-- Inline card form (secondary, shown when selected) -->
+        <!-- Inline card form -->
         <form v-if="selectedPayMethod === 'card' && providerProfile.supportsInlineCardForm" class="billing-page__form"
           @submit.prevent="createSubscriptionWithCardToken">
 
           <div v-if="isInitializingMercadoPago" class="billing-page__form-loading">
             <CIcon icon="loader" :size="18" class="animate-spin" />
-            Inicializando formulario seguro…
+            Inicializando formulario seguro...
           </div>
 
           <template v-else>
             <div class="billing-page__secure-badge">
               <CIcon icon="shield-check" :size="15" />
-              {{ providerProfile.secureBadgeText }}
+              {{ $t('js.billing.secure_badge', { provider: providerProfile.displayName }) }}
             </div>
 
             <div class="billing-page__form-grid">
               <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-cardholder-name">Nombre del titular</label>
+                <label class="billing-page__label" for="mp-cardholder-name">{{ $t('js.billing.cardholder_name')
+                  }}</label>
                 <BillingInputControl id="mp-cardholder-name" v-model="cardForm.cardholderName" type="text"
                   autocomplete="cc-name" required />
               </div>
 
               <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-card-number">Número de la tarjeta</label>
+                <label class="billing-page__label" for="mp-card-number">{{ $t('js.billing.card_number') }}</label>
                 <BillingInputControl id="mp-card-number" v-model="cardForm.cardNumber" type="text" inputmode="numeric"
                   autocomplete="cc-number" placeholder="5031 4332 1540 6351" required />
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-exp-month">Mes (MM)</label>
+                <label class="billing-page__label" for="mp-exp-month">{{ $t('js.billing.exp_month') }}</label>
                 <BillingInputControl id="mp-exp-month" v-model="cardForm.cardExpirationMonth" type="text"
                   inputmode="numeric" autocomplete="cc-exp-month" placeholder="MM" required />
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-exp-year">Año (AA)</label>
+                <label class="billing-page__label" for="mp-exp-year">{{ $t('js.billing.exp_year') }}</label>
                 <BillingInputControl id="mp-exp-year" v-model="cardForm.cardExpirationYear" type="text"
                   inputmode="numeric" autocomplete="cc-exp-year" placeholder="YY" required />
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-security-code">CVV</label>
+                <label class="billing-page__label" for="mp-security-code">{{ $t('js.billing.cvv') }}</label>
                 <BillingInputControl id="mp-security-code" v-model="cardForm.securityCode" type="text"
                   inputmode="numeric" autocomplete="cc-csc" placeholder="123" required />
               </div>
 
               <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-identification-type">Documento</label>
+                <label class="billing-page__label" for="mp-identification-type">{{ $t('js.billing.id_type') }}</label>
                 <BillingInputControl id="mp-identification-type" as="select" v-model="cardForm.identificationType"
                   :options="identificationTypeOptions" select-placeholder="Select"
                   :disabled="!identificationTypeOptions.length" required />
               </div>
 
               <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-identification-number">Número</label>
+                <label class="billing-page__label" for="mp-identification-number">{{ $t('js.billing.id_number')
+                  }}</label>
                 <BillingInputControl id="mp-identification-number" v-model="cardForm.identificationNumber" type="text"
                   inputmode="numeric" autocomplete="off" required />
               </div>
@@ -299,7 +297,7 @@
 
             <BillingActionButton type="submit" variant="primary" large icon="lock" loading-icon="loader"
               :loading="isCreatingCheckout" :disabled="!canSubmitCardForm">
-              {{ isCreatingCheckout ? providerProfile.cardLoadingCta : providerProfile.cardCta }}
+              {{ isCreatingCheckout ? $t('js.billing.processing_card') : $t('js.billing.subscribe_with_card') }}
             </BillingActionButton>
           </template>
         </form>
@@ -307,6 +305,27 @@
         <p v-if="mercadoPagoInitError" class="billing-page__form-hint billing-page__form-hint--warning">
           {{ mercadoPagoInitError }}
         </p>
+      </div>
+
+      <!-- OpenIAP section — mobile only -->
+      <div v-if="isOpenIapEnabled" class="billing-page__mobile-section" :class="{ 'billing-page__mobile-section--standalone': !hasWebProviders }">
+        <div class="billing-page__mobile-icon">
+          <CIcon icon="smartphone" :size="32" />
+        </div>
+        <div class="billing-page__mobile-content">
+          <h3 class="billing-page__mobile-title">{{ $t('js.billing.mobile_title') }}</h3>
+          <p class="billing-page__mobile-description">{{ $t('js.billing.mobile_description') }}</p>
+          <div class="billing-page__store-links">
+            <a :href="appleAppStoreUrl" target="_blank" rel="noopener" class="billing-page__store-link">
+              <img src="@/assets/store-badges/app-store.svg" alt="Download on App Store"
+                class="billing-page__store-badge" />
+            </a>
+            <a :href="googlePlayUrl" target="_blank" rel="noopener" class="billing-page__store-link">
+              <img src="@/assets/store-badges/google-play.svg" alt="Get it on Google Play"
+                class="billing-page__store-badge" />
+            </a>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -322,7 +341,7 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, markRaw, computed, onMounted, onBeforeUnmount, inject, nextTick } from 'vue';
+import { ref, shallowRef, markRaw, computed, watch, onMounted, onBeforeUnmount, inject, nextTick } from 'vue';
 import { useHead } from 'unhead';
 import { ajax } from '../../lib/Ajax';
 import loadScript from '../../lib/load-script';
@@ -333,24 +352,25 @@ import {
   buildBillingProviderUiProfile,
   formatProviderLabel,
 } from '@/components/billing/provider-ui';
+import { useSubscriptionStore } from '@/app/services/subscription-store';
 
-// ─── State ───────────────────────────────────────────────────────────────────
-const subscription = ref(null);
-const payments = ref([]);
-const billingProviderKey = ref('');
+// ─── Store ────────────────────────────────────────────────────────────────────
+const subscriptionStore = useSubscriptionStore();
+
+// ─── State ────────────────────────────────────────────────────────────────────
 const isHydratingBilling = ref(true);
-const isSyncing = ref(false);
 const returnedFromCheckout = ref(false);
 const isCreatingCheckout = ref(false);
-const selectedCheckoutMode = ref(null);   // tracks which CTA is loading
+const selectedCheckoutMode = ref(null);
 const checkoutError = ref('');
 const isInitializingMercadoPago = ref(false);
 const mercadoPagoClient = shallowRef(null);
 const mercadoPagoInitError = ref('');
 const identificationTypes = ref([]);
-const enabledProviders = ref([]);
 const selectedProviderKey = ref('');
-const selectedPayMethod = ref(null);    // null | 'wallet' | 'card'
+const selectedPayMethod = ref(null);
+const planData = ref(null);
+const isFetchingPlan = ref(false);
 
 const cardForm = ref({
   cardholderName: '',
@@ -368,7 +388,34 @@ const currentUser = inject('currentUser');
 const MERCADO_PAGO_SDK_URL = 'https://sdk.mercadopago.com/js/v2';
 let mercadoPagoSdkPromise = null;
 
-// ─── Computed ─────────────────────────────────────────────────────────────────
+// ─── Computed (from store) ────────────────────────────────────────────────────
+const subscription = computed(() => subscriptionStore.subscription);
+const payments = computed(() => subscriptionStore.payments);
+const isSyncing = computed(() => subscriptionStore.isSyncing);
+const enabledProviders = computed(() => subscriptionStore.enabledProviders);
+const geoData = computed(() => subscriptionStore.geoData);
+
+const planPrice = computed(() => {
+  if (planData.value) {
+    const amount = Number(planData.value.amount) || 0;
+    const currency = planData.value.currency || 'USD';
+    return `${amount} ${currency}`;
+  }
+  return null;
+});
+
+const planFrequencyText = computed(() => {
+  if (!planData.value) return null;
+  const freq = planData.value.frequency || 1;
+  const type = planData.value.frequency_type || 'months';
+  if (freq === 1) {
+    const labels = { days: 'día', weeks: 'semana', months: 'mes', years: 'año' };
+    return labels[type] || type;
+  }
+  const labels = { days: 'días', weeks: 'semanas', months: 'meses', years: 'años' };
+  return `${freq} ${labels[type] || type}`;
+});
+
 const subscriptionStatusClass = computed(() => {
   if (!subscription.value) return 'inactive';
   const status = (subscription.value.status || '').toLowerCase();
@@ -395,19 +442,14 @@ const canCancel = computed(() => {
 
 const canSubscribe = computed(() => {
   if (!subscription.value) return true;
-
   const status = (subscription.value.status || '').toLowerCase();
   const isInactiveStatus = ['cancelled', 'canceled', 'rejected', 'expired'].includes(status);
   const isCancelled = subscription.value.cancelled;
-
-  // Check if subscription has expired
   let isExpired = false;
   if (subscription.value.ends_at) {
     const endDate = new Date(subscription.value.ends_at);
     isExpired = endDate < new Date();
   }
-
-  // Allow subscription if status is inactive, cancelled, or expired
   return isInactiveStatus || isCancelled || isExpired;
 });
 
@@ -433,26 +475,41 @@ const lastPaymentInfo = computed(() => {
   return `${date.toLocaleDateString('es-UY', { month: 'short', day: 'numeric', year: 'numeric' })}${amount}`;
 });
 
+// Provider logic — geo-recommended provider
 const activeProviderKey = computed(() => {
   return (
     String(subscription.value?.provider || '').trim().toLowerCase()
     || String(selectedProviderKey.value || '').trim().toLowerCase()
-    || String(billingProviderKey.value || '').trim().toLowerCase()
+    || String(geoData.value.recommended_provider || '').trim().toLowerCase()
     || String(SiteSettings?.subscription_provider_primary || '').trim().toLowerCase()
     || 'mercado_pago'
   );
 });
 
-const hasMultipleProviders = computed(() => enabledProviders.value.length > 1);
-const showProviderSelector = computed(() => !subscription.value && hasMultipleProviders.value);
 const providerProfile = computed(() => buildBillingProviderUiProfile(activeProviderKey.value, SiteSettings));
 const mercadoPagoPublicKey = computed(() => providerProfile.value.sdkPublicKey);
+
+const alternativeProviders = computed(() =>
+  enabledProviders.value.filter(p =>
+    p.key !== activeProviderKey.value && p.key !== 'open_iap'
+  )
+);
+
+const hasWebProviders = computed(() =>
+  enabledProviders.value.some(p => p.key !== 'open_iap')
+);
+
+const isOpenIapEnabled = computed(() =>
+  enabledProviders.value.some(p => p.key === 'open_iap')
+);
+
+const appleAppStoreUrl = computed(() => SiteSettings?.apple_app_store_url || '#');
+const googlePlayUrl = computed(() => SiteSettings?.google_play_store_url || '#');
 
 const identificationTypeOptions = computed(() =>
   identificationTypes.value.map((t) => ({ value: t.id, label: t.name }))
 );
 
-// Awaiting activation: user returned from MP checkout but subscription not confirmed yet
 const isAwaitingActivation = computed(() => returnedFromCheckout.value && !subscription.value);
 
 const canSubmitCardForm = computed(() => {
@@ -486,12 +543,14 @@ const formatDate = (value) => {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('es-UY', { month: 'long', day: 'numeric', year: 'numeric' });
+  const locale = SiteSettings?.default_locale || 'es-UY';
+  return d.toLocaleDateString(locale, { month: 'long', day: 'numeric', year: 'numeric' });
 };
 
 const formatAmount = (amount, currency) => {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat('es-UY', { style: 'currency', currency: currency || 'UYU' }).format(num);
+  const locale = SiteSettings?.default_locale || 'es-UY';
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: currency || 'UYU' }).format(num);
 };
 
 const formatProvider = (provider) => formatProviderLabel(provider);
@@ -595,43 +654,14 @@ const createCardToken = async () => {
   return cardTokenId;
 };
 
-// ─── Data fetching ────────────────────────────────────────────────────────────
-const fetchBillingData = async () => {
-  const { data } = await ajax.get('/account/billing.json');
-  billingProviderKey.value = String(data?.provider || billingProviderKey.value || '').trim().toLowerCase();
-
-  if (Array.isArray(data?.payments)) {
-    payments.value = data.payments;
-  }
-
-  if (Array.isArray(data?.enabled_providers) && data.enabled_providers.length > 0) {
-    enabledProviders.value = data.enabled_providers;
-  }
-  return data?.data?.[0] || null;
-};
-
-// ─── Manual sync (replaces auto-polling) ─────────────────────────────────────
+// ─── Manual sync ──────────────────────────────────────────────────────────────
 const manualSync = async () => {
-  if (isSyncing.value) return;
-  isSyncing.value = true;
   checkoutError.value = '';
   try {
-    if (subscription.value) {
-      // Try provider sync first
-      try {
-        const { data } = await ajax.post('/account/billing/sync.json', {});
-        subscription.value = data?.data || subscription.value;
-      } catch {
-        subscription.value = await fetchBillingData();
-      }
-    } else {
-      // No subscription yet — just refetch
-      subscription.value = await fetchBillingData();
-    }
+    await subscriptionStore.sync();
+    subscriptionStore.refreshCurrentUser(currentUser);
   } catch (error) {
     checkoutError.value = error?.response?.data?.error || 'Could not refresh status.';
-  } finally {
-    isSyncing.value = false;
   }
 };
 
@@ -654,7 +684,6 @@ const createSubscription = async (mode = 'redirect') => {
         checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
         return;
       }
-      // LemonSqueezy overlay — SDK loaded from layout
       let attempts = 0;
       while (!window.LemonSqueezy?.Url?.Open && attempts < 50) {
         await new Promise((r) => setTimeout(r, 100));
@@ -664,7 +693,6 @@ const createSubscription = async (mode = 'redirect') => {
       window.LemonSqueezy.Url.Open(checkoutUrl);
       returnedFromCheckout.value = true;
     } else {
-      // MercadoPago and all other providers → redirect
       const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
       if (!checkoutUrl) {
         checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
@@ -695,8 +723,8 @@ const createSubscriptionWithCardToken = async () => {
       return;
     }
 
-    // If no redirect needed, refresh billing data
-    subscription.value = await fetchBillingData();
+    await subscriptionStore.fetchBillingData();
+    subscriptionStore.refreshCurrentUser(currentUser);
     if (!subscription.value) returnedFromCheckout.value = true;
   } catch (error) {
     console.error('Error creating subscription with card tokenization:', error);
@@ -718,53 +746,52 @@ const manageSubscription = () => {
   if (url) window.open(url, '_blank');
 };
 
-const selectNonOpenIapProvider = () => {
-  // Debug: Log available providers
-  console.log('Available providers:', enabledProviders.value);
-  console.log('Current active provider:', activeProviderKey.value);
-
-  // Find first non-OpenIAP provider
-  const nonOpenIapProvider = enabledProviders.value.find(p => p.key !== 'open_iap');
-  console.log('Non-OpenIAP provider found:', nonOpenIapProvider);
-
-  if (nonOpenIapProvider) {
-    // Force update selected provider and clear any errors
-    selectedProviderKey.value = nonOpenIapProvider.key;
-    selectedPayMethod.value = null;
-    checkoutError.value = '';
-
-    // Force UI update
-    nextTick(() => {
-      console.log('Selected provider set to:', selectedProviderKey.value);
-      console.log('Active provider computed:', activeProviderKey.value);
-    });
-  } else {
-    // If no other providers available, show message
-    checkoutError.value = 'No hay otros proveedores de pago disponibles en este momento. Por favor, descarga la app móvil para suscribirte con OpenIAP.';
-  }
-};
-
 const cancelSubscription = async () => {
   const endDate = subscription.value?.ends_at
-    ? new Date(subscription.value.ends_at).toLocaleDateString('es-UY', { month: 'long', day: 'numeric', year: 'numeric' })
+    ? formatDate(subscription.value.ends_at)
     : 'su próximo ciclo de facturación';
 
-  if (!confirm(`Tu suscripción será cancelada, pero mantendrás tu acceso al catálogo hasta el día: ${endDate}. ¿Deseas continuar?`)) return;
+  const message = `Tu suscripción será cancelada, pero mantendrás tu acceso hasta el: ${endDate}. ¿Deseas continuar?`;
+  if (!confirm(message)) return;
 
   try {
-    await ajax.delete('/account/billing/subscribe.json');
-    subscription.value = await fetchBillingData();
+    await subscriptionStore.cancel();
+    subscriptionStore.refreshCurrentUser(currentUser);
     checkoutError.value = '';
   } catch (error) {
     checkoutError.value = error?.response?.data?.error || 'Failed to cancel subscription.';
   }
 };
 
-const selectProvider = (key) => {
+const resubscribe = () => {
+  // Reset subscription state to show the subscribe view
+  subscriptionStore.subscription = null;
+};
+
+const switchProvider = (key) => {
   selectedProviderKey.value = key;
   selectedPayMethod.value = null;
   checkoutError.value = '';
 };
+
+const fetchPlanForProvider = async (providerKey) => {
+  if (!providerKey) return;
+  isFetchingPlan.value = true;
+  try {
+    const { data } = await ajax.get('/account/billing/plan.json', { params: { provider: providerKey } });
+    planData.value = data?.data || null;
+  } catch {
+    planData.value = null;
+  } finally {
+    isFetchingPlan.value = false;
+  }
+};
+
+watch(activeProviderKey, (newKey) => {
+  if (newKey && newKey !== 'open_iap') {
+    fetchPlanForProvider(newKey);
+  }
+});
 
 const toggleCardForm = async () => {
   if (selectedPayMethod.value === 'card') {
@@ -781,7 +808,6 @@ let handleWindowFocusRef = null;
 
 const setupFocusListener = () => {
   handleWindowFocusRef = async () => {
-    // Only auto-sync if user came back from checkout and hasn't confirmed yet
     if (returnedFromCheckout.value && !subscription.value) {
       await manualSync();
     }
@@ -804,26 +830,27 @@ onMounted(async () => {
   }
 
   try {
-    subscription.value = await fetchBillingData();
+    await subscriptionStore.fetchBillingData();
+
+    if (activeProviderKey.value && activeProviderKey.value !== 'open_iap') {
+      fetchPlanForProvider(activeProviderKey.value);
+    }
 
     const searchParams = new URLSearchParams(window.location.search);
     returnedFromCheckout.value = ['preapproval_id', 'subscription_id', 'collection_id', 'status']
       .some((p) => searchParams.has(p));
 
-    // If returned from checkout with no subscription, try one sync
     if (!subscription.value && returnedFromCheckout.value) {
       await manualSync();
-    }
-    // If subscription is pending, sync from provider once
-    else if (subscription.value?.status === 'pending') {
+    } else if (subscription.value?.status === 'pending') {
       try {
-        const { data } = await ajax.post('/account/billing/sync.json', {});
-        if (data?.data) subscription.value = data.data;
+        await subscriptionStore.sync();
       } catch {
         // ignore — status will be shown as-is
       }
     }
 
+    subscriptionStore.refreshCurrentUser(currentUser);
     setupFocusListener();
   } finally {
     isHydratingBilling.value = false;

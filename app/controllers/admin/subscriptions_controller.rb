@@ -123,12 +123,19 @@ module Admin
     end
 
     def stats
+      this_month_start = Time.zone.now.beginning_of_month
+      this_month_end = Time.zone.now.end_of_month
+      month_payments = SubscriptionPayment.where(paid_at: this_month_start..this_month_end)
+
       render json: {
         total:     UserSubscription.count,
         active:    UserSubscription.active.count,
         pending:   UserSubscription.where(status: "pending").count,
         cancelled: UserSubscription.where(status: %w[cancelled canceled]).count,
-        granted:   UserSubscription.where(granted_by_admin: true).count
+        granted:   UserSubscription.where(granted_by_admin: true).count,
+        revenue_this_month: month_payments.sum(:amount).to_f,
+        payments_count_this_month: month_payments.count,
+        currency: SiteSetting.respond_to?(:subscription_currency) ? SiteSetting.subscription_currency : "UYU"
       }
     end
 
@@ -173,7 +180,7 @@ module Admin
     end
 
     def plans
-      provider = current_provider
+      provider = provider_from_params
       managed_only = ActiveModel::Type::Boolean.new.cast(params.fetch(:managed_only, true))
       plans_response = provider.list_plans!(managed_only: managed_only)
       plans = plans_response["results"] || plans_response["data"] || []
@@ -194,13 +201,13 @@ module Admin
       plan_id = params[:plan_id].to_s
       raise ArgumentError, "Plan id is required" if plan_id.blank?
 
-      provider_key = current_provider.provider_key
-      set_active_plan_id_for(provider_key, plan_id)
+      provider = provider_from_params
+      set_active_plan_id_for(provider.provider_key, plan_id)
 
       render json: {
         data: {
-          active_plan_id: active_plan_id_for(provider_key),
-          provider: provider_key,
+          active_plan_id: active_plan_id_for(provider.provider_key),
+          provider: provider.provider_key,
           message: "Plan selected for CinelarTV"
         }
       }
@@ -209,7 +216,7 @@ module Admin
     end
 
     def create_plan
-      provider = current_provider
+      provider = provider_from_params
       plan = provider.create_plan!(plan_params)
 
       render json: { data: plan }, status: :ok
@@ -218,7 +225,7 @@ module Admin
     end
 
     def update_plan
-      provider = current_provider
+      provider = provider_from_params
       plan = provider.update_plan!(params[:plan_id], plan_params)
 
       render json: { data: plan }, status: :ok
@@ -227,7 +234,7 @@ module Admin
     end
 
     def deactivate_plan
-      provider = current_provider
+      provider = provider_from_params
       plan = provider.deactivate_plan!(params[:plan_id])
 
       render json: { data: plan }, status: :ok
@@ -244,6 +251,15 @@ module Admin
 
     def current_provider
       ::Subscriptions::Providers::Registry.current
+    end
+
+    def provider_from_params
+      requested = params[:provider].to_s.presence
+      if requested.present? && ::Subscriptions::Providers::Registry.enabled?(requested)
+        ::Subscriptions::Providers::Registry.build(requested)
+      else
+        current_provider
+      end
     end
 
     def plan_params

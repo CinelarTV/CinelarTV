@@ -10,6 +10,10 @@ class UserSubscriptionsController < ApplicationController
     @subscriptions = UserSubscription.where(user_id: current_user.id)
     @payments = SubscriptionPayment.where(user_id: current_user.id).order(paid_at: :desc)
 
+    ip_address = request.remote_ip
+    ip_info = IpInfo.lookup(ip_address)
+    country_code = ip_info[:country_code]
+
     respond_to do |format|
       format.html
       format.json do
@@ -18,10 +22,59 @@ class UserSubscriptionsController < ApplicationController
           data: @subscriptions.as_json,
           payments: @payments.as_json,
           provider: @provider.provider_key,
-          enabled_providers: enabled_providers.map { |key| { key: key, label: provider_label(key) } }
+          admin: current_user.has_role?(:admin),
+          enabled_providers: enabled_providers.map { |key| { key: key, label: provider_label(key) } },
+          geo: {
+            country_code: country_code,
+            country_name: ip_info[:country],
+            recommended_provider: recommend_provider(country_code)
+          }
         }
       end
     end
+  end
+
+  def plan
+    provider_key = params[:provider].to_s.presence
+    provider = if provider_key.present? && ::Subscriptions::Providers::Registry.enabled?(provider_key)
+                 ::Subscriptions::Providers::Registry.build(provider_key)
+               else
+                 recommend = recommend_provider(
+                   IpInfo.lookup(request.remote_ip)[:country_code]
+                 )
+                 ::Subscriptions::Providers::Registry.build(recommend)
+               end
+
+    plan_id = active_plan_id_for(provider.provider_key)
+    if plan_id.blank?
+      render json: { data: nil, provider: provider.provider_key }
+      return
+    end
+
+    plans_response = provider.list_plans!(managed_only: false)
+    plans = plans_response["results"] || plans_response["data"] || []
+    selected = plans.find { |p| p["id"].to_s == plan_id.to_s }
+
+    if selected.blank?
+      render json: { data: nil, provider: provider.provider_key }
+      return
+    end
+
+    recurring = selected["auto_recurring"] || {}
+    render json: {
+      data: {
+        id: selected["id"],
+        name: selected["reason"],
+        amount: recurring["transaction_amount"],
+        currency: recurring["currency_id"],
+        frequency: recurring["frequency"],
+        frequency_type: recurring["frequency_type"]
+      },
+      provider: provider.provider_key
+    }
+  rescue StandardError => e
+    Rails.logger.error("Billing plan fetch failed: #{e.message}")
+    render json: { data: nil, provider: provider_key, error: e.message }
   end
 
   def subscribe
@@ -219,5 +272,19 @@ class UserSubscriptionsController < ApplicationController
 
   def provider_label(provider_key)
     ::Subscriptions::Providers::Registry.label_for(provider_key)
+  end
+
+  def active_plan_id_for(provider_key)
+    method_name = "#{provider_key}_plan_id"
+    return nil unless SiteSetting.respond_to?(method_name)
+
+    SiteSetting.public_send(method_name).to_s.presence
+  end
+
+  MERCADOPAGO_COUNTRIES = %w[AR BR CL CO MX PE UY].freeze
+
+  def recommend_provider(country_code)
+    return "mercado_pago" if country_code.present? && MERCADOPAGO_COUNTRIES.include?(country_code)
+    "lemon_squeezy"
   end
 end

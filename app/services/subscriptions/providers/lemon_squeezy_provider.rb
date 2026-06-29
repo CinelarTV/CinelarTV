@@ -70,7 +70,8 @@ module Subscriptions
 
       def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
         start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
-        repetitions: nil, billing_day: nil, billing_day_proportional: nil)
+        repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil,
+        package_name: nil, store: nil)
         plan_id = selected_plan_id
         raise "Lemon Squeezy plan id is missing" if plan_id.blank?
 
@@ -159,8 +160,6 @@ module Subscriptions
 
       def list_plans!(managed_only: true)
         query = { "page[size]" => 100 }
-        store_id = SiteSetting.lemonsqueezy_store_id.to_s.presence
-        query["filter[store_id]"] = store_id if store_id.present?
 
         response = HTTParty.get(
           "#{API_BASE_URL}/variants?#{URI.encode_www_form(query)}",

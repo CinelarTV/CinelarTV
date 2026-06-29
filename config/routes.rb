@@ -105,6 +105,7 @@ Rails.application.routes.draw do
   # User Subscriptions
 
   get "account/billing" => "user_subscriptions#index"
+  get "account/billing/plan" => "user_subscriptions#plan"
   post "account/billing/subscribe" => "user_subscriptions#subscribe"
   post "account/billing/sync" => "user_subscriptions#sync"
   delete "account/billing/subscribe" => "user_subscriptions#destroy"

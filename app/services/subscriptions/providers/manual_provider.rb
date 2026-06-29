@@ -7,18 +7,23 @@ module Subscriptions
         "manual"
       end
 
-      def create_subscription!(user:, days: 30, **_extra)
+      def create_subscription!(user:, days: 30, trial_days: 0, **_extra)
+        total_days = trial_days + days
+        is_trialing = trial_days.positive?
+
         UserSubscription.create!(
           user: user,
           provider: "manual",
-          status: "active",
-          status_formatted: "Active",
+          status: is_trialing ? "trialing" : "active",
+          status_formatted: is_trialing ? "Trial" : "Active",
           cancelled: false,
           granted_by_admin: true,
-          granted_until: days.days.from_now,
-          renews_at: days.days.from_now,
+          granted_until: total_days.days.from_now,
+          trial_ends_at: is_trialing ? trial_days.days.from_now : nil,
+          renews_at: total_days.days.from_now,
           ends_at: nil,
-          external_status: "granted_by_admin"
+          external_status: "granted_by_admin",
+          metadata: { "manual_grant_days" => days, "trial_days" => trial_days }
         )
       end
 
