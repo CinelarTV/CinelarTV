@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_28_000002) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_29_014453) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -379,7 +379,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_28_000002) do
     t.datetime "cancelled_at"
     t.jsonb "metadata", default: {}, null: false
     t.string "purchase_token"
-    t.string "google_product_id"
+    t.string "iap_product_id"
     t.string "external_id"
     t.index ["created_at"], name: "index_user_subscriptions_on_created_at"
     t.index ["external_id"], name: "index_user_subscriptions_on_external_id"

@@ -386,39 +386,26 @@ monetization:
     min: 1
     max: 1440
 
-  enable_google_play_provider:
+  enable_open_iap_provider:
     client: true
     refresh: true
     default: false
     type: "boolean"
 
-  google_play_service_account_json:
-    client: false
-    refresh: true
-    default: ""
-    type: "code"
-    secret: true
-
-  google_play_package_name:
-    client: true
-    refresh: true
-    default: ""
-    type: "string"
-
-  google_play_pubsub_verification_token:
+  open_iap_api_key:
     client: false
     refresh: true
     default: ""
     type: "string"
     secret: true
 
-  google_play_webhook_endpoint:
-    client: true
+  open_iap_base_url:
+    client: false
     refresh: true
-    default: ""
+    default: "https://kit.openiap.dev"
     type: "string"
 
-  google_play_product_id_map:
+  open_iap_product_id_map:
     client: true
     refresh: true
     default: "{}"

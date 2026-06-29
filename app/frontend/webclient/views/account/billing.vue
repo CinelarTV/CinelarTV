@@ -180,20 +180,15 @@
           </div>
         </div>
 
-        <!-- Google Play Alert -->
-        <div v-if="activeProviderKey === 'google_play'" class="billing-page__google-play-alert">
+        <!-- OpenIAP Alert -->
+        <div v-if="activeProviderKey === 'open_iap'" class="billing-page__open-iap-alert">
           <div class="billing-page__alert-content">
             <CIcon icon="smartphone" :size="20" class="billing-page__alert-icon" />
             <div class="billing-page__alert-text">
-              <h4>Suscripciones de Google Play</h4>
-              <p>Las suscripciones de Google Play solo están disponibles en la app móvil de CinelarTV para Android.</p>
+              <h4>Suscripciones con OpenIAP</h4>
+              <p>Las suscripciones con OpenIAP solo están disponibles en la app móvil de CinelarTV.</p>
               <div class="billing-page__alert-actions">
-                <a href="https://play.google.com/store/apps/details?id=com.abstudios.cinelar.mediaclient"
-                  target="_blank" class="billing-page__alert-link">
-                  <CIcon icon="download" :size="14" />
-                  Descargar app
-                </a>
-                <BillingActionButton @click="selectNonGooglePlayProvider" variant="secondary">
+                <BillingActionButton @click="selectNonOpenIapProvider" variant="secondary">
                   Ver otras opciones
                 </BillingActionButton>
               </div>
@@ -723,18 +718,18 @@ const manageSubscription = () => {
   if (url) window.open(url, '_blank');
 };
 
-const selectNonGooglePlayProvider = () => {
+const selectNonOpenIapProvider = () => {
   // Debug: Log available providers
   console.log('Available providers:', enabledProviders.value);
   console.log('Current active provider:', activeProviderKey.value);
 
-  // Find first non-Google Play provider
-  const nonGooglePlayProvider = enabledProviders.value.find(p => p.key !== 'google_play');
-  console.log('Non-Google Play provider found:', nonGooglePlayProvider);
+  // Find first non-OpenIAP provider
+  const nonOpenIapProvider = enabledProviders.value.find(p => p.key !== 'open_iap');
+  console.log('Non-OpenIAP provider found:', nonOpenIapProvider);
 
-  if (nonGooglePlayProvider) {
+  if (nonOpenIapProvider) {
     // Force update selected provider and clear any errors
-    selectedProviderKey.value = nonGooglePlayProvider.key;
+    selectedProviderKey.value = nonOpenIapProvider.key;
     selectedPayMethod.value = null;
     checkoutError.value = '';
 
@@ -745,7 +740,7 @@ const selectNonGooglePlayProvider = () => {
     });
   } else {
     // If no other providers available, show message
-    checkoutError.value = 'No hay otros proveedores de pago disponibles en este momento. Por favor, descarga la app móvil para suscribirte con Google Play.';
+    checkoutError.value = 'No hay otros proveedores de pago disponibles en este momento. Por favor, descarga la app móvil para suscribirte con OpenIAP.';
   }
 };
 

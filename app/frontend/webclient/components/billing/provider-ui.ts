@@ -21,7 +21,7 @@ const PROVIDER_LABELS: Record<string, string> = {
     lemon_squeezy: 'Lemon Squeezy',
     stripe: 'Stripe',
     paypal: 'PayPal',
-    google_play: 'Google Play',
+    open_iap: 'OpenIAP',
 };
 
 export const formatProviderLabel = (provider?: string | null): string => {
@@ -46,7 +46,7 @@ const baseProfile = (providerKey: string): BillingProviderUiProfile => {
         sdkPublicKey: '',
         secureBadgeText: '',
         subscribeDescription: `Continue with ${providerLabel} to activate your subscription.`,
-        checkoutCta: `Continue in ${providerLabel} checkout`,
+        checkoutCta: `Continue with ${providerLabel}`,
         checkoutLoadingCta: 'Opening checkout...',
         walletCta: `Pay with ${providerLabel} balance`,
         walletLoadingCta: 'Opening wallet checkout...',
@@ -85,18 +85,19 @@ export const buildBillingProviderUiProfile = (
         };
     }
 
-    if (key === 'google_play') {
+
+    if (key === 'open_iap') {
         return {
             ...profile,
             supportsInlineCardForm: false,
             supportsWalletCheckout: false,
             sdkPublicKey: '',
-            secureBadgeText: 'Powered by Google Play Billing',
-            subscribeDescription: 'Subscribe through Google Play to activate your subscription.',
-            checkoutCta: 'Continue in Google Play',
-            checkoutLoadingCta: 'Opening Google Play...',
-            walletCta: 'Use Google Play balance',
-            walletLoadingCta: 'Opening Google Play wallet...',
+            secureBadgeText: 'Powered by OpenIAP',
+            subscribeDescription: 'Subscribe through the mobile app to activate your subscription.',
+            checkoutCta: 'Open mobile app to subscribe',
+            checkoutLoadingCta: 'Opening mobile app...',
+            walletCta: 'Use mobile wallet',
+            walletLoadingCta: 'Opening mobile wallet...',
             cardCta: 'Subscribe with card',
             cardLoadingCta: 'Processing card...',
             supportedRegions: [], // Global

@@ -65,8 +65,6 @@ class WebhooksController < ApplicationController
       X-Topic x-topic
       Content-Type
       Authorization
-      X-Play-Verification-Token
-      X-Goog-Channel-Token
     ]
 
     relevant_keys.each_with_object({}) do |key, hash|

@@ -31,23 +31,22 @@ class UserSubscriptionsController < ApplicationController
     result = nil
 
     UserSubscription.with_advisory_lock(lock_key, timeout_seconds: 10) do
-      # For Google Play, check if user already has a subscription for this product
-      if @provider.provider_key == 'google_play' && params[:product_id].present?
+      # For OpenIAP, check if user already has a subscription for this product
+      if @provider.provider_key == 'open_iap' && params[:product_id].present?
         existing = UserSubscription.where(
           user_id: current_user.id,
-          provider: 'google_play'
-        ).where("metadata->>'google_product_id' = ? OR google_product_id = ?", params[:product_id], params[:product_id])
+          provider: 'open_iap'
+        ).where("metadata->>'product_id' = ? OR iap_product_id = ?", params[:product_id], params[:product_id])
          .first
 
         if existing.present?
-          remote = @provider.fetch_subscription_remote(params[:product_id], params[:purchase_token])
-          if remote.present?
+          remote = @provider.verify_purchase(product_id: params[:product_id], purchase_token: params[:purchase_token])
+          if remote.present? && remote['isValid']
             existing.update!(
               purchase_token: params[:purchase_token],
-              external_id: remote['orderId'],
               metadata: existing.metadata.merge(
                 "purchase_token" => params[:purchase_token],
-                "google_product_id" => params[:product_id],
+                "product_id" => params[:product_id],
                 "last_mobile_update" => Time.zone.now.iso8601
               )
             )
