@@ -287,15 +287,13 @@ class PlayerController < ApplicationController
       country_code = ip_info[:country_code] if ip_info[:country_code].present?
     end
 
-    total_duration = determine_total_duration
-
     WatchSession.create!(
       profile: profile,
       content: @content,
       episode: @episode,
       started_at: Time.current,
       duration_watched: 0,
-      total_duration: total_duration,
+      total_duration: 0,
       completed: false,
       country_code: country_code
     )
@@ -317,27 +315,18 @@ class PlayerController < ApplicationController
 
     delta = [current_pos - last_pos, 0].max
     new_watched = session.duration_watched + delta
-    new_watched = [new_watched, session.total_duration].min if session.total_duration > 0
+    dur = duration > 0 ? duration : session.total_duration
+    new_watched = [new_watched, dur].min if dur > 0
 
-    completed = duration > 0 && (new_watched.to_f / duration) >= 0.9
+    completed = dur > 0 && (new_watched.to_f / dur) >= 0.9
 
     session.update!(
       duration_watched: new_watched,
       last_progress: current_pos,
-      total_duration: duration,
+      total_duration: dur,
       completed: completed,
       ended_at: completed ? Time.current : nil
     )
-  end
-
-  def determine_total_duration
-    return 0 unless @content
-
-    if @content.content_type == "TVSHOW" && @episode
-      @episode.duration || 0
-    else
-      @content.video_sources.maximum(:duration) || 0
-    end
   end
 
   def render_content_not_found
