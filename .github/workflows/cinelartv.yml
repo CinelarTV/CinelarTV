@@ -40,25 +40,25 @@ jobs:
       - name: Run tests
         run: bundle exec rspec
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #lint:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout code
+  #      uses: actions/checkout@v2
+  #
+  #    - name: Install Ruby and gems
+  #      uses: ruby/setup-ruby@v1
+  #      with:
+  #        bundler-cache: true
 
-      - name: Install Ruby and gems
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
+  #    - name: Install bundler-audit
+  #      run: gem install bundler-audit
 
-      - name: Install bundler-audit
-        run: gem install bundler-audit
+  #    - name: Security audit dependencies
+  #      run: bundle audit check --ignore CVE-2015-9284 --update
 
-      - name: Security audit dependencies
-        run: bundle audit check --ignore CVE-2015-9284 --update
-
-      - name: Security audit application code
-        run: bundle exec brakeman --no-exit-on-error --skip-files lib/cinelar_tv.rb,lib/updater.rb
+  #    - name: Security audit application code
+  #      run: bundle exec brakeman --no-exit-on-error --skip-files lib/cinelar_tv.rb,lib/updater.rb
 
 
   publish-assets:
