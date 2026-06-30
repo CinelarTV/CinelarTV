@@ -37,6 +37,7 @@
     "lucide-static": "^0.536.0",
     "lucide-vue-next": "^0.268.0",
     "message-bus-client": "^4.4.1",
+    "monaco-editor": "^0.55.1",
     "pinia": "^3.0.3",
     "postcss": "^8.4.28",
     "postcss-flexbugs-fixes": "^5.0.2",
