@@ -9,6 +9,7 @@ module PrebuiltAssets
 
     def initialize(repository:)
       @repository = repository
+      verify_gh_installed!
     end
 
     def release_exists?(tag)
@@ -46,6 +47,14 @@ module PrebuiltAssets
     end
 
     private
+
+    def verify_gh_installed!
+      _out, status = Open3.capture2e("gh", "--version")
+      return if status.success?
+
+      raise "GitHub CLI (gh) is not installed. Install it from https://cli.github.com/ " \
+            "or use: apt install gh / brew install gh / scoop install gh"
+    end
 
     def run_gh(*args)
       env = ENV["GITHUB_TOKEN"] ? { "GH_TOKEN" => ENV["GITHUB_TOKEN"] } : {}
