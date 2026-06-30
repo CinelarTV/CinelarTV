@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "open3"
 require_relative "../prebuilt_assets"
 
 namespace :assets do
@@ -54,13 +55,18 @@ namespace :assets do
       next
     end
 
-    puts "Compiling assets locally (RAILS_ENV=#{Rails.env})..."
-    Rake::Task["assets:precompile"].invoke
+    puts "Building Vite assets (production)..."
+    out, status = Open3.capture2e(
+      { "RAILS_ENV" => "production", "SECRET_KEY_BASE" => ENV.fetch("SECRET_KEY_BASE", "build-only") },
+      "bundle", "exec", "vite", "build"
+    )
+    raise "Vite build failed: #{out}" unless status.success?
+    puts out
 
     vite_dir = PrebuiltAssets.vite_output_dir
     unless Dir.exist?(vite_dir)
       Dir.glob("public/vite*").each { |d| puts "  Found: #{d}" }
-      raise "No Vite output found. Looked for: #{vite_dir}. Did assets:precompile succeed?"
+      raise "No Vite output found. Looked for: #{vite_dir}."
     end
 
     puts "Packaging assets from #{vite_dir}..."
