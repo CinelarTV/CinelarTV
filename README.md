@@ -95,7 +95,7 @@ publish-assets:
     - name: Publish prebuilt assets
       env:
         GITHUB_TOKEN: ${{ secrets.ASSETS_RELEASE_TOKEN }}
-        PREBUILT_ASSETS_REPOSITORY: ${{ github.repository }}
+        PREBUILT_ASSETS_REPOSITORY: "CinelarTV/cinelar-assets"
       run: bundle exec rake assets:publish_prebuilt
 ```
 
