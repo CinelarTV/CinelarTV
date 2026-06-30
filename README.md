@@ -19,6 +19,86 @@ TODO
 
 ---
 
+## Pre-built Assets
+
+CinelarTV supports downloading precompiled Vite assets from GitHub Releases instead of compiling them locally. This drastically reduces update and deployment times by skipping the asset compilation step.
+
+### How It Works
+
+When `CINELAR_DOWNLOAD_PRE_BUILT_ASSETS=1` is set, `rake assets:precompile` will:
+
+1. Determine the current Git commit SHA
+2. Look for a release tagged `prebuilt-<sha>` in the configured GitHub repository
+3. Download and extract the prebuilt Vite assets to `public/vite/`
+4. Skip local asset compilation entirely
+
+If the release is not found, it **falls back to native compilation** automatically (unless `CINELAR_PREBUILT_STRICT=1` is set).
+
+### Publishing Prebuilt Assets
+
+After tests pass in CI, publish prebuilt assets:
+
+```bash
+bundle exec rake assets:publish_prebuilt
+```
+
+This will:
+1. Run normal asset compilation
+2. Package `public/vite/` into a tarball
+3. Create a GitHub Release tagged `prebuilt-<sha>`
+4. Upload the tarball as a release asset
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CINELAR_DOWNLOAD_PRE_BUILT_ASSETS` | `nil` | Set to `1` to download prebuilt assets instead of compiling |
+| `CINELAR_PREBUILT_STRICT` | `nil` | Set to `1` to abort if release not found (no fallback) |
+| `PREBUILT_ASSETS_REPOSITORY` | `CinelarTV/cinelar-assets` | GitHub repo for prebuilt asset releases |
+| `PREBUILT_ASSETS_RELEASE_PREFIX` | `prebuilt` | Prefix for release tags |
+| `GITHUB_TOKEN` | `nil` | GitHub token (required for private repos) |
+
+### Deployment Example
+
+```bash
+# Production deploy — skip asset compilation
+CINELAR_DOWNLOAD_PRE_BUILT_ASSETS=1 bundle exec rake assets:precompile
+
+# Or via the updater (no changes needed — just set the env var)
+CINELAR_DOWNLOAD_PRE_BUILT_ASSETS=1 bundle exec rake db:migrate assets:precompile
+```
+
+### CI Workflow
+
+Add a job to publish assets after tests pass:
+
+```yaml
+publish-assets:
+  runs-on: ubuntu-latest
+  needs: [test]
+  if: github.ref == 'refs/heads/main'
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 9
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - name: Publish prebuilt assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.ASSETS_RELEASE_TOKEN }}
+        PREBUILT_ASSETS_REPOSITORY: ${{ github.repository }}
+      run: bundle exec rake assets:publish_prebuilt
+```
+
 ## Stack 🛠️
 CinelarTV is powered by the following technologies:
 
