@@ -32,7 +32,9 @@ module ApplicationHelper
 
   def render_external_scripts
     scripts = (SiteSetting.external_scripts || "").split("|")
-    scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1" if SiteSetting.enable_chromecast
+    if SiteSetting.enable_chromecast
+      scripts << "https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"
+    end
     scripts << "https://app.lemonsqueezy.com/js/lemon.js" if SiteSetting.enable_lemon_squeezy_provider
 
     scripts.map { |s| javascript_include_tag(s, defer: true) }.join.html_safe
@@ -51,6 +53,48 @@ module ApplicationHelper
     return url if https_url?(url)
 
     live_proxy_path(url: url)
+  end
+
+  def canonical_base
+    (SiteSetting.base_url.presence || (request.protocol + request.host_with_port)).sub(%r{/\z}, "")
+  end
+
+  def canonical_url(path = nil)
+    base = canonical_base
+    path = request.path if path.nil?
+    "#{base}#{path.start_with?('/') ? path : "/#{path}"}"
+  end
+
+  def seo_title
+    if defined?(@title) && @title.present?
+      "#{@title} | #{SiteSetting.site_name}"
+    else
+      SiteSetting.site_name
+    end
+  end
+
+  def seo_description
+    if defined?(@description) && @description.present?
+      @description
+    else
+      SiteSetting.site_description.presence
+    end
+  end
+
+  def seo_image
+    if defined?(@banner) && @banner.present?
+      @banner
+    else
+      SiteSetting.site_mobile_logo
+    end
+  end
+
+  def og_type
+    if defined?(@content) && @content.present?
+      @content.content_type == "MOVIE" ? "video.movie" : "video.tv_show"
+    else
+      "website"
+    end
   end
 
   private

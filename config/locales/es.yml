@@ -4,60 +4,60 @@ es:
     devise_confirmation_instructions:
       subject: "Confirma tu cuenta en %{site_name}"
       body: |
-        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">¡Bienvenido, %{username}!</h2>
-        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Gracias por registrarte en <strong style="font-weight: 600;">%{site_name}</strong>. Estamos encantados de tenerte con nosotros.</p>
-        <p style="margin: 0 0 24px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Por favor confirma tu dirección de correo electrónico haciendo clic en el botón a continuación. Esto verificará tu cuenta y te dará acceso completo.</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+        <h2>¡Bienvenido, %{username}!</h2>
+        <p>Gracias por registrarte en <strong>%{site_name}</strong>. Estamos encantados de tenerte con nosotros.</p>
+        <p>Por favor confirma tu dirección de correo electrónico haciendo clic en el botón a continuación. Esto verificará tu cuenta y te dará acceso completo.</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td align="center">
-              <a href="%{confirmation_url}" style="display: inline-block; background: #0084F0; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Confirmar Mi Cuenta</a>
+              <a href="%{confirmation_url}" class="email-button">Confirmar Mi Cuenta</a>
             </td>
           </tr>
         </table>
-        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Si no creaste una cuenta, puedes ignorar este correo de forma segura.</p>
+        <p class="email-muted">Si no creaste una cuenta, puedes ignorar este correo de forma segura.</p>
     devise_reset_password_instructions:
       subject: "Restablece tu contraseña en %{site_name}"
       body: |
-        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Solicitud de restablecimiento de contraseña</h2>
-        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Hola <strong style="font-weight: 600;">%{username}</strong>,</p>
-        <p style="margin: 0 0 24px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong style="font-weight: 600;">%{site_name}</strong>. Haz clic en el botón a continuación para elegir una nueva contraseña:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+        <h2>Solicitud de restablecimiento de contraseña</h2>
+        <p>Hola <strong>%{username}</strong>,</p>
+        <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>%{site_name}</strong>. Haz clic en el botón a continuación para elegir una nueva contraseña:</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td align="center">
-              <a href="%{edit_password_url}" style="display: inline-block; background: #0084F0; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Restablecer Mi Contraseña</a>
+              <a href="%{edit_password_url}" class="email-button">Restablecer Mi Contraseña</a>
             </td>
           </tr>
         </table>
-        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Este enlace expirará en 24 horas. Si no solicitaste un restablecimiento de contraseña, puedes ignorar este correo &mdash; tu contraseña permanecerá sin cambios.</p>
+        <p class="email-muted">Este enlace expirará en 24 horas. Si no solicitaste un restablecimiento de contraseña, puedes ignorar este correo &mdash; tu contraseña permanecerá sin cambios.</p>
     devise_unlock_instructions:
       subject: "Desbloquea tu cuenta en %{site_name}"
       body: |
-        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Cuenta bloqueada</h2>
-        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Hola <strong style="font-weight: 600;">%{username}</strong>,</p>
-        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Tu cuenta en <strong style="font-weight: 600;">%{site_name}</strong> ha sido bloqueada debido a demasiados intentos fallidos de inicio de sesión. Esta es una medida de seguridad para proteger tu cuenta.</p>
-        <p style="margin: 0 0 24px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Haz clic en el botón a continuación para desbloquear tu cuenta e intentar iniciar sesión nuevamente:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+        <h2>Cuenta bloqueada</h2>
+        <p>Hola <strong>%{username}</strong>,</p>
+        <p>Tu cuenta en <strong>%{site_name}</strong> ha sido bloqueada debido a demasiados intentos fallidos de inicio de sesión. Esta es una medida de seguridad para proteger tu cuenta.</p>
+        <p>Haz clic en el botón a continuación para desbloquear tu cuenta e intentar iniciar sesión nuevamente:</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td align="center">
-              <a href="%{unlock_url}" style="display: inline-block; background: #0084F0; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Desbloquear Mi Cuenta</a>
+              <a href="%{unlock_url}" class="email-button">Desbloquear Mi Cuenta</a>
             </td>
           </tr>
         </table>
-        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Si no intentaste iniciar sesión, por favor contacta a nuestro equipo de soporte inmediatamente.</p>
+        <p class="email-muted">Si no intentaste iniciar sesión, por favor contacta a nuestro equipo de soporte inmediatamente.</p>
     devise_email_changed:
       subject: "Tu correo ha sido cambiado en %{site_name}"
       body: |
-        <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 600; color: #1a1a1a; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Dirección de correo actualizada</h2>
-        <p style="margin: 0 0 16px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Hola <strong style="font-weight: 600;">%{username}</strong>,</p>
-        <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Te escribimos para informarte que la dirección de correo de tu cuenta en <strong style="font-weight: 600;">%{site_name}</strong> ha sido cambiada a:</p>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px;">
+        <h2>Dirección de correo actualizada</h2>
+        <p>Hola <strong>%{username}</strong>,</p>
+        <p>Te escribimos para informarte que la dirección de correo de tu cuenta en <strong>%{site_name}</strong> ha sido cambiada a:</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td align="center" style="background: #f0f4f8; border-radius: 8px; padding: 14px 20px; border: 1px solid #e2e8f0;">
-              <span style="font-size: 16px; font-weight: 600; color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">%{new_email}</span>
+            <td align="center" class="email-highlight-box">
+              <span class="email-highlight-text">%{new_email}</span>
             </td>
           </tr>
         </table>
-        <p style="margin: 0; font-size: 14px; color: #999999; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Si no realizaste este cambio, por favor contacta a nuestro equipo de soporte inmediatamente para asegurar tu cuenta.</p>
+        <p class="email-muted">Si no realizaste este cambio, por favor contacta a nuestro equipo de soporte inmediatamente para asegurar tu cuenta.</p>
   activerecord:
     errors:
       messages:
@@ -126,6 +126,7 @@ es:
       nav:
         content: "Administrar contenido"
         dashboard: "Panel de control"
+        email_style: "Estilo de email"
         email_templates: "Plantillas de email"
         live_tv: "Televisión en vivo"
         settings: "Configuración"
@@ -469,7 +470,18 @@ es:
       because_you_watched: "Porque viste %{title}"
       categories: "Categorías"
       continue_watching: "Continuar viendo"
+      most_viewed: "Lo más visto"
+      most_liked: "Lo más gustado"
       top_10_content_by_country: "Los 10 mejores en %{country}"
+    explore:
+      browse_title: "Explorar"
+      filter_all: "Todo"
+      filter_movies: "Películas"
+      filter_series: "Series"
+      sort_trending: "Tendencia"
+      sort_newest: "Más recientes"
+      sort_most_liked: "Más gustados"
+      no_results: "No se encontraron resultados"
     shuffle_recommendations:
       title: "¿No sabes qué ver?"
       description: "Elige Reproducir algo y te seleccionaremos contenido para ver

@@ -1,0 +1,32 @@
+<% if defined?(@content) && @content.present? && defined?(@episode) && @episode.present? %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TVEpisode",
+  "name": <%= raw @episode.title.to_json %>,
+  <% if @episode.description.present? %>
+  "description": <%= raw @episode.description.to_json %>,
+  <% end %>
+  <% if @episode.thumbnail.present? %>
+  "image": <%= raw @episode.thumbnail.to_json %>,
+  <% elsif @content.banner.present? %>
+  "image": <%= raw @content.banner.to_json %>,
+  <% end %>
+  "dateModified": <%= raw @episode.updated_at.iso8601.to_json %>,
+  "url": <%= raw canonical_url("/watch/#{@content.id}/#{@episode.id}").to_json %>,
+  "partOfSeries": {
+    "@type": "TVSeries",
+    "name": <%= raw @content.title.to_json %>,
+    "url": <%= raw canonical_url("/contents/#{@content.id}").to_json %>
+  },
+  <% if @episode.season.present? %>
+  "seasonNumber": <%= @episode.season.position %>,
+  <% end %>
+  "episodeNumber": <%= @episode.position %>,
+  "potentialAction": {
+    "@type": "WatchAction",
+    "target": <%= raw canonical_url("/watch/#{@content.id}/#{@episode.id}").to_json %>
+  }
+}
+</script>
+<% end %>

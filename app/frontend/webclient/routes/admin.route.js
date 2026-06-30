@@ -75,6 +75,14 @@ const AdminRoutes = {
             }
         },
         {
+            name: 'admin.email_style',
+            path: 'customize/email-style',
+            component: () => import('../views/admin/email-style/EmailStyleEditor.tsx'),
+            meta: {
+                requireAdmin: true
+            }
+        },
+        {
             name: 'admin.customization.iconmap',
             path: 'icons',
             component: () => import('../views/admin/IconLibrary')

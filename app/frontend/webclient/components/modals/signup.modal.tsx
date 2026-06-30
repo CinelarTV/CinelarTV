@@ -68,11 +68,17 @@ export default defineComponent({
                     }
                 })
 
-                const message = response.data?.message || 'Registration successful. Please check your email to confirm your account.'
-                successMessage.value = message
-                username.value = ''
-                email.value = ''
-                password.value = ''
+                const needsConfirmation = response.data?.needs_confirmation !== false
+
+                if (needsConfirmation) {
+                    successMessage.value = response.data?.message || 'Registration successful. Please check your email to confirm your account.'
+                    username.value = ''
+                    email.value = ''
+                    password.value = ''
+                } else {
+                    setIsOpen(false)
+                    window.location.href = '/'
+                }
             } catch (error: any) {
                 errorMessage.value =
                     error?.response?.data?.message

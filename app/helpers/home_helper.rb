@@ -69,6 +69,68 @@ module HomeHelper
     { title: random_liked.title, content: similar_content }
   end
 
+  def add_most_viewed(liked_ids)
+    return [] unless SiteSetting.enable_most_viewed_section
+
+    Content.most_viewed(15)
+           .pluck(:id, :title, :description, :banner)
+           .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+  end
+
+  def add_most_liked(liked_ids)
+    return [] unless SiteSetting.enable_most_liked_section
+
+    Content.most_liked(15)
+           .pluck(:id, :title, :description, :banner)
+           .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+  end
+
+  def add_by_genre(liked_ids)
+    return [] unless SiteSetting.enable_content_by_genre
+
+    Category
+      .joins(:contents)
+      .where(contents: { available: true })
+      .group("categories.id")
+      .having("COUNT(contents.id) >= 3")
+      .order(Arel.sql("COUNT(contents.id) DESC"))
+      .limit(6)
+      .map do |category|
+        content = Content.by_category_id(category.id, 10)
+                         .pluck(:id, :title, :description, :banner)
+                         .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+        next if content.empty?
+
+        { title: category.name, content: content }
+      end
+      .compact
+  end
+
+  def add_fallback_sections(sections, liked_ids)
+    has_personalized = sections.any? { |s| s[:title].present? }
+
+    unless has_personalized
+      most_viewed = add_most_viewed(liked_ids)
+      if most_viewed.present?
+        sections << { title: I18n.t("js.home.most_viewed"), content: most_viewed }
+      end
+    end
+
+    if sections.length < 3
+      most_liked = add_most_liked(liked_ids)
+      if most_liked.present?
+        sections << { title: I18n.t("js.home.most_liked"), content: most_liked }
+      end
+    end
+
+    if sections.length < 3
+      by_genre = add_by_genre(liked_ids)
+      sections.concat(by_genre) if by_genre.present?
+    end
+
+    sections
+  end
+
   def add_continue_watching(liked_ids)
     return [] unless current_profile.present?
 
@@ -111,6 +173,8 @@ module HomeHelper
     if (top_10 = top_10_content_by_country)&.present?
       sections << { title: I18n.t("js.home.top_10_content_by_country", country: top_10[:country]), content: top_10[:content] }
     end
+
+    add_fallback_sections(sections, liked_ids)
 
     sections
   end

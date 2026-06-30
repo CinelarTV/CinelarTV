@@ -9,6 +9,7 @@ import {
 import { Unlock, Fingerprint, Loader2 } from 'lucide-vue-next'
 import { ajax } from '../../lib/Ajax'
 import CInput from '../forms/c-input.vue'
+import ForgotPasswordModal from './forgot-password.modal.tsx'
 
 export default defineComponent({
   name: 'LoginModal',
@@ -21,6 +22,7 @@ export default defineComponent({
     const password = ref('')
     const loading = ref(false)
     const errorMessage = ref('')
+    const forgotPasswordModal = ref<any>(null)
 
     const canSubmit = computed(() => email.value && password.value && !loading.value)
 
@@ -55,7 +57,8 @@ export default defineComponent({
     }
 
     const forgotPassword = () => {
-      // TODO: Implement forgot password
+      setIsOpen(false)
+      forgotPasswordModal.value?.setIsOpen(true)
     }
 
     const casLogin = () => {
@@ -65,6 +68,7 @@ export default defineComponent({
     expose({ setIsOpen })
 
     return () => (
+      <>
       <TransitionRoot appear show={isOpen.value} as="template">
         <Dialog as="div" onClose={() => setIsOpen(false)} class="relative z-100">
 
@@ -211,6 +215,7 @@ export default defineComponent({
 
         </Dialog>
       </TransitionRoot>
-    )
+      <ForgotPasswordModal ref={forgotPasswordModal} />
+    </>)
   },
 })

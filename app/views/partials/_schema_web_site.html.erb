@@ -1,0 +1,17 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": <%= raw SiteSetting.site_name.to_json %>,
+  "url": <%= raw canonical_base.to_json %>,
+  "description": <%= raw (SiteSetting.site_description || "").to_json %>,
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": <%= raw "#{canonical_base}/search?q={search_term_string}".to_json %>
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>

@@ -21,11 +21,18 @@ export default defineComponent({
         const navItems = computed<NavItem[]>(() => {
             const items: NavItem[] = [
                 {
-                    key: 'explore',
+                    key: 'home',
                     to: '/',
+                    icon: 'home',
+                    label: 'Inicio',
+                    match: (path: string) => path === '/',
+                },
+                {
+                    key: 'explore',
+                    to: '/explore/browse',
                     icon: 'telescope',
                     label: 'Explorar',
-                    match: (path: string) => path === '/' || path.startsWith('/contents/'),
+                    match: (path: string) => path.startsWith('/explore'),
                 },
                 {
                     key: 'search',

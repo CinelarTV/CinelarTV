@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+    xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+        http://www.google.com/schemas/sitemap-image/1.1
+        http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd
+        http://www.google.com/schemas/sitemap-video/1.1
+        http://www.google.com/schemas/sitemap-video/1.1/sitemap-video.xsd">
+    <% absolute_url = lambda do |raw_url|
+      next nil if raw_url.blank?
+
+      if raw_url.start_with?("http://", "https://")
+        raw_url
+      else
+        "#{canonical_base}#{raw_url.start_with?("/") ? raw_url : "/#{raw_url}"}"
+      end
+    end %>
+
+    <% @contents.each do |content| %>
+        <% page_url = "#{canonical_base}/contents/#{content.id}" %>
+        <% watch_url = "#{canonical_base}/watch/#{content.id}" %>
+        <% banner_url = absolute_url.call(content.banner) %>
+        <% cover_url = absolute_url.call(content.cover) %>
+        <% thumb_url = cover_url || banner_url %>
+        <url>
+            <loc><%= page_url %></loc>
+            <lastmod><%= content.updated_at.to_date.iso8601 %></lastmod>
+            <changefreq><%= content.updated_at > 2.days.ago ? "daily" : "weekly" %></changefreq>
+            <priority><%= content.premium ? "0.8" : "0.6" %></priority>
+            <% if banner_url %>
+                <image:image>
+                    <image:loc><%= banner_url %></image:loc>
+                    <image:title><%= content.title %></image:title>
+                </image:image>
+            <% end %>
+            <% if thumb_url && content.description.present? %>
+                <video:video>
+                    <video:thumbnail_loc><%= thumb_url %></video:thumbnail_loc>
+                    <video:title><%= content.title %></video:title>
+                    <video:description><%= truncate(content.description.to_s, length: 2040) %></video:description>
+                    <video:player_loc><%= watch_url %></video:player_loc>
+                    <video:family_friendly>yes</video:family_friendly>
+                </video:video>
+            <% end %>
+        </url>
+    <% end %>
+</urlset>

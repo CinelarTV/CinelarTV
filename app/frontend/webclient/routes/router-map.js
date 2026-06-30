@@ -330,6 +330,12 @@ AppRouter.beforeEach((to, from, next) => {
         return;
     }
 
+    // Devise password reset email link → SPA reset page
+    if (to.path === '/users/password/edit') {
+        next({ name: 'reset-password', query: to.query, replace: true });
+        return;
+    }
+
     // Log de navegación para rutas de plugins
     if (to.meta?.plugin) {
         console.log(`🔌 Navegando a ruta de plugin [${to.meta.plugin}]: ${to.path}`);

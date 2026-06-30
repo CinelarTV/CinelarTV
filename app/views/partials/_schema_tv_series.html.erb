@@ -1,0 +1,26 @@
+<% if defined?(@content) && @content.present? && @content.content_type == "TVSHOW" %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TVSeries",
+  "name": <%= raw @content.title.to_json %>,
+  <% if @content.description.present? %>
+  "description": <%= raw @content.description.to_json %>,
+  <% end %>
+  <% if @content.banner.present? %>
+  "image": <%= raw @content.banner.to_json %>,
+  <% end %>
+  <% if @content.year.present? %>
+  "dateCreated": <%= raw @content.year.to_json %>,
+  <% end %>
+  "url": <%= raw canonical_url("/contents/#{@content.id}").to_json %>,
+  "dateModified": <%= raw @content.updated_at.iso8601.to_json %>,
+  "numberOfSeasons": <%= @content.seasons.size %>,
+  "numberOfEpisodes": <%= @content.seasons.sum { |s| s.episodes.size } %>,
+  "productionCompany": {
+    "@type": "Organization",
+    "name": <%= raw SiteSetting.site_name.to_json %>
+  }
+}
+</script>
+<% end %>

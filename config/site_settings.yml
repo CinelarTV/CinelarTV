@@ -474,6 +474,26 @@ customization:
     refresh: true
     default: true
     type: "boolean"
+  enable_content_by_genre:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
+  enable_most_viewed_section:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
+  enable_most_liked_section:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
+  explore_page_enabled:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
   homescreen_cards_style:
     client: true
     refresh: true
@@ -547,6 +567,15 @@ customization:
     refresh: true
     default: ""
     type: "list"
+  email_custom_template:
+    default: ""
+    hidden: true
+  email_custom_css:
+    default: ""
+    hidden: true
+  email_custom_css_compiled:
+    default: ""
+    hidden: true
 
 developer:
   enable_js_error_reporting:

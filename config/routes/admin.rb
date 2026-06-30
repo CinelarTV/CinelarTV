@@ -121,4 +121,9 @@ namespace :admin do
   post "/email-templates/:key/test_send" => "email_templates#test_send", defaults: { format: 'json' }
   put "/email-templates/:key" => "email_templates#update", defaults: { format: 'json' }
   delete "/email-templates/:key" => "email_templates#destroy", defaults: { format: 'json' }
+
+  # Email Style (outer template + CSS) routes
+  get "/customize/email-style" => "dashboard#index", constraints: ->(req) { req.format.html? }
+  get "/customize/email-style" => "email_styles#show", defaults: { format: 'json' }
+  put "/customize/email-style" => "email_styles#update", defaults: { format: 'json' }
 end

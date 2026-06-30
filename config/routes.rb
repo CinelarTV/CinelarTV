@@ -8,7 +8,7 @@ Rails.application.routes.draw do
 
   root to: "application#index", as: "app"
 
-  devise_for :users, { controllers: { registrations: "users/registrations", sessions: "users/sessions", confirmations: "users/confirmations" } }
+  devise_for :users, { controllers: { registrations: "users/registrations", sessions: "users/sessions", confirmations: "users/confirmations", passwords: "users/passwords" } }
   devise_scope :user do
     get "/login" => "users/sessions#new"
     get "/signup" => "users/registrations#new"
@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
   get "explore" => "home#homepage", as: :explore
+  get "explore/browse" => "home#browse", as: :explore_browse
   get "shuffle_recommendations" => "home#shuffle_recommendations"
 
   get "/user/profiles", to: "session#profiles"
@@ -95,8 +96,10 @@ Rails.application.routes.draw do
 
   get "capybara" => "application#capybara_spin"
 
-  # Sitemap
+  # Sitemap Index + Sub-sitemaps
   get "sitemap.xml" => "sitemap#index", format: "xml", as: :sitemap
+  get "sitemap-contents.xml" => "sitemap#contents", format: "xml", as: :sitemap_contents
+  get "sitemap-episodes.xml" => "sitemap#episodes", format: "xml", as: :sitemap_episodes
 
   # Subscription provider webhooks
 

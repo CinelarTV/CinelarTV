@@ -47,6 +47,27 @@ class Content < ApplicationRecord
 
   scope :by_type, ->(type) { where(content_type: type) }
 
+  scope :most_viewed, ->(limit = 15) {
+    left_joins(:content_analytic)
+      .where(available: true)
+      .order(Arel.sql("COALESCE(content_analytics.total_views, 0) DESC"))
+      .limit(limit)
+  }
+
+  scope :most_liked, ->(limit = 15) {
+    left_joins(:liking_profiles)
+      .where(available: true)
+      .group("contents.id")
+      .order(Arel.sql("COUNT(likes.profile_id) DESC"))
+      .limit(limit)
+  }
+
+  scope :by_category_id, ->(category_id, limit = 10) {
+    joins(:content_categories)
+      .where(available: true, content_categories: { category_id: category_id })
+      .limit(limit)
+  }
+
   scope :search_by_title_and_description, ->(query) {
     normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase.gsub(/[-\s]/, ""))
     where(

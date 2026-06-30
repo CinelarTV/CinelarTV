@@ -1,5 +1,14 @@
-<meta property="og:title" content="<%= defined?(@title) ? "#{@title} | #{SiteSetting.site_name}" : SiteSetting.site_name %>" />
-<% unless SiteSetting.site_description.blank? %>
-  <meta property="og:description" content="<%= defined?(@description) ? @description : '' %>" />
-<% end %>
-<meta property="og:image" content="<%= defined?(@banner) ? @banner : SiteSetting.site_mobile_logo %>" />
+<%# OpenGraph Meta Tags %>
+<meta property="og:title" content="<%= seo_title %>" />
+<meta property="og:description" content="<%= seo_description %>" />
+<meta property="og:image" content="<%= seo_image %>" />
+<meta property="og:url" content="<%= canonical_url %>" />
+<meta property="og:type" content="<%= og_type %>" />
+<meta property="og:site_name" content="<%= SiteSetting.site_name %>" />
+<meta property="og:locale" content="<%= I18n.locale.to_s.gsub("-", "_") %>" />
+
+<%# Twitter Card Meta Tags %>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="<%= seo_title %>" />
+<meta name="twitter:description" content="<%= seo_description %>" />
+<meta name="twitter:image" content="<%= seo_image %>" />

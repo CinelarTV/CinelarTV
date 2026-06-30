@@ -18,13 +18,22 @@ module Users
 
       if @user.save
         Rails.logger.info "[RegistrationsController] User saved successfully: #{@user.id}"
+        sign_in(@user)
         respond_to do |format|
           format.json do
             Rails.logger.info "[RegistrationsController] Rendering JSON response"
-            render json: { message: "Registration successful. Please check your email to confirm your account.", error_type: "unconfirmed", needs_confirmation: true }, status: :created
+            render json: {
+              message: "Registration successful.",
+              needs_confirmation: false
+            }, status: :created
           end
-          format.html { redirect_to "/", notice: "Registration successful. Please check your email to confirm your account." }
-          format.any { render json: { message: "Registration successful. Please check your email to confirm your account.", error_type: "unconfirmed", needs_confirmation: true }, status: :created }
+          format.html { redirect_to "/", notice: "Registration successful." }
+          format.any do
+            render json: {
+              message: "Registration successful.",
+              needs_confirmation: false
+            }, status: :created
+          end
         end
       else
         Rails.logger.info "[RegistrationsController] User save failed: #{@user.errors.full_messages}"

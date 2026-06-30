@@ -128,10 +128,11 @@ module Admin
     end
 
     def find_template
-      db_template = EmailTemplate.for_key_and_locale(params[:key], params[:locale]).first
+      locale = params[:locale] || SiteSetting.default_locale || I18n.locale
+
+      db_template = EmailTemplate.for_key_and_locale(params[:key], locale).first
       return { subject: db_template.subject, body: db_template.body } if db_template
 
-      locale = params[:locale] || I18n.locale
       yaml_template = I18n.t("email_templates.#{params[:key]}", locale: locale, default: nil)
 
       unless yaml_template.is_a?(Hash) && yaml_template[:subject] && yaml_template[:body]
@@ -171,25 +172,17 @@ module Admin
       [interpolated_subject, interpolated_body]
     end
 
-    def render_with_layout(layout_content, subject, body)
-      html = layout_content.dup
-      site_name = SiteSetting.site_name || 'CinelarTV'
-      site_url = SiteSetting.site_url || 'https://example.com'
+    def render_with_layout(_layout_content, subject, body)
+      layout_path = Rails.root.join('app', 'views', 'layouts', 'mailer.html.erb')
+      layout_src = File.read(layout_path)
 
-      html.gsub!('<%= @subject || SiteSetting.site_name || "CinelarTV" %>', subject)
-      html.gsub!('<%= SiteSetting.site_name || "CinelarTV" %>', site_name)
-      html.gsub!('<%= Time.current.year %>', Time.current.year.to_s)
-      html.gsub!('<%= @recipient_email || \'you\' %>', 'preview@example.com')
-      html.gsub!('<%= SiteSetting.site_url %>', site_url)
+      layout_src.gsub!('<%= yield %>', 'MAILER_BODY_PLACEHOLDER')
 
-      # Handle conditional logo tag
-      html.gsub!(
-        /<% if SiteSetting\.site_logo\.present\? %>.*?<% else %>.*?<% end %>/m,
-        "<h1>#{site_name}</h1>"
-      )
+      @subject = subject
+      @recipient_email = 'preview@example.com'
 
-      html.gsub!('<%= yield %>', body)
-      html
+      rendered = ERB.new(layout_src).result(binding)
+      rendered.gsub('MAILER_BODY_PLACEHOLDER', body)
     end
   end
 end

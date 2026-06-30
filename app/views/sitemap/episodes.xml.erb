@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+    xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+        http://www.google.com/schemas/sitemap-image/1.1
+        http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd
+        http://www.google.com/schemas/sitemap-video/1.1
+        http://www.google.com/schemas/sitemap-video/1.1/sitemap-video.xsd">
+    <% absolute_url = lambda do |raw_url|
+      next nil if raw_url.blank?
+
+      if raw_url.start_with?("http://", "https://")
+        raw_url
+      else
+        "#{canonical_base}#{raw_url.start_with?("/") ? raw_url : "/#{raw_url}"}"
+      end
+    end %>
+
+    <% @episodes.each do |episode| %>
+        <% content = episode.season&.content %>
+        <% next unless content %>
+        <% episode_watch_url = "#{canonical_base}/watch/#{content.id}/#{episode.id}" %>
+        <% content_url = "#{canonical_base}/contents/#{content.id}" %>
+        <% thumb_url = absolute_url.call(episode.thumbnail) || absolute_url.call(content.cover) || absolute_url.call(content.banner) %>
+        <% episode_lastmod = [episode.updated_at, content.updated_at].compact.max %>
+        <url>
+            <loc><%= episode_watch_url %></loc>
+            <lastmod><%= episode_lastmod.to_date.iso8601 %></lastmod>
+            <changefreq><%= episode_lastmod > 2.days.ago ? "daily" : "weekly" %></changefreq>
+            <priority>0.7</priority>
+            <% if thumb_url %>
+                <image:image>
+                    <image:loc><%= thumb_url %></image:loc>
+                    <image:title><%= "#{content.title} - #{episode.title}" %></image:title>
+                </image:image>
+            <% end %>
+            <% if thumb_url && episode.description.present? %>
+                <video:video>
+                    <video:thumbnail_loc><%= thumb_url %></video:thumbnail_loc>
+                    <video:title><%= "#{content.title} - #{episode.title}" %></video:title>
+                    <video:description><%= truncate(episode.description.to_s, length: 2040) %></video:description>
+                    <video:player_loc><%= episode_watch_url %></video:player_loc>
+                    <video:family_friendly>yes</video:family_friendly>
+                </video:video>
+            <% end %>
+        </url>
+    <% end %>
+</urlset>

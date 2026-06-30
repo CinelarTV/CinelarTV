@@ -23,12 +23,15 @@
     <% if Rails.env.development? && params[:c] == "true" %>
       <% console %>
     <% end %>
-    <title><% if defined? @title %><%= @title %> | <%= SiteSetting.site_name %><% else %><%= SiteSetting.site_name %><% end %></title>
+    <title><%= seo_title %></title>
+    <meta name="description" content="<%= seo_description %>">
+    <link rel="canonical" href="<%= canonical_url %>">
     <link rel="icon" type="image/png" href="<%= SiteSetting.site_favicon %>">
     <link rel="manifest" href="/manifest.webmanifest">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= render partial: "partials/opengraph" %>
+    <%= render partial: "partials/schema_web_site" %>
    
   
 

@@ -1,0 +1,29 @@
+<% if defined?(@content) && @content.present? && @content.content_type == "MOVIE" %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Movie",
+  "name": <%= raw @content.title.to_json %>,
+  <% if @content.description.present? %>
+  "description": <%= raw @content.description.to_json %>,
+  <% end %>
+  <% if @content.banner.present? %>
+  "image": <%= raw @content.banner.to_json %>,
+  <% end %>
+  <% if @content.year.present? %>
+  "dateCreated": <%= raw @content.year.to_json %>,
+  <% end %>
+  "contentUrl": <%= raw canonical_url("/watch/#{@content.id}").to_json %>,
+  "embedUrl": <%= raw canonical_url("/watch/#{@content.id}").to_json %>,
+  "dateModified": <%= raw @content.updated_at.iso8601.to_json %>,
+  "productionCompany": {
+    "@type": "Organization",
+    "name": <%= raw SiteSetting.site_name.to_json %>
+  },
+  "potentialAction": {
+    "@type": "WatchAction",
+    "target": <%= raw canonical_url("/watch/#{@content.id}").to_json %>
+  }
+}
+</script>
+<% end %>

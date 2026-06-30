@@ -59,6 +59,11 @@ const adminLinks = [
     to: '/admin/email-templates'
   },
   {
+    title: $t("js.admin.nav.email_style") || 'Email Style',
+    icon: 'palette',
+    to: '/admin/customize/email-style'
+  },
+  {
     title: 'Webhooks',
     to: '/admin/webhooks/logs',
     enabled: SiteSettings.enable_subscription || false // Webhooks are only available if subscriptions are enabled
