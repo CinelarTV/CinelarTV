@@ -14,6 +14,10 @@ namespace :assets do
     repository = PrebuiltAssets.repository
     tag = PrebuiltAssets::Version.release_tag
 
+    puts "  Repository: #{repository}"
+    puts "  Tag: #{tag}"
+    puts "  GITHUB_TOKEN set: #{ENV['GITHUB_TOKEN'] ? 'yes' : 'no'}"
+
     puts "  Checking for prebuilt assets: #{tag} in #{repository}..."
 
     client = PrebuiltAssets::GitHubClient.new(repository: repository)
@@ -47,6 +51,10 @@ namespace :assets do
   task publish_prebuilt: :environment do
     repository = PrebuiltAssets.repository
     tag = PrebuiltAssets::Version.release_tag
+
+    puts "  Repository: #{repository}"
+    puts "  Tag: #{tag}"
+    puts "  GITHUB_TOKEN set: #{ENV['GITHUB_TOKEN'] ? 'yes' : 'no'}"
 
     client = PrebuiltAssets::GitHubClient.new(repository: repository)
 
