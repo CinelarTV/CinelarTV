@@ -60,8 +60,9 @@
         z-index: 1;
     }
 
-.c-color-input .c-input {
-    padding-left: 40px;
+    .c-input {
+        padding-left: 40px;
+    }
 }
 
 /* CFormRow */
