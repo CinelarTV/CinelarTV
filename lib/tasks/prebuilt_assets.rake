@@ -44,7 +44,8 @@ namespace :assets do
 
     puts "  Prebuilt assets installed successfully. Skipping local compilation."
 
-    Rake::Task["assets:precompile"].prerequisites.clear
+    # Clear everything — prerequisites AND the task body (Vite build)
+    Rake::Task["assets:precompile"].clear
   end
 
   desc "Compile, package, and publish prebuilt assets to GitHub Releases"
