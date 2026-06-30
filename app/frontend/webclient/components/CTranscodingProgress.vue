@@ -10,7 +10,7 @@
                         {{ statusText }}
                     </span>
                 </div>
-                <span class="text-xs font-semibold text-[var(--c-primary-900)]">
+                <span class="text-xs font-semibold text-[var(--c-primary-100)]">
                     {{ overallProgress }}%
                 </span>
             </div>
@@ -23,8 +23,8 @@
 
             <div v-if="currentQuality" class="space-y-2">
                 <div class="flex items-center justify-between text-xs">
-                    <span class="text-[var(--c-primary-900)]">Calidad actual: {{ currentQuality }}p</span>
-                    <span class="text-[var(--c-primary-900)]">{{ qualityProgress }}%</span>
+                    <span class="text-[var(--c-primary-100)]">Calidad actual: {{ currentQuality }}p</span>
+                    <span class="text-[var(--c-primary-100)]">{{ qualityProgress }}%</span>
                 </div>
                 <div class="w-full bg-[rgba(255,255,255,0.15)] rounded-full h-1.5 overflow-hidden" role="progressbar"
                     :aria-valuenow="qualityProgress" aria-valuemin="0" aria-valuemax="100">
@@ -38,7 +38,7 @@
             </div>
 
             <div v-if="successfulQualities.length > 0" class="mt-3">
-                <p class="text-xs text-[var(--c-primary-900)] mb-1">Calidades completadas:</p>
+                <p class="text-xs text-[var(--c-primary-100)] mb-1">Calidades completadas:</p>
                 <div class="flex flex-wrap gap-1">
                     <span v-for="quality in successfulQualities" :key="quality"
                         class="px-2 py-0.5 rounded text-xs font-medium bg-[var(--c-tertiary-900)] text-[var(--c-tertiary-300)] bg-opacity-30">

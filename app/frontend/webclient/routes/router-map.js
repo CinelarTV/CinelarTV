@@ -308,7 +308,7 @@ AppRouter.beforeEach((to, from, next) => {
 
     // Requiere auth y no hay usuario
     if (to.meta.requiresAuth && !currentUser) {
-        next({ name: 'NotFound', replace: true });
+        next({ name: 'application.not-found', replace: true });
         return;
     }
 
@@ -320,7 +320,7 @@ AppRouter.beforeEach((to, from, next) => {
 
     // Requiere admin y no es admin
     if (to.meta.requireAdmin && (!currentUser || !currentUser.admin)) {
-        next({ name: 'NotFound', replace: true });
+        next({ name: 'application.not-found', replace: true });
         return;
     }
 

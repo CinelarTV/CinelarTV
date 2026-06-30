@@ -24,7 +24,7 @@
                                 class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
                                 Create New Content
                             </DialogTitle>
-                            <p class="mt-1 text-sm text-[var(--c-primary-900)]">
+                            <p class="mt-1 text-sm text-[var(--c-primary-100)]">
                                 Step {{ currentStep }} of {{ totalSteps }}
                             </p>
 
@@ -40,7 +40,7 @@
                         </div>
 
                         <!-- Form body -->
-                        <div class="px-8 py-6">
+                        <div class="px-8 py-6 overflow-y-auto" style="max-height: calc(100vh - 220px);">
                             <form @submit="(e) => { e.preventDefault() }" novalidate>
 
                                 <!-- Step 1: Basic Info -->
@@ -52,37 +52,23 @@
                                     leave-to-class="opacity-0 -translate-x-4">
                                     <div v-if="currentStep === 1" key="step1">
                                         <div class="space-y-4">
-                                            <div>
-                                                <label for="content-name"
-                                                    class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1.5">
-                                                    Content Name
-                                                </label>
+                                            <CFormRow label="Content Name" for="content-name" :error="errors.name" required>
                                                 <CInput v-model="contentData.name" id="content-name"
                                                     placeholder="Avengers: Endgame" required />
-                                                <p v-if="errors.name" class="mt-1 text-xs text-rose-400">
-                                                    {{ errors.name }}
-                                                </p>
-                                            </div>
+                                            </CFormRow>
 
-                                            <div>
-                                                <label for="content-type"
-                                                    class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1.5">
-                                                    Content Type
-                                                </label>
+                                            <CFormRow label="Content Type" for="content-type" :error="errors.content_type">
                                                 <CSelect :options="contentTypes" :modelValue="contentData.content_type"
                                                     @update:modelValue="value => contentData.content_type = value"
                                                     id="content-type" placeholder="Select type..." />
-                                                <p v-if="errors.content_type" class="mt-1 text-xs text-rose-400">
-                                                    {{ errors.content_type }}
-                                                </p>
-                                            </div>
+                                            </CFormRow>
 
                                             <div class="flex items-center justify-between p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                                                 <div class="flex items-center gap-2">
                                                     <SparklesIcon :size="16" class="text-yellow-500" />
                                                     <div>
                                                         <p class="text-xs font-bold text-white uppercase tracking-wider">Contenido Premium</p>
-                                                        <p class="text-[10px] text-[var(--c-primary-900)]">Solo disponible para suscriptores</p>
+                                                        <p class="text-[10px] text-[var(--c-primary-100)]">Solo disponible para suscriptores</p>
                                                     </div>
                                                 </div>
                                                 <button type="button" @click="contentData.premium = !contentData.premium"
@@ -98,30 +84,23 @@
                                     <!-- Step 2: Description -->
                                     <div v-else-if="currentStep === 2" key="step2">
                                         <div class="space-y-4">
-                                            <div>
-                                                <label for="content-description"
-                                                    class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1.5">
-                                                    Description
-                                                </label>
+                                            <CFormRow label="Description" for="content-description" :error="errors.description">
                                                 <CTextarea v-model="contentData.content_description"
                                                     id="content-description"
                                                     placeholder="Enter a compelling description..." :rows="4" />
-                                                <p v-if="errors.description" class="mt-1 text-xs text-rose-400">
-                                                    {{ errors.description }}
-                                                </p>
-                                            </div>
+                                            </CFormRow>
 
                                             <!-- Metadata recommendation -->
                                             <div v-if="SiteSettings.enable_metadata_recommendation" class="pt-2">
                                                 <div class="relative flex items-center">
                                                     <div class="flex-grow border-t border-[var(--c-primary-200)]" />
                                                     <span
-                                                        class="mx-3 text-xs text-[var(--c-primary-900)]">optional</span>
+                                                        class="mx-3 text-xs text-[var(--c-primary-100)]">optional</span>
                                                     <div class="flex-grow border-t border-[var(--c-primary-200)]" />
                                                 </div>
 
                                                 <div class="mt-4 text-center">
-                                                    <p class="text-sm text-[var(--c-primary-900)] mb-3">
+                                                    <p class="text-sm text-[var(--c-primary-100)] mb-3">
                                                         Want to auto-fill metadata?
                                                     </p>
                                                     <button type="button" @click="findRecommendedMetadata"
@@ -140,29 +119,13 @@
                                     <!-- Step 3: Images -->
                                     <div v-else-if="currentStep === 3" key="step3">
                                         <div class="space-y-4">
-                                            <div>
-                                                <label
-                                                    class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1">
-                                                    Cover Image
-                                                </label>
-                                                <CImageUpload v-model="contentData.content_cover" aspect-ratio="2:3"
-                                                    hint="Recommended: 2:3 ratio (portrait)" />
-                                                <p v-if="errors.cover" class="mt-1 text-xs text-rose-400">
-                                                    {{ errors.cover }}
-                                                </p>
-                                            </div>
+                                            <CFormRow label="Cover Image" :error="errors.cover" hint="Recommended: 2:3 ratio (portrait)">
+                                                <CImageUpload v-model="contentData.content_cover" aspect-ratio="2:3" />
+                                            </CFormRow>
 
-                                            <div>
-                                                <label
-                                                    class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1">
-                                                    Banner Image
-                                                </label>
-                                                <CImageUpload v-model="contentData.content_banner" aspect-ratio="16:9"
-                                                    hint="Recommended: 16:9 ratio (landscape)" />
-                                                <p v-if="errors.banner" class="mt-1 text-xs text-rose-400">
-                                                    {{ errors.banner }}
-                                                </p>
-                                            </div>
+                                            <CFormRow label="Banner Image" :error="errors.banner" hint="Recommended: 16:9 ratio (landscape)">
+                                                <CImageUpload v-model="contentData.content_banner" aspect-ratio="16:9" />
+                                            </CFormRow>
                                         </div>
                                     </div>
                                 </Transition>
@@ -234,6 +197,7 @@ import CInput from '../forms/c-input.vue'
 import CSelect from '../forms/c-select.vue'
 import CTextarea from '../forms/c-textarea.vue'
 import CImageUpload from '../forms/c-image-upload.vue'
+import CFormRow from '../forms/CFormRow.tsx'
 import RecommendedMetadataModal from './recommended-metadata.modal.vue'
 import { ajax } from '../../lib/Ajax'
 

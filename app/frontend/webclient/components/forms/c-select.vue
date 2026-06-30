@@ -1,5 +1,5 @@
 <script setup>
-import {computed} from "vue";
+import { computed } from "vue";
 import {
   Listbox,
   ListboxButton,
@@ -7,102 +7,87 @@ import {
   ListboxOptions,
 } from "@headlessui/vue";
 import { ChevronDownIcon, CheckIcon } from "lucide-vue-next";
- 
+
 const props = defineProps({
   options: Array,
   modelValue: [String, Number, Array],
   placeholder: {
     type: String,
-    default: "Select option",
+    default: "Seleccionar...",
   },
   multiple: Boolean,
   error: String
 });
- 
+
 const emit = defineEmits(["update:modelValue"]);
- 
+
 const label = computed(() => {
   return props.options
     .filter(option => {
       if (Array.isArray(props.modelValue)) {
         return props.modelValue.includes(option.value);
       }
- 
       return props.modelValue === option.value;
     })
     .map(option => option.label)
     .join(", ");
 });
 </script>
+
 <template>
-  <Listbox
-    :model-value="props.modelValue"
-    :multiple="props.multiple"
-    @update:modelValue="value => emit('update:modelValue', value)"
-  >
-    <div class="relative mt-1">
+  <Listbox :model-value="props.modelValue" :multiple="props.multiple"
+    @update:modelValue="value => emit('update:modelValue', value)">
+    <div class="relative">
       <ListboxButton
-        class="c-input select"
+        class="relative w-full flex items-center justify-between px-3 py-2.5 text-sm text-left rounded-lg bg-white/5 ring-1 ring-white/10 hover:ring-white/20 focus:outline-none focus:ring-[var(--c-primary-color)] focus:ring-offset-0 transition-colors"
       >
-        <span
-          v-if="label"
-          class="block truncate"
-          >{{ label }}</span
-        >
-        <span
-          v-else
-          >{{ props.placeholder }}</span
-        >
-        <span
-          class="flex absolute inset-y-0 right-0 items-center pr-2 pointer-events-none"
-        >
-          <ChevronDownIcon
-            aria-hidden="true"
-          />
+        <span v-if="label" class="block truncate text-white">{{ label }}</span>
+        <span v-else class="block truncate text-white/40">{{ props.placeholder }}</span>
+        <span class="pointer-events-none flex items-center pr-1">
+          <ChevronDownIcon class="h-4 w-4 text-white/40" aria-hidden="true" />
         </span>
       </ListboxButton>
- 
+
       <transition
         leave-active-class="transition duration-100 ease-in"
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
         <ListboxOptions
-          class="overflow-auto absolute z-10 py-1 mt-1 w-full max-h-60 text-base bg-[var(--c-primary-50)] ring-1 ring-black ring-opacity-5 shadow-lg focus:outline-none sm:text-sm"
+          class="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-[#1a1a1a] ring-1 ring-white/10 shadow-xl focus:outline-none py-1"
         >
           <ListboxOption
             v-for="option in props.options"
             :key="option.label"
-            v-slot="{active, selected}"
+            v-slot="{ active, selected }"
             :value="option.value"
             as="template"
           >
             <li
               :class="[
-                'relative cursor-pointer hover:bg-[--c-primary-200] select-none py-2 pl-10 pr-4',
+                'relative cursor-pointer select-none px-3 py-2 text-sm transition-colors',
+                active ? 'bg-white/10 text-white' : 'text-white/80',
               ]"
             >
-              <span
-                :class="[
-                  selected ? 'font-medium' : 'font-normal',
+              <div class="flex items-center justify-between">
+                <span :class="[
                   'block truncate',
-                ]"
-                >{{ option.label }}</span
-              >
-              <span
-                v-if="selected"
-                class="flex absolute inset-y-0 left-0 items-center pl-3"
-              >
+                  selected ? 'font-medium' : 'font-normal',
+                ]">{{ option.label }}</span>
                 <CheckIcon
+                  v-if="selected"
+                  class="h-4 w-4 text-[var(--c-primary-color)]"
                   aria-hidden="true"
-                  class="w-5 h-5"
                 />
-              </span>
+              </div>
             </li>
           </ListboxOption>
         </ListboxOptions>
       </transition>
-      <div class="text-xs text-red-400 mt-1" v-if="props.error">{{ props.error }}</div>
+
+      <div v-if="props.error" class="text-xs text-red-400 mt-1.5">
+        {{ props.error }}
+      </div>
     </div>
   </Listbox>
 </template>

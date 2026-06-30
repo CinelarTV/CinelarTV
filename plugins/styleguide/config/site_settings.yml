@@ -1,0 +1,4 @@
+plugins:
+  styleguide_enabled:
+    default: true
+    hidden: true

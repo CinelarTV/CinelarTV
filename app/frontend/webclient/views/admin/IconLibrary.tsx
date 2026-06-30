@@ -75,7 +75,7 @@ export default defineComponent({
                                         />
                                     </div>
 
-                                    <span class="text-[var(--c-primary-900)] text-xs font-mono tracking-wide text-center break-all">
+                                    <span class="text-[var(--c-primary-100)] text-xs font-mono tracking-wide text-center break-all">
                                         {icon}
                                     </span>
 
@@ -90,7 +90,7 @@ export default defineComponent({
                         </div>
                     ) : (
                         <div class="text-center py-12">
-                            <p class="text-[var(--c-primary-900)] text-sm">
+                            <p class="text-[var(--c-primary-100)] text-sm">
                                 No icons found matching "<span class="font-semibold">{searchQuery.value}</span>"
                             </p>
                         </div>

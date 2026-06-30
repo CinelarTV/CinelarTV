@@ -34,6 +34,10 @@ const Components = [
     {
         name: 'c-icon',
         component: () => import('../components/c-icon.vue')
+    },
+    {
+        name: 'c-form-row',
+        component: () => import('../components/forms/CFormRow.tsx')
     }
 ]
 

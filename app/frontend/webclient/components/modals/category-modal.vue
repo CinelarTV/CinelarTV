@@ -31,7 +31,7 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label for="category-name"
-                                            class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1.5">
+                                            class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)] mb-1.5">
                                             Category Name
                                         </label>
                                         <CInput v-model="categoryData.name" id="category-name"
@@ -43,7 +43,7 @@
 
                                     <div>
                                         <label for="category-description"
-                                            class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1.5">
+                                            class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)] mb-1.5">
                                             Description
                                         </label>
                                         <CTextarea v-model="categoryData.description" id="category-description"
@@ -55,12 +55,12 @@
 
                                     <div>
                                         <label for="category-tmdb-id"
-                                            class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)] mb-1.5">
+                                            class="block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)] mb-1.5">
                                             TMDB ID (optional)
                                         </label>
                                         <CInput v-model="categoryData.tmdb_id" id="category-tmdb-id"
                                             type="number" placeholder="e.g., 28 for Action" />
-                                        <p class="mt-1 text-xs text-[var(--c-primary-900)]">
+                                        <p class="mt-1 text-xs text-[var(--c-primary-100)]">
                                             Maps this category to a TMDB genre ID for automatic assignment
                                         </p>
                                         <p v-if="errors.tmdb_id" class="mt-1 text-xs text-rose-400">

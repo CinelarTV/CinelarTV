@@ -19,7 +19,7 @@
                         <!-- Header -->
                         <div
                             class="bg-[var(--c-primary-color)] px-8 py-6 text-center border-b border-[var(--c-primary-200)] relative">
-                            <button @click="handleClose" class="absolute right-4 top-4 text-[var(--c-primary-900)] hover:text-white transition-colors">
+                            <button @click="handleClose" class="absolute right-4 top-4 text-[var(--c-primary-100)] hover:text-white transition-colors">
                                 <XIcon :size="24" />
                             </button>
                             <DialogTitle as="h2"
@@ -27,7 +27,7 @@
                                 <SparklesIcon :size="20" class="inline-block mr-2 -mt-0.5 text-yellow-500" />
                                 Recommended Metadata
                             </DialogTitle>
-                            <p class="mt-1 text-sm text-[var(--c-primary-900)]">
+                            <p class="mt-1 text-sm text-[var(--c-primary-100)]">
                                 Select the best match for your content
                             </p>
                         </div>
@@ -37,7 +37,7 @@
                             <!-- Loading state -->
                             <div v-if="!props.content?.data?.results?.length" class="text-center py-12">
                                 <Loader2Icon :size="48" class="animate-spin mx-auto mb-4 text-[var(--c-tertiary-color)]" />
-                                <p class="text-sm text-[var(--c-primary-900)]">
+                                <p class="text-sm text-[var(--c-primary-100)]">
                                     Buscando las mejores recomendaciones...
                                 </p>
                             </div>
@@ -90,7 +90,7 @@
                             <!-- No results -->
                             <div v-if="props.content?.data?.results?.length === 0" class="text-center py-12">
                                 <SearchIcon :size="48" class="mx-auto mb-4 text-[var(--c-primary-400)]" />
-                                <p class="text-sm font-medium text-[var(--c-primary-900)]">
+                                <p class="text-sm font-medium text-[var(--c-primary-100)]">
                                     No se encontraron recomendaciones
                                 </p>
                                 <p class="text-xs text-[var(--c-primary-700)] mt-1">

@@ -246,13 +246,15 @@ img.emoji {
 }
 
 .spinner {
-  @apply mx-auto my-5 relative border-4 border-solid border-[var(--c-secondary-900)] border-l-transparent rounded-full animate-spin;
+  @apply mx-auto my-5 relative border-4 border-solid border-[var(--c-secondary-100)] border-l-transparent rounded-full animate-spin;
   height: 2rem;
   width: 2rem;
 }
 
 .spinner.small {
-  @apply w-2.5 h-2.5 m-0 inline-block;
+  @apply mx-auto my-5 relative border-2 border-solid border-[var(--c-secondary-100)] border-l-transparent rounded-full animate-spin;
+  height: 1rem;
+  width: 1rem;
 }
 
 @keyframes rotate-forever {

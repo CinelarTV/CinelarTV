@@ -19,7 +19,7 @@
                                 class="text-lg font-semibold tracking-tight text-[var(--c-body-text-color)]" v-emoji>
                                 Seleccionar canal XMLTV
                             </DialogTitle>
-                            <p class="mt-1 text-sm text-[var(--c-primary-900)]">Busca y elige el canal desde una fuente
+                            <p class="mt-1 text-sm text-[var(--c-primary-100)]">Busca y elige el canal desde una fuente
                                 XMLTV.</p>
                         </div>
 
@@ -48,7 +48,7 @@
                                     <img v-if="ch.icon" :src="ch.icon" class="h-8 w-8 object-contain" />
                                     <div>
                                         <div class="font-medium">{{ ch.display_name || '(sin nombre)' }}</div>
-                                        <div class="text-xs text-[var(--c-primary-900)]">{{ ch.id }}</div>
+                                        <div class="text-xs text-[var(--c-primary-100)]">{{ ch.id }}</div>
                                     </div>
                                 </li>
                             </ul>

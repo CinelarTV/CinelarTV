@@ -168,7 +168,7 @@ onMounted(() => {
 
 <style scoped>
 .content-manager-card__description {
-    color: var(--c-primary-900);
+    color: var(--c-primary-100);
     font-size: 0.875rem;
     line-height: 1.4;
     margin-bottom: 0.5rem;

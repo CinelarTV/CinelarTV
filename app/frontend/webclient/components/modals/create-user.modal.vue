@@ -23,17 +23,17 @@
                             <form id="create-user-form" @submit="submitCreateUser" novalidate>
                                 <div class="space-y-4">
                                     <div>
-                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]">Email</label>
+                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">Email</label>
                                         <c-input type="email" v-model="form.email" id="create-user-email" placeholder="user@example.com" />
                                     </div>
 
                                     <div>
-                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]">Username</label>
+                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">Username</label>
                                         <c-input type="text" v-model="form.username" id="create-user-username" placeholder="username" />
                                     </div>
 
                                     <div>
-                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]">Contraseña</label>
+                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">Contraseña</label>
                                         <c-input type="password" v-model="form.password" id="create-user-password" placeholder="********" />
                                     </div>
                                 </div>

@@ -49,12 +49,14 @@ export default defineComponent({
         const updatePanelPosition = () => {
             if (cardRef.value) {
                 const rect = cardRef.value.getBoundingClientRect();
-                const panelWidth = rect.width * 2;
+                const panelWidth = rect.width * 1.04;
                 const viewportWidth = window.innerWidth;
 
-                let left = rect.left;
-                if (left + panelWidth > viewportWidth) {
-                    left = Math.max(8, viewportWidth - panelWidth - 16);
+                let left = rect.left + (rect.width - panelWidth) / 2;
+                if (left < 8) {
+                    left = 8;
+                } else if (left + panelWidth > viewportWidth - 8) {
+                    left = viewportWidth - panelWidth - 8;
                 }
 
                 panelPosition.value = {
@@ -298,25 +300,20 @@ export default defineComponent({
 
                             {/* Metadata */}
                             <div class="px-3 pb-2">
-                                {/* Match percentage, rating, year */}
-                                <div class="flex items-center gap-2 text-[11px] mb-1">
-                                    <span class="text-green-400 font-semibold">98% coincidencia</span>
+                                <div class="flex items-center gap-2 text-[11px] mb-1 flex-wrap">
                                     {props.item.rating && (
-                                        <span class="px-1 py-0.5 border border-white/40 text-white/80 text-[10px]">
-                                            {props.item.rating}
-                                        </span>
+                                        <span class="text-green-400 font-semibold">{props.item.rating}</span>
                                     )}
                                     {props.item.year && <span class="text-white/60">{props.item.year}</span>}
                                     {props.item.duration && (
-                                        <span class="text-white/60">{Math.round(props.item.duration / 60)}h {props.item.duration % 60}m</span>
+                                        <span class="text-white/60">
+                                            {Math.floor(props.item.duration / 3600)}h {(Math.floor(props.item.duration / 60) % 60)}m
+                                        </span>
                                     )}
-                                    {/* HD badge */}
-                                    <span class="px-1 py-0.5 border border-white/40 text-white/80 text-[10px]">HD</span>
                                 </div>
 
-                                {/* Genres */}
                                 {props.item.genres && props.item.genres.length > 0 && (
-                                    <p class="text-[11px] text-white/60 line-clamp-1">
+                                    <p class="text-[11px] text-white/50 line-clamp-1">
                                         {truncateGenres(props.item.genres)}
                                     </p>
                                 )}

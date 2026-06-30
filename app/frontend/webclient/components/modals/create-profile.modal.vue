@@ -22,7 +22,7 @@
                                 class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]" v-emoji>
                                 Crea un perfil nuevo 🍿
                             </DialogTitle>
-                            <p class="mt-1 text-sm text-[var(--c-primary-900)]">
+                            <p class="mt-1 text-sm text-[var(--c-primary-100)]">
                                 Elige nombre y avatar para personalizar tu experiencia.
                             </p>
                         </div>
@@ -32,7 +32,7 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label for="create-profile-name-input"
-                                            class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]">
+                                            class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">
                                             Nombre del perfil
                                         </label>
                                         <c-input type="text" v-model="name" id="create-profile-name-input"
@@ -41,7 +41,7 @@
 
                                     <div>
                                         <label
-                                            class="mb-2 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-900)]">
+                                            class="mb-2 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">
                                             Avatar
                                         </label>
 

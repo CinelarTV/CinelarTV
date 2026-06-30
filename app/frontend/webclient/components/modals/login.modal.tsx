@@ -223,7 +223,7 @@ export default defineComponent({
                       <div class="mt-6">
                         <div class="relative flex items-center">
                           <div class="flex-grow border-t border-[var(--c-primary-400)]" />
-                          <span class="mx-3 text-xs text-[var(--c-primary-900)]">or continue with</span>
+                          <span class="mx-3 text-xs text-[var(--c-primary-100)]">or continue with</span>
                           <div class="flex-grow border-t border-[var(--c-primary-400)]" />
                         </div>
 
@@ -234,7 +234,7 @@ export default defineComponent({
                               onClick={casLogin}
                               class="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--c-primary-300)] bg-[var(--c-primary-200)] px-4 py-2.5 text-sm font-medium text-[var(--c-body-text-color)] transition-all hover:bg-[var(--c-primary-300)]"
                             >
-                              <Fingerprint size={16} class="text-[var(--c-primary-900)]" />
+                              <Fingerprint size={16} class="text-[var(--c-primary-100)]" />
                               Continue with CAS
                             </button>
                           )}

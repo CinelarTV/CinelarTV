@@ -60,7 +60,39 @@
         z-index: 1;
     }
 
-    .c-input {
-        padding-left: 40px; /* espacio para el swatch */
-    }
+.c-color-input .c-input {
+    padding-left: 40px;
+}
+
+/* CFormRow */
+.c-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.c-form-row__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--c-primary-100, rgba(255, 255, 255, 0.7));
+}
+
+.c-form-row__required {
+    color: var(--c-danger, #ef4444);
+    margin-left: 2px;
+}
+
+.c-form-row__error {
+    font-size: 0.75rem;
+    color: var(--c-danger, #ef4444);
+    margin: 0;
+}
+
+.c-form-row__hint {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0;
 }
