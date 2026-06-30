@@ -125,6 +125,12 @@ class ApplicationController < ActionController::Base
       return false
     end
 
+    # Block users whose confirmation period has expired (7 days)
+    if !user.confirmed? && user.confirmation_expired?
+      handle_inactive_account(:unconfirmed)
+      return false
+    end
+
     true
   end
 

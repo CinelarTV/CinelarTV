@@ -18,7 +18,7 @@
                     </span>
 
                     <!-- Content -->
-                    <span class="global-notice__body" v-html="renderContent(banner.content)" />
+                    <span class="global-notice__body" v-html="renderContent(banner.content)" @click="onBannerClick" />
 
                     <!-- Dismiss button -->
                     <button v-if="banner.dismissible !== false" class="global-notice__dismiss"
@@ -43,6 +43,8 @@ import { storeToRefs } from 'pinia'
 import { useBanners } from '../app/services/banner-store'
 import { useSiteSettings } from '../app/services/site-settings';
 import { useCurrentUser } from '../app/services/current-user'
+import { ajax } from '../lib/Ajax'
+import { toast } from 'vue-sonner'
 
 // Store
 const bannerStore = useBanners()
@@ -59,13 +61,40 @@ const visibleBanners = computed(() =>
     banners.value?.filter((b) => b?.show) ?? []
 )
 
-// Markdown-link → anchor
+// Markdown-link → anchor (also handles action: protocol for JS handlers)
 const renderContent = (content: string): string => {
     if (!content) return ''
     return content.replace(
         /\[([^\]]+)\]\(([^)]+)\)/g,
         '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
     )
+}
+
+// Handle clicks on banner links — intercept action: protocol
+const onBannerClick = async (e: Event) => {
+    const target = e.target as HTMLElement
+    if (target.tagName !== 'A') return
+    const href = target.getAttribute('href')
+    if (!href?.startsWith('action:')) return
+
+    e.preventDefault()
+    const action = href.replace('action:', '')
+
+    if (action === 'resend-confirmation') {
+        await resendConfirmationEmail()
+    }
+}
+
+const resendConfirmationEmail = async () => {
+    if (!currentUser?.email) return
+    try {
+        await ajax.post('/confirmation.json', {
+            user: { email: currentUser.email },
+        })
+        toast.success('Correo de confirmación reenviado. Revisa tu bandeja de entrada.')
+    } catch {
+        toast.error('Error al reenviar el correo. Intenta de nuevo más tarde.')
+    }
 }
 
 // Icon per type — inline SVG components
@@ -117,6 +146,22 @@ onMounted(() => {
         content: `${$t?.('js.admin.wizard_required') ?? 'Wizard required'} [${$t?.('js.admin.wizard_link') ?? 'Configure'}](/wizard)`,
         show: Boolean(!siteSettings?.wizard_completed && currentUser?.admin),
     })
+
+    // Email confirmation banner
+    if (currentUser && !currentUser.confirmed && currentUser.confirmation_deadline) {
+        const deadline = new Date(currentUser.confirmation_deadline)
+        const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        const type = daysLeft <= 2 ? 'danger' : 'warning'
+        const dayText = daysLeft === 1 ? 'queda 1 día' : `quedan ${daysLeft} días`
+
+        addBanner({
+            id: 'email-confirmation',
+            type,
+            dismissible: true,
+            content: `Verifica tu correo electrónico. Te ${dayText} para confirmar tu cuenta. [Reenviar email](action:resend-confirmation)`,
+            show: true,
+        })
+    }
 })
 </script>
 

@@ -21,8 +21,6 @@ export default defineComponent({
     const password = ref('')
     const loading = ref(false)
     const errorMessage = ref('')
-    const isUnconfirmed = ref(false)
-    const resendingConfirmation = ref(false)
 
     const canSubmit = computed(() => email.value && password.value && !loading.value)
 
@@ -37,8 +35,6 @@ export default defineComponent({
         password.value = ''
         loading.value = false
         errorMessage.value = ''
-        isUnconfirmed.value = false
-        resendingConfirmation.value = false
       }
     }
 
@@ -46,37 +42,15 @@ export default defineComponent({
       if (!canSubmit.value) return
       loading.value = true
       errorMessage.value = ''
-      isUnconfirmed.value = false
       try {
         await ajax.post('/login.json', {
           user: { email: email.value, password: password.value, remember_me: true },
         })
         window.location.reload()
       } catch (error: any) {
-        const errorType = error.response?.data?.error_type
-        if (errorType === 'unconfirmed') {
-          isUnconfirmed.value = true
-          errorMessage.value = error.response?.data?.errors?.[0] || 'You have to confirm your email address before continuing.'
-        } else {
-          errorMessage.value = error.response?.data?.errors?.[0] || 'An error occurred during login. Please try again.'
-        }
+        errorMessage.value = error.response?.data?.errors?.[0] || 'An error occurred during login. Please try again.'
       } finally {
         loading.value = false
-      }
-    }
-
-    const resendConfirmation = async () => {
-      if (!email.value) return
-      resendingConfirmation.value = true
-      try {
-        await ajax.post('/confirmation.json', {
-          user: { email: email.value },
-        })
-        errorMessage.value = 'Confirmation email sent successfully. Please check your inbox.'
-      } catch (error: any) {
-        errorMessage.value = error.response?.data?.error || 'Failed to resend confirmation email. Please try again.'
-      } finally {
-        resendingConfirmation.value = false
       }
     }
 
@@ -178,23 +152,9 @@ export default defineComponent({
                     </div>
 
                     {errorMessage.value && (
-                      <p class={`mt-3 text-xs font-medium ${isUnconfirmed.value ? 'text-amber-400' : 'text-rose-400'}`}>
+                      <p class="mt-3 text-xs font-medium text-rose-400">
                         {errorMessage.value}
                       </p>
-                    )}
-
-                    {isUnconfirmed.value && (
-                      <button
-                        type="button"
-                        onClick={resendConfirmation}
-                        disabled={resendingConfirmation.value}
-                        class="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-2.5 text-sm font-medium text-amber-400 transition-all hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        {resendingConfirmation.value
-                          ? <Loader2 size={15} class="animate-spin" />
-                          : 'Resend confirmation email'
-                        }
-                      </button>
                     )}
 
                     <div class="mt-6 flex items-center justify-between gap-3">

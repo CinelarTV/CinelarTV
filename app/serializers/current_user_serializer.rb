@@ -10,7 +10,9 @@ class CurrentUserSerializer < ApplicationSerializer
              :username,
              :customer_id,
              :created_at,
-             :updated_at
+             :updated_at,
+             :confirmed,
+             :confirmation_deadline
 
   attribute :is_subscribed, if: :include_subscription?
   attribute :subscription, if: :include_subscription?
@@ -32,6 +34,14 @@ class CurrentUserSerializer < ApplicationSerializer
 
   def admin
     object.is_admin?
+  end
+
+  def confirmed
+    object.confirmed?
+  end
+
+  def confirmation_deadline
+    object.confirmation_deadline&.iso8601
   end
 
   def is_subscribed

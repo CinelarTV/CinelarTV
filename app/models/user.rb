@@ -97,6 +97,29 @@ class User < ApplicationRecord
     super
   end
 
+  # Confirmation deadline helpers (7-day window from confirmation_sent_at)
+  CONFIRMATION_PERIOD = 7.days
+
+  def confirmation_deadline
+    return nil if confirmed?
+    return nil unless confirmation_sent_at
+    confirmation_sent_at + CONFIRMATION_PERIOD
+  end
+
+  def days_until_confirmation_deadline
+    return nil if confirmed?
+    deadline = confirmation_deadline
+    return nil unless deadline
+    [(deadline.to_date - Date.current).to_i, 0].max
+  end
+
+  def confirmation_expired?
+    return false if confirmed?
+    deadline = confirmation_deadline
+    return false unless deadline
+    deadline < Time.current
+  end
+
   def is_subscribed?
     return true if has_role?(:admin)
     user_subscriptions.active.exists?

@@ -53,3 +53,8 @@
       class: OpenIapSyncJob
       queue: "subscriptions"
       description: "Sync OpenIAP subscription states from Kit REST API"
+    send_confirmation_reminders:
+      every: "1d"
+      class: SendConfirmationReminderJob
+      queue: "default"
+      description: "Send confirmation reminder emails to users 3 days before deadline"
