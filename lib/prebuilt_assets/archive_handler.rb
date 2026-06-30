@@ -6,10 +6,9 @@ require "fileutils"
 
 module PrebuiltAssets
   class ArchiveHandler
-    VITE_DIR = "vite"
-
-    def initialize(repo_root: nil)
+    def initialize(repo_root: nil, vite_output_dir: nil)
       @repo_root = repo_root || Dir.pwd
+      @vite_output_dir = vite_output_dir || File.join(@repo_root, "public", "vite")
     end
 
     def extract(archive_path)
@@ -17,16 +16,16 @@ module PrebuiltAssets
         out, status = Open3.capture2e("tar", "-xzf", archive_path, "-C", tmp_dir)
         raise "Failed to extract archive: #{out}" unless status.success?
 
-        vite_src = File.join(tmp_dir, VITE_DIR)
-        unless Dir.exist?(vite_src)
-          raise "Archive missing '#{VITE_DIR}' directory. Contents: #{Dir.children(tmp_dir).inspect}"
+        # Find the vite directory in the extracted archive
+        vite_src = Dir.glob(File.join(tmp_dir, "vite*")).first
+        unless vite_src && Dir.exist?(vite_src)
+          raise "Archive missing 'vite' directory. Contents: #{Dir.children(tmp_dir).inspect}"
         end
 
-        dest = File.join(@repo_root, "public", VITE_DIR)
-        FileUtils.rm_rf(dest)
-        FileUtils.mkdir_p(File.dirname(dest))
-        FileUtils.cp_r(vite_src, dest)
-        puts "  Extracted prebuilt assets to public/#{VITE_DIR}/"
+        FileUtils.rm_rf(@vite_output_dir)
+        FileUtils.mkdir_p(File.dirname(@vite_output_dir))
+        FileUtils.cp_r(vite_src, @vite_output_dir)
+        puts "  Extracted prebuilt assets to #{@vite_output_dir.sub(@repo_root, '.')}"
       end
     end
   end

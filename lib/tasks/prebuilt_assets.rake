@@ -54,20 +54,21 @@ namespace :assets do
       next
     end
 
-    puts "Compiling assets locally..."
+    puts "Compiling assets locally (RAILS_ENV=#{Rails.env})..."
     Rake::Task["assets:precompile"].invoke
 
-    vite_dir = File.join("public", "vite")
+    vite_dir = PrebuiltAssets.vite_output_dir
     unless Dir.exist?(vite_dir)
-      raise "No Vite output found at public/vite/. Did assets:precompile succeed?"
+      Dir.glob("public/vite*").each { |d| puts "  Found: #{d}" }
+      raise "No Vite output found. Looked for: #{vite_dir}. Did assets:precompile succeed?"
     end
 
-    puts "Packaging assets..."
+    puts "Packaging assets from #{vite_dir}..."
     require "tmpdir"
     Dir.mktmpdir("prebuilt-publish-") do |tmp_dir|
       archive = File.join(tmp_dir, PrebuiltAssets::Version.asset_archive_name)
       out, status = Open3.capture2e(
-        "tar", "-czf", archive, "-C", "public", "vite"
+        "tar", "-czf", archive, "-C", File.dirname(vite_dir), File.basename(vite_dir)
       )
       raise "Failed to create archive: #{out}" unless status.success?
 
