@@ -98,7 +98,9 @@
                             class="hover:bg-white/5 transition-colors">
                             <td class="px-4 py-4">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-white">{{ source.parent_title }}</span>
+                                    <span class="text-sm font-medium text-white">
+                                        {{ source.content_title ? source.content_title + ' — ' : '' }}{{ source.parent_title }}
+                                    </span>
                                     <span class="text-xs text-white/50">{{ source.videoable_type }}</span>
                                 </div>
                             </td>
@@ -117,16 +119,35 @@
                                 <span class="text-sm text-white/60">{{ formatDate(source.last_checked_at) }}</span>
                             </td>
                             <td class="px-4 py-4 text-right">
-                                <button @click="editContent(source)"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--c-primary-color)]/20 hover:bg-[var(--c-primary-color)]/30 text-[var(--c-primary-color)] text-sm font-medium transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                    </svg>
-                                    Editar
-                                </button>
+                                <div class="flex items-center justify-end gap-2">
+                                    <button
+                                        @click="verifySource(source)"
+                                        :disabled="source._checking"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <svg v-if="!source._checking" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                            <polyline points="22 4 12 14.01 9 11.01" />
+                                        </svg>
+                                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            class="animate-spin">
+                                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+                                        </svg>
+                                        {{ source._checking ? 'Verificando...' : 'Verificar' }}
+                                    </button>
+                                    <button @click="editContent(source)"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--c-primary-color)]/20 hover:bg-[var(--c-primary-color)]/30 text-[var(--c-primary-color)] text-sm font-medium transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                        </svg>
+                                        Editar
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -173,6 +194,20 @@ const editContent = (source) => {
         router.push(`/admin/content-manager/${source.videoable_id}/edit`)
     } else if (source.videoable_type === 'Episode') {
         alert('Edita este episodio desde el administrador de temporadas del contenido correspondiente.')
+    }
+}
+
+const verifySource = async (source) => {
+    source._checking = true
+    try {
+        await ajax.post(`/admin/video_sources/${source.id}/check`)
+        setTimeout(() => {
+            fetchBrokenSources()
+        }, 3000)
+    } catch (error) {
+        console.error('Error triggering integrity check:', error)
+    } finally {
+        source._checking = false
     }
 }
 

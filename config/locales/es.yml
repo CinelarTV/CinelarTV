@@ -81,6 +81,9 @@ es:
       target='_blank'>Obtén más información sobre Sidekiq aquí. </a>"
     updates_available: "Parece que hay actualizaciones disponibles para CinelarTV.
       <a href='/admin/updates'>Haga clic aquí para actualizar. </a>"
+    broken_media_warning:
+      one: "Hay 1 fuente de video que falló en las pruebas de integridad. <a href='/admin/content-manager/media-integrity'>Ver detalles</a>"
+      other: "Hay %{count} fuentes de video que fallaron en las pruebas de integridad. <a href='/admin/content-manager/media-integrity'>Ver detalles</a>"
   devise:
     failure:
       account_suspended: "Tu cuenta ha sido suspendida. Ponte en contacto con el

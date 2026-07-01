@@ -207,6 +207,16 @@ maintenance:
     refresh: true
     default: 100
     type: "integer"
+  media_checker_hls_segment_count:
+    client: false
+    refresh: true
+    default: 3
+    type: "integer"
+  media_checker_enable_deep_check:
+    client: false
+    refresh: true
+    default: true
+    type: "boolean"
 
 player:
   enable_chromecast:

@@ -87,6 +87,7 @@ namespace :admin do
 
   # For updating and deleting a specific video source
   get "/video_sources/broken", to: "video_sources#broken", defaults: { format: 'json' }
+  post "/video_sources/:id/check", to: "video_sources#check", defaults: { format: 'json' }
   put "/video_sources/:id", to: "video_sources#update"
   delete "/video_sources/:id", to: "video_sources#destroy"
 

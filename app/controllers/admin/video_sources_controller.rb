@@ -34,8 +34,13 @@ module Admin
 
     def broken
       @broken_sources = VideoSource.where(media_status: 'broken')
-                                   .includes(:videoable)
+                                   .includes(videoable: { season: :content })
                                    .map do |source|
+        parent_title = source.videoable.try(:title) || "Unknown"
+        content_title = if source.videoable_type == "Episode"
+                          source.videoable&.season&.content&.title
+                        end
+
         {
           id: source.id,
           url: source.url,
@@ -45,11 +50,26 @@ module Admin
           last_checked_at: source.last_checked_at,
           videoable_type: source.videoable_type,
           videoable_id: source.videoable_id,
-          parent_title: source.videoable.try(:title) || "Unknown Content"
+          parent_title: parent_title,
+          content_title: content_title
         }
       end
 
       render json: { video_sources: @broken_sources }
+    end
+
+    def check
+      @video_source = VideoSource.find(params[:id])
+      VideoSourceMediaCheckerJob.perform_async(@video_source.id)
+
+      render json: {
+        message: "Integrity check queued for VideoSource #{@video_source.id}",
+        video_source: {
+          id: @video_source.id,
+          media_status: @video_source.media_status,
+          failure_count: @video_source.failure_count,
+        },
+      }
     end
 
     private

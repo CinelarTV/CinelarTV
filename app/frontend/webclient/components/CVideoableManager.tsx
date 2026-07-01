@@ -40,6 +40,14 @@ export default defineComponent({
             return '';
         };
 
+        const detectFormat = (url: string): string => {
+            try {
+                const pathname = new URL(url).pathname.toLowerCase();
+                if (pathname.endsWith('.m3u8') || pathname.includes('.m3u8?')) return 'm3u8';
+            } catch {}
+            return 'mp4';
+        };
+
         const fetchVideoSources = async () => {
             try {
                 const url = getApiBase();
@@ -60,11 +68,12 @@ export default defineComponent({
             try {
                 const url = getApiBase();
                 if (!url) return;
+                const detectedFormat = detectFormat(urlInput.value.trim());
                 const res = await ajax.post(url, {
                     video_source: {
                         url: urlInput.value.trim(),
                         quality: '720p',
-                        format: 'mp4',
+                        format: detectedFormat,
                         storage_location: 'external_url'
                     }
                 });

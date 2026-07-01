@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_29_020000) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_30_235519) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -128,13 +128,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_29_020000) do
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title"
     t.string "description"
-    t.bigint "season_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "position"
     t.string "thumbnail"
     t.boolean "premium", default: false
     t.string "thumbnail_resized"
+    t.uuid "season_id", null: false
     t.index ["season_id", "position"], name: "index_episodes_on_season_id_and_position"
     t.index ["season_id"], name: "index_episodes_on_season_id"
   end
@@ -278,7 +278,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_29_020000) do
     t.text "error"
   end
 
-  create_table "seasons", force: :cascade do |t|
+  create_table "seasons", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title"
     t.string "description"
     t.uuid "content_id", null: false
@@ -529,7 +529,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_29_020000) do
   add_foreign_key "continue_watchings", "contents"
   add_foreign_key "continue_watchings", "episodes"
   add_foreign_key "continue_watchings", "profiles"
-  add_foreign_key "episodes", "seasons"
+  add_foreign_key "episodes", "seasons", name: "fk_rails_episodes_seasons"
   add_foreign_key "likes", "contents"
   add_foreign_key "likes", "profiles"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"

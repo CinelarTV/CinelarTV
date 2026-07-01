@@ -79,6 +79,9 @@ en:
       Sidekiq here</a>."
     updates_available: "It seems that there are updates available for CinelarTV. <a
       href='/admin/updates'>Click here to update</a>."
+    broken_media_warning:
+      one: "There is 1 video source that failed integrity checks. <a href='/admin/content-manager/media-integrity'>View details</a>"
+      other: "There are %{count} video sources that failed integrity checks. <a href='/admin/content-manager/media-integrity'>View details</a>"
   devise:
     failure:
       account_suspended: "Your account has been suspended. Please contact support for
@@ -114,6 +117,7 @@ en:
           movies: "Movies"
           seasons: "Seasons"
           series: "Series"
+          media_integrity: "Media integrity"
         updated_at: "Updated at"
       dashboard:
         statistics:
