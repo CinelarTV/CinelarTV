@@ -25,6 +25,7 @@ RSpec.describe SitemapController, type: :controller do
       it "returns sitemap index with sub-sitemaps" do
         get :index, format: :xml
         xml = Nokogiri::XML(response.body)
+        xml.remove_namespaces!
         expect(xml.css("sitemapindex sitemap").size).to eq(2)
       end
     end
@@ -72,6 +73,7 @@ RSpec.describe SitemapController, type: :controller do
 
         get :contents, format: :xml
         xml = Nokogiri::XML(response.body)
+        xml.remove_namespaces!
         expect(xml.css("urlset url").size).to be >= 1
       end
     end
