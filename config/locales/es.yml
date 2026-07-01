@@ -535,7 +535,7 @@ es:
       price_unavailable: "Plan no configurado"
       alternative_providers: "¿No tienes {{provider}}? Paga con {{alternative}}"
       mobile_title: "¿Usas la app móvil?"
-      mobile_description: "Suscríbete directamente desde la App Store o Google Play"
+      mobile_description: "Suscríbete directamente desde la app Android con Google Play"
       active_plan: "Tu plan actual"
       renews_at: "Próximo cobro"
       ends_at: "Acceso hasta el"

@@ -314,6 +314,12 @@ monetization:
     default: false
     type: "boolean"
 
+  enable_google_play_provider:
+    client: true
+    refresh: true
+    default: false
+    type: "boolean"
+
   mercadopago_access_token:
     client: false
     refresh: true
@@ -396,30 +402,37 @@ monetization:
     min: 1
     max: 1440
 
-  enable_open_iap_provider:
-    client: true
-    refresh: true
-    default: false
-    type: "boolean"
-
-  open_iap_api_key:
+  google_play_package_name:
     client: false
     refresh: true
     default: ""
     type: "string"
-    secret: true
 
-  open_iap_base_url:
-    client: false
-    refresh: true
-    default: "https://kit.openiap.dev"
-    type: "string"
-
-  open_iap_product_id_map:
+  google_play_subscription_product_id:
     client: true
     refresh: true
-    default: "{}"
+    default: ""
+    type: "string"
+
+  google_play_service_account_json:
+    client: false
+    refresh: true
+    default: ""
     type: "code"
+    secret: true
+    maxlength: 20000
+
+  google_play_pubsub_verify_oidc:
+    client: false
+    refresh: true
+    default: false
+    type: "boolean"
+
+  google_play_pubsub_audience:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
 
 storage:
   storage_provider:

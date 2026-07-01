@@ -6,20 +6,20 @@ module Subscriptions
       PROVIDERS = {
         "mercado_pago" => "Subscriptions::Providers::MercadoPagoProvider",
         "lemon_squeezy" => "Subscriptions::Providers::LemonSqueezyProvider",
-        "open_iap" => "Subscriptions::Providers::OpenIapProvider",
+        "google_play" => "Subscriptions::Providers::GooglePlayProvider",
         "manual" => "Subscriptions::Providers::ManualProvider"
       }.freeze
 
       PROVIDER_FEATURE_FLAGS = {
         "mercado_pago" => :enable_mercado_pago_provider,
         "lemon_squeezy" => :enable_lemon_squeezy_provider,
-        "open_iap" => :enable_open_iap_provider
+        "google_play" => :enable_google_play_provider
       }.freeze
 
       PROVIDER_LABELS = {
         "mercado_pago"  => "Mercado Pago",
         "lemon_squeezy" => "Lemon Squeezy",
-        "open_iap"      => "OpenIAP",
+        "google_play"   => "Google Play",
         "manual"        => "Manual"
       }.freeze
 

@@ -307,8 +307,8 @@
         </p>
       </div>
 
-      <!-- OpenIAP section — mobile only -->
-      <div v-if="isOpenIapEnabled" class="billing-page__mobile-section" :class="{ 'billing-page__mobile-section--standalone': !hasWebProviders }">
+      <!-- Google Play section — mobile only -->
+      <div v-if="isGooglePlayEnabled" class="billing-page__mobile-section" :class="{ 'billing-page__mobile-section--standalone': !hasWebProviders }">
         <div class="billing-page__mobile-icon">
           <CIcon icon="smartphone" :size="32" />
         </div>
@@ -316,10 +316,6 @@
           <h3 class="billing-page__mobile-title">{{ $t('js.billing.mobile_title') }}</h3>
           <p class="billing-page__mobile-description">{{ $t('js.billing.mobile_description') }}</p>
           <div class="billing-page__store-links">
-            <a :href="appleAppStoreUrl" target="_blank" rel="noopener" class="billing-page__store-link">
-              <img src="@/assets/store-badges/app-store.svg" alt="Download on App Store"
-                class="billing-page__store-badge" />
-            </a>
             <a :href="googlePlayUrl" target="_blank" rel="noopener" class="billing-page__store-link">
               <img src="@/assets/store-badges/google-play.svg" alt="Get it on Google Play"
                 class="billing-page__store-badge" />
@@ -491,19 +487,18 @@ const mercadoPagoPublicKey = computed(() => providerProfile.value.sdkPublicKey);
 
 const alternativeProviders = computed(() =>
   enabledProviders.value.filter(p =>
-    p.key !== activeProviderKey.value && p.key !== 'open_iap'
+    p.key !== activeProviderKey.value && p.key !== 'google_play'
   )
 );
 
 const hasWebProviders = computed(() =>
-  enabledProviders.value.some(p => p.key !== 'open_iap')
+  enabledProviders.value.some(p => p.key !== 'google_play')
 );
 
-const isOpenIapEnabled = computed(() =>
-  enabledProviders.value.some(p => p.key === 'open_iap')
+const isGooglePlayEnabled = computed(() =>
+  enabledProviders.value.some(p => p.key === 'google_play')
 );
 
-const appleAppStoreUrl = computed(() => SiteSettings?.apple_app_store_url || '#');
 const googlePlayUrl = computed(() => SiteSettings?.google_play_store_url || '#');
 
 const identificationTypeOptions = computed(() =>
@@ -788,7 +783,7 @@ const fetchPlanForProvider = async (providerKey) => {
 };
 
 watch(activeProviderKey, (newKey) => {
-  if (newKey && newKey !== 'open_iap') {
+  if (newKey && newKey !== 'google_play') {
     fetchPlanForProvider(newKey);
   }
 });
@@ -832,7 +827,7 @@ onMounted(async () => {
   try {
     await subscriptionStore.fetchBillingData();
 
-    if (activeProviderKey.value && activeProviderKey.value !== 'open_iap') {
+    if (activeProviderKey.value && activeProviderKey.value !== 'google_play') {
       fetchPlanForProvider(activeProviderKey.value);
     }
 

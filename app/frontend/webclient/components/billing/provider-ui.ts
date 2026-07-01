@@ -21,7 +21,7 @@ const PROVIDER_LABELS: Record<string, string> = {
     lemon_squeezy: 'Lemon Squeezy',
     stripe: 'Stripe',
     paypal: 'PayPal',
-    open_iap: 'OpenIAP',
+    google_play: 'Google Play',
 };
 
 export const formatProviderLabel = (provider?: string | null): string => {
@@ -86,13 +86,13 @@ export const buildBillingProviderUiProfile = (
     }
 
 
-    if (key === 'open_iap') {
+    if (key === 'google_play') {
         return {
             ...profile,
             supportsInlineCardForm: false,
             supportsWalletCheckout: false,
             sdkPublicKey: '',
-            secureBadgeText: 'Powered by OpenIAP',
+            secureBadgeText: 'Powered by Google Play',
             subscribeDescription: 'Subscribe through the mobile app to activate your subscription.',
             checkoutCta: 'Open mobile app to subscribe',
             checkoutLoadingCta: 'Opening mobile app...',

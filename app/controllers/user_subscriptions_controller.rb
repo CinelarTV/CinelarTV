@@ -84,34 +84,41 @@ class UserSubscriptionsController < ApplicationController
     result = nil
 
     UserSubscription.with_advisory_lock(lock_key, timeout_seconds: 10) do
-      # For OpenIAP, check if user already has a subscription for this product
-      if @provider.provider_key == 'open_iap' && params[:product_id].present?
+      # For mobile app purchases, keep the provider token bound to the current
+      # account and reject tokens already linked to another account in the provider.
+      if @provider.provider_key == "google_play" && params[:product_id].present?
         existing = UserSubscription.where(
           user_id: current_user.id,
-          provider: 'open_iap'
+          provider: "google_play"
         ).where("metadata->>'product_id' = ? OR iap_product_id = ?", params[:product_id], params[:product_id])
          .first
 
         if existing.present?
           remote = @provider.verify_purchase(product_id: params[:product_id], purchase_token: params[:purchase_token])
-          if remote.present? && remote['isValid']
-            existing.update!(
+          raise "Could not verify Google Play purchase" if remote.blank?
+
+          normalized = @provider.normalize_remote_for_update(existing, remote)
+          existing.update!(
+            normalized.merge(
               purchase_token: params[:purchase_token],
-              metadata: existing.metadata.merge(
+              iap_product_id: params[:product_id],
+              metadata: (normalized[:metadata] || existing.metadata).merge(
                 "purchase_token" => params[:purchase_token],
                 "product_id" => params[:product_id],
                 "last_mobile_update" => Time.zone.now.iso8601
               )
             )
+          )
 
-            existing.reload
-            result = { data: { message: "Subscription updated successfully", subscription: existing.as_json, provider: @provider.provider_key } }
-            next # exits the advisory lock block
-          end
+          existing.reload
+          result = { data: { message: "Subscription updated successfully", subscription: existing.as_json, provider: @provider.provider_key } }
+          next # exits the advisory lock block
         end
 
-        # Existing subscription already returned above, carry on to create new
-        next if existing.present?
+        linked_purchase = UserSubscription.find_by(provider: "google_play", purchase_token: params[:purchase_token])
+        if linked_purchase.present? && linked_purchase.user_id != current_user.id
+          raise "This Google Play purchase is already linked to another account"
+        end
       end
 
       checkout = @provider.create_subscription!(
@@ -275,6 +282,8 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def active_plan_id_for(provider_key)
+    return SiteSetting.google_play_subscription_product_id.to_s.presence if provider_key.to_s == "google_play"
+
     method_name = "#{provider_key}_plan_id"
     return nil unless SiteSetting.respond_to?(method_name)
 

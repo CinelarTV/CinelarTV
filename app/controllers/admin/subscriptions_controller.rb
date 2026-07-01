@@ -292,6 +292,8 @@ module Admin
     end
 
     def active_plan_setting_method_for(provider_key)
+      return "google_play_subscription_product_id" if provider_key.to_s == "google_play"
+
       "#{provider_key}_plan_id"
     end
 

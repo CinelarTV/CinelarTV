@@ -321,18 +321,18 @@
                 </div>
             </div>
 
-            <div v-if="!plans.length && !isOpenIapProvider" class="subscriptions-admin__empty">
+            <div v-if="!plans.length && !isMobileAppProvider" class="subscriptions-admin__empty">
                 <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
                 <p class="subscriptions-admin__empty-title">No hay planes disponibles</p>
                 <p class="subscriptions-admin__empty-description">
                     Crea un plan desde {{ currentProviderLabel }} o usa el formulario a continuación
                 </p>
             </div>
-            <div v-if="!plans.length && isOpenIapProvider" class="subscriptions-admin__empty">
+            <div v-if="!plans.length && isMobileAppProvider" class="subscriptions-admin__empty">
                 <CIcon icon="package-x" :size="48" class="subscriptions-admin__empty-icon" />
-                <p class="subscriptions-admin__empty-title">No hay productos OpenIAP configurados</p>
+                <p class="subscriptions-admin__empty-title">No hay producto de Google Play configurado</p>
                 <p class="subscriptions-admin__empty-description">
-                    Configura productos OpenIAP en la configuración del sitio para administrar suscripciones
+                    Configura el producto de suscripción de Google Play en la configuración del sitio
                 </p>
             </div>
             <div v-else class="subscriptions-admin__plans">
@@ -545,9 +545,9 @@ const currentProviderLabel = computed(() => {
     return provider ? provider.label : selectedProviderKey.value ? selectedProviderKey.value.replace(/_/g, ' ') : 'Current'
 })
 
-const isOpenIapProvider = computed(() => selectedProviderKey.value === 'open_iap')
+const isMobileAppProvider = computed(() => selectedProviderKey.value === 'google_play')
 
-const supportsPlanManagement = computed(() => !isOpenIapProvider.value)
+const supportsPlanManagement = computed(() => !isMobileAppProvider.value)
 
 const activePlanName = computed(() => {
     if (!activePlanId.value) return 'No plan selected'
@@ -589,9 +589,8 @@ const fetchSubscriptions = async () => {
 
 const fetchPlans = async () => {
     try {
-        if (isOpenIapProvider.value) {
-            // For OpenIAP, load products from site settings
-            await loadOpenIapProducts()
+        if (isMobileAppProvider.value) {
+            await loadGooglePlayProduct()
         } else {
             const { data } = await ajax.get('/admin/subscriptions/plans.json', {
                 params: {
@@ -607,24 +606,23 @@ const fetchPlans = async () => {
     }
 }
 
-const loadOpenIapProducts = async () => {
+const loadGooglePlayProduct = async () => {
     try {
         const { data } = await ajax.get('/admin/site_settings.json')
-        const productMap = data?.open_iap_product_id_map || {}
-        plans.value = Object.entries(productMap).map(([productId, productName]) => ({
+        const productId = data?.google_play_subscription_product_id || ''
+        plans.value = productId ? [{
             product_id: productId,
-            name: productName,
-            reason: productName,
+            name: 'Google Play',
+            reason: 'Google Play',
             id: productId
-        }))
+        }] : []
 
-        // Get active plan for OpenIAP
         const { data: plansData } = await ajax.get('/admin/subscriptions/plans.json', {
-            params: { provider: 'open_iap' }
+            params: { provider: 'google_play' }
         })
         activePlanId.value = plansData?.meta?.active_plan_id || ''
     } catch (e) {
-        console.warn('Failed to load OpenIAP products:', e)
+        console.warn('Failed to load Google Play product:', e)
         plans.value = []
     }
 }
