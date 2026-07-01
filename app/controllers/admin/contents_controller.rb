@@ -350,11 +350,13 @@ module Admin
     end
 
     def reorder_records(relation, order_array)
-      pairs = order_array.each_with_index.map { |id, index| [id, index] }
-      ids = pairs.map(&:first)
-      case_statement = pairs.map { |id, index| "WHEN '#{id}'::uuid THEN #{index}" }.join(" ")
+      ids = Array(order_array).map(&:to_s).reject(&:blank?).uniq
+      return if ids.empty?
 
-      relation.where(id: ids).update_all("position = CASE id #{case_statement} END")
+      quoted_ids = ids.map { |id| relation.connection.quote(id) }
+      case_statement = quoted_ids.each_with_index.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
+
+      relation.where(id: ids).update_all("position = CASE id::text #{case_statement} END")
     end
 
     def serialize_content(content)

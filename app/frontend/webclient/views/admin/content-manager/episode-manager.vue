@@ -90,8 +90,9 @@ const editEpisode = (episode: Episode) => {
 
 const reorderEpisodes = async () => {
     try {
+        const orderedEpisodeIds = [...new Set(episodeList.value.map((episode) => episode.id))];
         const response = await ajax.put(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/reorder-episodes.json`, {
-            episode_order: episodeList.value.map((episode) => episode.id)
+            episode_order: orderedEpisodeIds
         });
         toast.success("i18n.t('admin.content_manager.episode_manager.reorder_success'");
         await getEpisodeList();
@@ -113,9 +114,7 @@ const getEpisodeList = async () => {
     try {
         const response = await ajax.get(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes.json`);
         loadingEpisodeList.value = false;
-        response.data.data.episodes.forEach((episode) => {
-            episodeList.value.push(new Episode(episode));
-        });
+        episodeList.value = response.data.data.episodes.map((episode) => new Episode(episode));
     } catch (error) {
         loadingEpisodeList.value = false;
         // Manejar el error aquí, por ejemplo:
