@@ -2,13 +2,13 @@
 
 module Users
   class DeviseMailer < ApplicationMailer
-    default from: "from@example.com"
+    default from: -> { ENV['CINELAR_SMTP_FROM'] || 'from@example.com' }
     layout "mailer"
 
     after_action :apply_email_style
 
     def confirmation_instructions(record, token, options = {})
-      base_url = SiteSetting.base_url || begin
+      base_url = SiteSetting.base_url || ENV['CINELAR_BASE_URL'] || begin
         Rails.application.routes.url_helpers.root_url
       rescue NoMethodError
         "http://localhost:3000"
@@ -33,7 +33,7 @@ module Users
     end
 
     def reset_password_instructions(record, token, options = {})
-      base_url = SiteSetting.base_url || begin
+      base_url = SiteSetting.base_url || ENV['CINELAR_BASE_URL'] || begin
         Rails.application.routes.url_helpers.root_url
       rescue NoMethodError
         "http://localhost:3000"
@@ -58,7 +58,7 @@ module Users
     end
 
     def unlock_instructions(record, token, options = {})
-      base_url = SiteSetting.base_url || begin
+      base_url = SiteSetting.base_url || ENV['CINELAR_BASE_URL'] || begin
         Rails.application.routes.url_helpers.root_url
       rescue NoMethodError
         "http://localhost:3000"
