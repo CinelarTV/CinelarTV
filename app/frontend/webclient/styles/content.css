@@ -278,9 +278,14 @@
   grid-auto-columns: clamp(164px, 18vw, 220px);
   gap: 10px;
   overflow-x: auto;
+  max-width: 100%;
   padding: 4px 2px 8px;
-  scrollbar-width: thin;
-  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.content-related__scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .content-related__card {
@@ -399,6 +404,7 @@
 
   .content-related__scroll {
     grid-auto-columns: minmax(158px, 52vw);
+    max-width: 100%;
   }
 }
 

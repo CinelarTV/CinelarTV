@@ -14,7 +14,6 @@ interface ContentItem {
     genres?: string[];
     duration?: number;
     progress?: number;
-    isPrime?: boolean;
     isNew?: boolean;
 }
 
@@ -220,16 +219,9 @@ export default defineComponent({
                             </div>
 
                             <!-- Badges -->
-                            <div class="absolute top-2 left-2 flex gap-1">
-                                <!-- NEW badge -->
-                                <span v-if="item.isNew"
-                                    class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-white/15 text-white border border-white/25 backdrop-blur-sm leading-none">
+                            <div v-if="item.isNew" class="absolute top-2 left-2">
+                                <span class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-white/15 text-white border border-white/25 backdrop-blur-sm leading-none">
                                     NUEVO
-                                </span>
-                                <!-- PRIME badge -->
-                                <span v-else-if="item.isPrime !== false"
-                                    class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#0095d9] text-white leading-none">
-                                    PRIME
                                 </span>
                             </div>
 

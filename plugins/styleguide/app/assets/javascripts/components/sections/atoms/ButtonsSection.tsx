@@ -26,6 +26,9 @@ export default defineComponent({
                         <CButton loading={loading.value} onClick={toggleLoading}>
                             {loading.value ? 'Loading...' : 'Click to Load'}
                         </CButton>
+                        <CButton loading={true} >
+                            Loading state
+                        </CButton>
                     </div>
                 </div>
 

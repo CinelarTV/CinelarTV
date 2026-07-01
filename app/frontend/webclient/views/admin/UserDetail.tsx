@@ -4,6 +4,8 @@ import { useHead } from 'unhead';
 import { ajax } from '../../lib/Ajax';
 import CButton from '@/components/forms/c-button';
 import CInput from '@/components/forms/c-input.vue';
+import CSpinner from '@/components/c-spinner';
+import CIcon from '@/components/c-icon.vue';
 
 function toLocalDatetimeInput(value?: string | null) {
     if (!value) return '';
@@ -16,6 +18,13 @@ function toLocalDatetimeInput(value?: string | null) {
     const hh = pad(d.getHours());
     const mm = pad(d.getMinutes());
     return `${YYYY}-${MM}-${DD}T${hh}:${mm}`;
+}
+
+function formatDate(value?: string | null) {
+    if (!value) return '-';
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '-';
+    return d.toLocaleString();
 }
 
 export default defineComponent({
@@ -87,64 +96,158 @@ export default defineComponent({
 
         useHead({ title: `Usuario ${id}` });
 
+        const statusBadge = () => {
+            if (!user.value) return null;
+            if (user.value.suspended) {
+                return <span class="user-detail-admin__status-badge is-suspended">Suspendido</span>;
+            }
+            if (user.value.deactivated_at) {
+                return <span class="user-detail-admin__status-badge is-deactivated">Desactivado</span>;
+            }
+            return <span class="user-detail-admin__status-badge is-active">Activo</span>;
+        };
+
         return () => (
-            <div class="panel">
-                <div class="panel-header flex items-center justify-between">
-                    <h2 class="panel-title">Detalle de usuario</h2>
-                    <div>
-                        <CButton onClick={goBack}>Volver</CButton>
+            <div class="user-detail-admin">
+                <header class="user-detail-admin__hero">
+                    <div class="user-detail-admin__hero-top">
+                        <button class="user-detail-admin__back" onClick={goBack}>
+                            <CIcon icon="arrow-left" size={16} />
+                            Volver
+                        </button>
                     </div>
-                </div>
-                <div class="panel-body">
-                    {loading.value && <div>Cargando...</div>}
-                    {!loading.value && user.value && (
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="text-lg font-semibold">Información</h3>
-                                <table class="mt-2 w-full text-sm">
-                                    <tbody>
-                                        <tr><td class="font-semibold">ID</td><td>{user.value.id}</td></tr>
-                                        <tr><td class="font-semibold">Email</td><td>{user.value.email}</td></tr>
-                                        <tr><td class="font-semibold">Username</td><td>{user.value.username}</td></tr>
-                                        <tr><td class="font-semibold">Creado</td><td>{user.value.created_at}</td></tr>
-                                        <tr><td class="font-semibold">Actualizado</td><td>{user.value.updated_at}</td></tr>
-                                        <tr><td class="font-semibold">Suspendido</td><td>{user.value.suspended ? 'Sí' : 'No'}</td></tr>
-                                        <tr><td class="font-semibold">Suspendido hasta</td><td>{user.value.suspended_until || '-'}</td></tr>
-                                        <tr><td class="font-semibold">Razón suspensión</td><td>{user.value.suspended_reason || '-'}</td></tr>
-                                        <tr><td class="font-semibold">Suspendido por</td><td>{user.value.suspended_by ? user.value.suspended_by.username : '-'}</td></tr>
-                                        <tr><td class="font-semibold">Desactivado</td><td>{user.value.deactivated_at ? 'Sí' : 'No'}</td></tr>
-                                        <tr><td class="font-semibold">Razón desactivación</td><td>{user.value.deactivated_reason || '-'}</td></tr>
-                                        <tr><td class="font-semibold">Desactivado por</td><td>{user.value.deactivated_by ? user.value.deactivated_by.username : '-'}</td></tr>
-                                    </tbody>
-                                </table>
+                    {loading.value ? (
+                        <div />
+                    ) : user.value ? (
+                        <>
+                            <p class="user-detail-admin__eyebrow">Admin Console</p>
+                            <h1 class="user-detail-admin__title">{user.value.username}</h1>
+                            <p class="user-detail-admin__subtitle">{user.value.email}</p>
+                        </>
+                    ) : null}
+                </header>
+
+                {loading.value ? (
+                    <div class="user-detail-admin__card" style="display:flex;justify-content:center;padding:2rem;">
+                        <CSpinner />
+                    </div>
+                ) : user.value ? (
+                    <div class="user-detail-admin__layout">
+                        <div class="user-detail-admin__card">
+                            <h3 class="user-detail-admin__card-title">
+                                Información del usuario
+                            </h3>
+                            <div class="user-detail-admin__info-grid">
+                                <div class="user-detail-admin__info-row">
+                                    <span class="user-detail-admin__info-label">ID</span>
+                                    <span class="user-detail-admin__info-value">{user.value.id}</span>
+                                </div>
+                                <div class="user-detail-admin__info-row">
+                                    <span class="user-detail-admin__info-label">Email</span>
+                                    <span class="user-detail-admin__info-value">{user.value.email}</span>
+                                </div>
+                                <div class="user-detail-admin__info-row">
+                                    <span class="user-detail-admin__info-label">Username</span>
+                                    <span class="user-detail-admin__info-value">{user.value.username}</span>
+                                </div>
+                                <div class="user-detail-admin__info-row">
+                                    <span class="user-detail-admin__info-label">Estado</span>
+                                    <span class="user-detail-admin__info-value">{statusBadge()}</span>
+                                </div>
+                                <div class="user-detail-admin__info-row">
+                                    <span class="user-detail-admin__info-label">Creado</span>
+                                    <span class="user-detail-admin__info-value">{formatDate(user.value.created_at)}</span>
+                                </div>
+                                <div class="user-detail-admin__info-row">
+                                    <span class="user-detail-admin__info-label">Actualizado</span>
+                                    <span class="user-detail-admin__info-value">{formatDate(user.value.updated_at)}</span>
+                                </div>
+                                {user.value.suspended && (
+                                    <>
+                                        <div class="user-detail-admin__info-row">
+                                            <span class="user-detail-admin__info-label">Suspendido hasta</span>
+                                            <span class="user-detail-admin__info-value">
+                                                {formatDate(user.value.suspended_until)}
+                                            </span>
+                                        </div>
+                                        <div class="user-detail-admin__info-row">
+                                            <span class="user-detail-admin__info-label">Razón suspensión</span>
+                                            <span class="user-detail-admin__info-value">
+                                                {user.value.suspended_reason || '-'}
+                                            </span>
+                                        </div>
+                                        <div class="user-detail-admin__info-row">
+                                            <span class="user-detail-admin__info-label">Suspendido por</span>
+                                            <span class="user-detail-admin__info-value">
+                                                {user.value.suspended_by?.username || '-'}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+                                {user.value.deactivated_at && (
+                                    <>
+                                        <div class="user-detail-admin__info-row">
+                                            <span class="user-detail-admin__info-label">Desactivado</span>
+                                            <span class="user-detail-admin__info-value">
+                                                {formatDate(user.value.deactivated_at)}
+                                            </span>
+                                        </div>
+                                        <div class="user-detail-admin__info-row">
+                                            <span class="user-detail-admin__info-label">Razón desactivación</span>
+                                            <span class="user-detail-admin__info-value">
+                                                {user.value.deactivated_reason || '-'}
+                                            </span>
+                                        </div>
+                                        <div class="user-detail-admin__info-row">
+                                            <span class="user-detail-admin__info-label">Desactivado por</span>
+                                            <span class="user-detail-admin__info-value">
+                                                {user.value.deactivated_by?.username || '-'}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div class="user-detail-admin__card">
+                            <h3 class="user-detail-admin__card-title">
+                                Acciones
+                            </h3>
+
+                            <div class="user-detail-admin__action-group">
+                                <h4 class="user-detail-admin__action-title">Suspender usuario</h4>
+                                <div class="user-detail-admin__action-fields">
+                                    <label class="user-detail-admin__action-field">
+                                        <span>Fecha y hora (opcional)</span>
+                                        <input v-model={suspendUntil.value} type="datetime-local" />
+                                    </label>
+                                    <label class="user-detail-admin__action-field">
+                                        <span>Razón</span>
+                                        <input v-model={suspendReason.value} placeholder="Motivo de la suspensión" />
+                                    </label>
+                                </div>
+                                <div class="user-detail-admin__action-buttons">
+                                    <CButton onClick={suspendUser}>Suspender</CButton>
+                                    <CButton onClick={unsuspendUser}>Reanudar</CButton>
+                                </div>
                             </div>
 
-                            <div>
-                                <h3 class="text-lg font-semibold">Acciones</h3>
-                                <div class="mt-3 space-y-4">
-                                    <div class="p-4 border rounded">
-                                        <div class="mb-2 font-semibold">Suspender usuario</div>
-                                        <CInput v-model={suspendUntil.value} type="datetime-local" placeholder="Fecha y hora (opcional)" />
-                                        <CInput v-model={suspendReason.value} placeholder="Razón" />
-                                        <div class="mt-2 flex gap-2">
-                                            <CButton onClick={suspendUser}>Suspender</CButton>
-                                            <CButton onClick={unsuspendUser} variant="secondary">Reanudar</CButton>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-4 border rounded">
-                                        <div class="mb-2 font-semibold">Desactivar usuario</div>
-                                        <CInput v-model={deactivateReason.value} placeholder="Razón" />
-                                        <div class="mt-2 flex gap-2">
-                                            <CButton onClick={deactivateUser} variant="danger">Desactivar</CButton>
-                                            <CButton onClick={activateUser} variant="secondary">Activar</CButton>
-                                        </div>
-                                    </div>
+                            <div class="user-detail-admin__action-group">
+                                <h4 class="user-detail-admin__action-title">Desactivar usuario</h4>
+                                <div class="user-detail-admin__action-fields">
+                                    <label class="user-detail-admin__action-field">
+                                        <span>Razón</span>
+                                        <input v-model={deactivateReason.value} placeholder="Motivo de la desactivación" />
+                                    </label>
+                                </div>
+                                <div class="user-detail-admin__action-buttons">
+                                    <CButton variant="danger" onClick={deactivateUser}>Desactivar</CButton>
+                                    <CButton onClick={activateUser}>Activar</CButton>
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                ) : null}
             </div>
         );
     }

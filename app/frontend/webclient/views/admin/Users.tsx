@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { ajax } from '../../lib/Ajax';
 import CInput from "@/components/forms/c-input.vue";
 import CButton from '@/components/forms/c-button';
+import CSpinner from '@/components/c-spinner';
 import CreateUserModal from '../../components/modals/create-user.modal.vue';
 
 interface User {
@@ -99,59 +100,114 @@ export default defineComponent({
             users.value.unshift(user);
         };
 
-        return () => (
-            <div class="panel manage-users">
-                <div class="panel-header">
-                    <h2 class="panel-title">Usuarios</h2>
-                    <div class="mb-4 max-w-xs flex gap-2 items-center">
-                        <CInput
-                            v-model={search.value}
-                            placeholder="Buscar usuario por email o username..."
-                            class="w-full"
-                        />
-                        {SiteSettings?.allow_admin_to_create_users && (
-                            <CButton icon="plus" onClick={openCreate}>Crear usuario</CButton>
-                        )}
-                    </div>
-                </div>
-                <div class="panel-body max-h-[70vh] overflow-y-auto" ref={containerRef}>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left admin-table text-sm">
-                            <thead class="sticky top-0 z-10">
-                                <tr>
-                                    <th>Email</th>
-                                    <th>Username</th>
-                                    <th>Role</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.value.map((user) => (
-                                    <tr key={user.id}>
-                                        <td>{user.email}</td>
-                                        <td>
-                                            <a class="text-blue-600 hover:underline cursor-pointer" onClick={() => router.push(`/admin/users/${user.id}`)}>{user.username}</a>
-                                        </td>
-                                        <td>{user.role || '-'}</td>
-                                        <td class="text-center">
-                                            <CButton variant="danger" icon="trash2" onClick={() => deleteUser(user.id)}>Eliminar</CButton>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {loading.value && (
-                                    <tr><td colSpan={4} class="text-center py-6 text-gray-400">Cargando...</td></tr>
-                                )}
-                            </tbody>
-                        </table>
+        const roleBadgeClass = (role?: string) => {
+            if (!role) return 'is-user';
+            if (role === 'admin') return 'is-admin';
+            if (role === 'moderator') return 'is-moderator';
+            return 'is-user';
+        };
 
-                        {!loading.value && users.value.length === 0 && (
-                            <div class="text-center py-8 text-gray-500">No hay usuarios.</div>
-                        )}
-                        {!loading.value && !hasMore.value && users.value.length > 0 && (
-                            <div class="text-center py-4 text-gray-500">No hay más resultados.</div>
+        const initialLoading = () => loading.value && users.value.length === 0;
+
+        return () => (
+            <div class="users-admin">
+                <header class="users-admin__hero">
+                    <div class="users-admin__hero-header">
+                        <div>
+                            <p class="users-admin__eyebrow">Admin Console</p>
+                            <h1 class="users-admin__title">Gestión de Usuarios</h1>
+                            <p class="users-admin__subtitle">
+                                Administra cuentas, roles y permisos de la plataforma.
+                            </p>
+                        </div>
+                        {SiteSettings?.allow_admin_to_create_users && (
+                            <CButton icon="plus" onClick={openCreate}>
+                                Nuevo usuario
+                            </CButton>
                         )}
                     </div>
-                </div>
+                </header>
+
+                <section class="users-admin__card">
+                    <div class="users-admin__section-header">
+                        <div>
+                            <h2>Usuarios</h2>
+                            <p>{users.value.length} {users.value.length === 1 ? 'resultado' : 'resultados'}</p>
+                        </div>
+                        <div class="users-admin__search">
+                            <CInput
+                                v-model={search.value}
+                                placeholder="Buscar por email o username..."
+                            />
+                        </div>
+                    </div>
+
+                    {initialLoading() ? (
+                        <div class="users-admin__loading">
+                            <CSpinner />
+                        </div>
+                    ) : users.value.length === 0 ? (
+                        <div class="users-admin__empty">
+                            No hay usuarios{search.value ? ' que coincidan con la búsqueda' : '.'}
+                        </div>
+                    ) : (
+                        <div ref={containerRef} class="max-h-[70vh] overflow-y-auto">
+                            <table class="w-full text-left admin-table text-sm">
+                                <thead class="sticky top-0 z-10">
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Username</th>
+                                        <th>Rol</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.value.map((user) => (
+                                        <tr key={user.id}>
+                                            <td>{user.email}</td>
+                                            <td>
+                                                <span
+                                                    class="users-admin__username-link"
+                                                    onClick={() => router.push(`/admin/users/${user.id}`)}
+                                                >
+                                                    {user.username}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class={`users-admin__role-badge ${roleBadgeClass(user.role)}`}>
+                                                    {user.role || 'user'}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <CButton
+                                                    variant="danger"
+                                                    icon="trash2"
+                                                    onClick={() => deleteUser(user.id)}
+                                                >
+                                                    Eliminar
+                                                </CButton>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {loading.value && (
+                                        <tr>
+                                            <td colSpan={4} class="text-center py-6">
+                                                <CSpinner small />
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+
+                            {!loading.value && !hasMore.value && users.value.length > 0 && (
+                                <div class="users-admin__end-marker">
+                                    No hay más resultados
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </section>
+
                 <CreateUserModal ref={createUserModal} onCreated={handleUserCreated} />
             </div>
         );

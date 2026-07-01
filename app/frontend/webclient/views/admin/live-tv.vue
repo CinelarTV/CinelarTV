@@ -2,6 +2,7 @@
     <div class="live-tv-admin">
         <header class="live-tv-admin__hero">
             <div class="live-tv-admin__hero-copy">
+                <p class="live-tv-admin__eyebrow">Admin Console</p>
                 <h1 class="live-tv-admin__title">Live TV Manager</h1>
                 <p class="live-tv-admin__subtitle">
                     Administra canales, streams y fuentes XMLTV desde un solo lugar.
@@ -46,42 +47,38 @@
 
             <form v-if="showChannelForm" class="live-tv-admin__form" @submit.prevent="saveChannel">
                 <div class="live-tv-admin__form-grid">
-                    <label class="live-tv-admin__field">
-                        <span>Nombre</span>
-                        <input v-model="channelForm.name" type="text" required />
-                    </label>
-                    <label class="live-tv-admin__field">
-                        <span>Formato</span>
-                        <select v-model="channelForm.stream_format" required>
-                            <option v-for="format in streamFormats" :key="format" :value="format">{{ format }}</option>
-                        </select>
-                    </label>
-                    <label class="live-tv-admin__field live-tv-admin__field--wide">
-                        <span>Stream URL</span>
-                        <input v-model="channelForm.stream_url" type="url" required />
-                    </label>
-                    <label class="live-tv-admin__field live-tv-admin__field--wide">
-                        <span>Logo URL</span>
-                        <input v-model="channelForm.logo_url" type="url" />
-                    </label>
-                    <label class="live-tv-admin__field">
-                        <span>XMLTV Channel ID</span>
+                    <c-form-row label="Nombre" for="channel-name" required>
+                        <c-input v-model="channelForm.name" type="text" id="channel-name" placeholder="Nombre del canal" />
+                    </c-form-row>
+                    <c-form-row label="Formato" for="channel-format" required>
+                        <c-select
+                            v-model="channelForm.stream_format"
+                            :options="streamFormatOptions"
+                            id="channel-format"
+                            placeholder="Seleccionar formato"
+                        />
+                    </c-form-row>
+                    <c-form-row label="Stream URL" for="channel-stream" class="live-tv-admin__form-grid--wide" required>
+                        <c-input v-model="channelForm.stream_url" type="url" id="channel-stream" placeholder="https://..." />
+                    </c-form-row>
+                    <c-form-row label="Logo URL" for="channel-logo" class="live-tv-admin__form-grid--wide">
+                        <c-input v-model="channelForm.logo_url" type="url" id="channel-logo" placeholder="https://..." />
+                    </c-form-row>
+                    <c-form-row label="XMLTV Channel ID" for="channel-xmltv">
                         <div style="display:flex;gap:.5rem;align-items:center;">
-                            <input v-model="channelForm.xmltv_channel_id" type="text" readonly />
+                            <c-input v-model="channelForm.xmltv_channel_id" type="text" id="channel-xmltv" readonly placeholder="Seleccionar..." />
                             <div style="display:flex;gap:.25rem;">
                                 <c-button type="button" @click="openXmltvSelector">Buscar</c-button>
                                 <c-button type="button" @click="channelForm.xmltv_channel_id = ''">Limpiar</c-button>
                             </div>
                         </div>
-                    </label>
-                    <label class="live-tv-admin__field">
-                        <span>Posicion</span>
-                        <input v-model.number="channelForm.position" type="number" min="0" />
-                    </label>
-                    <label class="live-tv-admin__field live-tv-admin__field--wide">
-                        <span>Descripcion</span>
-                        <textarea v-model="channelForm.description" rows="3" />
-                    </label>
+                    </c-form-row>
+                    <c-form-row label="Posicion" for="channel-position">
+                        <c-input v-model.number="channelForm.position" type="number" id="channel-position" min="0" />
+                    </c-form-row>
+                    <c-form-row label="Descripcion" for="channel-description" class="live-tv-admin__form-grid--wide">
+                        <c-textarea v-model="channelForm.description" id="channel-description" rows="3" placeholder="Descripcion del canal..." />
+                    </c-form-row>
                 </div>
 
                 <label class="live-tv-admin__toggle">
@@ -93,7 +90,7 @@
                     <c-button type="submit" :loading="savingChannel">
                         {{ channelForm.id ? 'Guardar cambios' : 'Crear canal' }}
                     </c-button>
-                    <c-button type="button" @click="resetChannelForm">Cancelar</c-button>
+                    <c-button type="button" variant="ghost" @click="resetChannelForm">Cancelar</c-button>
                 </div>
             </form>
 
@@ -121,14 +118,12 @@
                             <p>{{ element.stream_url }}</p>
                         </div>
                         <div class="live-tv-admin__item-actions">
-                            <button type="button" @click="editChannel(element)">
-                                <PencilIcon :size="14" />
+                            <c-button icon="pencil" @click="editChannel(element)">
                                 Editar
-                            </button>
-                            <button type="button" class="is-danger" @click="deleteChannel(element)">
-                                <Trash2Icon :size="14" />
+                            </c-button>
+                            <c-button icon="trash2" variant="danger" @click="deleteChannel(element)">
                                 Eliminar
-                            </button>
+                            </c-button>
                         </div>
                     </article>
                 </template>
@@ -150,14 +145,12 @@
 
             <form v-if="showSourceForm" class="live-tv-admin__form" @submit.prevent="saveSource">
                 <div class="live-tv-admin__form-grid">
-                    <label class="live-tv-admin__field">
-                        <span>Nombre</span>
-                        <input v-model="sourceForm.name" type="text" required />
-                    </label>
-                    <label class="live-tv-admin__field live-tv-admin__field--wide">
-                        <span>URL XMLTV</span>
-                        <input v-model="sourceForm.url" type="url" required />
-                    </label>
+                    <c-form-row label="Nombre" for="source-name" required>
+                        <c-input v-model="sourceForm.name" type="text" id="source-name" placeholder="Nombre de la fuente" />
+                    </c-form-row>
+                    <c-form-row label="URL XMLTV" for="source-url" class="live-tv-admin__form-grid--wide" required>
+                        <c-input v-model="sourceForm.url" type="url" id="source-url" placeholder="https://..." />
+                    </c-form-row>
                 </div>
 
                 <label class="live-tv-admin__toggle">
@@ -172,7 +165,7 @@
                     <c-button type="button" :disabled="!!sourceForm.id" @click="saveSource(true)">
                         Crear y ejecutar fetch
                     </c-button>
-                    <c-button type="button" @click="resetSourceForm">Cancelar</c-button>
+                    <c-button type="button" variant="ghost" @click="resetSourceForm">Cancelar</c-button>
                 </div>
             </form>
 
@@ -198,15 +191,13 @@
                         </small>
                     </div>
                     <div class="live-tv-admin__item-actions">
-                        <button type="button" @click="fetchSource(source)">Fetch</button>
-                        <button type="button" @click="editSource(source)">
-                            <PencilIcon :size="14" />
+                        <c-button @click="fetchSource(source)">Fetch</c-button>
+                        <c-button icon="pencil" @click="editSource(source)">
                             Editar
-                        </button>
-                        <button type="button" class="is-danger" @click="deleteSource(source)">
-                            <Trash2Icon :size="14" />
+                        </c-button>
+                        <c-button icon="trash2" variant="danger" @click="deleteSource(source)">
                             Eliminar
-                        </button>
+                        </c-button>
                     </div>
                 </article>
             </div>
@@ -220,11 +211,16 @@
 import { computed, onMounted, ref } from 'vue';
 import draggable from 'vuedraggable';
 import { toast } from 'vue3-toastify';
-import { PlusIcon, PencilIcon, Trash2Icon } from 'lucide-vue-next';
+import { PlusIcon } from 'lucide-vue-next';
 import { ajax } from '../../lib/Ajax';
 import SelectXmltvChannelModal from '../../components/modals/select-xmltv-channel.modal.vue'
+import CInput from '../../components/forms/c-input.vue'
+import CSelect from '../../components/forms/c-select.vue'
+import CTextarea from '../../components/forms/c-textarea.vue'
+import CFormRow from '../../components/forms/CFormRow.tsx'
 
 const streamFormats = ['hls', 'dash', 'rtmp', 'external'];
+const streamFormatOptions = streamFormats.map(f => ({ label: f.toUpperCase(), value: f }));
 
 const loadingChannels = ref(true);
 const loadingSources = ref(true);

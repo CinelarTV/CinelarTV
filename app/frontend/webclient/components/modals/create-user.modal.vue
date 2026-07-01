@@ -12,9 +12,10 @@
                     leave="duration-200 ease-in" leave-from="opacity-100 scale-100 translate-y-0"
                     leave-to="opacity-0 scale-95 translate-y-2">
                     <DialogPanel
-                        class="w-full max-w-lg overflow-hidden rounded-2xl bg-[var(--c-primary-600)] shadow-2xl ring-1 ring-[var(--c-primary-400)]">
-                        <div class="border-b border-[var(--c-primary-200)] bg-[var(--c-primary-color)] px-8 pb-6 pt-6 text-center">
-                            <DialogTitle as="h2" class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
+                        class="w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl"
+                        style="background: var(--c-background-color); border: 1px solid var(--c-border-strong); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+                        <div class="px-8 pb-5 pt-6 text-center" style="border-bottom: 1px solid var(--c-border-default);">
+                            <DialogTitle as="h2" class="text-xl font-semibold tracking-tight" style="color: var(--c-body-text-color);">
                                 Crear usuario
                             </DialogTitle>
                         </div>
@@ -23,28 +24,28 @@
                             <form id="create-user-form" @submit="submitCreateUser" novalidate>
                                 <div class="space-y-4">
                                     <div>
-                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">Email</label>
+                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest" style="color: var(--c-text-muted);">Email</label>
                                         <c-input type="email" v-model="form.email" id="create-user-email" placeholder="user@example.com" />
                                     </div>
 
                                     <div>
-                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">Username</label>
+                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest" style="color: var(--c-text-muted);">Username</label>
                                         <c-input type="text" v-model="form.username" id="create-user-username" placeholder="username" />
                                     </div>
 
                                     <div>
-                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-primary-100)]">Contraseña</label>
+                                        <label class="mb-1.5 block text-xs font-medium uppercase tracking-widest" style="color: var(--c-text-muted);">Contraseña</label>
                                         <c-input type="password" v-model="form.password" id="create-user-password" placeholder="********" />
                                     </div>
                                 </div>
 
-                                <div v-if="errors.length" class="text-red-500 mt-3 space-y-1">
+                                <div v-if="errors.length" class="mt-3 space-y-1" style="color: var(--c-danger);">
                                     <p v-for="err in errors" :key="err">{{ err }}</p>
                                 </div>
 
                                 <div class="mt-6 flex items-center justify-end gap-3">
                                     <c-button type="" @click="setIsOpen(false)">Cancelar</c-button>
-                                    <c-button icon="plus" :loading="loading" type="" native-type="submit"> 
+                                    <c-button icon="plus" :loading="loading" type="" native-type="submit">
                                         <template #default>Crear</template>
                                     </c-button>
                                 </div>

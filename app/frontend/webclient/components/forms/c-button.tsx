@@ -3,18 +3,24 @@ import CIcon from '../c-icon.vue';
 
 export default defineComponent({
     name: 'CButton',
+    inheritAttrs: true,
     props: {
-        onClick: Function as PropType<(e: MouseEvent) => void>,
-        variant: String as PropType<string | null>,
+        variant: {
+            type: String as PropType<string | null>,
+            default: null
+        },
         nativeType: {
             type: String as PropType<'button' | 'submit' | 'reset'>,
             default: 'button'
         },
-        loading: Boolean,
+        loading: {
+            type: Boolean,
+            default: false
+        },
         icon: {
             type: String,
             default: ''
-        }
+        },
     },
     emits: ['click'],
     setup(props, { slots, emit, attrs }) {
@@ -22,60 +28,51 @@ export default defineComponent({
             const disabledAttr = attrs.disabled;
             return disabledAttr === '' || disabledAttr === true || disabledAttr === 'true';
         };
-        const buttonType = (attrs.type as string) || props.nativeType;
 
         const handleClick = (e: MouseEvent) => {
-            if (!props.loading) emit('click', e);
+            if (props.loading || isAttrDisabled()) return;
+            emit('click', e);
         };
 
-        return () => (
-            (() => {
-                const hasIcon = Boolean(props.icon);
-                const showOverlaySpinner = props.loading && !hasIcon;
+        return () => {
+            const hasIcon = Boolean(props.icon);
+            const { type: attrType, ...restAttrs } = attrs;
+            const buttonType = (attrType as string) || props.nativeType;
 
-                return (
-                    <button
-                        class={[
-                            'c-button',
-                            props.variant && `c-button--${props.variant}`,
-                            props.loading && 'c-button--loading',
-                            hasIcon && 'c-button--with-icon',
-                            showOverlaySpinner && 'c-button--loading-no-icon',
-                        ]}
-                        {...attrs}
-                        type={buttonType}
-                        disabled={props.loading || isAttrDisabled()}
-                        aria-busy={props.loading ? 'true' : 'false'}
-                        onClick={handleClick}
+            return (
+                <button
+                    {...restAttrs}
+                    class={[
+                        'c-button',
+                        props.variant && `c-button--${props.variant}`,
+                        props.loading && 'c-button--loading',
+                    ]}
+                    type={buttonType as 'button' | 'submit' | 'reset'}
+                    disabled={props.loading || isAttrDisabled()}
+                    aria-busy={props.loading ? 'true' : 'false'}
+                    onClick={handleClick}
+                >
+                    <span
+                        class="c-button__content"
+                        aria-hidden={props.loading ? 'true' : undefined}
                     >
-                        <span class="c-button__content">
-                            {hasIcon && (
-                                <CIcon
-                                    icon={props.loading ? 'loader' : props.icon}
-                                    size={18}
-                                    class={[
-                                        'icon',
-                                        'c-button__icon',
-                                        props.loading && 'c-button__icon--loading',
-                                        props.loading && 'animate-spin',
-                                    ]}
-                                />
-                            )}
-                            <span class="c-button__label">{slots.default?.()}</span>
-                        </span>
-
-                        {showOverlaySpinner && (
-                            <span class="c-button__spinner-overlay" aria-hidden="true">
-                                <CIcon
-                                    icon="loader"
-                                    size={16}
-                                    class={['icon', 'c-button__icon', 'c-button__icon--loading', 'animate-spin']}
-                                />
-                            </span>
+                        {hasIcon && (
+                            <CIcon icon={props.icon} size={18} class={['icon', 'c-button__icon']} />
                         )}
-                    </button>
-                );
-            })()
-        );
+                        <span class="c-button__label">{slots.default?.()}</span>
+                    </span>
+
+                    {props.loading && (
+                        <span class="c-button__spinner" aria-hidden="true">
+                            <CIcon
+                                icon="loader"
+                                size={18}
+                                class={['icon', 'c-button__icon', 'animate-spin']}
+                            />
+                        </span>
+                    )}
+                </button>
+            );
+        };
     }
 });

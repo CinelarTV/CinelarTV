@@ -1,4 +1,4 @@
-import { defineComponent, ref, computed, PropType, onUnmounted, Teleport } from 'vue';
+import { defineComponent, ref, computed, PropType, onUnmounted, watch, h, render, nextTick } from 'vue';
 import { RouterLink } from 'vue-router';
 
 interface ContentItem {
@@ -12,8 +12,19 @@ interface ContentItem {
     genres?: string[];
     duration?: number;
     progress?: number;
-    isPrime?: boolean;
     isNew?: boolean;
+}
+
+const PORTAL_ID = 'ctv-portal';
+
+function getOrCreatePortal(): HTMLElement {
+    let el = document.getElementById(PORTAL_ID);
+    if (!el) {
+        el = document.createElement('div');
+        el.id = PORTAL_ID;
+        document.body.appendChild(el);
+    }
+    return el;
 }
 
 export default defineComponent({
@@ -35,45 +46,279 @@ export default defineComponent({
     },
     setup(props, { emit }) {
         const hoverTimeout = ref<number | null>(null);
+        const closeTimeout = ref<number | null>(null);
         const cardRef = ref<HTMLElement | null>(null);
         const panelPosition = ref({ top: 0, left: 0, width: 0 });
+        const portalRef = ref<HTMLElement | null>(null);
+        let panelVNode: ReturnType<typeof h> | null = null;
 
-        const cardWidth = computed(() => props.itemType === 'portrait' ? 'w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]' : 'w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px]');
-        const aspectRatio = computed(() => props.itemType === 'portrait' ? 'aspect-[2/3]' : 'aspect-video');
+        const cardWidth = computed(() =>
+            props.itemType === 'portrait'
+                ? 'w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px]'
+                : 'w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px]'
+        );
+        const aspectRatio = computed(() =>
+            props.itemType === 'portrait' ? 'aspect-[2/3]' : 'aspect-video'
+        );
 
         const progressPercent = computed(() => {
             if (!props.item.progress || !props.item.duration) return 0;
             return Math.min(100, Math.round((props.item.progress / props.item.duration) * 100));
         });
 
+        const panelWidth = computed(() => {
+            if (!cardRef.value) return 300;
+            const rect = cardRef.value.getBoundingClientRect();
+            const pw = rect.width * 1.5;
+            const viewportWidth = window.innerWidth;
+            return Math.min(pw, viewportWidth - 16);
+        });
+
         const updatePanelPosition = () => {
-            if (cardRef.value) {
-                const rect = cardRef.value.getBoundingClientRect();
-                const panelWidth = rect.width * 1.04;
-                const viewportWidth = window.innerWidth;
+            if (!cardRef.value) return;
+            const rect = cardRef.value.getBoundingClientRect();
+            const pw = panelWidth.value;
+            const viewportWidth = window.innerWidth;
 
-                let left = rect.left + (rect.width - panelWidth) / 2;
-                if (left < 8) {
-                    left = 8;
-                } else if (left + panelWidth > viewportWidth - 8) {
-                    left = viewportWidth - panelWidth - 8;
-                }
+            let left = rect.left + (rect.width - pw) / 2;
+            if (left < 8) left = 8;
+            else if (left + pw > viewportWidth - 8) left = viewportWidth - pw - 8;
 
-                panelPosition.value = {
-                    top: rect.bottom + 2,
-                    left,
-                    width: panelWidth,
-                };
+            panelPosition.value = { top: rect.bottom + 4, left, width: pw };
+        };
+
+        const formatDuration = (seconds: number): string => {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds / 60) % 60);
+            if (h > 0) return `${h}h ${m}m`;
+            return `${m}m`;
+        };
+
+        const cancelClose = () => {
+            if (closeTimeout.value) {
+                clearTimeout(closeTimeout.value);
+                closeTimeout.value = null;
             }
         };
 
-        const handleMouseEnter = () => {
-            hoverTimeout.value = window.setTimeout(() => {
+        const scheduleClose = () => {
+            cancelClose();
+            closeTimeout.value = window.setTimeout(() => {
+                emit('close', props.item.id);
+                closeTimeout.value = null;
+            }, 350);
+        };
+
+        const handleDocumentClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('[data-expand-panel]') && !target.closest('.expandable-card')) {
+                emit('close', props.item.id);
+            }
+        };
+
+        const renderPanel = () => {
+            const item = props.item;
+            const pos = panelPosition.value;
+
+            return h('div', [
+                h('div', {
+                    class: [
+                        'expanded-panel',
+                        'fixed z-[1000]',
+                        'bg-[#181818]',
+                        'rounded-xl',
+                        'overflow-hidden',
+                        'shadow-[0_16px_48px_rgba(0,0,0,0.9)]',
+                        'border border-white/10',
+                        'animate-expand-down',
+                    ],
+                    style: {
+                        top: `${pos.top}px`,
+                        left: `${pos.left}px`,
+                        width: `${pos.width}px`,
+                    },
+                    'data-expand-panel': 'true',
+                    onMouseenter: () => cancelClose(),
+                    onMouseleave: () => scheduleClose(),
+                    onClick: (e: MouseEvent) => e.stopPropagation(),
+                }, [
+                    h('div', { class: 'relative' }, [
+                        h('img', {
+                            src: item.banner,
+                            alt: item.title,
+                            class: 'w-full aspect-video object-cover',
+                        }),
+                        h('div', {
+                            class: 'absolute inset-0 bg-gradient-to-t from-[#181818] via-[#181818]/60 to-transparent',
+                        }),
+                        h('button', {
+                            class: [
+                                'absolute top-3 right-3',
+                                'w-8 h-8 rounded-full',
+                                'bg-black/60 hover:bg-black/80',
+                                'border border-white/20',
+                                'flex items-center justify-center',
+                                'text-white/80 hover:text-white',
+                                'transition-all duration-150',
+                            ],
+                            onClick: (e: MouseEvent) => {
+                                e.stopPropagation();
+                                emit('close', item.id);
+                            },
+                            'aria-label': 'Cerrar',
+                        }, [
+                            h('svg', {
+                                width: 14, height: 14,
+                                viewBox: '0 0 24 24',
+                                fill: 'none', stroke: 'currentColor',
+                                'stroke-width': 2.5,
+                                'stroke-linecap': 'round',
+                            }, [
+                                h('line', { x1: 18, y1: 6, x2: 6, y2: 18 }),
+                                h('line', { x1: 6, y1: 6, x2: 18, y2: 18 }),
+                            ]),
+                        ]),
+                        h('div', {
+                            class: 'absolute bottom-3 left-4 right-4',
+                        }, [
+                            h('p', {
+                                class: 'text-sm font-semibold text-white leading-snug line-clamp-2 mb-2',
+                            }, item.title),
+                            h('div', { class: 'flex items-center gap-2' }, [
+                                h('button', {
+                                    class: [
+                                        'flex items-center justify-center gap-1.5',
+                                        'px-4 py-1.5 rounded-md',
+                                        'bg-white hover:bg-white/90',
+                                        'text-black text-xs font-semibold',
+                                        'transition-colors duration-150',
+                                    ],
+                                    onClick: (e: MouseEvent) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    },
+                                }, [
+                                    h('svg', {
+                                        width: 12, height: 12,
+                                        viewBox: '0 0 24 24',
+                                        fill: 'black', stroke: 'none',
+                                    }, [
+                                        h('polygon', { points: '5 3 19 12 5 21 5 3' }),
+                                    ]),
+                                    'Reproducir',
+                                ]),
+                                h('button', {
+                                    class: [
+                                        'flex items-center justify-center',
+                                        'w-8 h-8 rounded-full',
+                                        'border-2 border-white/40 hover:border-white',
+                                        'text-white/70 hover:text-white',
+                                        'transition-all duration-150',
+                                    ],
+                                    onClick: (e: MouseEvent) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    },
+                                    'aria-label': 'Agregar a mi lista',
+                                }, [
+                                    h('svg', {
+                                        width: 14, height: 14,
+                                        viewBox: '0 0 24 24',
+                                        fill: 'none', stroke: 'currentColor',
+                                        'stroke-width': 2.5,
+                                        'stroke-linecap': 'round',
+                                    }, [
+                                        h('line', { x1: 12, y1: 5, x2: 12, y2: 19 }),
+                                        h('line', { x1: 5, y1: 12, x2: 19, y2: 12 }),
+                                    ]),
+                                ]),
+                                h('button', {
+                                    class: [
+                                        'flex items-center justify-center',
+                                        'w-8 h-8 rounded-full',
+                                        'border-2 border-white/40 hover:border-white',
+                                        'text-white/70 hover:text-white',
+                                        'transition-all duration-150',
+                                    ],
+                                    onClick: (e: MouseEvent) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    },
+                                    'aria-label': 'Me gusta',
+                                }, [
+                                    h('svg', {
+                                        width: 14, height: 14,
+                                        viewBox: '0 0 24 24',
+                                        fill: 'none', stroke: 'currentColor',
+                                        'stroke-width': 2.5,
+                                        'stroke-linecap': 'round',
+                                        'stroke-linejoin': 'round',
+                                    }, [
+                                        h('path', {
+                                            d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
+                                        }),
+                                    ]),
+                                ]),
+                            ]),
+                        ]),
+                    ]),
+                    h('div', { class: 'px-4 py-3' }, [
+                        h('div', { class: 'flex items-center gap-2 text-xs mb-1.5 flex-wrap' }, [
+                            item.rating
+                                ? h('span', { class: 'text-green-400 font-semibold' }, item.rating)
+                                : null,
+                            item.year
+                                ? h('span', { class: 'text-white/60' }, String(item.year))
+                                : null,
+                            item.duration
+                                ? h('span', { class: 'text-white/60' }, formatDuration(item.duration))
+                                : null,
+                            item.progress && item.duration
+                                ? h('span', { class: 'text-white/40' }, `${progressPercent.value}% visto`)
+                                : null,
+                        ]),
+                        item.genres && item.genres.length > 0
+                            ? h('p', {
+                                class: 'text-[11px] text-white/40 line-clamp-1',
+                            }, item.genres.join(' · '))
+                            : null,
+                    ]),
+                ]),
+            ]);
+        };
+
+        const updatePortal = async () => {
+            await nextTick();
+            if (props.expanded && cardRef.value) {
+                cancelClose();
                 updatePanelPosition();
-                emit('expand', props.item.id);
-                // Listen to all scroll events (capture phase) to track scroll within containers
+                if (!portalRef.value) {
+                    portalRef.value = getOrCreatePortal();
+                }
+                panelVNode = renderPanel();
+                render(panelVNode, portalRef.value);
+
                 window.addEventListener('scroll', updatePanelPosition, true);
                 window.addEventListener('resize', updatePanelPosition);
+                document.addEventListener('click', handleDocumentClick, true);
+            } else {
+                if (portalRef.value) {
+                    render(null, portalRef.value);
+                }
+                panelVNode = null;
+                window.removeEventListener('scroll', updatePanelPosition, true);
+                window.removeEventListener('resize', updatePanelPosition);
+                document.removeEventListener('click', handleDocumentClick, true);
+            }
+        };
+
+        watch(() => props.expanded, updatePortal);
+
+        const handleMouseEnter = () => {
+            cancelClose();
+            if (props.expanded) return;
+            hoverTimeout.value = window.setTimeout(() => {
+                emit('expand', props.item.id);
             }, 250);
         };
 
@@ -82,22 +327,24 @@ export default defineComponent({
                 clearTimeout(hoverTimeout.value);
                 hoverTimeout.value = null;
             }
-            emit('close', props.item.id);
-            window.removeEventListener('scroll', updatePanelPosition, true);
-            window.removeEventListener('resize', updatePanelPosition);
-        };
-
-        const truncateGenres = (genres: string[], maxLength: number = 60): string => {
-            const genreString = genres.join(' • ');
-            return genreString.length > maxLength ? genreString.substring(0, maxLength) + '...' : genreString;
+            if (!props.expanded) return;
+            scheduleClose();
         };
 
         onUnmounted(() => {
-            if (hoverTimeout.value) {
-                clearTimeout(hoverTimeout.value);
-            }
+            if (hoverTimeout.value) clearTimeout(hoverTimeout.value);
+            if (closeTimeout.value) clearTimeout(closeTimeout.value);
             window.removeEventListener('scroll', updatePanelPosition, true);
             window.removeEventListener('resize', updatePanelPosition);
+            document.removeEventListener('click', handleDocumentClick, true);
+            if (portalRef.value) {
+                render(null, portalRef.value);
+                if (portalRef.value.childNodes.length === 0) {
+                    portalRef.value.remove();
+                }
+                portalRef.value = null;
+            }
+            panelVNode = null;
         });
 
         return () => (
@@ -113,11 +360,8 @@ export default defineComponent({
                 ]}
                 onMouseenter={handleMouseEnter}
                 onMouseleave={handleMouseLeave}
-                style={{
-                    zIndex: props.expanded ? 50 : 1,
-                }}
+                style={{ zIndex: props.expanded ? 1001 : 1 }}
             >
-                {/* RouterLink wrapper - card only */}
                 <RouterLink
                     to={`/contents/${props.item.id}`}
                     class={[
@@ -144,7 +388,6 @@ export default defineComponent({
                         },
                     ]}
                 >
-                    {/* Thumbnail */}
                     <img
                         src={props.item.banner}
                         alt={props.item.title}
@@ -152,7 +395,6 @@ export default defineComponent({
                         loading="lazy"
                     />
 
-                    {/* Simple hover overlay (non-expanded state) */}
                     <div
                         class={[
                             'overlay',
@@ -182,12 +424,13 @@ export default defineComponent({
                                 {props.item.year && <span>{props.item.year}</span>}
                                 {props.item.year && props.item.rating && <span> · </span>}
                                 {props.item.rating && <span>{props.item.rating}</span>}
-                                {props.item.progress && props.item.duration && <span> · {progressPercent.value}% visto</span>}
+                                {props.item.progress && props.item.duration && (
+                                    <span> · {progressPercent.value}% visto</span>
+                                )}
                             </p>
                         )}
                     </div>
 
-                    {/* Progress bar */}
                     {props.item.progress && props.item.duration && (
                         <div class="absolute bottom-0 left-0 right-0 h-[2px] bg-white/15">
                             <div
@@ -197,130 +440,14 @@ export default defineComponent({
                         </div>
                     )}
 
-                    {/* Badges */}
-                    <div class="absolute top-2 left-2 flex gap-1">
-                        {props.item.isNew && (
+                    {props.item.isNew && (
+                        <div class="absolute top-2 left-2">
                             <span class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-white/15 text-white border border-white/25 backdrop-blur-sm leading-none">
                                 NUEVO
                             </span>
-                        )}
-                        {!props.item.isNew && props.item.isPrime !== false && (
-                            <span class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#0095d9] text-white leading-none">
-                                PRIME
-                            </span>
-                        )}
-                    </div>
-                </RouterLink>
-
-                {/* Expanded panel via Teleport - rendered in body to escape scroll container */}
-                <Teleport to="body">
-                    {props.expanded && (
-                        <div
-                            class={[
-                                'expanded-panel',
-                                'absolute',
-                                'bg-[#181818]',
-                                'rounded-b-lg',
-                                'overflow-hidden',
-                                'shadow-[0_12px_40px_rgba(0,0,0,0.9)]',
-                                'border',
-                                'border-white/10',
-                                'border-t-0',
-                                'animate-expand-down',
-                            ]}
-                            style={{
-                                position: 'fixed',
-                                top: `${panelPosition.value.top}px`,
-                                left: `${panelPosition.value.left}px`,
-                                width: `${panelPosition.value.width}px`,
-                                zIndex: 1000,
-                            }}
-                        >
-                            {/* Action buttons */}
-                            <div class="flex items-center gap-2 p-3 pb-2">
-                                {/* Play button */}
-                                <button
-                                    class="flex items-center justify-center w-8 h-8 rounded-full bg-white hover:bg-white/90 transition-colors duration-150"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }}
-                                    aria-label="Reproducir"
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="black" stroke="none">
-                                        <polygon points="5 3 19 12 5 21 5 3" />
-                                    </svg>
-                                </button>
-
-                                {/* Add to list */}
-                                <button
-                                    class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white/50 hover:border-white text-white transition-all duration-150"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }}
-                                    aria-label="Agregar a mi lista"
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                                        <line x1="12" y1="5" x2="12" y2="19" />
-                                        <line x1="5" y1="12" x2="19" y2="12" />
-                                    </svg>
-                                </button>
-
-                                {/* Like button */}
-                                <button
-                                    class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white/50 hover:border-white text-white transition-all duration-150"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }}
-                                    aria-label="Me gusta"
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                    </svg>
-                                </button>
-
-                                <div class="flex-1" />
-
-                                {/* More info / chevron down */}
-                                <button
-                                    class="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white/50 hover:border-white text-white transition-all duration-150"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }}
-                                    aria-label="Más información"
-                                >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="6 9 12 15 18 9" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            {/* Metadata */}
-                            <div class="px-3 pb-2">
-                                <div class="flex items-center gap-2 text-[11px] mb-1 flex-wrap">
-                                    {props.item.rating && (
-                                        <span class="text-green-400 font-semibold">{props.item.rating}</span>
-                                    )}
-                                    {props.item.year && <span class="text-white/60">{props.item.year}</span>}
-                                    {props.item.duration && (
-                                        <span class="text-white/60">
-                                            {Math.floor(props.item.duration / 3600)}h {(Math.floor(props.item.duration / 60) % 60)}m
-                                        </span>
-                                    )}
-                                </div>
-
-                                {props.item.genres && props.item.genres.length > 0 && (
-                                    <p class="text-[11px] text-white/50 line-clamp-1">
-                                        {truncateGenres(props.item.genres)}
-                                    </p>
-                                )}
-                            </div>
                         </div>
                     )}
-                </Teleport>
+                </RouterLink>
             </div>
         );
     },
