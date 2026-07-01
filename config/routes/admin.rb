@@ -41,6 +41,8 @@ namespace :admin do
   delete "/content-manager/:id", to: "contents#destroy"
   post "/content-manager/:id/sync-categories", to: "contents#sync_categories_from_tmdb"
   post "/content-manager/:id/seasons", to: "contents#create_season"
+  put "/content-manager/:id/seasons/:season_id", to: "contents#update_season"
+  delete "/content-manager/:id/seasons/:season_id", to: "contents#delete_season"
   put "/content-manager/:id/reorder-seasons", to: "contents#reorder_seasons"
   get "/content-manager/:id/seasons/:season_id/episodes", to: "contents#episode_list"
   post "/content-manager/:id/seasons/:season_id/episodes", to: "contents#create_episode"

@@ -226,6 +226,9 @@
 
         <add-season-modal v-if="(editedData.content_type || content.content_type) === 'TVSHOW'" :content="content"
             ref="addSeasonModalRef" @season-created="fetchContent" />
+
+        <edit-season-modal v-if="(editedData.content_type || content.content_type) === 'TVSHOW'"
+            :content-id="contentId" ref="editSeasonModalRef" @season-updated="fetchContent" />
     </div>
 </template>
 
@@ -235,6 +238,7 @@ import { onMounted, ref, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
+import editSeasonModal from '../../../components/modals/edit-season.modal.vue';
 import draggable from 'vuedraggable';
 import { ajax } from '../../../lib/Ajax';
 import CVideoableManager from "@/components/CVideoableManager";
@@ -248,6 +252,7 @@ const contentId = route.params.id;
 const loading = ref(true);
 const content = ref({});
 const addSeasonModalRef = ref();
+const editSeasonModalRef = ref();
 const reorderingSeasons = ref(false);
 const contentTypes = ref([
     { value: 'MOVIE', label: 'Película' },
@@ -393,8 +398,7 @@ const addSeason = () => {
 };
 
 const editSeason = (season) => {
-    // TODO: Implement season editing
-    toast.info('Edición de temporada');
+    editSeasonModalRef.value.setIsOpen(true, season);
 };
 
 const editSeasonEpisodes = (id) => {
@@ -409,7 +413,7 @@ const deleteSeason = async (season) => {
     }
 
     try {
-        await ajax.delete(`/admin/content-manager/seasons/${season.id}.json`);
+        await ajax.delete(`/admin/content-manager/${contentId}/seasons/${season.id}.json`);
         toast.success('Temporada eliminada');
         await fetchContent();
     } catch (error) {

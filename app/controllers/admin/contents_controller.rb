@@ -3,7 +3,7 @@
 module Admin
   class ContentsController < Admin::BaseController
     before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season, :sync_categories_from_tmdb]
-    before_action :set_season, only: [:create_episode, :episode_list, :reorder_episodes]
+    before_action :set_season, only: [:create_episode, :episode_list, :reorder_episodes, :update_season, :delete_season]
     before_action :set_episode, only: [:edit_episode, :update_episode, :delete_episode]
 
     def find_recommended_metadata
@@ -96,6 +96,7 @@ module Admin
 
     def create_season
       @season = @content.seasons.new(season_params)
+      @season.position = @content.seasons.maximum(:position).to_i + 1
 
       if @season.save
         render json: { season: @season }, status: :created
@@ -104,8 +105,22 @@ module Admin
       end
     end
 
+    def update_season
+      if @season.update(season_params)
+        render json: { season: @season }, status: :ok
+      else
+        render json: { errors: @season.errors.full_messages }, status: :unprocessable_entity
+      end
+    end
+
+    def delete_season
+      @season.destroy
+      render json: { message: "Temporada eliminada con éxito" }, status: :ok
+    end
+
     def create_episode
       @episode = @season.episodes.new(episode_params)
+      @episode.position = @season.episodes.maximum(:position).to_i + 1
 
       if @episode.save
         render json: { episode: @episode }, status: :created

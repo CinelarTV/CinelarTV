@@ -44,7 +44,7 @@ class ContentSerializer < ApplicationSerializer
         id: season.id,
         title: season.title,
         description: season.description,
-        episodes: season.episodes.map { |episode| 
+        episodes: season.episodes.order(position: :asc).map { |episode| 
           episode_attributes(episode, continue_watching_by_episode[episode.id]) 
         },
       }
