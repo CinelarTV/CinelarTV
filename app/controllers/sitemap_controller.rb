@@ -3,6 +3,7 @@
 class SitemapController < ApplicationController
   layout false
 
+  skip_before_action :check_profile_if_signed_in
   before_action :ensure_sitemap_enabled
 
   def index
