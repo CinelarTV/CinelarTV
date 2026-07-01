@@ -1,11 +1,11 @@
 /* ── Content Manager Base ────────────────────────────────────────────── */
 
-.panel.content-manager {
-    padding: 0;
+.admin-dashboard .panel.content-manager {
+    @apply p-0;
 }
 
 .panel.content-manager .panel-body {
-    padding: 20px 24px;
+    @apply p-0;
 }
 
 /* ── Content Manager Page ────────────────────────────────────────────── */
