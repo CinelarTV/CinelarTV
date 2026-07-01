@@ -110,6 +110,7 @@ Rails.application.routes.draw do
   get "account/billing" => "user_subscriptions#index"
   get "account/billing/plan" => "user_subscriptions#plan"
   post "account/billing/subscribe" => "user_subscriptions#subscribe"
+  post "account/billing/purchase_status" => "user_subscriptions#purchase_status"
   post "account/billing/sync" => "user_subscriptions#sync"
   delete "account/billing/subscribe" => "user_subscriptions#destroy"
   post "account/billing/checkout" => "user_subscriptions#checkout"

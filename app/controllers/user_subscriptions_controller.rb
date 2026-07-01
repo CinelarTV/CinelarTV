@@ -171,6 +171,71 @@ class UserSubscriptionsController < ApplicationController
     subscribe
   end
 
+  def purchase_status
+    unless @provider.provider_key == "google_play"
+      render json: { error: "Purchase status is only available for Google Play" }, status: :unprocessable_entity
+      return
+    end
+
+    purchase_token = params[:purchase_token].to_s
+    product_id = params[:product_id].to_s
+
+    if purchase_token.blank? || product_id.blank?
+      render json: { error: "purchase_token and product_id are required" }, status: :unprocessable_entity
+      return
+    end
+
+    linked_purchase = UserSubscription.find_by(provider: "google_play", purchase_token: purchase_token)
+
+    if linked_purchase.present? && linked_purchase.user_id != current_user.id
+      render json: {
+        data: {
+          status: "owned_by_another_user",
+          valid: false,
+          message: "This Google Play purchase is already linked to another CinelarTV account"
+        }
+      }, status: :ok
+      return
+    end
+
+    remote = @provider.verify_purchase(product_id: product_id, purchase_token: purchase_token)
+    if remote.blank?
+      render json: {
+        data: {
+          status: "invalid_or_expired",
+          valid: false,
+          message: "Google Play purchase could not be verified"
+        }
+      }, status: :ok
+      return
+    end
+
+    subscription = linked_purchase || current_user.user_subscriptions.build(provider: "google_play")
+    normalized = @provider.normalize_remote_for_update(subscription, remote)
+
+    render json: {
+      data: {
+        status: linked_purchase.present? ? "owned_by_current_user" : "unlinked_valid_purchase",
+        valid: true,
+        subscription_status: normalized[:status],
+        product_id: normalized[:iap_product_id] || product_id,
+        ends_at: normalized[:ends_at],
+        renews_at: normalized[:renews_at]
+      }
+    }, status: :ok
+  rescue ActiveRecord::RecordNotFound
+    render json: {
+      data: {
+        status: "invalid_or_expired",
+        valid: false,
+        message: "Google Play purchase was not found"
+      }
+    }, status: :ok
+  rescue StandardError => e
+    Rails.logger.error("Google Play purchase status failed for user #{current_user.id}: #{e.message}")
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
+
   def destroy
     subscription = UserSubscription.find_by(user_id: current_user.id)
     return render json: { error: "Subscription not found" }, status: :not_found if subscription.blank?
