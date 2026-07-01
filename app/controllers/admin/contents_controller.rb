@@ -350,9 +350,9 @@ module Admin
     end
 
     def reorder_records(relation, order_array)
-      pairs = order_array.each_with_index.map { |id, index| [id.to_i, index] }
+      pairs = order_array.each_with_index.map { |id, index| [id, index] }
       ids = pairs.map(&:first)
-      case_statement = pairs.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
+      case_statement = pairs.map { |id, index| "WHEN '#{id}'::uuid THEN #{index}" }.join(" ")
 
       relation.where(id: ids).update_all("position = CASE id #{case_statement} END")
     end
