@@ -45,8 +45,8 @@ class HomeController < ApplicationController
       .order(:name)
 
     render json: {
-      contents: content.limit(50).pluck(:id, :title, :description, :banner, :content_type, :year).map { |id, title, desc, banner, type, year|
-        { id: id, title: title, description: desc, banner: banner, content_type: type, year: year }
+      contents: content.limit(50).pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized, :content_type, :year).map { |id, title, desc, banner, banner_resized, cover_resized, type, year|
+        { id: id, title: title, description: desc, banner: banner, banner_resized: banner_resized, cover_resized: cover_resized, content_type: type, year: year }
       },
       categories: categories.map { |c| { id: c.id, name: c.name } }
     }

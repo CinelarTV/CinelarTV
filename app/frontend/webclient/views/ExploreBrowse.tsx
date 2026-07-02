@@ -10,6 +10,8 @@ interface ContentItem {
     title: string;
     description?: string;
     banner?: string;
+    banner_resized?: string;
+    cover_resized?: string;
     content_type: string;
     year?: number;
 }
@@ -212,9 +214,9 @@ export default defineComponent({
                                         href={`/contents/${item.id}`}
                                         class="group relative aspect-video rounded-lg overflow-hidden bg-white/5 border border-white/[0.06] hover:scale-[1.03] hover:border-white/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition-all duration-200"
                                     >
-                                        {item.banner ? (
+                                        {(item.banner_resized || item.banner) ? (
                                             <img
-                                                src={item.banner}
+                                                src={item.banner_resized || item.banner}
                                                 alt={item.title}
                                                 class="w-full h-full object-cover"
                                                 loading="lazy"

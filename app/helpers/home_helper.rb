@@ -45,15 +45,19 @@ module HomeHelper
            .where.not(banner: nil)
            .order("RANDOM()")
            .limit(10)
-           .pluck(:id, :title, :description, :banner)
-           .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+           .map { |id, title, desc, banner, banner_resized, cover_resized|
+             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized, cover_resized: cover_resized)
+           }
   end
 
   def add_added_recently(liked_ids)
     Content.added_recently
            .limit(15)
-           .pluck(:id, :title, :description, :banner)
-           .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+           .map { |id, title, desc, banner, banner_resized, cover_resized|
+             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized, cover_resized: cover_resized)
+           }
   end
 
   def add_recommended_based_on_liked(liked_ids)
@@ -64,7 +68,10 @@ module HomeHelper
 
     similar_content = random_liked.similar_items
                                   .reject { |c| c.id == random_liked.id }
-                                  .map { |c| build_content_hash(c.id, c.title, c.description, c.banner, liked_ids) }
+                                  .map { |c|
+                                    build_content_hash(c.id, c.title, c.description, c.banner, liked_ids,
+                                                      banner_resized: c.banner_resized, cover_resized: c.cover_resized)
+                                  }
 
     { title: random_liked.title, content: similar_content }
   end
@@ -73,16 +80,20 @@ module HomeHelper
     return [] unless SiteSetting.enable_most_viewed_section
 
     Content.most_viewed(15)
-           .pluck(:id, :title, :description, :banner)
-           .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+           .map { |id, title, desc, banner, banner_resized, cover_resized|
+             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized, cover_resized: cover_resized)
+           }
   end
 
   def add_most_liked(liked_ids)
     return [] unless SiteSetting.enable_most_liked_section
 
     Content.most_liked(15)
-           .pluck(:id, :title, :description, :banner)
-           .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+           .map { |id, title, desc, banner, banner_resized, cover_resized|
+             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized, cover_resized: cover_resized)
+           }
   end
 
   def add_by_genre(liked_ids)
@@ -97,8 +108,10 @@ module HomeHelper
       .limit(6)
       .map do |category|
         content = Content.by_category_id(category.id, 10)
-                         .pluck(:id, :title, :description, :banner)
-                         .map { |id, title, desc, banner| build_content_hash(id, title, desc, banner, liked_ids) }
+                         .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+                         .map { |id, title, desc, banner, banner_resized, cover_resized|
+                           build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized, cover_resized: cover_resized)
+                         }
         next if content.empty?
 
         { title: category.name, content: content }
@@ -135,14 +148,17 @@ module HomeHelper
     return [] unless current_profile.present?
 
     ContinueWatching
-      .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner")
+      .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner, contents.banner_resized, contents.cover_resized")
       .joins(:content)
       .where(profile_id: current_profile.id)
       .order("content_id, last_watched_at DESC")
       .limit(20)
       .includes(:content, :episode)
       .map do |cw|
-        build_content_hash(cw.content.id, cw.content.title, cw.content.description, cw.content.banner, liked_ids).merge(
+        build_content_hash(
+          cw.content.id, cw.content.title, cw.content.description, cw.content.banner, liked_ids,
+          banner_resized: cw.content.banner_resized, cover_resized: cw.content.cover_resized
+        ).merge(
           progress: cw.progress,
           duration: cw.duration,
           last_watched_at: cw.last_watched_at,
@@ -179,12 +195,14 @@ module HomeHelper
     sections
   end
 
-  def build_content_hash(id, title, description, banner, liked_ids)
+  def build_content_hash(id, title, description, banner, liked_ids, banner_resized: nil, cover_resized: nil)
     {
       id: id,
       title: title,
       description: description,
       banner: banner,
+      banner_resized: banner_resized,
+      cover_resized: cover_resized,
       liked: liked_ids.include?(id)
     }
   end
