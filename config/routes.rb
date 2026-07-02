@@ -21,7 +21,9 @@ Rails.application.routes.draw do
 
   use_doorkeeper
   # Enable the Device Authorization Grant flow
-  use_doorkeeper_device_authorization_grant 
+  use_doorkeeper_device_authorization_grant do
+    controller device_authorizations: "oauth/device_authorizations"
+  end
   
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest

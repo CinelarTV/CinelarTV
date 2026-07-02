@@ -1,7 +1,8 @@
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useHead } from 'unhead';
 import { ajax } from '@/lib/Ajax';
+import { Loader2, Monitor, CheckCircle, AlertTriangle } from 'lucide-vue-next';
 
 export default defineComponent({
     name: 'OauthDeviceActivate',
@@ -14,22 +15,25 @@ export default defineComponent({
 
         useHead({ title: 'Activar dispositivo' });
 
+        const canSubmit = computed(() => userCode.value.trim().length > 0 && !loading.value);
+
         const submit = async () => {
+            if (!canSubmit.value) return;
+            loading.value = true;
             errorMessage.value = '';
             successMessage.value = '';
-            const normalized = userCode.value.trim().toUpperCase();
 
-            if (!normalized) {
-                errorMessage.value = 'Ingresa un codigo valido.';
-                return;
-            }
-
-            loading.value = true;
             try {
-                const { data } = await ajax.post('/oauth/device.json', { user_code: normalized });
+                const { data } = await ajax.post('/oauth/device.json', {
+                    user_code: userCode.value.trim().toUpperCase(),
+                });
                 successMessage.value = data?.message || 'Dispositivo vinculado correctamente.';
             } catch (error: any) {
-                errorMessage.value = error?.response?.data?.errors?.[0] || 'No se pudo validar el codigo.';
+                const data = error?.response?.data;
+                errorMessage.value =
+                    data?.errors?.[0]
+                    || data?.error
+                    || 'No se pudo validar el codigo.';
             } finally {
                 loading.value = false;
             }
@@ -37,50 +41,87 @@ export default defineComponent({
 
         onMounted(() => {
             const code = route.query.user_code;
-            if (typeof code === 'string') {
-                userCode.value = code;
+            if (typeof code === 'string' && code.length > 0) {
+                userCode.value = code.toUpperCase();
             }
         });
 
         return () => (
-            <div class="min-h-screen bg-[#0b0d12] text-white">
-                <div class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
-                    <div class="w-full rounded-2xl border border-white/10 bg-white/5 p-6 shadow-xl backdrop-blur">
-                        <p class="mb-2 text-xs uppercase tracking-wider text-white/60">OAuth Device Flow</p>
-                        <h1 class="mb-1 text-2xl font-semibold">Activar dispositivo</h1>
-                        <p class="mb-6 text-sm text-white/70">Ingresa el codigo que aparece en tu TV o dispositivo.</p>
+            <div class="text-[var(--c-body-text-color)]">
+                <div class="mx-auto flex w-full max-w-md items-center px-4 py-8">
+                    <div class="w-full rounded-2xl border border-[var(--c-primary-400)] bg-[var(--c-primary-600)] p-6 shadow-xl">
 
-                        <label class="mb-2 block text-sm text-white/80">Codigo de usuario</label>
-                        <input
-                            value={userCode.value}
-                            onInput={(event: Event) => {
-                                const target = event.target as HTMLInputElement;
-                                userCode.value = target.value;
-                            }}
-                            placeholder="ABCD-EFGH"
-                            class="mb-4 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-base uppercase text-white placeholder:text-white/35 outline-none transition focus:border-white/40"
-                        />
+                        {successMessage.value ? (
+                            <div class="text-center">
+                                <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
+                                    <CheckCircle size={22} class="text-emerald-400" />
+                                </div>
+                                <h1 class="text-xl font-semibold">Dispositivo activado</h1>
+                                <p class="mt-2 text-sm text-emerald-400 leading-relaxed">
+                                    {successMessage.value}
+                                </p>
+                                <p class="mt-1 text-xs text-[var(--c-primary-100)]">
+                                    Ya puedes cerrar esta ventana y volver a la TV.
+                                </p>
+                            </div>
+                        ) : (
+                            <>
+                                <div class="mb-6 text-center">
+                                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--c-tertiary-color)]/10">
+                                        <Monitor size={22} class="text-[var(--c-tertiary-color)]" />
+                                    </div>
+                                    <h1 class="text-xl font-semibold">Activar dispositivo</h1>
+                                    <p class="mt-1 text-sm text-[var(--c-primary-100)]">
+                                        Ingresa el codigo que aparece en tu TV o dispositivo.
+                                    </p>
+                                </div>
 
-                        <button
-                            type="button"
-                            disabled={loading.value}
-                            onClick={submit}
-                            class="inline-flex w-full items-center justify-center rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {loading.value ? 'Validando...' : 'Vincular dispositivo'}
-                        </button>
+                                <form onSubmit={(e) => { e.preventDefault(); submit(); }} novalidate>
+                                    <div>
+                                        <label
+                                            for="oauth-device-code-input"
+                                            class="mb-1.5 block text-xs font-medium uppercase tracking-widest text-[var(--c-body-text-color)]"
+                                        >
+                                            Codigo de usuario
+                                        </label>
+                                        <input
+                                            id="oauth-device-code-input"
+                                            type="text"
+                                            value={userCode.value}
+                                            onInput={(e: any) => {
+                                                userCode.value = e.target.value.toUpperCase();
+                                                errorMessage.value = '';
+                                            }}
+                                            placeholder="ABCD-EFGH"
+                                            class="c-input"
+                                            required
+                                            autofocus
+                                        />
+                                    </div>
 
-                        {successMessage.value && (
-                            <p class="mt-4 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
-                                {successMessage.value}
-                            </p>
+                                    {errorMessage.value && (
+                                        <p class="mt-3 text-xs font-medium text-rose-400">
+                                            {errorMessage.value}
+                                        </p>
+                                    )}
+
+                                    <div class="mt-6">
+                                        <button
+                                            type="submit"
+                                            disabled={!canSubmit.value}
+                                            class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--c-tertiary-color)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--c-tertiary-100)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--c-tertiary-color)] disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            {loading.value
+                                                ? <Loader2 size={15} class="animate-spin" />
+                                                : <Monitor size={15} />
+                                            }
+                                            Vincular dispositivo
+                                        </button>
+                                    </div>
+                                </form>
+                            </>
                         )}
 
-                        {errorMessage.value && (
-                            <p class="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                                {errorMessage.value}
-                            </p>
-                        )}
                     </div>
                 </div>
             </div>
