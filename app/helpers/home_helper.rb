@@ -75,6 +75,29 @@ module HomeHelper
   end
 
   def load_banner_content(liked_ids)
+    if (profile = current_profile)
+      personalized_banner_content(liked_ids, profile)
+    else
+      random_banner_content(liked_ids)
+    end
+  end
+
+  def personalized_banner_content(liked_ids, profile)
+    liked_category_ids = liked_category_ids_for(profile)
+
+    Content.where(available: true)
+           .where.not(banner: nil)
+           .left_joins(:content_analytic)
+           .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
+           .limit(10)
+           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+           .map do |id, title, desc, banner, banner_resized, cover_resized|
+             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
+                                                                    cover_resized: cover_resized)
+           end
+  end
+
+  def random_banner_content(liked_ids)
     Content.where(available: true)
            .where.not(banner: nil)
            .order("RANDOM()")
@@ -84,6 +107,41 @@ module HomeHelper
              build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
                                                                     cover_resized: cover_resized)
            end
+  end
+
+  def liked_category_ids_for(profile)
+    liked_ids = profile.liked_contents.pluck(:id)
+    return [] if liked_ids.empty?
+
+    ContentCategory.where(content_id: liked_ids)
+                   .distinct
+                   .pluck(:category_id)
+  end
+
+  def banner_score_sql(liked_category_ids, profile_id)
+    scores = []
+
+    if liked_category_ids.any?
+      ids = liked_category_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(",")
+      scores << "CASE WHEN contents.id IN " \
+                "(SELECT content_id FROM content_categories " \
+                "WHERE category_id IN (#{ids})) THEN 50 ELSE 0 END"
+    end
+
+    quoted_pid = ActiveRecord::Base.connection.quote(profile_id)
+    scores << "CASE WHEN contents.id IN " \
+              "(SELECT content_id FROM continue_watchings " \
+              "WHERE profile_id = #{quoted_pid} " \
+              "AND finished = false AND progress > 0) THEN 40 ELSE 0 END"
+    scores << "CASE WHEN contents.id IN " \
+              "(SELECT content_id FROM watch_sessions " \
+              "WHERE profile_id = #{quoted_pid} " \
+              "AND started_at > #{ActiveRecord::Base.connection.quote(30.days.ago)}) THEN 20 ELSE 0 END"
+    scores << "COALESCE(content_analytics.total_views, 0) * 0.1"
+    scores << "CASE WHEN contents.created_at > #{ActiveRecord::Base.connection.quote(3.weeks.ago)} THEN 8 ELSE 0 END"
+    scores << "RANDOM() * 5"
+
+    scores.join(" + ")
   end
 
   def add_added_recently(liked_ids)
