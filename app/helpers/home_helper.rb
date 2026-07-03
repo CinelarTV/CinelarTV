@@ -136,9 +136,9 @@ module HomeHelper
     scores << "CASE WHEN contents.id IN " \
               "(SELECT content_id FROM watch_sessions " \
               "WHERE profile_id = #{quoted_pid} " \
-              "AND started_at > #{ActiveRecord::Base.connection.quote(30.days.ago)}) THEN 20 ELSE 0 END"
+               "AND started_at > #{ActiveRecord::Base.connection.quote(30.days.ago)}) THEN 5 ELSE 0 END"
     scores << "COALESCE(content_analytics.total_views, 0) * 0.1"
-    scores << "CASE WHEN contents.created_at > #{ActiveRecord::Base.connection.quote(3.weeks.ago)} THEN 8 ELSE 0 END"
+    scores << "CASE WHEN contents.created_at > #{ActiveRecord::Base.connection.quote(3.weeks.ago)} THEN 30 ELSE 0 END"
     scores << "RANDOM() * 5"
 
     scores.join(" + ")
