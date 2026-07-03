@@ -183,15 +183,15 @@ module HomeHelper
     SQL
 
     #
-    # 5. Boost editorial opcional.
+    # 5. Boost editorial opcional. (Future: Puede ser usado para destacar contenido específico)
     #
-    scores << <<~SQL.squish
-      CASE
-        WHEN contents.featured = TRUE
-        THEN 40
-        ELSE 0
-      END
-    SQL
+    #scores << <<~SQL.squish
+    #  CASE
+    #    WHEN contents.featured = TRUE
+    #    THEN 40
+    #    ELSE 0
+    #  END
+    #SQL
 
     #
     # 6. Penalizar contenido ya finalizado.
