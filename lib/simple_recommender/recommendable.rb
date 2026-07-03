@@ -100,6 +100,7 @@ module SimpleRecommender
           SELECT #{this_table}.*, similarity
           FROM similarities
           JOIN #{this_table} ON #{this_table}.id = similarities.#{fkey}
+          WHERE #{this_table}.available = TRUE
           ORDER BY similarity DESC
         SQL
       end

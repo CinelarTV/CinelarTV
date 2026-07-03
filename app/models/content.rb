@@ -15,7 +15,8 @@ class Content < ApplicationRecord
   has_one :content_analytic, dependent: :destroy
 
   def as_json(options = {})
-    super(options.merge(only: %i[id title description banner cover content_type year available premium trailer_url tmdb_id]))
+    super(options.merge(only: %i[id title description banner cover content_type year available premium trailer_url
+                                 tmdb_id]))
   end
 
   has_many :seasons, dependent: :destroy
@@ -34,27 +35,43 @@ class Content < ApplicationRecord
   scope :premium, -> { where(premium: true) }
   scope :free, -> { where(premium: false) }
 
-  scope :added_recently, -> {
+  scope :added_recently, lambda {
     where(available: true)
       .where("created_at > ?", 3.weeks.ago)
       .order(created_at: :desc)
       .limit(15)
   }
 
-  scope :banner_content, -> {
+  scope :new_this_week, lambda {
+    where(available: true)
+      .where("created_at > ?", 1.week.ago)
+      .order(created_at: :desc)
+      .limit(15)
+  }
+
+  scope :trending, lambda { |limit = 15|
+    joins(:reproductions)
+      .where(available: true)
+      .where("reproductions.played_at > ?", 7.days.ago)
+      .group("contents.id")
+      .order(Arel.sql("COUNT(reproductions.id) DESC"))
+      .limit(limit)
+  }
+
+  scope :banner_content, lambda {
     where.not(banner: nil).order("RANDOM()").limit(5)
   }
 
   scope :by_type, ->(type) { where(content_type: type) }
 
-  scope :most_viewed, ->(limit = 15) {
+  scope :most_viewed, lambda { |limit = 15|
     left_joins(:content_analytic)
       .where(available: true)
       .order(Arel.sql("COALESCE(content_analytics.total_views, 0) DESC"))
       .limit(limit)
   }
 
-  scope :most_liked, ->(limit = 15) {
+  scope :most_liked, lambda { |limit = 15|
     left_joins(:liking_profiles)
       .where(available: true)
       .group("contents.id")
@@ -62,13 +79,13 @@ class Content < ApplicationRecord
       .limit(limit)
   }
 
-  scope :by_category_id, ->(category_id, limit = 10) {
+  scope :by_category_id, lambda { |category_id, limit = 10|
     joins(:content_categories)
       .where(available: true, content_categories: { category_id: category_id })
       .limit(limit)
   }
 
-  scope :search_by_title_and_description, ->(query) {
+  scope :search_by_title_and_description, lambda { |query|
     normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase.gsub(/[-\s]/, ""))
     where(
       "available = true AND (" \
@@ -103,8 +120,7 @@ class Content < ApplicationRecord
       File.delete(store_dir) if File.exist?(store_dir)
 
       # Clean up resized version
-      resized_filename = "resized_#{filename}"
-      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, resized_filename)
+      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, "resized_image", filename)
       File.delete(resized_path) if File.exist?(resized_path)
     else
       # S3 storage cleanup - rely on overwrite for now

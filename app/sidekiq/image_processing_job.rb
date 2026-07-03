@@ -80,8 +80,7 @@ class ImageProcessingJob
       File.delete(store_dir) if File.exist?(store_dir)
 
       # Clean up resized version
-      resized_filename = "resized_#{old_filename}"
-      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, resized_filename)
+      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, "resized_image", old_filename)
       File.delete(resized_path) if File.exist?(resized_path)
     else
       # S3 storage cleanup - rely on overwrite for now

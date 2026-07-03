@@ -36,8 +36,7 @@ class Episode < ApplicationRecord
       File.delete(store_dir) if File.exist?(store_dir)
 
       # Clean up resized version
-      resized_filename = "resized_#{filename}"
-      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, resized_filename)
+      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, "resized_image", filename)
       File.delete(resized_path) if File.exist?(resized_path)
     else
       # S3 storage cleanup - rely on overwrite for now

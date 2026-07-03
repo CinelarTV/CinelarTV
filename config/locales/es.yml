@@ -475,6 +475,9 @@ es:
       continue_watching: "Continuar viendo"
       most_viewed: "Lo más visto"
       most_liked: "Lo más gustado"
+      trending: "Tendencias"
+      new_this_week: "Nuevo esta semana"
+      you_might_like: "Quizás te guste"
       top_10_content_by_country: "Los 10 mejores en %{country}"
     explore:
       browse_title: "Explorar"

@@ -54,6 +54,10 @@ class ContentImageUploader < BaseUploader
     def full_filename(_for_file = file)
       "#{model.id}.webp" if model
     end
+
+    def store_dir
+      File.join(parent_version.store_dir, version_name.to_s)
+    end
   end
 
   private

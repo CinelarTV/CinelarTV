@@ -512,6 +512,11 @@ customization:
     refresh: true
     default: true
     type: "boolean"
+  enable_trending_section:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
   explore_page_enabled:
     client: true
     refresh: true

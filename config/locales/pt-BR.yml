@@ -465,6 +465,9 @@ pt-BR:
       continue_watching: "Continue watching"
       most_viewed: "Mais vistos"
       most_liked: "Mais curtidos"
+      trending: "Tendências"
+      new_this_week: "Novo esta semana"
+      you_might_like: "Talvez você goste"
       top_10_content_by_country: "Top 10 on %{country}"
     explore:
       browse_title: "Explorar"
