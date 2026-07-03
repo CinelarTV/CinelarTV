@@ -4,10 +4,14 @@ module HomeHelper
   def homepage_data
     @homepage_data ||= begin
       ids_set = liked_content_ids
+      include_trailers = params[:include_trailers] == "true"
+
+      sections = build_content_sections(ids_set)
+      inject_trailers_into_sections(sections) if include_trailers
 
       {
         banner_content: load_banner_content(ids_set),
-        content: build_content_sections(ids_set)
+        content: sections
       }
     end
   end
@@ -254,6 +258,25 @@ module HomeHelper
     end
 
     sections
+  end
+
+  def inject_trailers_into_sections(sections)
+    content_ids = sections.flat_map { |s| s[:content].map { |c| c[:id] } }.uniq
+    return if content_ids.empty?
+
+    trailer_map = VideoSource.where(trailer: true, videoable_id: content_ids, videoable_type: "Content")
+                             .pluck(:videoable_id, :url, :format, :quality)
+                             .group_by(&:first)
+
+    sections.each do |section|
+      section[:content].each do |item|
+        sources = (trailer_map[item[:id]] || []).map { |_, url, fmt, qlt| { url: url, format: fmt, quality: qlt } }
+        next if sources.empty?
+
+        item[:trailer_sources] = sources
+        item[:trailer_mime_type] = infer_trailer_mime_type(sources.first[:url], sources)
+      end
+    end
   end
 
   def build_content_hash(id, title, description, banner, liked_ids, banner_resized: nil, cover_resized: nil)
