@@ -6,11 +6,16 @@ module HomeHelper
       ids_set = liked_content_ids
       include_trailers = params[:include_trailers] == "true"
 
+      banner = load_banner_content(ids_set)
       sections = build_content_sections(ids_set)
-      inject_trailers_into_sections(sections) if include_trailers
+
+      if include_trailers
+        inject_trailers_into_content(banner)
+        inject_trailers_into_sections(sections)
+      end
 
       {
-        banner_content: load_banner_content(ids_set),
+        banner_content: banner,
         content: sections
       }
     end
@@ -260,23 +265,44 @@ module HomeHelper
     sections
   end
 
-  def inject_trailers_into_sections(sections)
-    content_ids = sections.flat_map { |s| s[:content].map { |c| c[:id] } }.uniq
-    return if content_ids.empty?
+  def inject_trailers_into_content(items)
+    return if items.blank?
 
-    trailer_map = VideoSource.where(trailer: true, videoable_id: content_ids, videoable_type: "Content")
-                             .pluck(:videoable_id, :url, :format, :quality)
-                             .group_by(&:first)
+    content_ids = items.map { |c| c[:id] }
+    trailer_map = load_trailer_map(content_ids)
+
+    items.each do |item|
+      inject_trailer(item, trailer_map)
+    end
+  end
+
+  def inject_trailers_into_sections(sections)
+    return if sections.blank?
+
+    content_ids = sections.flat_map { |s| s[:content].map { |c| c[:id] } }.uniq
+    trailer_map = load_trailer_map(content_ids)
 
     sections.each do |section|
       section[:content].each do |item|
-        sources = (trailer_map[item[:id]] || []).map { |_, url, fmt, qlt| { url: url, format: fmt, quality: qlt } }
-        next if sources.empty?
-
-        item[:trailer_sources] = sources
-        item[:trailer_mime_type] = infer_trailer_mime_type(sources.first[:url], sources)
+        inject_trailer(item, trailer_map)
       end
     end
+  end
+
+  def load_trailer_map(content_ids)
+    return {} if content_ids.blank?
+
+    VideoSource.where(trailer: true, videoable_id: content_ids, videoable_type: "Content")
+               .pluck(:videoable_id, :url, :format, :quality)
+               .group_by(&:first)
+  end
+
+  def inject_trailer(item, trailer_map)
+    sources = (trailer_map[item[:id]] || []).map { |_, url, fmt, qlt| { url: url, format: fmt, quality: qlt } }
+    return if sources.empty?
+
+    item[:trailer_sources] = sources
+    item[:trailer_mime_type] = infer_trailer_mime_type(sources.first[:url], sources)
   end
 
   def build_content_hash(id, title, description, banner, liked_ids, banner_resized: nil, cover_resized: nil)
