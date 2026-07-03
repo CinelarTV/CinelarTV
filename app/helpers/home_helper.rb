@@ -120,92 +120,99 @@ module HomeHelper
 
   def banner_score_sql(liked_category_ids, profile_id)
     connection = ActiveRecord::Base.connection
-    scores = []
-
-    if liked_category_ids.any?
-      ids = liked_category_ids.map { |id| connection.quote(id) }.join(",")
-
-      scores << <<~SQL.squish
-        CASE
-          WHEN EXISTS (
-            SELECT 1
-            FROM content_categories cc
-            WHERE cc.content_id = contents.id
-            AND cc.category_id IN (#{ids})
-          )
-          THEN 25
-          ELSE 0
-        END
-      SQL
-    end
-
     quoted_pid = connection.quote(profile_id)
 
-    # Continue Watching
+    scores = []
+
+    #
+    # 1. Continue Watching
+    # La señal más fuerte del banner.
+    #
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
           SELECT 1
           FROM continue_watchings cw
           WHERE cw.content_id = contents.id
-          AND cw.profile_id = #{quoted_pid}
-          AND cw.finished = false
-          AND cw.progress > 0
+            AND cw.profile_id = #{quoted_pid}
+            AND cw.finished = FALSE
+            AND cw.progress > 0
         )
-        THEN 50
+        THEN 100
         ELSE 0
       END
     SQL
 
-    # Consumo reciente
+    #
+    # 2. Afinidad con categorías favoritas
+    # Suma 15 puntos por cada categoría compartida.
+    #
+    if liked_category_ids.any?
+      ids = liked_category_ids.map { |id| connection.quote(id) }.join(",")
+
+      scores << <<~SQL.squish
+        (
+          SELECT COUNT(*)
+          FROM content_categories cc
+          WHERE cc.content_id = contents.id
+            AND cc.category_id IN (#{ids})
+        ) * 15
+      SQL
+    end
+
+    #
+    # 3. Freshness con decaimiento progresivo.
+    # Los estrenos reciben un impulso fuerte que desaparece gradualmente.
+    #
+    scores << <<~SQL.squish
+      GREATEST(
+        0,
+        50 - (
+          EXTRACT(EPOCH FROM (NOW() - contents.created_at))
+          / 86400.0
+        )
+      )
+    SQL
+
+    #
+    # 4. Popularidad usando logaritmo.
+    # Evita que los mega hits destruyan el ranking.
+    #
+    scores << <<~SQL.squish
+      LN(GREATEST(COALESCE(content_analytics.total_views, 1), 1)) * 6
+    SQL
+
+    #
+    # 5. Boost editorial opcional.
+    #
     scores << <<~SQL.squish
       CASE
-        WHEN EXISTS (
-          SELECT 1
-          FROM watch_sessions ws
-          WHERE ws.content_id = contents.id
-          AND ws.profile_id = #{quoted_pid}
-          AND ws.started_at > #{connection.quote(30.days.ago)}
-        )
-        THEN 10
+        WHEN contents.featured = TRUE
+        THEN 40
         ELSE 0
       END
     SQL
 
-    # Penalizar contenido ya terminado
+    #
+    # 6. Penalizar contenido ya finalizado.
+    #
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
           SELECT 1
-          FROM watch_sessions ws
-          WHERE ws.content_id = contents.id
-          AND ws.profile_id = #{quoted_pid}
-          AND ws.completed = true
+          FROM continue_watchings cw
+          WHERE cw.content_id = contents.id
+            AND cw.profile_id = #{quoted_pid}
+            AND cw.finished = TRUE
         )
         THEN -1000
         ELSE 0
       END
     SQL
 
-    # Popularidad logarítmica
-    scores << <<~SQL.squish
-      LN(GREATEST(COALESCE(content_analytics.total_views, 1), 1)) * 5
-    SQL
-
-    # Freshness progresiva
-    scores << <<~SQL.squish
-      CASE
-        WHEN contents.created_at > #{connection.quote(7.days.ago)}
-          THEN 20
-        WHEN contents.created_at > #{connection.quote(30.days.ago)}
-          THEN 10
-        WHEN contents.created_at > #{connection.quote(90.days.ago)}
-          THEN 5
-        ELSE 0
-      END
-    SQL
-
-    # Exploración controlada
+    #
+    # 7. Exploración controlada.
+    #
     scores << "RANDOM() * 2"
 
     scores.join(" + ")
