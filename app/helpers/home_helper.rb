@@ -119,27 +119,94 @@ module HomeHelper
   end
 
   def banner_score_sql(liked_category_ids, profile_id)
+    connection = ActiveRecord::Base.connection
     scores = []
 
     if liked_category_ids.any?
-      ids = liked_category_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(",")
-      scores << "CASE WHEN contents.id IN " \
-                "(SELECT content_id FROM content_categories " \
-                "WHERE category_id IN (#{ids})) THEN 50 ELSE 0 END"
+      ids = liked_category_ids.map { |id| connection.quote(id) }.join(",")
+
+      scores << <<~SQL.squish
+        CASE
+          WHEN EXISTS (
+            SELECT 1
+            FROM content_categories cc
+            WHERE cc.content_id = contents.id
+            AND cc.category_id IN (#{ids})
+          )
+          THEN 25
+          ELSE 0
+        END
+      SQL
     end
 
-    quoted_pid = ActiveRecord::Base.connection.quote(profile_id)
-    scores << "CASE WHEN contents.id IN " \
-              "(SELECT content_id FROM continue_watchings " \
-              "WHERE profile_id = #{quoted_pid} " \
-              "AND finished = false AND progress > 0) THEN 40 ELSE 0 END"
-    scores << "CASE WHEN contents.id IN " \
-              "(SELECT content_id FROM watch_sessions " \
-              "WHERE profile_id = #{quoted_pid} " \
-               "AND started_at > #{ActiveRecord::Base.connection.quote(30.days.ago)}) THEN 5 ELSE 0 END"
-    scores << "COALESCE(content_analytics.total_views, 0) * 0.1"
-    scores << "CASE WHEN contents.created_at > #{ActiveRecord::Base.connection.quote(3.weeks.ago)} THEN 30 ELSE 0 END"
-    scores << "RANDOM() * 5"
+    quoted_pid = connection.quote(profile_id)
+
+    # Continue Watching
+    scores << <<~SQL.squish
+      CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM continue_watchings cw
+          WHERE cw.content_id = contents.id
+          AND cw.profile_id = #{quoted_pid}
+          AND cw.finished = false
+          AND cw.progress > 0
+        )
+        THEN 50
+        ELSE 0
+      END
+    SQL
+
+    # Consumo reciente
+    scores << <<~SQL.squish
+      CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM watch_sessions ws
+          WHERE ws.content_id = contents.id
+          AND ws.profile_id = #{quoted_pid}
+          AND ws.started_at > #{connection.quote(30.days.ago)}
+        )
+        THEN 10
+        ELSE 0
+      END
+    SQL
+
+    # Penalizar contenido ya terminado
+    scores << <<~SQL.squish
+      CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM watch_sessions ws
+          WHERE ws.content_id = contents.id
+          AND ws.profile_id = #{quoted_pid}
+          AND ws.completed = true
+        )
+        THEN -1000
+        ELSE 0
+      END
+    SQL
+
+    # Popularidad logarítmica
+    scores << <<~SQL.squish
+      LN(GREATEST(COALESCE(content_analytics.total_views, 1), 1)) * 5
+    SQL
+
+    # Freshness progresiva
+    scores << <<~SQL.squish
+      CASE
+        WHEN contents.created_at > #{connection.quote(7.days.ago)}
+          THEN 20
+        WHEN contents.created_at > #{connection.quote(30.days.ago)}
+          THEN 10
+        WHEN contents.created_at > #{connection.quote(90.days.ago)}
+          THEN 5
+        ELSE 0
+      END
+    SQL
+
+    # Exploración controlada
+    scores << "RANDOM() * 2"
 
     scores.join(" + ")
   end
@@ -376,7 +443,7 @@ module HomeHelper
   end
 
   def top_10_content_by_country
-    @top_10_content ||= begin
+    @top_10_content_by_country ||= begin
       ip_address = get_ip_address
       return nil unless ip_address
 
@@ -388,6 +455,6 @@ module HomeHelper
   end
 
   def get_ip_address
-    @ip_address ||= request.remote_ip
+    @get_ip_address ||= request.remote_ip
   end
 end
