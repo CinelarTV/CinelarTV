@@ -12,7 +12,7 @@ FactoryBot.define do
     cover { Faker::Internet.url }
     content_type { %w[MOVIE TVSHOW].sample }
     year { Faker::Number.between(from: 1900, to: Time.now.year) }
-    trailer_url { Faker::Internet.url }
+    trailer_url { "https://example.com/trailer.mp4" }
     available { true } # Puedes ajustar el valor predeterminado según tus necesidades
   end
 end
