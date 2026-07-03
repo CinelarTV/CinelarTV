@@ -103,6 +103,9 @@ module HomeHelper
   def add_by_genre(liked_ids)
     return [] unless SiteSetting.enable_content_by_genre
 
+    shown_ids = Set.new
+    per_page = 10
+
     Category
       .joins(:contents)
       .where(contents: { available: true })
@@ -111,14 +114,19 @@ module HomeHelper
       .order(Arel.sql("COUNT(contents.id) DESC"))
       .limit(6)
       .map do |category|
-        content = Content.by_category_id(category.id, 10)
+        content = Content.by_category_id(category.id, per_page * 3)
                          .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
                          .map do |id, title, desc, banner, banner_resized, cover_resized|
                            build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
                                                                                   cover_resized: cover_resized)
                          end
-        next if content.empty?
+                         .shuffle
+                         .reject { |c| shown_ids.include?(c[:id]) }
+                         .first(per_page)
 
+        next if content.blank?
+
+        shown_ids.merge(content.map { |c| c[:id] })
         { title: category.name, content: content }
       end
       .compact
