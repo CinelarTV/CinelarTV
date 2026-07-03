@@ -15,9 +15,8 @@ class ContentSerializer < ApplicationSerializer
              :content_type,
              :year,
              :created_at,
-             :updated_at,
-             :trailer_url,
-             :available,
+              :updated_at,
+              :available,
              :premium,
              :tmdb_id
 
@@ -26,6 +25,7 @@ class ContentSerializer < ApplicationSerializer
   attribute :similar_items, key: "related_content"
   attribute :continue_watching, key: "continue_watching"
   attribute :categories
+  attribute :trailer_video_sources
 
   def include_seasons?
     object.content_type == Content.content_types["TVSHOW"]
@@ -60,6 +60,15 @@ class ContentSerializer < ApplicationSerializer
 
   def categories
     object.categories.map { |category| { id: category.id, name: category.name } }
+  end
+
+  def trailer_video_sources
+    object.trailer_video_sources.map do |vs|
+      {
+        quality: vs.quality,
+        url: vs.url,
+      }
+    end
   end
 
   private
