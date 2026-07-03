@@ -105,6 +105,24 @@
                     </div>
                 </div>
 
+                <!-- Trailer -->
+                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-lg font-semibold text-white">
+                                Trailer
+                            </h2>
+                            <p class="text-sm text-white/60 mt-1">
+                                {{ hasTrailer ? trailerSummary : 'No trailer configured' }}
+                            </p>
+                        </div>
+                        <CButton @click="trailerModalRef?.setIsOpen(true)" class="shrink-0">
+                            {{ hasTrailer ? 'Edit' : 'Add' }}
+                        </CButton>
+                    </div>
+                </div>
+                <CTrailerManagerModal :content-id="content.id" ref="trailerModalRef" @updated="fetchContent" />
+
                 <!-- Video Sources - Only for Movies -->
                 <CVideoableManager v-if="(editedData.content_type || content.content_type) !== 'TVSHOW'" :content-id="content.id" :season-id="seasonId" :episode-id="episodeId"
                     :initial-video-sources="content.video_sources" @video-source-added="fetchContent" />
@@ -237,11 +255,13 @@ import { Trash2Icon, PlusIcon, EditIcon } from 'lucide-vue-next';
 import { onMounted, ref, inject } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { toast } from 'vue3-toastify';
+import { computed } from 'vue';
 import addSeasonModal from '../../../components/modals/add-season.modal.vue';
 import editSeasonModal from '../../../components/modals/edit-season.modal.vue';
 import draggable from 'vuedraggable';
 import { ajax } from '../../../lib/Ajax';
 import CVideoableManager from "@/components/CVideoableManager";
+import CTrailerManagerModal from "../../../components/modals/trailer-manager.modal";
 
 const SiteSettings = inject('SiteSettings');
 const i18n = inject('I18n');
@@ -253,7 +273,23 @@ const loading = ref(true);
 const content = ref({});
 const addSeasonModalRef = ref();
 const editSeasonModalRef = ref();
+const trailerModalRef = ref();
 const reorderingSeasons = ref(false);
+
+const hasTrailer = computed(() => {
+    return content.value.trailer_url || (content.value.trailer_video_sources?.length > 0);
+});
+
+const trailerSummary = computed(() => {
+    if (content.value.trailer_video_sources?.length > 0) {
+        const vs = content.value.trailer_video_sources[0];
+        return `${vs.format?.toUpperCase() || 'Video'} · ${vs.quality || ''}`;
+    }
+    if (content.value.trailer_url) {
+        return 'External URL';
+    }
+    return '';
+});
 const contentTypes = ref([
     { value: 'MOVIE', label: 'Película' },
     { value: 'TVSHOW', label: 'Serie' }

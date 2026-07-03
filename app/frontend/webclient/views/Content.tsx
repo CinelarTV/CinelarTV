@@ -92,6 +92,7 @@ export default defineComponent({
         };
 
         const preloadTrailer = async (trailerSrc: string) => {
+            if (trailerSrc.match(/\.m3u8/i)) return;
             const video = document.createElement('video');
             video.src = trailerSrc;
             video.load();

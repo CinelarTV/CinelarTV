@@ -30,6 +30,9 @@ class Content < ApplicationRecord
   validates :title, presence: true
   validates :content_type, presence: true
   validates :year, numericality: { only_integer: true }, allow_nil: true
+  validate :trailer_url_must_be_video, if: :trailer_url?
+
+  has_many :trailer_video_sources, -> { trailers }, class_name: "VideoSource", as: :videoable
 
   scope :available, -> { where(available: true) }
   scope :premium, -> { where(premium: true) }
@@ -102,6 +105,13 @@ class Content < ApplicationRecord
   end
 
   private
+
+  def trailer_url_must_be_video
+    return unless trailer_url.present?
+    return if trailer_url.match?(/\.(mp4|m3u8|webm)(\?.*)?\z/i)
+
+    errors.add(:trailer_url, "must be a direct video URL (.mp4, .m3u8, or .webm)")
+  end
 
   def cleanup_images
     cleanup_image_file(banner, "banners")

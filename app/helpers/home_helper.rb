@@ -15,29 +15,54 @@ module HomeHelper
   def load_shuffle_recommendations
     liked_ids = liked_content_ids
 
-    Content.where(available: true)
-           .where.not(trailer_url: nil)
-           .order("RANDOM()")
-           .limit(10)
-           .pluck(:id, :title, :description, :banner, :trailer_url, :content_type, :year)
-           .map do |id, title, desc, banner, trailer_url, content_type, year|
-             {
-               id: id,
-               title: title,
-               description: desc,
-               banner: banner,
-               trailer_url: trailer_url,
-               content_type: content_type,
-               year: year,
-               liked: liked_ids.include?(id)
-             }
-           end
+    contents = Content.where(available: true)
+                      .where.not(trailer_url: nil)
+                      .order("RANDOM()")
+                      .limit(10)
+                      .pluck(:id, :title, :description, :banner, :trailer_url, :content_type, :year)
+
+    content_ids = contents.map(&:first)
+
+    trailer_sources = VideoSource.where(trailer: true, videoable_id: content_ids, videoable_type: "Content")
+                                 .pluck(:videoable_id, :url, :format, :quality)
+                                 .group_by(&:first)
+
+    contents.map do |id, title, desc, banner, trailer_url, content_type, year|
+      sources = (trailer_sources[id] || []).map do |_, url, fmt, qlt|
+        { url: url, format: fmt, quality: qlt }
+      end
+
+      {
+        id: id,
+        title: title,
+        description: desc,
+        banner: banner,
+        trailer_url: trailer_url,
+        trailer_sources: sources,
+        trailer_mime_type: infer_trailer_mime_type(trailer_url, sources),
+        content_type: content_type,
+        year: year,
+        liked: liked_ids.include?(id)
+      }
+    end
   end
 
   private
 
   def liked_content_ids
     @liked_content_ids ||= Set.new(current_profile&.liked_contents&.pluck(:id) || [])
+  end
+
+  def infer_trailer_mime_type(url, sources)
+    if sources.any? { |s| s[:format] == "m3u8" }
+      return "application/x-mpegurl"
+    end
+
+    case url.to_s
+    when /\.m3u8/i then "application/x-mpegurl"
+    when /\.webm/i then "video/webm"
+    else "video/mp4"
+    end
   end
 
   def load_banner_content(liked_ids)

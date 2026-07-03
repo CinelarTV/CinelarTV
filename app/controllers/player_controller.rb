@@ -202,7 +202,7 @@ class PlayerController < ApplicationController
 
   def video_sources_data
     {
-      sources: @content.video_sources.map do |vs|
+      sources: @content.video_sources.content_sources.map do |vs|
         {
           id: vs.id,
           url: vs.url,
@@ -215,7 +215,7 @@ class PlayerController < ApplicationController
 
   def episode_video_sources_data
     {
-      sources: @episode.video_sources.map do |vs|
+      sources: @episode.video_sources.content_sources.map do |vs|
         {
           id: vs.id,
           url: vs.url,
@@ -230,7 +230,7 @@ class PlayerController < ApplicationController
     return false if @content.blank?
 
     if @content.content_type == "MOVIE"
-      @content.available && !@content.video_sources.empty?
+      @content.available && !@content.video_sources.content_sources.empty?
     else
       @content.available
     end

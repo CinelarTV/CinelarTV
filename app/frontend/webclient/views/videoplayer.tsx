@@ -50,12 +50,19 @@ function shouldRedirect(data, isShow, episodeId, contentId, replaceRoute) {
     return false;
 }
 
+function getMimeType(src, format) {
+    if (format === 'm3u8') return 'application/x-mpegurl';
+    if (src?.match(/\.m3u8/i)) return 'application/x-mpegurl';
+    if (src?.match(/\.webm/i)) return 'video/webm';
+    return 'video/mp4';
+}
+
 function processVideoSources(sources, enableGoogleDriveParser) {
     if (!Array.isArray(sources)) return [];
 
     let processedSources = sources.map(src => ({
         src: src.url,
-        type: 'video/mp4'
+        type: getMimeType(src.url, src.format)
     }));
 
     if (enableGoogleDriveParser) {
@@ -73,12 +80,7 @@ function processVideoSources(sources, enableGoogleDriveParser) {
         ];
     }
 
-    const hasYoutube = processedSources.some(src => src.src?.includes('youtube.com'));
-    return hasYoutube
-        ? processedSources
-            .filter(src => src.src?.includes('youtube.com'))
-            .map(src => ({ src: src.src, type: "video/youtube" }))
-        : processedSources;
+    return processedSources;
 }
 
 function handleFetchError(response: AxiosError['response']['data']) {

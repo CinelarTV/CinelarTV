@@ -6,15 +6,42 @@ import CIcon from './c-icon.vue';
 import { MediaPlayer } from 'vidstack';
 import 'vidstack/bundle';
 
+interface TrailerSource {
+    url: string;
+    format: string;
+    quality?: string;
+}
+
 interface ShuffleItem {
     id: number | string;
     title: string;
     description: string;
     banner: string;
     trailer_url: string;
+    trailer_sources?: TrailerSource[];
+    trailer_mime_type?: string;
     content_type: string;
     year?: number;
     liked?: boolean;
+}
+
+function getTrailerMimeType(url: string, format?: string): string {
+    if (format === 'm3u8') return 'application/x-mpegurl';
+    if (url?.match(/\.m3u8/i)) return 'application/x-mpegurl';
+    if (url?.match(/\.webm/i)) return 'video/webm';
+    return 'video/mp4';
+}
+
+function renderTrailerSources(item: ShuffleItem) {
+    const sources = item.trailer_sources;
+    if (sources && sources.length > 0) {
+        return sources.map((s, i) => (
+            <source key={`ts-${i}`} src={s.url} type={getTrailerMimeType(s.url, s.format)} />
+        ));
+    }
+    return (
+        <source src={item.trailer_url} type={getTrailerMimeType(item.trailer_url)} />
+    );
 }
 
 export default defineComponent({
@@ -217,7 +244,7 @@ export default defineComponent({
                                                         src={item.banner}
                                                         alt={item.title}
                                                     />
-                                                    <source src={item.trailer_url} type="video/youtube" />
+                                                    {renderTrailerSources(item)}
                                                 </media-provider>
                                             </media-player>
                                         </div>

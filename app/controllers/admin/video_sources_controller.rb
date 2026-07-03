@@ -6,7 +6,13 @@ module Admin
     before_action :set_video_source, only: [:update, :destroy]
 
     def index
-      render json: @videoable.video_sources
+      sources = @videoable.video_sources
+      if params[:trailer].present?
+        sources = sources.where(trailer: params[:trailer] == "true")
+      else
+        sources = sources.content_sources
+      end
+      render json: sources
     end
 
     def create
@@ -91,9 +97,10 @@ module Admin
       @video_source = @videoable.video_sources.new(
         quality: params[:video_source][:quality],
         format: params[:video_source][:format],
-        storage_location: 'local', # Assuming local storage for uploads
+        storage_location: 'local',
         status: 'pending',
-        temp_path: temp_path.to_s
+        temp_path: temp_path.to_s,
+        trailer: params[:video_source][:trailer] || false
       )
 
       if @video_source.save
@@ -128,7 +135,7 @@ module Admin
     end
 
     def video_source_params
-      params.require(:video_source).permit(:url, :quality, :format, :storage_location, :status, :temp_path, :file)
+      params.require(:video_source).permit(:url, :quality, :format, :storage_location, :status, :temp_path, :file, :trailer)
     end
   end
 end

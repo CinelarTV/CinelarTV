@@ -8,6 +8,9 @@ class VideoSource < ApplicationRecord
   validates :format, presence: true, unless: :temp_path_present?
   validates :storage_location, presence: true
 
+  scope :trailers, -> { where(trailer: true) }
+  scope :content_sources, -> { where(trailer: [false, nil]) }
+
   enum :storage_location, {
     local: "local",
     s3: "cloud",

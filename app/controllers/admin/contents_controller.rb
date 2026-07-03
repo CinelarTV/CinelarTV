@@ -388,10 +388,14 @@ module Admin
         end
       end
 
-      if content.content_type == "MOVIE" && content.video_sources.present?
-        content_data[:video_sources] = content.video_sources.map do |vs|
+      if content.content_type == "MOVIE" && content.video_sources.content_sources.present?
+        content_data[:video_sources] = content.video_sources.content_sources.map do |vs|
           { id: vs.id, url: vs.url, quality: vs.quality, storage_location: vs.storage_location }
         end
+      end
+
+      content_data[:trailer_video_sources] = content.video_sources.trailers.map do |vs|
+        { id: vs.id, url: vs.url, quality: vs.quality, format: vs.format, storage_location: vs.storage_location }
       end
 
       content_data
@@ -414,7 +418,7 @@ module Admin
     end
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium, :tmdb_id,
+      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium, :tmdb_id, :trailer_url,
                                       category_ids: [])
     end
 
