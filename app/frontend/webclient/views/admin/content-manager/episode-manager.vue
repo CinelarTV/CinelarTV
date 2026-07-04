@@ -42,7 +42,7 @@
         </draggable>
 
         <create-episode-modal ref="episodeModalRef" :season-id="route.params.seasonId.toString()" @episode-created="getEpisodeList()"
-            :content-id="route.params.contentId.toString()" />
+            :content-id="route.params.contentId.toString()" :content-tmdb-id="contentTmdbId" :season-number="seasonNumber" />
 
     </div>
 </template>
@@ -60,6 +60,8 @@ const loadingEpisodeList = ref(true)
 const episodeList = ref([])
 const reorderingEpisodes = ref(false)
 const episodeModalRef = ref()
+const contentTmdbId = ref(null)
+const seasonNumber = ref(null)
 
 const route = useRoute()
 const router = useRouter()
@@ -75,7 +77,10 @@ watch(reorderingEpisodes, async (value) => {
 onMounted(async () => {
     episodeList.value = []
     loadingEpisodeList.value = true
-    await getEpisodeList()
+    await Promise.all([
+        getEpisodeList(),
+        fetchContentData(),
+    ])
 })
 
 
@@ -106,6 +111,19 @@ const backToEditor = () => {
     router.push({
         path: `/admin/content-manager/${route.params.contentId}/edit`
     })
+}
+
+const fetchContentData = async () => {
+    try {
+        const response = await ajax.get(`/admin/content-manager/${route.params.contentId}.json`)
+        const content = response.data?.data || response.data
+        contentTmdbId.value = content.tmdb_id || null
+        const seasons = content.seasons || []
+        const current = seasons.find(s => s.id === route.params.seasonId)
+        seasonNumber.value = current ? current.position + 1 : null
+    } catch (error) {
+        // Silently fail - TMDB sync is optional
+    }
 }
 
 

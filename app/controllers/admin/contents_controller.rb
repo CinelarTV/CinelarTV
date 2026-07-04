@@ -3,7 +3,7 @@
 module Admin
   class ContentsController < Admin::BaseController
     before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season, :sync_categories_from_tmdb]
-    before_action :set_season, only: [:create_episode, :episode_list, :reorder_episodes, :update_season, :delete_season]
+    before_action :set_season, only: [:create_episode, :episode_list, :find_episodes_from_tmdb, :reorder_episodes, :update_season, :delete_season]
     before_action :set_episode, only: [:edit_episode, :update_episode, :delete_episode]
 
     def find_recommended_metadata
@@ -136,6 +136,65 @@ module Admin
         format.html
         format.json { render json: { data: { episodes: serialize_episodes(@episodes) } } }
       end
+    end
+
+    def find_episodes_from_tmdb
+      return render_error("TMDB API Key is not set") if SiteSetting.tmdb_api_key.blank?
+
+      configure_tmdb_api
+
+      tmdb_id = params[:tmdb_id].presence || @content.tmdb_id
+      return render_error("No TMDB ID available") if tmdb_id.blank?
+
+      api_key = SiteSetting.tmdb_api_key.strip
+      language = SiteSetting.default_locale
+
+      if params[:season_number].present?
+        season_number = params[:season_number].to_i
+        cache_key = ["tmdb", "tv", tmdb_id, "season", season_number].join(":")
+        tmdb_data = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+          url = "https://api.themoviedb.org/3/tv/#{tmdb_id}/season/#{season_number}?api_key=#{api_key}&language=#{language}"
+          response = HTTParty.get(url)
+          response.parsed_response
+        end
+        episodes = tmdb_data["episodes"] || []
+      else
+        all_episodes = []
+        cache_key = ["tmdb", "tv", tmdb_id, "all_seasons"].join(":")
+        tmdb_data = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+          url = "https://api.themoviedb.org/3/tv/#{tmdb_id}?api_key=#{api_key}&language=#{language}"
+          response = HTTParty.get(url)
+          response.parsed_response
+        end
+        season_count = tmdb_data["number_of_seasons"] || 0
+
+        (1..season_count).each do |sn|
+          season_cache_key = ["tmdb", "tv", tmdb_id, "season", sn].join(":")
+          season_data = Rails.cache.fetch(season_cache_key, expires_in: 10.minutes) do
+            url = "https://api.themoviedb.org/3/tv/#{tmdb_id}/season/#{sn}?api_key=#{api_key}&language=#{language}"
+            response = HTTParty.get(url)
+            response.parsed_response
+          end
+          all_episodes.concat(season_data["episodes"] || [])
+        end
+        episodes = all_episodes
+      end
+
+      mapped_episodes = episodes.map do |ep|
+        {
+          tmdb_id: ep["id"],
+          title: ep["name"],
+          description: ep["overview"],
+          thumbnail: ep["still_path"] ? "tmdb://#{ep['still_path'].sub(%r{^/}, '')}" : nil,
+          air_date: ep["air_date"],
+          episode_number: ep["episode_number"],
+          season_number: ep["season_number"]
+        }
+      end
+
+      render json: { data: { episodes: mapped_episodes } }
+    rescue StandardError => e
+      render_error("Error fetching episodes: #{e.message}")
     end
 
     def reorder_episodes
@@ -384,7 +443,7 @@ module Admin
       if content.content_type == "TVSHOW"
         seasons_data = content.seasons.order(position: :asc)
         content_data[:seasons] = seasons_data.map do |s|
-          { id: s.id, title: s.title, description: s.description, position: s.position, episodes_count: s.episodes.count }
+          { id: s.id, title: s.title, description: s.description, position: s.position, tmdb_id: s.tmdb_id, episodes_count: s.episodes.count }
         end
       end
 
@@ -423,11 +482,11 @@ module Admin
     end
 
     def season_params
-      params.require(:season).permit(:title, :description)
+      params.require(:season).permit(:title, :description, :tmdb_id)
     end
 
     def episode_params
-      params.permit(:title, :description, :duration, :position, :premium)
+      params.require(:episode).permit(:title, :description, :duration, :position, :premium, :tmdb_id)
     end
   end
 end

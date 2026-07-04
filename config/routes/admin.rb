@@ -46,6 +46,7 @@ namespace :admin do
   put "/content-manager/:id/reorder-seasons", to: "contents#reorder_seasons"
   get "/content-manager/:id/seasons/:season_id/episodes", to: "contents#episode_list"
   post "/content-manager/:id/seasons/:season_id/episodes", to: "contents#create_episode"
+  get "/content-manager/:id/seasons/:season_id/episodes-tmdb", to: "contents#find_episodes_from_tmdb"
   put "/content-manager/:id/seasons/:season_id/reorder-episodes", to: "contents#reorder_episodes"
   delete "/content-manager/:id/seasons/:season_id/episodes/:episode_id", to: "contents#delete_episode"
   get "/content-manager/:id/seasons/:season_id/episodes/:episode_id/edit", to: "contents#edit_episode"

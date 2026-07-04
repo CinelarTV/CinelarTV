@@ -9,7 +9,7 @@ class Episode < ApplicationRecord
   has_one :content, through: :season
 
   validates :title, presence: true
-  validates :description, presence: true
+  validates :tmdb_id, uniqueness: true, allow_nil: true
 
   before_destroy :delete_associated_continue_watching
   before_destroy :cleanup_thumbnail

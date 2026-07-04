@@ -6,8 +6,13 @@ class Season < ApplicationRecord
   has_many :episodes
 
   validates :title, presence: true
+  validates :tmdb_id, uniqueness: true, allow_nil: true
 
   before_destroy :delete_episodes
+
+  def as_json(options = {})
+    super(options.merge(only: %i[id title description position tmdb_id]))
+  end
 
   private
 

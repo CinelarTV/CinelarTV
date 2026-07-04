@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_03_000000) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_04_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -135,8 +135,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_03_000000) do
     t.boolean "premium", default: false
     t.string "thumbnail_resized"
     t.uuid "season_id", null: false
+    t.integer "tmdb_id"
     t.index ["season_id", "position"], name: "index_episodes_on_season_id_and_position"
     t.index ["season_id"], name: "index_episodes_on_season_id"
+    t.index ["tmdb_id"], name: "index_episodes_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
   end
 
   create_table "likes", force: :cascade do |t|
@@ -285,8 +287,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_03_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "position"
+    t.integer "tmdb_id"
     t.index ["content_id", "position"], name: "index_seasons_on_content_id_and_position"
     t.index ["content_id"], name: "index_seasons_on_content_id"
+    t.index ["tmdb_id"], name: "index_seasons_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
   end
 
   create_table "segments", force: :cascade do |t|
