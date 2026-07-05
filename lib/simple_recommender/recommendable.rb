@@ -104,6 +104,38 @@ module SimpleRecommender
           ORDER BY similarity DESC
         SQL
       end
+
+      # Combine results from multiple similarity sources with weights.
+      # sources: [{ assoc: :liking_profiles, weight: 0.7 }, { assoc: :people, weight: 0.3 }]
+      def combined_similar_items(sources, n_results: DEFAULT_N_RESULTS)
+        # Collect results from each source
+        source_results = sources.map do |source|
+          results = self.class.find_by_sql(
+            similar_query(association_name: source[:assoc], n_results: n_results * 2)
+          )
+          [source[:weight], results]
+        end
+
+        # Merge by content id, computing weighted scores
+        scores = Hash.new { |h, k| h[k] = 0.0 }
+        records = {}
+
+        source_results.each do |weight, results|
+          results.each do |record|
+            sim = record.respond_to?(:similarity) ? (record.similarity || 0).to_f : 0.0
+            scores[record.id] += sim * weight
+            records[record.id] = record
+          end
+        end
+
+        # Sort by combined score, take top N
+        top_ids = scores.sort_by { |_, score| -score }.first(n_results).map(&:first)
+        return [] if top_ids.empty?
+
+        # Re-fetch full records (with associations) in correct order
+        record_map = self.class.where(id: top_ids).index_by(&:id)
+        top_ids.filter_map { |id| record_map[id] }
+      end
     end
   end
 end

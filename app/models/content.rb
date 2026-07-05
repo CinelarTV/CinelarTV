@@ -27,6 +27,16 @@ class Content < ApplicationRecord
 
   similar_by :liking_profiles
 
+  # Cast-based similarity for combined recommendations
+  SIMILARITY_SOURCES = [
+    { assoc: :liking_profiles, weight: 0.7 },
+    { assoc: :people, weight: 0.3 }
+  ].freeze
+
+  def similar_items(n_results: 10)
+    combined_similar_items(SIMILARITY_SOURCES, n_results: n_results)
+  end
+
   enum :content_type, { TVSHOW: "TVSHOW", MOVIE: "MOVIE" }
 
   validates :title, presence: true

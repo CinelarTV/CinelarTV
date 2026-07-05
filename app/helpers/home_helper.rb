@@ -161,6 +161,29 @@ module HomeHelper
     end
 
     #
+    # 2b. Afinidad con el elenco (cast)
+    # Si el usuario dio like a contenido con ciertos actores,
+    # potenciar contenido que comparta esos mismos actores.
+    # +10 puntos por actor compartido (máx 50).
+    #
+    scores << <<~SQL.squish
+      LEAST(
+        50,
+        (
+          SELECT COUNT(*)
+          FROM cast_members cm
+          WHERE cm.content_id = contents.id
+            AND cm.person_id IN (
+              SELECT DISTINCT cm2.person_id
+              FROM likes l
+              JOIN cast_members cm2 ON cm2.content_id = l.content_id
+              WHERE l.profile_id = #{quoted_pid}
+            )
+        ) * 10
+      )
+    SQL
+
+    #
     # 3. Freshness con decaimiento progresivo.
     # Los estrenos reciben un impulso fuerte que desaparece gradualmente.
     #
