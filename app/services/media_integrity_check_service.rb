@@ -172,24 +172,13 @@ class MediaIntegrityCheckService
     sub_playlist_urls = parse_m3u8_urls(body, url, ext: ".m3u8")
 
     if sub_playlist_urls.any?
-      # Master playlist — fetch first quality sub-playlist
-      Rails.logger.info(
-        "[MediaIntegrity] Master playlist detected (#{sub_playlist_urls.length} sub-playlists)"
-      )
       return verify_segments_from_sub_playlist(sub_playlist_urls.first)
     end
 
-    # Step 2: assume it's a quality playlist — look for .ts segments directly
+    # Step 2: quality playlist — look for .ts segments directly
     segment_urls = parse_m3u8_urls(body, url, ext: ".ts")
 
     if segment_urls.empty?
-      # Debug: log all non-comment, non-blank lines to see what we're parsing
-      candidate_lines = body.each_line.map(&:strip).reject { |l| l.blank? || l.start_with?("#") }
-      Rails.logger.warn(
-        "[MediaIntegrity] No sub-playlists or segments found for VideoSource #{@video_source.id}. " \
-        "Candidate lines: #{candidate_lines.first(5).inspect}, " \
-        "body bytes: #{body.bytesize}, encoding: #{body.encoding}"
-      )
       return { success: false, error: "No sub-playlists or segments found in playlist" }
     end
 
@@ -243,26 +232,16 @@ class MediaIntegrityCheckService
   # Parses an M3U8 body and returns resolved URLs for non-comment lines
   # whose file extension matches `ext:`. Handles query params on lines.
   def parse_m3u8_urls(content, base_url, ext:)
-    lines = content.each_line.to_a
-    Rails.logger.info("[MediaIntegrity] parse_m3u8_urls: #{lines.length} total lines, base_url=#{base_url.inspect}, ext=#{ext}")
-
-    results = lines.filter_map do |raw_line|
+    content.each_line.filter_map do |raw_line|
       line = raw_line.strip
       next if line.blank?
       next if line.start_with?("#")
 
       candidate = line.split("?").first
-      unless candidate.end_with?(ext)
-        Rails.logger.info("[MediaIntegrity] SKIP line=#{line.inspect} (candidate=#{candidate.inspect} does not end with #{ext})")
-        next
-      end
+      next unless candidate.end_with?(ext)
 
-      resolved = resolve_url(line, base_url)
-      Rails.logger.info("[MediaIntegrity] RESOLVED line=#{line.inspect} => #{resolved.inspect}")
-      resolved
+      resolve_url(line, base_url)
     end
-    Rails.logger.info("[MediaIntegrity] parse_m3u8_urls result: #{results.length} URLs found")
-    results
   end
 
   def parse_m3u8_local(content, base_dir)
@@ -287,14 +266,15 @@ class MediaIntegrityCheckService
 
   def resolve_url(target, base_url)
     base = URI.parse(base_url)
-    # Manually resolve relative paths to handle unencoded characters (spaces etc.)
     if target.start_with?("http://", "https://")
       target
     else
       base_path = base.path.to_s
       dir = base_path.include?("/") ? base_path.sub(%r{/[^/]*\z}, "/") : "/"
       resolved = File.join(dir, target).gsub("//", "/")
-      "#{base.scheme}://#{base.host}#{":#{base.port}" unless base.port == base.default_port}#{resolved}"
+      # Encode spaces and reserved chars in each path segment (keep / . - _ ~)
+      encoded_path = resolved.split("/").map { |seg| seg.gsub(/[^a-zA-Z0-9\-._~\/]/) { |c| "%#{c.ord.to_s(16).upcase}" } }.join("/")
+      "#{base.scheme}://#{base.host}#{":#{base.port}" unless base.port == base.default_port}#{encoded_path}"
     end
   rescue URI::InvalidURIError => e
     Rails.logger.warn("[MediaIntegrity] resolve_url FAILED: target=#{target.inspect} base=#{base_url.inspect} error=#{e.message}")
