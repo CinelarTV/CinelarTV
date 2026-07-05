@@ -158,6 +158,9 @@ class MediaIntegrityCheckService
     end
 
     body = response.body.to_s
+
+    # Ensure body is properly decoded as UTF-8 text
+    body = body.encode("UTF-8", invalid: :replace, undef: :replace, replace: "") unless body.encoding == Encoding::UTF_8
     content_type = response.headers["content-type"].to_s.split(";").first&.strip
 
     Rails.logger.info(
@@ -180,8 +183,12 @@ class MediaIntegrityCheckService
     segment_urls = parse_m3u8_urls(body, url, ext: ".ts")
 
     if segment_urls.empty?
+      # Debug: log all non-comment, non-blank lines to see what we're parsing
+      candidate_lines = body.each_line.map(&:strip).reject { |l| l.blank? || l.start_with?("#") }
       Rails.logger.warn(
-        "[MediaIntegrity] No sub-playlists or segments found. Body preview: #{body[0, 500]}"
+        "[MediaIntegrity] No sub-playlists or segments found for VideoSource #{@video_source.id}. " \
+        "Candidate lines: #{candidate_lines.first(5).inspect}, " \
+        "body bytes: #{body.bytesize}, encoding: #{body.encoding}"
       )
       return { success: false, error: "No sub-playlists or segments found in playlist" }
     end
@@ -294,12 +301,24 @@ class MediaIntegrityCheckService
   end
 
   def http_get(url)
-    HTTParty.get(
+    response = HTTParty.get(
       url,
       timeout: @timeout,
       verify: false,
-      headers: { "Accept" => "*/*" }
+      headers: { "Accept" => "*/*", "Accept-Encoding" => "gzip, deflate" }
     )
+
+    # Decompress gzip/deflate if needed
+    if response&.body&.is_a?(String) && response.body.byteslice(0, 2)&.unpack1("H2") == "1f8b"
+      require "zlib"
+      require "stringio"
+      io = StringIO.new(response.body)
+      gz = Zlib::GzipReader.new(io)
+      response.instance_variable_set(:@body, gz.read)
+      gz.close
+    end
+
+    response
   rescue StandardError
     nil
   end
