@@ -64,3 +64,4 @@ node_modules
 
 # Ignore vite timestamp file
 vite.config.ts.timestamp-*
+app/frontend/webclient/i18n/translations.js

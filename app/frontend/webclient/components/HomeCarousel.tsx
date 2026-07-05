@@ -1,7 +1,7 @@
 import { defineComponent, ref, onMounted, onBeforeUnmount, watch, PropType, getCurrentInstance } from 'vue';
 import CButton from './forms/c-button';
 import CIconButton from './forms/c-icon-button.vue';
-import CIcon from "./c-icon.vue";
+import CIcon from './c-icon.vue';
 
 interface BannerItem {
     id: number | string;
@@ -41,16 +41,17 @@ export default defineComponent({
         },
     },
     setup(props) {
+        const { $t } = getCurrentInstance()!.appContext.config.globalProperties;
+
         const trackRef = ref<HTMLElement | null>(null);
         const currentIndex = ref(0);
-        const instance = getCurrentInstance();
-        const isMobile = () => instance?.proxy?.$isMobile?.() ?? false;
         let rafId: number | null = null;
         let autoplayTimer: number | null = null;
         let resumeTimer: number | null = null;
         let isAutoplayPaused = false;
 
-        const getSeasonLabel = (count: number) => (count === 1 ? 'temporada' : 'temporadas');
+        const getSeasonLabel = (count: number) =>
+            $t(count === 1 ? 'js.home_carousel.season' : 'js.home_carousel.seasons');
 
         const isDesktopViewport = () => window.matchMedia('(min-width: 1024px)').matches;
 
@@ -214,6 +215,9 @@ export default defineComponent({
             <section
                 id="home-carousel"
                 class="home-carousel"
+                role="region"
+                aria-roledescription="carousel"
+                aria-label={$t('js.home_carousel.aria_label')}
                 onMouseenter={pauseAutoplay}
                 onMouseleave={() => resumeAutoplay()}
                 onFocusin={pauseAutoplay}
@@ -221,35 +225,39 @@ export default defineComponent({
                 onTouchstart={pauseAutoplay}
                 onTouchend={() => resumeAutoplay(1800)}
             >
-                {/* Track con snap */}
-                <div ref={trackRef} class="home-carousel__track">
+                <div
+                    ref={trackRef}
+                    class="home-carousel__track"
+                    role="group"
+                    aria-roledescription="carousel"
+                    aria-label={$t('js.home_carousel.slides_aria_label')}
+                >
                     {props.items.map((item, index) => (
                         <div
                             key={item.id}
                             class={[
                                 'home-carousel__slide',
-                                index === currentIndex.value ? 'home-carousel__slide--active' : '',
-                                index === currentIndex.value + 1 ? 'home-carousel__slide--next' : '',
+                                index === currentIndex.value && 'home-carousel__slide--active',
+                                index === currentIndex.value + 1 && 'home-carousel__slide--next',
                             ]}
-                            aria-label={`${index + 1} de ${props.items.length}: ${item.title}`}
+                            role="group"
+                            aria-roledescription="slide"
+                            aria-label={$t('js.home_carousel.slide_aria_label', { current: index + 1, total: props.items.length, title: item.title })}
                         >
-                            {/* Imagen de fondo */}
                             <img
                                 src={item.banner}
-                                alt={item.title}
+                                alt=""
                                 class="home-carousel__bg"
                                 loading={index === 0 ? 'eager' : 'lazy'}
                             />
 
-                            {/* Gradientes */}
                             <div class="home-carousel__gradient-left" />
                             <div class="home-carousel__gradient-bottom" />
 
-                            {/* Contenido */}
                             <div class="home-carousel__content">
                                 {item.poster && (
                                     <div class="home-carousel__poster">
-                                        <img src={item.poster} alt={item.title} />
+                                        <img src={item.poster} alt="" />
                                     </div>
                                 )}
 
@@ -257,11 +265,16 @@ export default defineComponent({
                                     <div class="home-carousel__eyebrow-row">
                                         <span class="home-carousel__eyebrow">
                                             <CIcon icon="star" class="home-carousel__eyebrow-icon" />
-                                            Destacado
+                                            {$t('js.home_carousel.featured')}
                                         </span>
-                                        <span class="home-carousel__counter">{index + 1}/{props.items.length}</span>
+                                        <span class="home-carousel__counter">
+                                            {$t('js.home_carousel.counter', { current: index + 1, total: props.items.length })}
+                                        </span>
                                     </div>
-                                    <h2 class="home-carousel__title" title={item.title}>{item.title}</h2>
+
+                                    <h2 class="home-carousel__title" title={item.title}>
+                                        {item.title}
+                                    </h2>
 
                                     <div class="home-carousel__meta">
                                         {item.year && <span>{item.year}</span>}
@@ -270,13 +283,13 @@ export default defineComponent({
                                         )}
                                         {item.genres && item.genres.length > 0 && (
                                             <>
-                                                <span class="home-carousel__meta-dot">•</span>
+                                                <span class="home-carousel__meta-dot" aria-hidden="true">•</span>
                                                 <span>{item.genres.slice(0, 3).join(' · ')}</span>
                                             </>
                                         )}
                                         {item.seasonCount && item.seasonCount > 1 && (
                                             <>
-                                                <span class="home-carousel__meta-dot">•</span>
+                                                <span class="home-carousel__meta-dot" aria-hidden="true">•</span>
                                                 <span>{item.seasonCount} {getSeasonLabel(item.seasonCount)}</span>
                                             </>
                                         )}
@@ -284,43 +297,37 @@ export default defineComponent({
 
                                     <p class="home-carousel__description">{item.description}</p>
 
-                                    <div class="home-carousel__actions">
+                                    <div class="home-carousel__actions" role="group" aria-label={$t('js.home_carousel.actions_aria_label')}>
                                         <CButton
                                             class="home-carousel__btn home-carousel__btn--primary"
                                             onClick={() => props.onPlay?.(item.id)}
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                                <polygon points="5 3 19 12 5 21 5 3" />
-                                            </svg>
-                                            Reproducir
+                                            <CIcon icon="play" size={18} />
+                                            {$t('js.home_carousel.play')}
                                         </CButton>
 
                                         <CButton
                                             class="home-carousel__btn home-carousel__btn--secondary"
                                             onClick={() => props.onToggleCollection?.(item.id)}
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <rect x="3" y="3" width="18" height="18" rx="2" />
-                                                <line x1="12" y1="8" x2="12" y2="16" />
-                                                <line x1="8" y1="12" x2="16" y2="12" />
-                                            </svg>
-                                            Mi lista
+                                            <CIcon icon="plus" size={18} />
+                                            {$t('js.home_carousel.add_to_list')}
                                         </CButton>
 
                                         {props.onShowInfo && (
                                             <CIconButton
                                                 icon="info"
                                                 class="home-carousel__btn home-carousel__btn--icon"
-                                                aria-label="Ver detalles"
+                                                aria-label={$t('js.home_carousel.show_info')}
                                                 onClick={() => props.onShowInfo?.(item.id)}
                                             />
                                         )}
 
                                         <CIconButton
                                             icon="thumbs-up"
-                                            class={['home-carousel__btn home-carousel__btn--icon', item.liked ? 'home-carousel__btn--liked' : '']}
+                                            class={['home-carousel__btn home-carousel__btn--icon', item.liked && 'home-carousel__btn--liked']}
                                             aria-pressed={item.liked ? 'true' : 'false'}
-                                            aria-label={item.liked ? 'Quitar like' : 'Me gusta'}
+                                            aria-label={$t(item.liked ? 'js.home_carousel.remove_like' : 'js.home_carousel.like')}
                                             onClick={() => props.onToggleLike?.(item.id)}
                                         />
                                     </div>
@@ -330,51 +337,45 @@ export default defineComponent({
                     ))}
                 </div>
 
-                {/* Flechas — desktop */}
-                {!isMobile() && props.items.length > 1 && (
+                {props.items.length > 1 && (
                     <>
                         <button
                             class="home-carousel__arrow home-carousel__arrow--prev"
                             onClick={scrollPrev}
                             disabled={currentIndex.value === 0}
-                            aria-label="Anterior"
+                            aria-label={$t('js.home_carousel.prev_slide')}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="15 18 9 12 15 6" />
-                            </svg>
+                            <CIcon icon="chevron-left" size={24} />
                         </button>
 
                         <button
                             class="home-carousel__arrow home-carousel__arrow--next"
                             onClick={scrollNext}
                             disabled={currentIndex.value === props.items.length - 1}
-                            aria-label="Siguiente"
+                            aria-label={$t('js.home_carousel.next_slide')}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="9 18 15 12 9 6" />
-                            </svg>
+                            <CIcon icon="chevron-right" size={24} />
                         </button>
                     </>
                 )}
 
-                {/* Indicadores */}
                 {props.items.length > 1 && (
-                    <div class="home-carousel__indicators">
+                    <div class="home-carousel__indicators" role="tablist" aria-label={$t('js.home_carousel.indicators_aria_label')}>
                         {props.items.map((slideItem, index) => (
                             <button
                                 key={`dot-${slideItem.id}`}
-                                class={['home-carousel__dot', index === currentIndex.value ? 'home-carousel__dot--active' : '']}
+                                class={['home-carousel__dot', index === currentIndex.value && 'home-carousel__dot--active']}
                                 onClick={() => scrollToIndex(index)}
-                                aria-label={`Ir al slide ${index + 1}`}
-                                aria-current={index === currentIndex.value ? 'true' : undefined}
+                                role="tab"
+                                aria-selected={index === currentIndex.value ? 'true' : 'false'}
+                                aria-label={$t('js.home_carousel.go_to_slide', { number: index + 1 })}
                             />
                         ))}
                     </div>
                 )}
 
-                {/* Loading */}
                 {props.loading && (
-                    <div class="home-carousel__loading">
+                    <div class="home-carousel__loading" aria-live="assertive">
                         <div class="home-carousel__spinner" />
                     </div>
                 )}
