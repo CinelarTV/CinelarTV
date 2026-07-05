@@ -374,6 +374,89 @@
   overflow: hidden;
 }
 
+/* Cast / Characters */
+.content-cast {
+  margin-top: 10px;
+}
+
+.content-cast__title {
+  margin: 0 0 12px;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 700;
+  color: var(--c-body-text-color, #fff);
+}
+
+.content-cast__scroll {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(100px, 12vw, 140px);
+  gap: 12px;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 4px 2px 8px;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.content-cast__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.content-cast__card {
+  scroll-snap-align: start;
+  text-align: center;
+}
+
+.content-cast__card-img-wrapper {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--c-background-color, #181818) 70%, #fff 30%);
+  border: 1px solid color-mix(in srgb, var(--c-body-text-color, #fff) 10%, transparent 90%);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.content-cast__card:hover .content-cast__card-img-wrapper {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--c-primary-300) 56%, transparent 44%);
+}
+
+.content-cast__card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.content-cast__card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--c-body-text-color, #fff) 20%, transparent 80%);
+}
+
+.content-cast__card-name {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--c-body-text-color, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.content-cast__card-character {
+  margin: 2px 0 0;
+  font-size: 0.7rem;
+  color: color-mix(in srgb, var(--c-body-text-color, #fff) 50%, transparent 50%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 900px) {
   .content-overview {
     margin-top: -58px;

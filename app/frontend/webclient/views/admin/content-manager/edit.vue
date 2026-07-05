@@ -116,9 +116,15 @@
                                 {{ hasTrailer ? trailerSummary : 'No trailer configured' }}
                             </p>
                         </div>
-                        <CButton @click="trailerModalRef?.setIsOpen(true)" class="shrink-0">
-                            {{ hasTrailer ? 'Edit' : 'Add' }}
-                        </CButton>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button v-if="hasTrailer" @click="deleteTrailer"
+                                class="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors">
+                                Delete
+                            </button>
+                            <CButton @click="trailerModalRef?.setIsOpen(true)">
+                                {{ hasTrailer ? 'Edit' : 'Add' }}
+                            </CButton>
+                        </div>
                     </div>
                 </div>
                 <CTrailerManagerModal :content-id="content.id" ref="trailerModalRef" @updated="fetchContent" />
@@ -247,6 +253,59 @@
 
         <edit-season-modal v-if="(editedData.content_type || content.content_type) === 'TVSHOW'"
             :content-id="contentId" ref="editSeasonModalRef" @season-updated="fetchContent" />
+
+        <!-- Cast / Characters -->
+        <div class="mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-white">
+                    Cast / Characters
+                </h2>
+                <button v-if="content.tmdb_id && SiteSettings.enable_metadata_recommendation"
+                    @click="syncCastFromTmdb"
+                    :disabled="syncingCast"
+                    class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span v-if="syncingCast">Syncing...</span>
+                    <span v-else>Sync from TMDB</span>
+                </button>
+            </div>
+
+            <div v-if="content.cast_members?.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div v-for="cm in content.cast_members" :key="cm.id"
+                    class="bg-white/5 rounded-lg p-3 ring-1 ring-white/10 group hover:ring-white/20 transition-all">
+                    <div class="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-white/10">
+                        <img v-if="cm.person?.profile_path"
+                            :src="`https://image.tmdb.org/t/p/w185${cm.person.profile_path}`"
+                            :alt="cm.person?.name"
+                            class="w-full h-full object-cover"
+                            loading="lazy" />
+                        <div v-else class="w-full h-full flex items-center justify-center text-white/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-xs font-semibold text-white truncate">{{ cm.person?.name }}</p>
+                    <p class="text-[10px] text-white/50 truncate">as {{ cm.character_name }}</p>
+                    <button @click="removeCastMember(cm.id)"
+                        class="mt-1 text-[10px] text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Remove
+                    </button>
+                </div>
+            </div>
+
+            <div v-else class="text-center py-8 bg-white/5 rounded-xl ring-1 ring-white/10">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-white/30">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p class="text-sm text-white/40">
+                    {{ content.tmdb_id ? 'No cast imported yet. Click "Sync from TMDB" to import.' : 'No TMDB ID available. Set a TMDB ID to sync cast.' }}
+                </p>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -298,6 +357,7 @@ const loadingButton = ref(false);
 const categories = ref([]);
 const categoriesLoading = ref(false);
 const syncingCategories = ref(false);
+const syncingCast = ref(false);
 
 const fetchContent = async () => {
     try {
@@ -341,6 +401,63 @@ const syncCategoriesFromTmdb = async () => {
         toast.error('Failed to sync categories from TMDB. Check console for details.');
     } finally {
         syncingCategories.value = false;
+    }
+};
+
+const syncCastFromTmdb = async () => {
+    if (!confirm('This will sync cast from TMDB. Continue?')) {
+        return;
+    }
+
+    syncingCast.value = true;
+    try {
+        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-cast.json`);
+        toast.success(`Cast synced: ${response.data.assigned_count} members imported`);
+        await fetchContent();
+    } catch (error) {
+        console.error('Failed to sync cast from TMDB:', error);
+        toast.error('Failed to sync cast from TMDB.');
+    } finally {
+        syncingCast.value = false;
+    }
+};
+
+const removeCastMember = async (castMemberId) => {
+    if (!confirm('Remove this cast member?')) {
+        return;
+    }
+
+    try {
+        await ajax.delete(`/admin/content-manager/${contentId}/cast-members/${castMemberId}.json`);
+        toast.success('Cast member removed');
+        await fetchContent();
+    } catch (error) {
+        toast.error('Failed to remove cast member');
+    }
+};
+
+const deleteTrailer = async () => {
+    if (!confirm('Delete this trailer?')) {
+        return;
+    }
+
+    try {
+        // Delete trailer video sources
+        if (content.value.trailer_video_sources?.length > 0) {
+            for (const vs of content.value.trailer_video_sources) {
+                await ajax.delete(`/admin/video_sources/${vs.id}.json`);
+            }
+        }
+        // Clear trailer_url if set
+        if (content.value.trailer_url) {
+            const formData = new FormData();
+            formData.append('content[trailer_url]', '');
+            await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
+        }
+        toast.success('Trailer deleted');
+        await fetchContent();
+    } catch (error) {
+        toast.error('Failed to delete trailer');
     }
 };
 

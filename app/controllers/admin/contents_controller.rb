@@ -2,7 +2,7 @@
 
 module Admin
   class ContentsController < Admin::BaseController
-    before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season, :sync_categories_from_tmdb]
+    before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season, :sync_categories_from_tmdb, :find_seasons_from_tmdb, :sync_cast_from_tmdb, :remove_cast_member, :add_cast_member]
     before_action :set_season, only: [:create_episode, :episode_list, :find_episodes_from_tmdb, :reorder_episodes, :update_season, :delete_season]
     before_action :set_episode, only: [:edit_episode, :update_episode, :delete_episode]
 
@@ -18,6 +18,43 @@ module Admin
       render_error("Error occurred: #{e.message}")
     rescue StandardError => e
       render_error("An error occurred: #{e.message}")
+    end
+
+    def find_seasons_from_tmdb
+      return render_error("TMDB API Key is not set") if SiteSetting.tmdb_api_key.blank?
+      return render_error("Content does not have a TMDB ID") if @content.tmdb_id.blank?
+
+      configure_tmdb_api
+
+      api_key = SiteSetting.tmdb_api_key.strip
+      language = SiteSetting.default_locale
+
+      cache_key = ["tmdb", "tv", @content.tmdb_id, "detail"].join(":")
+      tmdb_data = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+        url = "https://api.themoviedb.org/3/tv/#{@content.tmdb_id}?api_key=#{api_key}&language=#{language}"
+        response = HTTParty.get(url)
+        response.parsed_response
+      end
+
+      seasons = (tmdb_data["seasons"] || []).reject { |s| s["season_number"].to_i == 0 }
+
+      existing_tmdb_ids = @content.seasons.where.not(tmdb_id: nil).pluck(:tmdb_id)
+
+      mapped_seasons = seasons.map do |s|
+        {
+          tmdb_id: s["id"],
+          title: s["name"],
+          description: s["overview"],
+          thumbnail: s["poster_path"] ? "tmdb://#{s['poster_path'].sub(%r{^/}, '')}" : nil,
+          air_date: s["air_date"],
+          episode_count: s["episode_count"],
+          season_number: s["season_number"]
+        }
+      end.reject { |s| existing_tmdb_ids.include?(s[:tmdb_id]) }
+
+      render json: { data: { seasons: mapped_seasons } }
+    rescue StandardError => e
+      render_error("Error fetching seasons: #{e.message}")
     end
 
     def create
@@ -192,6 +229,9 @@ module Admin
         }
       end
 
+      existing_tmdb_ids = Episode.joins(:season).where(seasons: { content_id: @content.id }).where.not(tmdb_id: nil).pluck(:tmdb_id)
+      mapped_episodes.reject! { |ep| existing_tmdb_ids.include?(ep[:tmdb_id]) }
+
       render json: { data: { episodes: mapped_episodes } }
     rescue StandardError => e
       render_error("Error fetching episodes: #{e.message}")
@@ -297,6 +337,61 @@ module Admin
       render json: { error: "TMDB API error: #{e.message}" }, status: :unprocessable_entity
     rescue StandardError => e
       render json: { error: "An error occurred: #{e.message}" }, status: :unprocessable_entity
+    end
+
+    def sync_cast_from_tmdb
+      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
+      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+
+      configure_tmdb_api
+
+      tmdb_cast = if @content.content_type == "MOVIE"
+                    Tmdb::Movie.cast(@content.tmdb_id)
+                  elsif @content.content_type == "TVSHOW"
+                    Tmdb::TV.cast(@content.tmdb_id)
+                  else
+                    return render json: { error: "Unsupported content type" }, status: :unprocessable_entity
+                  end
+
+      if tmdb_cast.blank?
+        return render json: { message: "No cast found in TMDB", assigned_count: 0 }, status: :ok
+      end
+
+      added = 0
+      tmdb_cast.each do |person_data|
+        next if person_data.id.blank?
+
+        person = Person.find_or_initialize_by(tmdb_id: person_data.id)
+        if person.new_record?
+          person.name = person_data.name || "Unknown"
+          person.profile_path = person_data.profile_path
+          person.known_for_department = person_data.known_for_department || "Acting"
+          person.save!
+        end
+
+        cast_member = CastMember.find_or_initialize_by(content: @content, person: person)
+        cast_member.character_name = person_data.character
+        cast_member.order = person_data.order || 999
+        cast_member.save!
+        added += 1
+      end
+
+      render json: {
+        message: "Cast synchronized successfully",
+        assigned_count: added
+      }, status: :ok
+    rescue Tmdb::Error => e
+      render json: { error: "TMDB API error: #{e.message}" }, status: :unprocessable_entity
+    rescue StandardError => e
+      render json: { error: "An error occurred: #{e.message}" }, status: :unprocessable_entity
+    end
+
+    def remove_cast_member
+      cast_member = @content.cast_members.find(params[:cast_member_id])
+      cast_member.destroy
+      render json: { message: "Cast member removed" }, status: :ok
+    rescue ActiveRecord::RecordNotFound
+      render json: { error: "Cast member not found" }, status: :not_found
     end
 
     def index
@@ -455,6 +550,15 @@ module Admin
 
       content_data[:trailer_video_sources] = content.video_sources.trailers.map do |vs|
         { id: vs.id, url: vs.url, quality: vs.quality, format: vs.format, storage_location: vs.storage_location }
+      end
+
+      content_data[:cast_members] = content.cast_members.includes(:person).ordered.map do |cm|
+        {
+          id: cm.id,
+          character_name: cm.character_name,
+          order: cm.order,
+          person: cm.person&.as_json
+        }
       end
 
       content_data

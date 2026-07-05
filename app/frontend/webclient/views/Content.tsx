@@ -249,6 +249,38 @@ export default defineComponent({
                                         )
                                     )}
 
+                                    {/* Cast / Characters */}
+                                    {content?.castMembers?.length > 0 && (
+                                        <section class="content-cast">
+                                            <h3 class="content-cast__title">Cast</h3>
+                                            <div class="content-cast__scroll">
+                                                {content.castMembers.map((cm: any) => (
+                                                    <div key={cm.id} class="content-cast__card">
+                                                        <div class="content-cast__card-img-wrapper">
+                                                            {cm.profile_path ? (
+                                                                <img
+                                                                    src={`https://image.tmdb.org/t/p/w185${cm.profile_path}`}
+                                                                    alt={cm.name}
+                                                                    class="content-cast__card-img"
+                                                                    loading="lazy"
+                                                                />
+                                                            ) : (
+                                                                <div class="content-cast__card-placeholder">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                                        <circle cx="12" cy="7" r="4"/>
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p class="content-cast__card-name">{cm.name}</p>
+                                                        <p class="content-cast__card-character">as {cm.character_name}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
+
                                     {/* Contenido relacionado */}
                                     {relatedContent.length > 0 && (
                                         <section class="content-related">

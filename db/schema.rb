@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_04_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_04_100002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -27,6 +27,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_04_000001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["filename"], name: "index_backups_on_filename", unique: true
+  end
+
+  create_table "cast_members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "content_id", null: false
+    t.uuid "person_id", null: false
+    t.string "character_name"
+    t.integer "order"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id", "order"], name: "index_cast_members_on_content_id_and_order"
+    t.index ["content_id", "person_id"], name: "index_cast_members_on_content_id_and_person_id", unique: true
+    t.index ["content_id"], name: "index_cast_members_on_content_id"
+    t.index ["person_id"], name: "index_cast_members_on_person_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -223,6 +236,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_04_000001) do
     t.index ["device_code"], name: "index_oauth_device_grants_on_device_code", unique: true
     t.index ["resource_owner_id"], name: "index_oauth_device_grants_on_resource_owner_id"
     t.index ["user_code"], name: "index_oauth_device_grants_on_user_code", unique: true
+  end
+
+  create_table "people", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "tmdb_id", null: false
+    t.string "name", null: false
+    t.string "profile_path"
+    t.string "known_for_department", default: "Acting"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tmdb_id"], name: "index_people_on_tmdb_id", unique: true
   end
 
   create_table "preferences", force: :cascade do |t|
@@ -529,6 +552,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_04_000001) do
     t.index ["url"], name: "index_xmltv_sources_on_url", unique: true
   end
 
+  add_foreign_key "cast_members", "contents"
+  add_foreign_key "cast_members", "people"
   add_foreign_key "content_analytics", "contents"
   add_foreign_key "content_categories", "categories", on_delete: :cascade
   add_foreign_key "content_categories", "contents", on_delete: :cascade

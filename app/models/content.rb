@@ -20,6 +20,8 @@ class Content < ApplicationRecord
   end
 
   has_many :seasons, dependent: :destroy
+  has_many :cast_members, dependent: :destroy
+  has_many :people, through: :cast_members
   has_many :continue_watchings, dependent: :destroy
   has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"
 
@@ -92,8 +94,8 @@ class Content < ApplicationRecord
     normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase.gsub(/[-\s]/, ""))
     where(
       "available = true AND (" \
-      "regexp_replace(unaccent(lower(title)), '[-\\s]', '', 'g') LIKE ? OR " \
-      "regexp_replace(unaccent(lower(description)), '[-\\s]', '', 'g') LIKE ?)",
+      "unaccent(lower(title)) LIKE unaccent(?) OR " \
+      "unaccent(lower(description)) LIKE unaccent(?))",
       "%#{normalized}%", "%#{normalized}%"
     )
   }

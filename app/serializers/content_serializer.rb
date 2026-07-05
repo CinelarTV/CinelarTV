@@ -25,6 +25,7 @@ class ContentSerializer < ApplicationSerializer
   attribute :similar_items, key: "related_content"
   attribute :continue_watching, key: "continue_watching"
   attribute :categories
+  attribute :cast_members
   attribute :trailer_video_sources
 
   def include_seasons?
@@ -60,6 +61,18 @@ class ContentSerializer < ApplicationSerializer
 
   def categories
     object.categories.map { |category| { id: category.id, name: category.name } }
+  end
+
+  def cast_members
+    object.cast_members.includes(:person).ordered.map do |cm|
+      {
+        id: cm.id,
+        character_name: cm.character_name,
+        order: cm.order,
+        name: cm.person&.name,
+        profile_path: cm.person&.profile_path
+      }
+    end
   end
 
   def trailer_video_sources
