@@ -243,16 +243,26 @@ class MediaIntegrityCheckService
   # Parses an M3U8 body and returns resolved URLs for non-comment lines
   # whose file extension matches `ext:`. Handles query params on lines.
   def parse_m3u8_urls(content, base_url, ext:)
-    content.each_line.filter_map do |raw_line|
+    lines = content.each_line.to_a
+    Rails.logger.info("[MediaIntegrity] parse_m3u8_urls: #{lines.length} total lines, base_url=#{base_url.inspect}, ext=#{ext}")
+
+    results = lines.filter_map do |raw_line|
       line = raw_line.strip
       next if line.blank?
       next if line.start_with?("#")
 
       candidate = line.split("?").first
-      next unless candidate.end_with?(ext)
+      unless candidate.end_with?(ext)
+        Rails.logger.info("[MediaIntegrity] SKIP line=#{line.inspect} (candidate=#{candidate.inspect} does not end with #{ext})")
+        next
+      end
 
-      resolve_url(line, base_url)
+      resolved = resolve_url(line, base_url)
+      Rails.logger.info("[MediaIntegrity] RESOLVED line=#{line.inspect} => #{resolved.inspect}")
+      resolved
     end
+    Rails.logger.info("[MediaIntegrity] parse_m3u8_urls result: #{results.length} URLs found")
+    results
   end
 
   def parse_m3u8_local(content, base_dir)
@@ -276,8 +286,18 @@ class MediaIntegrityCheckService
   end
 
   def resolve_url(target, base_url)
-    URI.join(base_url, target).to_s
-  rescue URI::InvalidURIError
+    base = URI.parse(base_url)
+    # Manually resolve relative paths to handle unencoded characters (spaces etc.)
+    if target.start_with?("http://", "https://")
+      target
+    else
+      base_path = base.path.to_s
+      dir = base_path.include?("/") ? base_path.sub(%r{/[^/]*\z}, "/") : "/"
+      resolved = File.join(dir, target).gsub("//", "/")
+      "#{base.scheme}://#{base.host}#{":#{base.port}" unless base.port == base.default_port}#{resolved}"
+    end
+  rescue URI::InvalidURIError => e
+    Rails.logger.warn("[MediaIntegrity] resolve_url FAILED: target=#{target.inspect} base=#{base_url.inspect} error=#{e.message}")
     nil
   end
 
