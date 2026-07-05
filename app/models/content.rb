@@ -101,7 +101,7 @@ class Content < ApplicationRecord
   }
 
   scope :search_by_title_and_description, lambda { |query|
-    normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase.gsub(/[-\s]/, ""))
+    normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase)
     where(
       "available = true AND (" \
       "unaccent(lower(title)) LIKE unaccent(?) OR " \

@@ -274,7 +274,8 @@ module Admin
     end
 
     def update_episode
-      process_episode_thumbnail if params[:thumbnail].present?
+      thumb = params.dig(:episode, :thumbnail)
+      process_episode_thumbnail(thumb) if thumb.present?
       @episode.update(episode_params)
       render json: { message: "Episode updated successfully", status: :ok }
     end
@@ -513,8 +514,8 @@ module Admin
       temp_file
     end
 
-    def process_episode_thumbnail
-      temp_file = save_temp_file(params[:thumbnail])
+    def process_episode_thumbnail(thumb_param)
+      temp_file = save_temp_file(thumb_param)
       ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
     end
 
@@ -590,7 +591,7 @@ module Admin
     end
 
     def episode_params
-      params.require(:episode).permit(:title, :description, :duration, :position, :premium, :tmdb_id)
+      params.require(:episode).permit(:title, :description, :thumbnail, :duration, :position, :premium, :tmdb_id)
     end
   end
 end

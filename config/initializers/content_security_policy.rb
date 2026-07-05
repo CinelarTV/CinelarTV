@@ -9,7 +9,7 @@ Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self, :https
     policy.font_src    :self, :https, :data
-    policy.img_src     :self, :https, :data
+    policy.img_src     :self, :https, :data, :blob
     policy.object_src  :none
     policy.media_src   :self, :https, :blob
     policy.script_src  :self, :https, "http://www.gstatic.com", "https://www.gstatic.com"

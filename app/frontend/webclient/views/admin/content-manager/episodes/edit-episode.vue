@@ -79,11 +79,10 @@ const saveEpisode = async () => {
     saving.value = true;
     try {
         const formData = new FormData();
-        formData.append('title', episodeData.value.title);
-        formData.append('description', episodeData.value.description);
-        formData.append('url', episodeData.value.url);
+        formData.append('episode[title]', episodeData.value.title);
+        formData.append('episode[description]', episodeData.value.description);
         if (episodeData.value.thumbnail) {
-            formData.append('thumbnail', episodeData.value.thumbnail);
+            formData.append('episode[thumbnail]', episodeData.value.thumbnail);
         }
 
         const response = await ajax.put(`/admin/content-manager/${route.params.contentId}/seasons/${route.params.seasonId}/episodes/${route.params.episodeId}/edit.json`, formData, {

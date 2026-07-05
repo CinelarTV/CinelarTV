@@ -72,11 +72,11 @@ export default defineComponent({
             saving.value = true;
             try {
                 const formData = new FormData();
-                formData.append("title", episodeData.value.title);
-                formData.append("description", episodeData.value.description);
-                formData.append("premium", String(episodeData.value.premium));
+                formData.append("episode[title]", episodeData.value.title);
+                formData.append("episode[description]", episodeData.value.description);
+                formData.append("episode[premium]", String(episodeData.value.premium));
                 if (episodeData.value.thumbnail instanceof File) {
-                    formData.append("thumbnail", episodeData.value.thumbnail);
+                    formData.append("episode[thumbnail]", episodeData.value.thumbnail);
                 }
 
                 await ajax.put(
