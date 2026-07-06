@@ -1,0 +1,7 @@
+en:
+  js:
+    admin:
+      settings:
+        cinelar_shaka_hooks_enabled:
+          title: "Shaka Player lifecycle hooks"
+          description: "Enable Shaka Player lifecycle hook logging for debugging and plugin development"

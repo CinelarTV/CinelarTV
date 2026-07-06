@@ -1,10 +1,9 @@
-import { defineComponent, ref, computed, onMounted, onBeforeUnmount, inject, getCurrentInstance } from 'vue';
+import { defineComponent, ref, computed, onMounted, onBeforeUnmount, inject, getCurrentInstance, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ajax } from '../lib/Ajax';
 import CButton from './forms/c-button';
 import CIcon from './c-icon.vue';
-import { MediaPlayer } from 'vidstack';
-import 'vidstack/bundle';
+import shaka from 'shaka-player';
 
 interface TrailerSource {
     url: string;
@@ -25,25 +24,6 @@ interface ShuffleItem {
     liked?: boolean;
 }
 
-function getTrailerMimeType(url: string, format?: string): string {
-    if (format === 'm3u8') return 'application/x-mpegurl';
-    if (url?.match(/\.m3u8/i)) return 'application/x-mpegurl';
-    if (url?.match(/\.webm/i)) return 'video/webm';
-    return 'video/mp4';
-}
-
-function renderTrailerSources(item: ShuffleItem) {
-    const sources = item.trailer_sources;
-    if (sources && sources.length > 0) {
-        return sources.map((s, i) => (
-            <source key={`ts-${i}`} src={s.url} type={getTrailerMimeType(s.url, s.format)} />
-        ));
-    }
-    return (
-        <source src={item.trailer_url} type={getTrailerMimeType(item.trailer_url)} />
-    );
-}
-
 export default defineComponent({
     name: 'ShuffleRecommendations',
     setup() {
@@ -56,8 +36,11 @@ export default defineComponent({
         const isLoading = ref(false);
         const isTransitioning = ref(false);
         const showTrailer = ref(false);
-        const videoPlayer = ref<MediaPlayer | null>(null);
         const isModalOpen = ref(false);
+
+        const trailerVideoRef = ref<HTMLVideoElement | null>(null);
+        let trailerPlayer: shaka.Player | null = null;
+        let trailerEventManager: any = null;
 
         const isVisible = computed(() => SiteSettings?.enable_shuffle_recommendations);
         const currentItem = computed(() => recommendations.value[currentIndex.value] || null);
@@ -79,14 +62,11 @@ export default defineComponent({
 
         const shuffle = () => {
             if (recommendations.value.length === 0) return;
-
             isTransitioning.value = true;
             showTrailer.value = false;
-
             setTimeout(() => {
                 currentIndex.value = (currentIndex.value + 1) % recommendations.value.length;
                 isTransitioning.value = false;
-                // Auto-play trailer for new item
                 showTrailer.value = true;
             }, 300);
         };
@@ -115,7 +95,7 @@ export default defineComponent({
 
         const openModal = () => {
             isModalOpen.value = true;
-            showTrailer.value = true; // Auto-play trailer when modal opens
+            showTrailer.value = true;
             document.body.style.overflow = 'hidden';
         };
 
@@ -123,7 +103,70 @@ export default defineComponent({
             isModalOpen.value = false;
             showTrailer.value = false;
             document.body.style.overflow = '';
+            destroyTrailerPlayer();
         };
+
+        function getTrailerMimeType(url: string, format?: string): string {
+            if (format === 'm3u8') return 'application/x-mpegurl';
+            if (url?.match(/\.m3u8/i)) return 'application/x-mpegurl';
+            if (url?.match(/\.webm/i)) return 'video/webm';
+            return 'video/mp4';
+        }
+
+        async function initTrailerPlayer() {
+            const video = trailerVideoRef.value;
+            if (!video) return;
+
+            destroyTrailerPlayer();
+
+            shaka.polyfill.installAll();
+            if (!shaka.Player.isBrowserSupported()) return;
+
+            trailerPlayer = new shaka.Player();
+            await trailerPlayer.attach(video);
+
+            trailerEventManager = new shaka.util.EventManager();
+
+            trailerPlayer.addEventListener('error', (event: any) => {
+                console.error('Trailer playback error:', event.detail);
+            });
+        }
+
+        async function loadTrailer() {
+            const item = currentItem.value;
+            if (!trailerPlayer || !item) return;
+
+            let src = item.trailer_url;
+            if (item.trailer_sources && item.trailer_sources.length > 0) {
+                src = item.trailer_sources[0].url;
+            }
+
+            try {
+                await trailerPlayer.load(src);
+                await trailerVideoRef.value?.play();
+            } catch (error) {
+                console.error('Failed to load trailer:', error);
+            }
+        }
+
+        function destroyTrailerPlayer() {
+            trailerEventManager?.removeAll();
+            trailerEventManager = null;
+            if (trailerPlayer) {
+                trailerPlayer.destroy();
+                trailerPlayer = null;
+            }
+        }
+
+        watch([showTrailer, currentItem], async ([showing, item]) => {
+            if (showing && item && isModalOpen.value) {
+                await nextTick();
+                await initTrailerPlayer();
+                await loadTrailer();
+            } else if (!showing) {
+                destroyTrailerPlayer();
+            }
+        });
 
         onMounted(() => {
             if (isVisible.value) {
@@ -133,6 +176,7 @@ export default defineComponent({
 
         onBeforeUnmount(() => {
             document.body.style.overflow = '';
+            destroyTrailerPlayer();
         });
 
         return () => {
@@ -151,7 +195,6 @@ export default defineComponent({
                                 class="shuffle-recommendations__preview cursor-pointer relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-black hover:scale-[1.02] transition-transform duration-300"
                                 onClick={openModal}
                             >
-                                {/* Background image with overlay */}
                                 <div class="shuffle-recommendations__background absolute inset-0">
                                     <img
                                         src={item.banner}
@@ -161,7 +204,6 @@ export default defineComponent({
                                     <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
                                 </div>
 
-                                {/* Content */}
                                 <div class="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center min-h-[200px]">
                                     <div class="rounded-full bg-purple-600/30 p-4 mb-4 animate-pulse">
                                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400">
@@ -178,9 +220,7 @@ export default defineComponent({
                                     <p class="text-white/70 mb-4 max-w-md">
                                         {$t('js.shuffle_recommendations.description')}
                                     </p>
-                                    <CButton
-                                        class="bg-white text-black hover:bg-white/90 px-8 py-3 rounded-xl font-semibold"
-                                    >
+                                    <CButton class="bg-white text-black hover:bg-white/90 px-8 py-3 rounded-xl font-semibold">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="mr-2 inline">
                                             <polygon points="5 3 19 12 5 21 5 3" />
                                         </svg>
@@ -194,34 +234,20 @@ export default defineComponent({
                     {/* Fullscreen Modal */}
                     {isModalOpen.value && (
                         <div class="fixed inset-0 z-50">
-                            {/* Backdrop with fade transition */}
                             <div
-                                class={[
-                                    'absolute inset-0 bg-black',
-                                    'transition-opacity duration-500 ease-out',
-                                    isModalOpen.value ? 'opacity-100' : 'opacity-0'
-                                ]}
+                                class={['absolute inset-0 bg-black transition-opacity duration-500 ease-out', isModalOpen.value ? 'opacity-100' : 'opacity-0']}
                                 onClick={closeModal}
                             />
 
-                            {/* Modal Content with scale and fade transition */}
-                            <div class={[
-                                'relative z-10 w-full h-screen',
-                                'transition-all duration-500 ease-out transform',
-                                isModalOpen.value ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                            ]}>
+                            <div class={['relative z-10 w-full h-screen transition-all duration-500 ease-out transform', isModalOpen.value ? 'opacity-100 scale-100' : 'opacity-0 scale-95']}>
                                 <div class="h-full relative">
-                                    {/* Background image with overlay */}
+                                    {/* Background image */}
                                     <div class="absolute inset-0">
-                                        <img
-                                            src={item.banner}
-                                            alt={item.title}
-                                            class="h-full w-full object-cover"
-                                        />
+                                        <img src={item.banner} alt={item.title} class="h-full w-full object-cover" />
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                                     </div>
 
-                                    {/* Exit button - top left */}
+                                    {/* Exit button */}
                                     <button
                                         onClick={closeModal}
                                         class="absolute top-6 left-6 z-30 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded text-white text-sm font-medium transition-colors"
@@ -229,24 +255,16 @@ export default defineComponent({
                                         Exit
                                     </button>
 
-                                    {/* Trailer video overlay with vidstack */}
+                                    {/* Trailer video */}
                                     {showTrailer.value ? (
                                         <div class="absolute inset-0 z-20">
-                                            <media-player
+                                            <video
+                                                ref={trailerVideoRef}
                                                 key={`trailer-${item.id}`}
-                                                class="h-full w-full"
-                                                autoplay
+                                                class="h-full w-full object-contain"
+                                                autoPlay
                                                 controls
-                                            >
-                                                <media-provider>
-                                                    <media-poster
-                                                        class="absolute inset-0 block h-full w-full object-cover"
-                                                        src={item.banner}
-                                                        alt={item.title}
-                                                    />
-                                                    {renderTrailerSources(item)}
-                                                </media-provider>
-                                            </media-player>
+                                            />
                                         </div>
                                     ) : null}
 
@@ -268,12 +286,9 @@ export default defineComponent({
                                         </svg>
                                     </button>
 
-                                    {/* Content info - bottom left with small text */}
+                                    {/* Content info */}
                                     <div class="absolute bottom-8 left-8 z-20 max-w-md">
-                                        <div class={[
-                                            'transition-all duration-500',
-                                            isTransitioning.value ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-                                        ]}>
+                                        <div class={['transition-all duration-500', isTransitioning.value ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0']}>
                                             <div class="mb-2 flex items-center gap-2 text-white/80 text-sm font-medium">
                                                 {item.content_type && (
                                                     <span class="uppercase tracking-wider">
@@ -283,16 +298,12 @@ export default defineComponent({
                                                 {item.year && <span>•</span>}
                                                 {item.year && <span>{item.year}</span>}
                                             </div>
-                                            <h3 class="text-2xl font-bold text-white mb-2">
-                                                {item.title}
-                                            </h3>
-                                            <p class="text-sm text-white/70 line-clamp-2 mb-4">
-                                                {item.description}
-                                            </p>
+                                            <h3 class="text-2xl font-bold text-white mb-2">{item.title}</h3>
+                                            <p class="text-sm text-white/70 line-clamp-2 mb-4">{item.description}</p>
                                         </div>
                                     </div>
 
-                                    {/* Play Something Else button - center right */}
+                                    {/* Play Something Else button */}
                                     <div class="absolute bottom-8 right-8 z-20">
                                         <CButton
                                             class="bg-white text-black hover:bg-white/90 px-6 py-3 rounded-lg text-sm font-semibold"

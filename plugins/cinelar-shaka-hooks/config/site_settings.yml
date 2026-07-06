@@ -1,0 +1,7 @@
+plugins:
+  cinelar_shaka_hooks_enabled:
+    default: false
+    type: boolean
+    client: true
+    refresh: true
+    description: "Enable Shaka Player lifecycle hook logging (development/debugging)"

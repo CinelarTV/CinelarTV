@@ -28,6 +28,20 @@
             </div>
         </div>
 
+        <!-- Scheduled Launch Banner -->
+        <div v-if="scheduledCountdown"
+            class="mb-6 flex items-center gap-3 rounded-xl bg-blue-500/10 border border-blue-500/20 px-5 py-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="text-blue-400 shrink-0">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <p class="text-sm text-blue-200">
+                Este contenido se estrena <span class="font-semibold text-blue-100">{{ scheduledCountdown }}</span>
+            </p>
+        </div>
+
         <!-- Main Form -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Column - Basic Info -->
@@ -166,6 +180,38 @@
                                 <span :class="editedData.premium ? 'translate-x-5' : 'translate-x-1'"
                                     class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
                             </button>
+                        </div>
+
+                        <!-- Scheduled Launch -->
+                        <div class="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <p class="text-xs font-bold text-white uppercase tracking-wider">Programar estreno</p>
+                                    <p class="text-[10px] text-white/40">Publicar automticamente</p>
+                                </div>
+                                <button @click="toggleSchedule"
+                                    :class="isScheduled ? 'bg-blue-500' : 'bg-white/20'"
+                                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none">
+                                    <span :class="isScheduled ? 'translate-x-5' : 'translate-x-1'"
+                                        class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
+                                </button>
+                            </div>
+
+                            <div v-if="isScheduled" class="mt-3 space-y-2">
+                                <div class="flex gap-2">
+                                    <input type="date"
+                                        v-model="scheduleDate"
+                                        :min="todayStr"
+                                        class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]" />
+                                    <select v-model="scheduleHour"
+                                        class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]">
+                                        <option v-for="h in hours" :key="h" :value="h">{{ h }}:00</option>
+                                    </select>
+                                </div>
+                                <p class="text-[10px] text-blue-300/70">
+                                    Se publicará el {{ formattedScheduleDate }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -321,6 +367,8 @@ import draggable from 'vuedraggable';
 import { ajax } from '../../../lib/Ajax';
 import CVideoableManager from "@/components/CVideoableManager";
 import CTrailerManagerModal from "../../../components/modals/trailer-manager.modal";
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const SiteSettings = inject('SiteSettings');
 const i18n = inject('I18n');
@@ -366,6 +414,13 @@ const fetchContent = async () => {
         editedData.value = Object.fromEntries(Object.entries(content.value).filter(([key, value]) => !['banner', 'cover'].includes(key)));
         // Initialize category_ids from content
         editedData.value.category_ids = content.value.categories?.map(c => c.id) || [];
+
+        // Initialize schedule fields from existing data
+        if (content.value.scheduled_launch_at) {
+            const dt = parseISO(content.value.scheduled_launch_at);
+            scheduleDate.value = format(dt, 'yyyy-MM-dd');
+            scheduleHour.value = format(dt, 'HH');
+        }
     } catch (error) {
         console.log(error);
         toast.error('Error al cargar el contenido');
@@ -462,6 +517,51 @@ const deleteTrailer = async () => {
 };
 
 const editedData = ref({});
+
+const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const todayStr = new Date().toISOString().split('T')[0];
+
+const isScheduled = computed(() => {
+    return !!editedData.value.scheduled_launch_at || !!scheduleDate.value;
+});
+
+const scheduleDate = ref('');
+const scheduleHour = ref('20');
+
+const formattedScheduleDate = computed(() => {
+    if (!scheduleDate.value) return '';
+    const d = new Date(`${scheduleDate.value}T${scheduleHour.value}:00:00`);
+    return format(d, 'EEEE d \'de\' MMMM', { locale: es }) + ` a las ${scheduleHour.value}:00`;
+});
+
+const scheduledCountdown = computed(() => {
+    if (!content.value.scheduled_launch_at) return '';
+    const dt = parseISO(content.value.scheduled_launch_at);
+    if (dt <= new Date()) return '';
+    return formatDistanceToNow(dt, { addSuffix: true, locale: es });
+});
+
+const toggleSchedule = () => {
+    if (isScheduled.value) {
+        editedData.value.scheduled_launch_at = null;
+        scheduleDate.value = '';
+        scheduleHour.value = '20';
+    } else {
+        scheduleDate.value = todayStr;
+        scheduleHour.value = '20';
+        syncScheduleToEditedData();
+    }
+};
+
+const syncScheduleToEditedData = () => {
+    if (scheduleDate.value) {
+        const local = new Date(`${scheduleDate.value}T${scheduleHour.value}:00:00`);
+        editedData.value.scheduled_launch_at = local.toISOString();
+    }
+};
+
+watch(scheduleDate, () => syncScheduleToEditedData());
+watch(scheduleHour, () => syncScheduleToEditedData());
 
 const seasonGroup = {
     name: 'seasons',

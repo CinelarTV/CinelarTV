@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+# Plugins that are part of the core CinelarTV repository.
+# These are included in prebuilt assets and compiled during the main Vite build.
+# Third-party plugins (not listed here) are compiled separately after prebuilt extraction.
+
+first_party:
+  - cinelar-watchparty
+  #- cinelar-shaka-hooks
+  - styleguide
+  - example-plugin

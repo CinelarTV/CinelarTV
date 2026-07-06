@@ -37,8 +37,6 @@ module PluginRegistry
     end
 
     REGISTER_TYPES = {
-      javascripts: Set.new,
-      stylesheets: {},
       seed_data: ActiveSupport::HashWithIndifferentAccess.new,
     }.freeze
 
@@ -61,8 +59,6 @@ module PluginRegistry
 
     def initialize_registers
       # Static registers
-      define_register :javascripts, Set
-      define_register :stylesheets, Hash
       define_register :seed_data, ActiveSupport::HashWithIndifferentAccess
 
       # Filtered registers (only include values from enabled plugins)

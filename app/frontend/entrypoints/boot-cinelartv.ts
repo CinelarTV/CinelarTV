@@ -29,6 +29,9 @@ import(/* webpackChunkName: "cinelartv" */ '../webclient/application.js').then(a
     document.querySelector("noscript")?.remove();
     window.CinelarTV = CinelarTV;
 
+    // Core modules (Vue, Pinia, etc.) are already on window.CinelarTV
+    // via plugin-core.ts which loads before this entry point.
+
     try {
         const { siteSettings } = useSiteSettings();
 

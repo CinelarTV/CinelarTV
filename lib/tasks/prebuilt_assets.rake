@@ -42,10 +42,10 @@ namespace :assets do
       handler.extract(archive)
     end
 
-    puts "  Prebuilt assets installed successfully. Skipping local compilation."
+    puts "  Prebuilt assets installed successfully."
 
-    # Clear everything — prerequisites AND the task body (Vite build)
-    Rake::Task["assets:precompile"].clear
+    # Mark prebuilt as available so downstream tasks can skip main Vite build
+    ENV["PREBUILT_ACTIVE"] = "1"
   end
 
   desc "Compile, package, and publish prebuilt assets to GitHub Releases"
@@ -99,3 +99,15 @@ namespace :assets do
 end
 
 Rake::Task["assets:precompile"].enhance(["assets:download_prebuilt_assets"])
+
+# After prebuilt extraction, compile third-party plugins
+task "assets:postcompile" => "assets:download_prebuilt_assets" do
+  if ENV["PREBUILT_ACTIVE"] == "1"
+    puts "  [prebuilt] Compiling third-party plugins..."
+    Rake::Task["plugins:compile_third_party"].invoke
+  end
+end
+
+Rake::Task["assets:precompile"].enhance do
+  Rake::Task["assets:postcompile"].invoke if ENV["PREBUILT_ACTIVE"] == "1"
+end

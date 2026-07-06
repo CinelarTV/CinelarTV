@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_04_100002) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_05_100001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -92,8 +92,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_04_100002) do
     t.integer "tmdb_id"
     t.string "banner_resized"
     t.string "cover_resized"
+    t.datetime "scheduled_launch_at"
     t.index ["available"], name: "index_contents_on_available_true", where: "(available = true)"
     t.index ["content_type"], name: "index_contents_on_content_type"
+    t.index ["scheduled_launch_at"], name: "index_contents_on_scheduled_launch_pending", where: "((scheduled_launch_at IS NOT NULL) AND (available = false))"
     t.index ["tmdb_id"], name: "index_contents_on_tmdb_id"
   end
 

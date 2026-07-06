@@ -103,6 +103,12 @@ security:
     refresh: true
     default: ""
     type: "list"
+  csp_allowed_media_hosts:
+    client: false
+    refresh: true
+    default: ""
+    type: "list"
+    hidden: false
 
 content:
   enable_metadata_recommendation:

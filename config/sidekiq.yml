@@ -53,3 +53,8 @@
       class: SendConfirmationReminderJob
       queue: "default"
       description: "Send confirmation reminder emails to users 3 days before deadline"
+    scheduled_content_launch:
+      cron: "0 * * * *"
+      class: ScheduledLaunchJob
+      queue: "default"
+      description: "Publish content whose scheduled_launch_at has arrived"

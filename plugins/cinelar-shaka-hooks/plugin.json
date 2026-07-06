@@ -1,0 +1,8 @@
+{
+  "name": "cinelar-shaka-hooks",
+  "version": "0.1.0",
+  "description": "Logs Shaka Player lifecycle hooks for debugging and plugin development",
+  "cinelartv_version": ">=1.0.0",
+  "entry": "app/index.ts",
+  "externals": ["vue", "vue-router", "pinia"]
+}

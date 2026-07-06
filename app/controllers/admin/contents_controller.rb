@@ -583,7 +583,7 @@ module Admin
 
     def content_params
       params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium, :tmdb_id, :trailer_url,
-                                      category_ids: [])
+                                      :scheduled_launch_at, category_ids: [])
     end
 
     def season_params

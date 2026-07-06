@@ -121,13 +121,15 @@ module Plugin
     end
 
     def register_js(path)
-      PluginRegistry.register_javascript(path)
-      Rails.logger.info "[Plugin::Instance] Registered JS: #{path} from #{name}"
+      Rails.logger.debug "[Plugin::Instance] register_js ignored (Vite handles JS): #{path} from #{name}"
     end
 
     def register_css(path, media = "all")
-      PluginRegistry.register_stylesheet(path, media)
-      Rails.logger.info "[Plugin::Instance] Registered CSS: #{path} from #{name}"
+      Rails.logger.debug "[Plugin::Instance] register_css ignored (Vite handles CSS): #{path} from #{name}"
+    end
+
+    def register_asset(file, opts = nil)
+      register_css(file)
     end
 
     private

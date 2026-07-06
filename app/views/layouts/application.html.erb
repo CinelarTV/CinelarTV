@@ -32,9 +32,7 @@
     <%= csp_meta_tag %>
     <%= render partial: "partials/opengraph" %>
     <%= render partial: "partials/schema_web_site" %>
-   
-  
-
+    <%= render_third_party_plugins_css %>
   </head>
   <body class="app-body<% if device == "mobile" %> is-mobile<% end %>" data-current-path="<%= request.env["PATH_INFO"] %>">
     <cinelar-assets>
@@ -67,6 +65,7 @@
     <%= vite_client_tag %>
 
     <%= vite_typescript_tag 'boot-cinelartv' %>
+    <%= render_third_party_plugins_js %>
 
 
    

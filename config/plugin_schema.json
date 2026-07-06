@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CinelarTV Plugin Manifest",
+  "description": "Schema for plugin.json files in third-party CinelarTV plugins",
+  "type": "object",
+  "required": ["name", "version"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9\\-]*$",
+      "description": "Unique plugin identifier (lowercase, alphanumeric, hyphens)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
+      "description": "Semantic version"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the plugin"
+    },
+    "cinelartv_version": {
+      "type": "string",
+      "description": "Required CinelarTV version (semver range, e.g. >=1.0.0)"
+    },
+    "entry": {
+      "type": "string",
+      "default": "app/index.ts",
+      "description": "Relative path to the plugin entry point"
+    },
+    "externals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": ["vue", "vue-router", "pinia"],
+      "description": "Dependencies provided by the host app (not bundled)"
+    }
+  }
+}

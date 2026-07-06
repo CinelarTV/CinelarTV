@@ -16,7 +16,7 @@ class Content < ApplicationRecord
 
   def as_json(options = {})
     super(options.merge(only: %i[id title description banner cover content_type year available premium trailer_url
-                                 tmdb_id]))
+                                 tmdb_id scheduled_launch_at]))
   end
 
   has_many :seasons, dependent: :destroy
@@ -42,23 +42,33 @@ class Content < ApplicationRecord
   validates :title, presence: true
   validates :content_type, presence: true
   validates :year, numericality: { only_integer: true }, allow_nil: true
+  validates :scheduled_launch_at, presence: true, if: -> { scheduled_launch_at_before_last_save.present? }
   validate :trailer_url_must_be_video, if: :trailer_url?
+  validate :scheduled_launch_at_must_be_future, on: :update
 
   has_many :trailer_video_sources, -> { trailers }, class_name: "VideoSource", as: :videoable
 
-  scope :available, -> { where(available: true) }
+  scope :available, -> { where(available: true).launched_or_unscheduled }
   scope :premium, -> { where(premium: true) }
   scope :free, -> { where(premium: false) }
 
+  scope :launched_or_unscheduled, -> {
+    where("scheduled_launch_at IS NULL OR scheduled_launch_at <= ?", Time.current)
+  }
+
+  scope :scheduled_pending, -> {
+    where("scheduled_launch_at IS NOT NULL AND scheduled_launch_at > ? AND available = false", Time.current)
+  }
+
   scope :added_recently, lambda {
-    where(available: true)
+    available
       .where("created_at > ?", 3.weeks.ago)
       .order(created_at: :desc)
       .limit(15)
   }
 
   scope :new_this_week, lambda {
-    where(available: true)
+    available
       .where("created_at > ?", 1.week.ago)
       .order(created_at: :desc)
       .limit(15)
@@ -66,7 +76,7 @@ class Content < ApplicationRecord
 
   scope :trending, lambda { |limit = 15|
     joins(:reproductions)
-      .where(available: true)
+      .available
       .where("reproductions.played_at > ?", 7.days.ago)
       .group("contents.id")
       .order(Arel.sql("COUNT(reproductions.id) DESC"))
@@ -81,14 +91,14 @@ class Content < ApplicationRecord
 
   scope :most_viewed, lambda { |limit = 15|
     left_joins(:content_analytic)
-      .where(available: true)
+      .available
       .order(Arel.sql("COALESCE(content_analytics.total_views, 0) DESC"))
       .limit(limit)
   }
 
   scope :most_liked, lambda { |limit = 15|
     left_joins(:liking_profiles)
-      .where(available: true)
+      .available
       .group("contents.id")
       .order(Arel.sql("COUNT(likes.profile_id) DESC"))
       .limit(limit)
@@ -96,15 +106,15 @@ class Content < ApplicationRecord
 
   scope :by_category_id, lambda { |category_id, limit = 10|
     joins(:content_categories)
-      .where(available: true, content_categories: { category_id: category_id })
+      .available
+      .where(content_categories: { category_id: category_id })
       .limit(limit)
   }
 
   scope :search_by_title_and_description, lambda { |query|
     normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase)
-    where(
-      "available = true AND (" \
-      "unaccent(lower(title)) LIKE unaccent(?) OR " \
+    available.where(
+      "(unaccent(lower(title)) LIKE unaccent(?) OR " \
       "unaccent(lower(description)) LIKE unaccent(?))",
       "%#{normalized}%", "%#{normalized}%"
     )
@@ -116,7 +126,24 @@ class Content < ApplicationRecord
     self.category_ids = category_ids
   end
 
+  def self.publish_scheduled!
+    where("scheduled_launch_at IS NOT NULL AND scheduled_launch_at <= ? AND available = false", Time.current)
+      .find_each do |content|
+        content.update!(available: true, scheduled_launch_at: nil)
+      end
+  end
+
+  def scheduled?
+    scheduled_launch_at.present? && scheduled_launch_at > Time.current && !available?
+  end
+
   private
+
+  def scheduled_launch_at_must_be_future
+    return if scheduled_launch_at.blank?
+
+    errors.add(:scheduled_launch_at, "must be in the future") if scheduled_launch_at <= Time.current
+  end
 
   def trailer_url_must_be_video
     return unless trailer_url.present?

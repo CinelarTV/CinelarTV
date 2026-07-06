@@ -18,7 +18,8 @@ class ContentSerializer < ApplicationSerializer
               :updated_at,
               :available,
              :premium,
-             :tmdb_id
+             :tmdb_id,
+             :scheduled_launch_at
 
   attribute :seasons, if: :include_seasons?
   attribute :liked, key: "liked"

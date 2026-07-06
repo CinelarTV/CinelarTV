@@ -18,7 +18,7 @@ const BASE_ICONS = new Set([
     "circleDollarSign", "brush", "testTube2", "telescope", "code2", "cpu", "star", "satelliteDish",
     "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2",
     "volumeX", "home", "packageOpen", "webhook", "cast", "shrink", "messageCircleMore",
-    "messageCircleOff", "mail", "shield-check", "shuffle",
+    "messageCircleOff", "mail", "shield-check", "shuffle", "languages",
     // Email template editor icons
     "eye", "save", "send", "bold", "italic", "strikethrough",
     "heading-1", "heading-2", "heading-3",
