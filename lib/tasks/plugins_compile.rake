@@ -56,7 +56,7 @@ namespace :plugins do
           "PLUGIN_DIR" => plugin[:dir],
           "NODE_OPTIONS" => "--max-old-space-size=2048",
         },
-        "npx", "vite", "build", "--mode", "production", "--config", vite_config.to_s
+        "pnpm", "exec", "vite", "build", "--mode", "production", "--config", vite_config.to_s
       )
 
       unless status.success?
