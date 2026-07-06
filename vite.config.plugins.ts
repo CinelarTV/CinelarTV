@@ -60,6 +60,7 @@ if (pluginJson.externals) {
 
 export default defineConfig({
   mode: "production",
+  publicDir: false,
   build: {
     target: "esnext",
     lib: {
