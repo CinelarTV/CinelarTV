@@ -54,8 +54,9 @@ namespace :plugins do
           "RAILS_ENV" => Rails.env,
           "SECRET_KEY_BASE" => ENV.fetch("SECRET_KEY_BASE", "build-only"),
           "PLUGIN_DIR" => plugin[:dir],
+          "NODE_OPTIONS" => "--max-old-space-size=2048",
         },
-        "npx", "vite", "build", "--config", vite_config.to_s
+        "npx", "vite", "build", "--mode", "production", "--config", vite_config.to_s
       )
 
       unless status.success?
