@@ -1,6 +1,5 @@
 import { createWebHistory, createRouter } from 'vue-router'
 
-import CinelarTV from '../application'
 import { SafeMode } from '../pre-initializers/safe-mode.ts'
 import { useSiteSettings } from '../app/services/site-settings'
 import { useCurrentUser } from '../app/services/current-user'
@@ -343,7 +342,7 @@ AppRouter.beforeEach((to, from, next) => {
 
     // Permite la navegación normal
     next();
-    CinelarTV.config.globalProperties.$progress.finish();
+    window.CinelarTV?.config?.globalProperties?.$progress?.finish();
 });
 
 AppRouter.afterEach((to, from) => {
@@ -351,7 +350,7 @@ AppRouter.afterEach((to, from) => {
         window.MiniProfiler.pageTransition();
     }
     document.body.setAttribute('data-current-path', to.path);
-    CinelarTV.config.globalProperties.$progress.finish();
+    window.CinelarTV?.config?.globalProperties?.$progress?.finish();
     document.body.classList.remove('route-transition');
     pluginEvents.emit('navigation', to, from);
 });
