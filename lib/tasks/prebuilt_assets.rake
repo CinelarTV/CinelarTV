@@ -47,11 +47,11 @@ namespace :assets do
     # Mark prebuilt as available so downstream tasks can skip main Vite build
     ENV["PREBUILT_ACTIVE"] = "1"
 
-    # Skip the main Vite build — assets are already in public/vite
-    if Rake::Task.task_defined?("vite:build")
-      Rake::Task["vite:build"].clear
-      task "vite:build" do
-        puts "  [prebuilt] Skipping vite:build (prebuilt assets active)"
+    # ViteRuby's enhance block invokes vite:build_all and vite:install_dependencies.
+    # Clear them so the enhance block becomes a no-op.
+    %w[vite:build_all vite:build vite:install_dependencies].each do |task_name|
+      if Rake::Task.task_defined?(task_name)
+        Rake::Task[task_name].clear
       end
     end
   end
