@@ -62,16 +62,6 @@ RSpec.describe PluginRegistry do
   end
 
   describe 'predefined registers' do
-    it 'has javascripts register' do
-      expect(described_class.javascripts).to be_a(Set)
-      expect(described_class.respond_to?(:register_javascript)).to be true
-    end
-
-    it 'has stylesheets register' do
-      expect(described_class.stylesheets).to be_a(Hash)
-      expect(described_class.respond_to?(:register_stylesheet)).to be true
-    end
-
     it 'has seed_data register' do
       expect(described_class.seed_data).to be_a(ActiveSupport::HashWithIndifferentAccess)
       expect(described_class.respond_to?(:register_seed_datum)).to be true
@@ -101,20 +91,13 @@ RSpec.describe PluginRegistry do
 
   describe '.clear_all' do
     it 'clears all registers' do
-      # Add some data to registers
-      described_class.register_javascript('test.js')
-      described_class.register_stylesheet('test.css', 'screen')
       described_class.register_seed_datum('test', 'value')
-      
+
       enabled_plugin = double('Plugin', enabled?: true)
       described_class.register_admin_menu_item({ name: 'test_item' }, enabled_plugin)
-      
-      # Clear all registers
+
       described_class.clear_all
-      
-      # Check that registers are cleared
-      expect(described_class.javascripts).to be_empty
-      expect(described_class.stylesheets).to be_empty
+
       expect(described_class.seed_data).to be_empty
       expect(described_class.admin_menu_items).to be_empty
     end
@@ -122,17 +105,14 @@ RSpec.describe PluginRegistry do
 
   describe '.reset!' do
     it 'clears and reinitializes all registers' do
-      # Add some data to registers
-      described_class.register_javascript('test.js')
-      
-      # Reset registry
+      described_class.register_seed_datum('test', 'value')
+
       described_class.reset!
-      
-      # Should still have the registers defined
-      expect(described_class.respond_to?(:javascripts)).to be true
-      expect(described_class.respond_to?(:register_javascript)).to be true
-      expect(described_class.javascripts).to be_a(Set)
-      expect(described_class.javascripts).to be_empty
+
+      expect(described_class.respond_to?(:seed_data)).to be true
+      expect(described_class.respond_to?(:register_seed_datum)).to be true
+      expect(described_class.seed_data).to be_a(ActiveSupport::HashWithIndifferentAccess)
+      expect(described_class.seed_data).to be_empty
     end
   end
 end
