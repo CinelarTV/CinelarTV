@@ -1,209 +1,273 @@
-/* Player Skip Button Styles */
+/* ── Player Skip Button ────────────────────────────────────── */
 .player-skip-button {
-  position: absolute;
-  bottom: 5rem;
-  right: 1rem;
-  z-index: 50;
-  transition: all 0.3s ease-out;
+    position: absolute;
+    bottom: 5.5rem;
+    right: 1.25rem;
+    z-index: 50;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .player-skip-button.hidden {
-  opacity: 0;
-  transform: translateY(1rem);
-  pointer-events: none;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
 }
 
 .player-skip-button.visible {
-  opacity: 1;
-  transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .player-skip-button button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
-  font-weight: 600;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
-  transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: #000;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--player-radius-lg, 16px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
 }
 
 .player-skip-button button:hover {
-  background: #fff;
-  transform: scale(1.05);
+    background: #fff;
+    transform: scale(1.04);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 .player-skip-button button:active {
-  transform: scale(0.95);
+    transform: scale(0.96);
 }
 
-/* Player Next Episode Styles */
+.player-skip-button button:focus-visible {
+    box-shadow: 0 0 0 2px var(--c-player-accent-color, #38bdf8), 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Player Next Episode ───────────────────────────────────── */
 .player-next-episode {
-  position: absolute;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.8);
-  transition: opacity 0.5s ease;
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.70);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .player-next-episode.hidden {
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .player-next-episode.visible {
-  opacity: 1;
+    opacity: 1;
 }
 
 .player-next-episode .next-episode-card {
-  max-width: 28rem;
-  width: 100%;
-  margin: 0 1rem;
-  background: #18181b;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transform: scale(1);
-  transition: transform 0.5s ease;
+    max-width: 26rem;
+    width: 100%;
+    margin: 0 1rem;
+    background: var(--c-surface-2, rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: var(--player-radius-xl, 20px);
+    overflow: hidden;
+    box-shadow: var(--player-shadow-lg, 0 16px 48px rgba(0, 0, 0, 0.5));
+    border: 1px solid var(--player-glass-border, rgba(255, 255, 255, 0.08));
+    transform: scale(1);
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .player-next-episode.hidden .next-episode-card {
-  transform: scale(0.95);
+    transform: scale(0.94);
 }
 
 .player-next-episode .next-episode-header {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 1.25rem 0.75rem;
 }
 
 .player-next-episode .next-episode-header h3 {
-  color: #fff;
-  font-weight: 600;
-  font-size: 1.125rem;
+    color: var(--c-text-primary, rgba(255, 255, 255, 0.92));
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--c-text-muted, rgba(255, 255, 255, 0.45));
 }
 
 .player-next-episode .next-episode-info {
-  padding: 1.5rem;
-  display: flex;
-  gap: 1rem;
+    padding: 0.75rem 1.25rem 1rem;
+    display: flex;
+    gap: 0.875rem;
+    align-items: center;
 }
 
 .player-next-episode .episode-thumbnail {
-  width: 8rem;
-  height: 5rem;
-  border-radius: 0.375rem;
-  background: #27272a;
-  overflow: hidden;
-  flex-shrink: 0;
+    width: 7.5rem;
+    height: 4.5rem;
+    border-radius: var(--player-radius-md, 12px);
+    background: var(--c-surface-3, rgba(255, 255, 255, 0.08));
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .player-next-episode .episode-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .player-next-episode .episode-thumbnail .placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .player-next-episode .episode-details {
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .player-next-episode .episode-number {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
+    color: var(--c-text-muted, rgba(255, 255, 255, 0.45));
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
 }
 
 .player-next-episode .episode-title {
-  color: #fff;
-  font-weight: 500;
-  font-size: 1.125rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    color: var(--c-text-primary, rgba(255, 255, 255, 0.92));
+    font-weight: 600;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .player-next-episode .countdown-section {
-  padding: 0 1.5rem 1.5rem;
+    padding: 0 1.25rem 1.25rem;
 }
 
 .player-next-episode .progress-bar {
-  width: 100%;
-  height: 0.25rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 9999px;
-  margin-bottom: 1rem;
-  overflow: hidden;
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    margin-bottom: 0.875rem;
+    overflow: hidden;
 }
 
 .player-next-episode .progress-bar .progress-fill {
-  height: 100%;
-  background: #dc2626;
-  border-radius: 9999px;
-  transition: width 1s linear;
+    height: 100%;
+    background: var(--c-player-accent-color, #38bdf8);
+    border-radius: 9999px;
+    transition: width 1s linear;
 }
 
 .player-next-episode .action-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .player-next-episode .cancel-button {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 0.875rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
+    color: var(--c-text-secondary, rgba(255, 255, 255, 0.62));
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--player-radius-sm, 8px);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
 }
 
 .player-next-episode .cancel-button:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+    color: var(--c-text-primary, #fff);
+    background: var(--player-surface-1, rgba(255, 255, 255, 0.06));
+}
+
+.player-next-episode .cancel-button:focus-visible {
+    box-shadow: 0 0 0 2px var(--c-player-accent-color, #38bdf8);
 }
 
 .player-next-episode .play-next-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  color: #000;
-  font-weight: 600;
-  padding: 0.625rem 1.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    color: #000;
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--player-radius-md, 12px);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
 }
 
 .player-next-episode .play-next-button:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .player-next-episode .play-next-button:active {
-  transform: scale(0.95);
+    transform: scale(0.97);
+}
+
+.player-next-episode .play-next-button:focus-visible {
+    box-shadow: 0 0 0 2px var(--c-player-accent-color, #38bdf8), 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .player-next-episode .countdown-badge {
-  background: rgba(0, 0, 0, 0.2);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
+    background: var(--player-surface-1, rgba(255, 255, 255, 0.06));
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--player-radius-sm, 8px);
+    color: var(--c-text-secondary, rgba(255, 255, 255, 0.62));
+}
+
+/* ── Segment Admin ─────────────────────────────────────────── */
+.segment-admin-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    min-width: 320px;
+    max-height: 500px;
+    overflow-y: auto;
+    overscroll-y: contain;
+    border-radius: var(--player-radius-md, 12px);
+    border: 1px solid var(--player-glass-border, rgba(255, 255, 255, 0.08));
+    background: var(--player-glass-bg-heavy, rgba(0, 0, 0, 0.60));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    padding: 0.625rem;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    box-shadow: var(--player-shadow-lg, 0 16px 48px rgba(0, 0, 0, 0.5));
 }

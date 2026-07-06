@@ -17,6 +17,7 @@ export default defineComponent({
         currentTime: { type: Number, required: true }
     },
     setup(props) {
+        const menuOpen = ref(false);
         const segments = ref<Segment[]>([]);
         const creating = ref(false);
         const segmentType = ref<string>('skip_intro');
@@ -44,7 +45,6 @@ export default defineComponent({
             try {
                 const url = getApiBase();
                 if (!url) return;
-
                 const res = await fetch(url);
                 const data = await res.json();
                 segments.value = Array.isArray(data) ? data : (data.segments || []);
@@ -55,7 +55,6 @@ export default defineComponent({
             }
         };
 
-        // Fetch segments when component mounts
         fetchSegments();
 
         const formatTime = (seconds: number): string => {
@@ -65,8 +64,7 @@ export default defineComponent({
         };
 
         const getSegmentTypeLabel = (type: string): string => {
-            const segmentType = segmentTypes.find(st => st.value === type);
-            return segmentType ? segmentType.label : type;
+            return segmentTypes.find(st => st.value === type)?.label || type;
         };
 
         const getSegmentTypeColor = (type: string): string => {
@@ -75,17 +73,12 @@ export default defineComponent({
                 case 'skip_resume': return 'bg-purple-500';
                 case 'next_episode': return 'bg-green-500';
                 case 'credits_start': return 'bg-blue-500';
-                default: return 'bg-gray-500';
+                default: return 'bg-white/20';
             }
         };
 
-        const captureStartTime = () => {
-            startTime.value = props.currentTime;
-        };
-
-        const captureEndTime = () => {
-            endTime.value = props.currentTime;
-        };
+        const captureStartTime = () => { startTime.value = props.currentTime; };
+        const captureEndTime = () => { endTime.value = props.currentTime; };
 
         const createSegment = async () => {
             const selectedType = segmentTypes.find(st => st.value === segmentType.value);
@@ -113,24 +106,14 @@ export default defineComponent({
             try {
                 const url = getApiBase();
                 if (!url) return;
-
                 const segmentData: any = {
-                    segment: {
-                        segment_type: segmentType.value,
-                        start_time: startTime.value,
-                    }
+                    segment: { segment_type: segmentType.value, start_time: startTime.value }
                 };
-
                 if (selectedType.isRange && endTime.value !== null) {
                     segmentData.segment.end_time = endTime.value;
                 }
-
                 const res = await ajax.post(url, segmentData);
-
-                if (res.data.error) {
-                    throw new Error(res.data.error);
-                }
-
+                if (res.data.error) throw new Error(res.data.error);
                 startTime.value = 0;
                 endTime.value = null;
                 creating.value = false;
@@ -144,7 +127,6 @@ export default defineComponent({
 
         const removeSegment = async (id: string | number) => {
             if (!confirm('¿Estás seguro de que quieres eliminar este segmento?')) return;
-
             try {
                 const url = `${getApiBase()}/${id}`;
                 await ajax(url, { method: 'DELETE' });
@@ -154,148 +136,161 @@ export default defineComponent({
             }
         };
 
+        const handleClickOutside = () => {
+            menuOpen.value = false;
+        };
+
         return () => (
-            <media-menu>
-                <media-menu-button
-                    class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4"
+            <div class="relative">
+                {/* Trigger button — same style as other player controls */}
+                <button
+                    onClick={() => menuOpen.value = !menuOpen.value}
+                    class="player-control-btn"
                     aria-label="Segmentos"
                 >
-                    <CIcon icon="clock" class="transform transition-transform duration-200 ease-out group-data-[open]:rotate-45" />
-                </media-menu-button>
-                <media-menu-items
-                    class="flex h-[var(--menu-height)] max-h-[500px] min-w-[320px] flex-col overflow-y-auto overscroll-y-contain rounded-md border border-white/10 bg-black/95 p-2.5 font-sans text-[15px] font-medium outline-none backdrop-blur-sm transition-[height] duration-300 will-change-[height] animate-out fade-out slide-out-to-bottom-2 data-[resizing]:overflow-hidden data-[open]:animate-in data-[open]:fade-in data-[open]:slide-in-from-bottom-4"
-                    placement="top"
-                    offset="0"
-                >
-                    {/* Header */}
-                    <div class="flex items-center justify-between px-3 py-2 border-b border-white/10 mb-2">
-                        <span class="text-white/80 text-sm font-medium">Administrar Segmentos</span>
-                    </div>
+                    <CIcon icon="clock" size={18} />
+                </button>
 
-                    {/* Current Time Display */}
-                    <div class="flex items-center justify-between px-3 py-2 bg-white/5 rounded-md mb-3">
-                        <span class="text-white/60 text-sm">Tiempo actual:</span>
-                        <span class="text-white font-mono font-semibold">{formatTime(props.currentTime)}</span>
-                    </div>
+                {/* Dropdown */}
+                {menuOpen.value && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            class="fixed inset-0 z-40"
+                            onClick={handleClickOutside}
+                        />
 
-                    {/* Create Segment Form */}
-                    {creating.value ? (
-                        <div class="space-y-3 px-1">
-                            <div class="flex flex-col items-start gap-2">
-                                <label class="text-white/80 text-sm">Tipo de segmento</label>
-                                <select
-                                    class="w-full bg-white/10 border border-white/20 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-white/40"
-                                    value={segmentType.value}
-                                    onInput={(e: any) => segmentType.value = e.target.value}
-                                >
-                                    {segmentTypes.map((type) => (
-                                        <option key={type.value} value={type.value}>
-                                            {type.label}
-                                        </option>
-                                    ))}
-                                </select>
+                        {/* Menu panel */}
+                        <div class="absolute right-0 top-full mt-2 z-50 min-w-[300px] max-h-[440px] flex flex-col rounded-xl border border-white/[0.08] bg-black/80 backdrop-blur-2xl shadow-2xl shadow-black/50 overflow-hidden">
+                            {/* Header */}
+                            <div class="px-3.5 pt-3 pb-2 flex items-center justify-between flex-shrink-0">
+                                <span class="text-[0.65rem] font-semibold uppercase tracking-wider text-white/40">
+                                    Segmentos
+                                </span>
+                                <span class="text-[0.65rem] tabular-nums text-white/40">
+                                    {formatTime(props.currentTime)}
+                                </span>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="flex flex-col items-start gap-1">
-                                    <label class="text-white/80 text-sm">Inicio</label>
-                                    <div class="w-full bg-white/10 border border-white/20 rounded-md px-3 py-2 text-center">
-                                        <span class="text-white font-mono">{formatTime(startTime.value)}</span>
-                                    </div>
-                                    <button
-                                        onClick={captureStartTime}
-                                        class="w-full px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
-                                    >
-                                        Capturar
-                                    </button>
-                                </div>
-
-                                {segmentTypes.find(st => st.value === segmentType.value)?.isRange && (
-                                    <div class="flex flex-col items-start gap-1">
-                                        <label class="text-white/80 text-sm">Fin</label>
-                                        <div class="w-full bg-white/10 border border-white/20 rounded-md px-3 py-2 text-center">
-                                            <span class="text-white font-mono">{endTime.value !== null ? formatTime(endTime.value) : '--:--'}</span>
+                            {/* Content — scrollable */}
+                            <div class="px-1.5 pb-1.5 overflow-y-auto overscroll-y-contain flex-1 min-h-0">
+                                {creating.value ? (
+                                    /* ── Create form ── */
+                                    <div class="space-y-2.5 px-2 pt-1">
+                                        <div class="flex flex-col gap-1.5">
+                                            <label class="text-[0.65rem] font-semibold uppercase tracking-wider text-white/40">Tipo</label>
+                                            <select
+                                                class="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors"
+                                                value={segmentType.value}
+                                                onInput={(e: any) => segmentType.value = e.target.value}
+                                            >
+                                                {segmentTypes.map((type) => (
+                                                    <option key={type.value} value={type.value}>{type.label}</option>
+                                                ))}
+                                            </select>
                                         </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div class="flex flex-col gap-1.5">
+                                                <label class="text-[0.65rem] font-semibold uppercase tracking-wider text-white/40">Inicio</label>
+                                                <div class="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-3 py-2 text-center">
+                                                    <span class="text-sm font-mono text-white">{formatTime(startTime.value)}</span>
+                                                </div>
+                                                <button
+                                                    onClick={captureStartTime}
+                                                    class="w-full px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-medium rounded-lg transition-colors"
+                                                >
+                                                    Capturar
+                                                </button>
+                                            </div>
+
+                                            {segmentTypes.find(st => st.value === segmentType.value)?.isRange && (
+                                                <div class="flex flex-col gap-1.5">
+                                                    <label class="text-[0.65rem] font-semibold uppercase tracking-wider text-white/40">Fin</label>
+                                                    <div class="w-full bg-white/[0.06] border border-white/[0.08] rounded-lg px-3 py-2 text-center">
+                                                        <span class="text-sm font-mono text-white">{endTime.value !== null ? formatTime(endTime.value) : '--:--'}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={captureEndTime}
+                                                        class="w-full px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-medium rounded-lg transition-colors"
+                                                    >
+                                                        Capturar
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {error.value && (
+                                            <div class="px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08]">
+                                                <span class="text-red-400 text-xs">{error.value}</span>
+                                            </div>
+                                        )}
+
+                                        <div class="flex gap-2 pt-1 pb-1">
+                                            <button
+                                                onClick={createSegment}
+                                                disabled={saving.value}
+                                                class="flex-1 px-3 py-2 bg-white/[0.10] hover:bg-white/[0.16] text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-40"
+                                            >
+                                                {saving.value ? 'Guardando...' : 'Guardar'}
+                                            </button>
+                                            <button
+                                                onClick={() => { creating.value = false; error.value = null; startTime.value = 0; endTime.value = null; }}
+                                                class="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-white/60 text-xs font-medium rounded-lg transition-colors"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* ── Segment list ── */
+                                    <div class="space-y-0.5">
+                                        {segments.value.length > 0 && segments.value.map((seg) => (
+                                            <div
+                                                key={seg.id}
+                                                class="flex items-center justify-between px-2.5 py-2 rounded-lg hover:bg-white/[0.04] transition-colors group"
+                                            >
+                                                <div class="flex items-center gap-2.5 min-w-0">
+                                                    <div class={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getSegmentTypeColor(seg.segment_type)}`} />
+                                                    <div class="flex flex-col min-w-0">
+                                                        <span class="text-xs font-medium text-white/80 truncate">
+                                                            {getSegmentTypeLabel(seg.segment_type)}
+                                                        </span>
+                                                        <span class="text-[0.65rem] font-mono text-white/40 tabular-nums">
+                                                            {formatTime(seg.start_time || 0)}
+                                                            {seg.end_time != null ? ` — ${formatTime(seg.end_time)}` : ''}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeSegment(seg.id!)}
+                                                    class="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-all p-1 -mr-1"
+                                                >
+                                                    <CIcon icon="trash" size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                        {segments.value.length === 0 && !loading.value && (
+                                            <div class="py-5 text-center">
+                                                <span class="text-xs text-white/30">Sin segmentos</span>
+                                            </div>
+                                        )}
+
                                         <button
-                                            onClick={captureEndTime}
-                                            class="w-full px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition-colors"
+                                            onClick={() => creating.value = true}
+                                            class="w-full flex items-center justify-center gap-2 px-3 py-2 mt-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white/80 text-xs font-medium transition-colors"
                                         >
-                                            Capturar
+                                            <CIcon icon="plus" size={14} />
+                                            <span>Agregar</span>
                                         </button>
                                     </div>
                                 )}
                             </div>
-
-                            {error.value && (
-                                <div class="p-2 bg-red-900/30 border border-red-700/30 rounded-md">
-                                    <span class="text-red-300 text-sm">{error.value}</span>
-                                </div>
-                            )}
-
-                            <div class="flex gap-2 pt-2">
-                                <button
-                                    onClick={createSegment}
-                                    disabled={saving.value}
-                                    class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50"
-                                >
-                                    {saving.value ? 'Guardando...' : 'Guardar'}
-                                </button>
-                                <button
-                                    onClick={() => { creating.value = false; error.value = null; startTime.value = 0; endTime.value = null; }}
-                                    class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-md transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
                         </div>
-                    ) : (
-                        <div class="space-y-2">
-                            {/* Existing Segments */}
-                            {segments.value.length > 0 && (
-                                <div class="space-y-1">
-                                    <div class="text-white/50 text-xs uppercase tracking-wider px-1 mb-2">Segmentos existentes</div>
-                                    {segments.value.map((seg) => (
-                                        <div
-                                            key={seg.id}
-                                            class="flex items-center justify-between p-2 bg-white/5 rounded-md hover:bg-white/10"
-                                        >
-                                            <div class="flex items-center gap-3">
-                                                <div class={`px-2 py-0.5 rounded text-xs font-semibold text-white ${getSegmentTypeColor(seg.segment_type)}`}>
-                                                    {getSegmentTypeLabel(seg.segment_type)}
-                                                </div>
-                                                <span class="text-white/80 text-sm font-mono">
-                                                    {formatTime(seg.start_time || 0)}
-                                                    {seg.end_time !== null && seg.end_time !== undefined ? ` - ${formatTime(seg.end_time)}` : ''}
-                                                </span>
-                                            </div>
-                                            <button
-                                                onClick={() => removeSegment(seg.id!)}
-                                                class="text-red-400 hover:text-red-300 transition-colors p-1"
-                                            >
-                                                <CIcon icon="trash" size={16} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {segments.value.length === 0 && !loading.value && (
-                                <div class="justify-center py-6 text-center">
-                                    <span class="text-white/40 text-sm">No hay segmentos</span>
-                                </div>
-                            )}
-
-                            <div
-                                class="mt-3 flex items-center justify-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md cursor-pointer transition-colors"
-                                onClick={() => creating.value = true}
-                            >
-                                <CIcon icon="plus" size={16} class="mr-2" />
-                                <span>Agregar segmento</span>
-                            </div>
-                        </div>
-                    )}
-                </media-menu-items>
-            </media-menu>
+                    </>
+                )}
+            </div>
         );
     }
 });

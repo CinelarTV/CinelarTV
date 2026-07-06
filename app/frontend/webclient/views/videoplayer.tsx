@@ -1,6 +1,7 @@
 import { computed, defineComponent, onBeforeUnmount, onMounted, ref, provide, watch, nextTick } from 'vue';
 
 import { useSiteSettings } from '@/app/services/site-settings';
+import { useCurrentUser } from '@/app/services/current-user';
 
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 
@@ -12,8 +13,7 @@ import { toast } from "vue-sonner";
 
 import { getGoogleDriveVideoInfo } from "@/app/utils/GoogleDriveParser";
 
-import { defineCustomElement, MediaTitleElement, MediaSpinnerElement, MediaQualityRadioGroupElement } from "vidstack/elements";
-import 'vidstack/bundle';
+import shaka from 'shaka-player';
 
 import CSpinner from "@/components/c-spinner";
 import CIcon from "@/components/c-icon.vue";
@@ -23,20 +23,21 @@ import PlayerSlider from "@/components/videoplayer/PlayerSlider";
 import PlayerVolumeSlider from "@/components/videoplayer/PlayerVolumeSlider";
 import PlayerTopControls from "@/components/videoplayer/PlayerTopControls";
 import { useContinueWatching } from "@/composables/useContinueWatching";
+import { useMediaPlayerState } from "@/composables/useMediaPlayerState";
+import { useChromecast } from "@/composables/useChromecast";
 import { AxiosError } from "axios";
 import PluginOutlet from "@/components/PluginOutlet";
 import pluginEvents from "@/lib/plugin-events";
-import { MediaPlayer } from "vidstack";
 import PlayerSkipButton from "@/components/videoplayer/PlayerSkipButton";
 import PlayerNextEpisode from "@/components/videoplayer/PlayerNextEpisode";
+import PlayerSegmentAdmin from "@/components/videoplayer/PlayerSegmentAdmin";
 
 const DEFAULT_STREAM_PING_INTERVAL_MS = 10_000;
 const STREAM_LIMIT_ERROR_MESSAGE = 'Has alcanzado el número máximo de transmisiones simultáneas.';
 
-// ---------- Funciones puras ----------
+// ---------- Pure functions ----------
 function shouldRedirect(data, isShow, episodeId, contentId, replaceRoute) {
     if (isShow && !episodeId && !data.episode?.id) {
-        // Buscar el primer episodio de todas las temporadas
         const firstSeason = data.seasons?.[0];
         const firstEpisode = firstSeason?.episodes?.[0];
         if (firstEpisode) {
@@ -104,20 +105,25 @@ function handleFetchError(response: AxiosError['response']['data']) {
     }
 }
 
+function formatTime(seconds: number): string {
+    if (!isFinite(seconds)) return '0:00';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 export default defineComponent({
     name: "VideoPlayer",
     setup() {
-        defineCustomElement(MediaTitleElement);
-        defineCustomElement(MediaSpinnerElement);
-        defineCustomElement(MediaQualityRadioGroupElement);
-
         const { siteSettings } = useSiteSettings();
+        const { currentUser } = useCurrentUser();
         const route = useRoute();
         const { replace: replaceRoute } = useRouter();
         const contentId = computed(() => route.params.contentId as string);
         const episodeId = computed(() => route.params.episodeId as string | undefined);
 
-        // Provide reactivo
         provide('playerContentId', contentId);
         provide('playerEpisodeId', episodeId);
 
@@ -127,14 +133,12 @@ export default defineComponent({
         const googleCastEnabled = computed(() => siteSettings?.enable_chromecast || false);
         const isShow = computed(() => watchData.value?.content?.content_type === 'TVSHOW');
 
-        const videoPlayer = ref<MediaPlayer | null>(null);
+        const videoRef = ref<HTMLVideoElement | null>(null);
+        const playerContainerRef = ref<HTMLDivElement | null>(null);
         const isOnFullscreen = ref(false);
         const sources = ref<{ src: string; type: string }[]>([]);
         const streamPingToken = ref<string | null>(null);
         let pingInterval: ReturnType<typeof setInterval> | null = null;
-
-        const currentTime = ref(0);
-        const playerDuration = ref(0);
 
         const segments = computed(() =>
             watchData.value?.episode?.segments || watchData.value?.content?.segments || []
@@ -143,20 +147,15 @@ export default defineComponent({
         const nextEpisode = computed(() => {
             if (!isShow.value || !watchData.value?.seasons) return null;
             const currentEpisodeId = watchData.value?.episode?.id;
-
-            // Buscar en todas las temporadas para encontrar el siguiente episodio
             const seasons = watchData.value.seasons;
             for (let seasonIndex = 0; seasonIndex < seasons.length; seasonIndex++) {
                 const season = seasons[seasonIndex];
                 const episodes = season.episodes || [];
                 const currentIndex = episodes.findIndex(ep => ep.id === currentEpisodeId);
-
                 if (currentIndex !== -1) {
-                    // Si hay más episodios en esta temporada
                     if (currentIndex < episodes.length - 1) {
                         return episodes[currentIndex + 1];
                     }
-                    // Si es el último episodio de esta temporada, ir al primer episodio de la siguiente
                     if (seasonIndex < seasons.length - 1) {
                         const nextSeason = seasons[seasonIndex + 1];
                         if (nextSeason.episodes?.length > 0) {
@@ -169,8 +168,16 @@ export default defineComponent({
             return null;
         });
 
+        // Shaka Player instance (NOT reactive — Vue Proxy breaks it)
+        let shakaPlayer: shaka.Player | null = null;
+        let eventManager: any = null;
+        const playerReady = ref(false);
+
+        const mediaState = useMediaPlayerState();
+        const chromecast = useChromecast();
+
         const handleSkipSegment = (endTime: number) => {
-            if (videoPlayer.value) videoPlayer.value.currentTime = endTime;
+            mediaState.seek(endTime);
         };
 
         const handleNextEpisode = () => {
@@ -231,7 +238,7 @@ export default defineComponent({
             streamPingToken.value = sessionId;
         };
 
-        // ---------- useContinueWatching reactivo ----------
+        // ---------- useContinueWatching ----------
         let updateProgress: ReturnType<typeof useContinueWatching>['updateProgress'];
         let forceSaveProgress: ReturnType<typeof useContinueWatching>['forceSave'];
 
@@ -244,51 +251,185 @@ export default defineComponent({
             forceSaveProgress = cw.forceSave;
         };
 
-        // ---------- Player subscription ----------
-        let unsubscribePlayer: (() => void) | null = null;
-
-        let isPaused = true;
-
+        // ---------- Playback state sync ----------
         let lastSeekTime = 0;
+        let lastPaused = true;
 
-        const setupPlayerSubscription = (player: MediaPlayer) => {
-            unsubscribePlayer?.();
-            unsubscribePlayer = player.subscribe(({ paused, playing, currentTime: time, seeking }) => {
-                if (isPaused !== paused) {
-                    isPaused = paused;
-                    if (paused) forceSaveProgress?.();
-                    pluginEvents.emit(paused ? 'playback:pause' : 'playback:play', {
-                        contentId: contentId.value,
-                        episodeId: episodeId.value,
-                        currentTime: time,
-                    });
+        function syncPlaybackState() {
+            const video = videoRef.value;
+            if (!video) return;
+
+            const currentPaused = video.paused;
+            if (lastPaused !== currentPaused) {
+                lastPaused = currentPaused;
+                if (currentPaused) forceSaveProgress?.();
+                pluginEvents.emit(currentPaused ? 'playback:pause' : 'playback:play', {
+                    contentId: contentId.value,
+                    episodeId: episodeId.value,
+                    currentTime: video.currentTime,
+                });
+            }
+
+            if (!currentPaused) {
+                updateProgress?.(video.currentTime, video.duration || 0);
+            }
+        }
+
+        const isControlsVisible = ref(true);
+        let controlsTimeout: ReturnType<typeof setTimeout> | null = null;
+
+        function showControls() {
+            isControlsVisible.value = true;
+            if (controlsTimeout) clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                if (!mediaState.paused.value) {
+                    isControlsVisible.value = false;
                 }
-                // Guardar después de un seek (cuando seeking pasa de true a false)
-                if (seeking) lastSeekTime = Date.now();
-                if (!seeking && lastSeekTime > 0 && Date.now() - lastSeekTime > 100) {
+            }, 3000);
+        }
+
+        // ---------- Shaka initialization ----------
+        async function initShakaPlayer() {
+            const video = videoRef.value;
+            if (!video) {
+                console.warn('[Shaka] No video element found');
+                return;
+            }
+            console.log('[Shaka] Initializing...');
+
+            if (shakaPlayer) {
+                eventManager?.removeAll();
+                await shakaPlayer.destroy();
+                shakaPlayer = null;
+                eventManager = null;
+                playerReady.value = false;
+            }
+
+            shaka.polyfill.installAll();
+
+            if (!shaka.Player.isBrowserSupported()) {
+                console.error('Shaka Player: browser not supported');
+                return;
+            }
+
+            shakaPlayer = new shaka.Player();
+            await shakaPlayer.attach(video);
+
+            // Emit before-init hook — plugins can modify config
+            const pendingConfigs: Record<string, any>[] = [];
+            pluginEvents.emit('player:before-init', {
+                video,
+                configure: (cfg: Record<string, any>) => pendingConfigs.push(cfg),
+            });
+
+            // Aggressive ABR configuration — ramp up faster
+            shakaPlayer.configure({
+                abr: {
+                    enabled: true,
+                    defaultBandwidthEstimate: 3_000_000,
+                    bandwidthUpgradeTarget: 0.85,
+                    bandwidthDowngradeTarget: 0.95,
+                },
+                streaming: {
+                    rebufferingGoal: 2,
+                    bufferingGoal: 30,
+                },
+            });
+
+            // Apply plugin configs (after defaults, so plugins can override)
+            for (const cfg of pendingConfigs) {
+                shakaPlayer.configure(cfg);
+            }
+
+            eventManager = new shaka.util.EventManager();
+
+            mediaState.attach(shakaPlayer, video, eventManager);
+
+            // Emit after-init hook — plugins can access networking engine, etc.
+            pluginEvents.emit('player:after-init', {
+                player: shakaPlayer,
+                video,
+                netEngine: shakaPlayer.getNetworkingEngine(),
+            });
+
+            eventManager.listen(shakaPlayer, 'error', (event: any) => {
+                const error = event.detail;
+                console.error('Shaka error:', error.code, error);
+                toast.error('Error al reproducir el video.');
+            });
+
+            eventManager.listen(video, 'timeupdate', syncPlaybackState);
+            eventManager.listen(video, 'seeking', () => { lastSeekTime = Date.now(); });
+            eventManager.listen(video, 'seeked', () => {
+                if (lastSeekTime > 0 && Date.now() - lastSeekTime > 100) {
                     lastSeekTime = 0;
                     forceSaveProgress?.();
                 }
-                if (paused || !playing) return;
-                updateProgress(time, player.duration || 0);
-                currentTime.value = time;
-                playerDuration.value = player.duration || 0;
             });
 
-            player.addEventListener('fullscreenchange', () => {
+            eventManager.listen(document, 'fullscreenchange', () => {
                 isOnFullscreen.value = !!document.fullscreenElement;
             });
-        };
 
-        // Re-suscribirse cada vez que el player se remonta (key cambia con episodio)
-        watch(videoPlayer, (player) => {
-            if (!player) return;
-            setupPlayerSubscription(player);
+            if (googleCastEnabled.value) {
+                chromecast.init(shakaPlayer, video);
+            }
 
-            // Restaurar progreso de continue watching tras remonte del player
-            const progress = watchData.value?.continue_watching?.progress;
-            if (progress) player.currentTime = progress;
+            playerReady.value = true;
+            console.log('[Shaka] Player ready, sources:', sources.value);
+
+            if (sources.value.length > 0) {
+                await loadSource(sources.value[0]);
+            }
+        }
+
+        // ---------- Load + seek helper ----------
+        let loadingSource = false;
+        async function loadSource(source: { src: string; type: string }) {
+            if (!shakaPlayer || loadingSource) return;
+            loadingSource = true;
+            const video = videoRef.value;
+            try {
+                pluginEvents.emit('player:before-load', { player: shakaPlayer, src: source.src });
+                console.log('[Shaka] Loading:', source.src);
+                await shakaPlayer.load(source.src);
+                console.log('[Shaka] Load complete');
+
+                if (video && video.readyState < 1) {
+                    await new Promise<void>((resolve) => {
+                        const onReady = () => { video.removeEventListener('loadedmetadata', onReady); resolve(); };
+                        video.addEventListener('loadedmetadata', onReady);
+                        setTimeout(resolve, 2000);
+                    });
+                }
+
+                const progress = watchData.value?.continue_watching?.progress;
+                if (progress > 0 && video) {
+                    console.log('[Shaka] Seeking to progress:', progress);
+                    video.currentTime = progress;
+                }
+
+                pluginEvents.emit('player:after-load', { player: shakaPlayer, video, duration: video?.duration || 0 });
+
+                if (video) {
+                    video.play().catch(() => {});
+                }
+            } catch (error) {
+                console.error('[Shaka] Failed to load:', error);
+            } finally {
+                loadingSource = false;
+            }
+        }
+
+        watch(playerContainerRef, async (container) => {
+            if (!container) return;
+            await initShakaPlayer();
         });
+
+        watch(sources, async (newSources) => {
+            if (!shakaPlayer || !newSources.length) return;
+            await loadSource(newSources[0]);
+        }, { deep: true });
 
         // ---------- fetchData ----------
         async function fetchData() {
@@ -316,13 +457,6 @@ export default defineComponent({
                 }
 
                 useHead({ title: contentData.content?.title });
-
-                // Restaurar progreso una vez que el player esté disponible
-                const progress = contentData.continue_watching?.progress;
-                if (progress) {
-                    await nextTick();
-                    if (videoPlayer.value) videoPlayer.value.currentTime = progress;
-                }
             } catch (error) {
                 const responseData = error?.response?.data || error;
 
@@ -338,17 +472,86 @@ export default defineComponent({
             }
         }
 
-        watch([() => route.params.contentId, () => route.params.episodeId], fetchData);
+        watch([() => route.params.contentId, () => route.params.episodeId], () => {
+            audioDefaultApplied = false;
+            fetchData();
+        });
+
+        // Auto-select audio track matching the site's default locale
+        let audioDefaultApplied = false;
+        watch(() => mediaState.audioTracks.value, (tracks) => {
+            if (audioDefaultApplied || tracks.length <= 1) return;
+            const defaultLocale = siteSettings?.default_locale;
+            if (!defaultLocale) return;
+            audioDefaultApplied = true;
+            const lang = defaultLocale.split('-')[0].toLowerCase();
+            const match = tracks.find(t => t.language.toLowerCase().startsWith(lang));
+            if (match && !match.active) {
+                mediaState.selectAudioTrack(match.language, match.roles[0]);
+            }
+        });
 
         onMounted(async () => {
             document.body.classList.add('video-player');
             await fetchData();
         });
 
+        // Keyboard shortcuts
+        function handleKeydown(e: KeyboardEvent) {
+            const tag = (e.target as HTMLElement)?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+            switch (e.key) {
+                case ' ':
+                case 'k':
+                    e.preventDefault();
+                    togglePlay();
+                    showControls();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    mediaState.seek(Math.max(0, mediaState.currentTime.value - 10));
+                    showControls();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    mediaState.seek(mediaState.currentTime.value + 10);
+                    showControls();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    mediaState.setVolume(Math.min(1, mediaState.volume.value + 0.1));
+                    showControls();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    mediaState.setVolume(Math.max(0, mediaState.volume.value - 0.1));
+                    showControls();
+                    break;
+                case 'f':
+                    e.preventDefault();
+                    mediaState.toggleFullscreen(playerContainerRef.value || undefined);
+                    break;
+                case 'm':
+                    e.preventDefault();
+                    mediaState.toggleMute();
+                    showControls();
+                    break;
+            }
+        }
+
+        onMounted(() => {
+            document.addEventListener('keydown', handleKeydown);
+        });
+
         onBeforeUnmount(() => {
+            pluginEvents.emit('player:destroy', { player: shakaPlayer });
+            document.removeEventListener('keydown', handleKeydown);
             document.body.classList.remove('video-player');
             stopStreamPing();
-            unsubscribePlayer?.();
+            eventManager?.removeAll();
+            shakaPlayer?.destroy();
+            shakaPlayer = null;
         });
 
         const backToContent = () => {
@@ -357,8 +560,34 @@ export default defineComponent({
             replaceRoute({ name: "content.show", params: { id: contentId.value } });
         };
 
+        const togglePlay = () => {
+            if (mediaState.paused.value) {
+                mediaState.play();
+                showControls();
+                pluginEvents.emit('player:playback-start', {
+                    player: shakaPlayer,
+                    contentId: contentId.value,
+                    episodeId: episodeId.value,
+                });
+            } else {
+                mediaState.pause();
+                isControlsVisible.value = true;
+                pluginEvents.emit('player:playback-pause', {
+                    player: shakaPlayer,
+                    contentId: contentId.value,
+                    episodeId: episodeId.value,
+                    currentTime: mediaState.currentTime.value,
+                });
+            }
+        };
+
+        function handleContainerMouseMove() {
+            showControls();
+        }
+
         // ---------- Render ----------
         return () => {
+            // ── Stream limit error state ──
             if (streamLimitError.value) {
                 return (
                     <div class="video-container">
@@ -397,95 +626,172 @@ export default defineComponent({
                 );
             }
 
+            // ── Loading state ──
             if (!watchData.value) {
                 return (
                     <div class="video-container">
-                        <CSpinner class="w-full h-full" />
+                        <div class="flex items-center justify-center w-full h-full">
+                            <CSpinner class="w-12 h-12" />
+                        </div>
                     </div>
                 );
             }
 
-            const videoSources = sources.value.length
-                ? sources.value
-                : [{ src: watchData.value.content?.video_url || "", type: "video/mp4" }];
+            // ── Player ──
+            const controlsVisible = isControlsVisible.value || mediaState.paused.value;
 
             return (
                 <div class="video-container">
-                    <media-player
-                        key={`player-${contentId.value}-${episodeId.value || 'movie'}`}
-                        ref={videoPlayer}
-                        class="video-shell w-full h-full min-w-0 min-h-0"
-                        autoplay
-                        title={watchData.value.content?.title || "Video"}
+                    <div
+                        ref={playerContainerRef}
+                        class="video-shell w-full h-full min-w-0 min-h-0 relative"
+                        onMousemove={handleContainerMouseMove}
                     >
-                        <media-provider>
-                            <media-poster
-                                class="absolute inset-0 block h-full w-full rounded-md bg-black opacity-0 transition-opacity data-[visible]:opacity-100 [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
-                                src={watchData.value.content?.banner || ""}
-                                alt={watchData.value.content?.title || "Poster"}
-                            />
-                            {videoSources.map((source, index) => (
-                                <source key={`${source.src}-${index}`} src={source.src} type={source.type} />
-                            ))}
-                        </media-provider>
+                        {/* Video element */}
+                        <video
+                            ref={videoRef}
+                            class="w-full h-full object-contain bg-black"
+                            autoplay
+                            title={watchData.value.content?.title || "Video"}
+                            playsinline
+                        />
 
-                        <PlayerGestures />
-                        <div class="pointer-events-none absolute inset-0 z-50 flex h-full w-full items-center justify-center">
-                            <media-spinner
-                                class="text-white opacity-0 transition-opacity duration-200 ease-linear media-buffering:animate-spin media-buffering:opacity-100 [&>[data-part='track']]:opacity-25"
-                                size="96"
-                                track-width="8"
+                        {/* Gesture layer */}
+                        <PlayerGestures
+                            videoRef={() => videoRef.value}
+                            onTogglePlay={togglePlay}
+                            onSeek={(delta) => mediaState.seek(mediaState.currentTime.value + delta)}
+                            onToggleFullscreen={() => mediaState.toggleFullscreen(playerContainerRef.value || undefined)}
+                            onToggleControls={showControls}
+                        />
+
+                        {/* Buffering spinner */}
+                        <div class="pointer-events-none absolute inset-0 z-50 flex items-center justify-center">
+                            <div
+                                class={`transition-all duration-300 ease-out ${mediaState.buffering.value
+                                    ? 'opacity-100 scale-100'
+                                    : 'opacity-0 scale-90'
+                                }`}
                             >
-                                Cargando
-                            </media-spinner>
-                            <div class="absolute inset-0 flex items-center justify-center opacity-0 media-buffering:opacity-100">
-                                <CSpinner class="w-16 h-16 text-white" />
+                                <div class="w-16 h-16 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/[0.08]">
+                                    <CSpinner class="w-8 h-8" />
+                                </div>
                             </div>
                         </div>
 
-                        <media-controls class="pointer-events-none absolute inset-0 z-99 flex h-full w-full flex-col opacity-0 transition-opacity data-[visible]:opacity-100 media-buffering:opacity-100 in-media-buffering:opacity-100">
+                        {/* Controls overlay */}
+                        <div
+                            class={`pointer-events-none absolute inset-0 z-[99] flex flex-col transition-opacity duration-300 ease-out ${controlsVisible ? 'opacity-100' : 'opacity-0'}`}
+                            onMousemove={handleContainerMouseMove}
+                        >
+                            {/* ── Top controls ── */}
                             <PlayerTopControls
                                 googleCastEnabled={googleCastEnabled.value}
                                 backToContent={backToContent}
                                 content={watchData.value}
-                                currentTime={currentTime.value}
-                                isAdmin={true}
+                                onCast={chromecast.toggleCast}
+                                isCasting={chromecast.isCasting.value}
+                                audioTracks={mediaState.audioTracks.value}
+                                onSelectAudioTrack={mediaState.selectAudioTrack}
+                                variantTracks={mediaState.variantTracks.value}
+                                isAutoQuality={mediaState.isAutoQuality.value}
+                                activeQuality={mediaState.activeQuality.value}
+                                onSelectQuality={mediaState.selectQualityByBandwidth}
+                                onEnableAutoQuality={mediaState.enableAutoQuality}
+                                contentId={contentId.value}
+                                episodeId={episodeId.value}
+                                currentTime={mediaState.currentTime.value}
+                                isAdmin={currentUser?.admin}
                             />
-                            <div class="flex-1"></div>
-                            <media-controls-group class="pointer-events-auto flex w-full justify-center items-center px-2">
-                                <media-play-button class="group relative inline-flex size-24 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 data-[focus]:ring-4">
-                                    <CIcon icon="play" size={40} class="hidden group-data-[paused]:block" />
-                                    <CIcon icon="pause" size={40} class="group-data-[paused]:hidden" />
-                                </media-play-button>
-                            </media-controls-group>
-                            <div class="flex-1"></div>
-                            <media-controls-group class="pointer-events-auto bg-gradient-to-t from-black h-32 to-transparent px-4">
-                                <div class="max-w-7xl mx-auto w-full flex-col flex">
-                                    <PlayerSlider />
-                                    <div class="flex items-center text-sm font-medium gap-x-4">
-                                        <div class="flex items-center">
-                                            <media-time class="time tabular-nums" type="current"></media-time>
-                                            <div class="mx-1 text-white/50">/</div>
-                                            <media-time class="time tabular-nums text-white/50" type="duration"></media-time>
+
+                            {/* Spacer */}
+                            <div class="flex-1" />
+
+                            {/* ── Center play button ── */}
+                            <div class="pointer-events-auto flex w-full justify-center items-center px-4">
+                                <button
+                                    onClick={togglePlay}
+                                    class="group relative inline-flex size-[72px] cursor-pointer items-center justify-center rounded-2xl bg-white/[0.10] backdrop-blur-sm border border-white/[0.08] outline-none transition-all duration-200 ease-out hover:bg-white/[0.18] hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-[var(--c-player-accent-color,#38bdf8)]"
+                                >
+                                    <CIcon
+                                        icon="play"
+                                        size={32}
+                                        class={`transition-all duration-200 ease-out ${!mediaState.paused.value ? 'hidden' : 'block'}`}
+                                    />
+                                    <CIcon
+                                        icon="pause"
+                                        size={32}
+                                        class={`transition-all duration-200 ease-out ${mediaState.paused.value ? 'hidden' : 'block'}`}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* Spacer */}
+                            <div class="flex-1" />
+
+                            {/* ── Bottom controls ── */}
+                            <div class="pointer-events-auto bg-gradient-to-t from-black/70 via-black/30 to-transparent px-5 pb-4 pt-12">
+                                <div class="mx-auto w-full max-w-7xl flex flex-col gap-2.5">
+                                    {/* Progress slider */}
+                                    <PlayerSlider
+                                        currentTime={mediaState.currentTime.value}
+                                        duration={mediaState.duration.value}
+                                        bufferedEnd={mediaState.bufferedEnd.value}
+                                        onSeek={mediaState.seek}
+                                    />
+
+                                    {/* Time + Volume row */}
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            {/* Time display */}
+                                            <div class="flex items-center text-sm font-medium tabular-nums">
+                                                <span class="text-white/90">{formatTime(mediaState.currentTime.value)}</span>
+                                                <span class="mx-1.5 text-white/30">/</span>
+                                                <span class="text-white/40">{formatTime(mediaState.duration.value)}</span>
+                                            </div>
+
+                                            {/* Volume */}
+                                            <PlayerVolumeSlider
+                                                volume={mediaState.volume.value}
+                                                muted={mediaState.muted.value}
+                                                onVolumeChange={mediaState.setVolume}
+                                                onToggleMute={mediaState.toggleMute}
+                                            />
                                         </div>
-                                        <PlayerVolumeSlider playerElement={videoPlayer.value as MediaPlayer} />
+
+                                        {/* Fullscreen */}
+                                        <button
+                                            onClick={() => {
+                                                if (document.fullscreenElement) {
+                                                    document.exitFullscreen();
+                                                } else {
+                                                    document.documentElement.requestFullscreen();
+                                                }
+                                            }}
+                                            class="player-control-btn"
+                                            aria-label="Fullscreen"
+                                        >
+                                            <CIcon icon="maximize" size={18} />
+                                        </button>
                                     </div>
                                 </div>
-                            </media-controls-group>
-                        </media-controls>
-                    </media-player>
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* Skip button overlay */}
                     <PlayerSkipButton
                         segments={segments.value}
-                        currentTime={currentTime.value}
+                        currentTime={mediaState.currentTime.value}
                         onSkip={handleSkipSegment}
                     />
 
+                    {/* Next episode overlay */}
                     <PlayerNextEpisode
                         key={`next-ep-${episodeId.value || 'movie'}`}
                         segments={segments.value}
-                        currentTime={currentTime.value}
-                        duration={playerDuration.value}
+                        currentTime={mediaState.currentTime.value}
+                        duration={mediaState.duration.value}
                         nextEpisode={nextEpisode.value}
                         onNextEpisode={handleNextEpisode}
                         onCancel={() => { }}

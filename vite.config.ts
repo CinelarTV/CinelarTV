@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { resolve } from 'path'
-import { vite as vidstack } from 'vidstack/plugins';
+
 
 
 
@@ -25,7 +25,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['vue', 'vue-router', 'pinia'],
           ui: ['@headlessui/vue', 'vue-final-modal', 'vue3-toastify'],
-          media: ['hls.js', 'vidstack'],
+          media: ['shaka-player'],
           editor: ['@guolao/vue-monaco-editor', 'monaco-editor'],
           charts: ['chart.js'],
           utils: ['axios', 'i18n-js']
@@ -48,12 +48,12 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag.startsWith('media-'),
+          isCustomElement: (tag) => false,
         }
       }
     }),
     vueJsx({
-      isCustomElement: (tag) => tag.startsWith('media-'),
+      isCustomElement: (tag) => false,
     }),
     ViteRails({
       envOptions: { defineOn: "import.meta.env" },
@@ -62,7 +62,6 @@ export default defineConfig({
         delay: 300,
       },
     }),
-    vidstack(),
     //react(),
   ],
   resolve: {
@@ -77,7 +76,8 @@ export default defineConfig({
       'vue-router',
       'pinia',
       'axios',
-      'i18n-js'
+      'i18n-js',
+      'shaka-player'
     ]
   }
 });

@@ -80,6 +80,9 @@ importers:
       console-log-colors:
         specifier: ^0.4.0
         version: 0.4.0
+      date-fns:
+        specifier: ^4.4.0
+        version: 4.4.0
       esbuild:
         specifier: ^0.19.6
         version: 0.19.12
@@ -122,6 +125,9 @@ importers:
       sass:
         specifier: ^1.66.0
         version: 1.80.7
+      shaka-player:
+        specifier: ^5.1.12
+        version: 5.1.12
       stream:
         specifier: ^0.0.2
         version: 0.0.2
@@ -2335,6 +2341,9 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
+  date-fns@4.4.0:
+    resolution: {integrity: sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w==}
+
   de-indent@1.0.2:
     resolution: {integrity: sha512-e/1zu3xH5MQryN2zdVaF0OrdNLUbvWxzMbi+iNA6Bky7l1RoP8a2fIbRocyHclXt/arDrrR6lL3TqFD9pMQTsg==}
 
@@ -3168,6 +3177,10 @@ packages:
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
+
+  shaka-player@5.1.12:
+    resolution: {integrity: sha512-luGIzJ/H201aY0Hobs5853vY1eRJXPHH+u3oSWiTAYoufq5s/yIbRZS1QwCsj3f3Fyxc2C3HfptfI0brjE+RIQ==}
+    engines: {node: '>=18'}
 
   shallow-equal@3.1.0:
     resolution: {integrity: sha512-pfVOw8QZIXpMbhBWvzBISicvToTiM5WBF1EeAUZDDSb5Dt29yl4AYbyywbJFSEsRUMr7gJaxqCdr4L3tQf9wVg==}
@@ -5736,6 +5749,8 @@ snapshots:
 
   csstype@3.1.3: {}
 
+  date-fns@4.4.0: {}
+
   de-indent@1.0.2: {}
 
   debug@4.3.7:
@@ -6625,6 +6640,8 @@ snapshots:
       '@parcel/watcher': 2.5.0
 
   semver@6.3.1: {}
+
+  shaka-player@5.1.12: {}
 
   shallow-equal@3.1.0: {}
 

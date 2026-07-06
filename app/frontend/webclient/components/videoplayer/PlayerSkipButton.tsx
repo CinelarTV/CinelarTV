@@ -28,10 +28,8 @@ export default defineComponent({
         const visible = ref(false);
         const activeSegment = ref<Segment | null>(null);
 
-        // Skip segment types that should show the skip button
         const skipTypes = ['skip_intro', 'skip_resume'];
 
-        // Check if current time is within a skippable segment
         watch(() => props.currentTime, (time) => {
             const segment = props.segments.find(seg => {
                 if (!skipTypes.includes(seg.segment_type)) return false;
@@ -41,11 +39,9 @@ export default defineComponent({
             });
 
             if (segment && !visible.value) {
-                // Just entered a skip segment
                 visible.value = true;
                 activeSegment.value = segment;
             } else if (!segment && visible.value) {
-                // Left the skip segment
                 visible.value = false;
                 activeSegment.value = null;
             }
@@ -73,16 +69,18 @@ export default defineComponent({
         return () => (
             <div
                 class={[
-                    'absolute bottom-32 right-4 z-50 transition-all duration-300 ease-out',
-                    visible.value ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                    'absolute bottom-32 right-5 z-50 transition-all duration-350 ease-out',
+                    visible.value
+                        ? 'opacity-100 translate-y-0'
+                        : 'opacity-0 translate-y-3 pointer-events-none'
                 ]}
             >
                 <button
                     onClick={handleSkip}
-                    class="flex items-center gap-2 px-5 py-3 bg-white/95 hover:bg-white text-black font-semibold rounded-lg shadow-lg shadow-black/30 backdrop-blur-sm transition-all hover:scale-105 active:scale-95"
+                    class="player-skip-btn flex items-center gap-2.5 px-5 py-3 bg-white/[0.92] hover:bg-white text-black font-semibold rounded-2xl shadow-lg shadow-black/30 backdrop-blur-md border border-white/20 transition-all duration-200 ease-out hover:scale-[1.04] active:scale-[0.96] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--c-player-accent-color,#38bdf8)]"
                 >
                     <span class="text-sm tracking-wide">{segmentLabel.value}</span>
-                    <CIcon icon="fast-forward" size={18} />
+                    <CIcon icon="fast-forward" size={16} />
                 </button>
             </div>
         );

@@ -1,6 +1,18 @@
-import { defineComponent } from "vue";
+import { defineComponent, ref, PropType } from "vue";
 import CIcon from "../c-icon.vue";
 import PluginOutlet from "../PluginOutlet";
+import PlayerAudioMenu from "./PlayerAudioMenu";
+import PlayerQualityMenu from "./PlayerQualityMenu";
+import PlayerSegmentAdmin from "./PlayerSegmentAdmin";
+import type { AudioTrackInfo } from "@/composables/useMediaPlayerState";
+
+interface VariantTrack {
+    id: number;
+    width: number;
+    height: number;
+    bandwidth: number;
+    active: boolean;
+}
 
 export default defineComponent({
     name: "PlayerTopControls",
@@ -16,85 +28,149 @@ export default defineComponent({
         backToContent: {
             type: Function,
             required: true
+        },
+        onCast: {
+            type: Function as PropType<() => void>,
+            default: null
+        },
+        isCasting: {
+            type: Boolean,
+            default: false
+        },
+        audioTracks: {
+            type: Array as PropType<AudioTrackInfo[]>,
+            default: () => []
+        },
+        onSelectAudioTrack: {
+            type: Function as PropType<(language: string, role?: string) => void>,
+            default: null
+        },
+        variantTracks: {
+            type: Array as PropType<VariantTrack[]>,
+            default: () => []
+        },
+        isAutoQuality: {
+            type: Boolean,
+            default: true
+        },
+        activeQuality: {
+            type: Object as PropType<{ width: number; height: number; bandwidth: number } | null>,
+            default: null
+        },
+        onSelectQuality: {
+            type: Function as PropType<(bandwidth: number) => void>,
+            default: null
+        },
+        onEnableAutoQuality: {
+            type: Function as PropType<() => void>,
+            default: null
+        },
+        contentId: {
+            type: String,
+            default: null
+        },
+        episodeId: {
+            type: String,
+            default: null
+        },
+        currentTime: {
+            type: Number,
+            default: 0
+        },
+        isAdmin: {
+            type: Boolean,
+            default: false
         }
     },
     setup(props) {
-        const { googleCastEnabled, backToContent } = props;
-
         const { episode, season } = props.content;
-
         const seasonTitle = season?.title || null;
         const episodeTitle = episode?.title || null;
 
         return () => (
-            <media-controls-group class="pointer-events-auto h-20 flex w-full items-center px-4 bg-gradient-to-b from-black/50 to-transparent">
-                <div class="max-w-7xl mx-auto w-full flex items-center py-4 justify-between">
-                    <div class="flex flex-col">
-                        <media-title class="text-white text-2xl font-semibold truncate" />
-                        {episodeTitle && seasonTitle && (
-                            <div class="text-white text-sm">
-                                {seasonTitle} - {episodeTitle}
+            <div class="pointer-events-auto w-full">
+                {/* Top gradient + glass panel */}
+                <div class="flex w-full items-center px-5 py-3 bg-gradient-to-b from-black/70 via-black/40 to-transparent">
+                    <div class="mx-auto flex w-full max-w-7xl items-center justify-between">
+                        {/* Left: back + title */}
+                        <div class="flex items-center gap-3 min-w-0">
+                            <button
+                                onClick={() => props.backToContent()}
+                                class="player-control-btn flex-shrink-0"
+                                aria-label="Volver"
+                            >
+                                <CIcon icon="arrow-left" size={18} />
+                            </button>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-white text-base font-semibold truncate max-w-[40vw]">
+                                    {props.content?.content?.title || ''}
+                                </span>
+                                {episodeTitle && seasonTitle && (
+                                    <span class="text-white/50 text-xs font-medium truncate max-w-[35vw]">
+                                        {seasonTitle} · {episodeTitle}
+                                    </span>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
 
-                    <div class="flex items-center gap-2">
-                        <media-menu>
-                            <media-menu-button
-                                class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4"
-                                aria-label="Settings"
+                        {/* Right: controls */}
+                        <div class="flex items-center gap-1.5">
+                            {/* Segment admin (admin only) */}
+                            {props.isAdmin && props.contentId && (
+                                <PlayerSegmentAdmin
+                                    contentId={props.contentId}
+                                    episodeId={props.episodeId}
+                                    currentTime={props.currentTime}
+                                />
+                            )}
+
+                            {/* Audio tracks */}
+                            {props.audioTracks.length > 0 && props.onSelectAudioTrack && (
+                                <PlayerAudioMenu
+                                    audioTracks={props.audioTracks}
+                                    onSelectTrack={props.onSelectAudioTrack}
+                                />
+                            )}
+
+                            {/* Quality settings */}
+                            {props.variantTracks.length > 0 && props.onSelectQuality && props.onEnableAutoQuality && (
+                                <PlayerQualityMenu
+                                    variantTracks={props.variantTracks}
+                                    isAutoQuality={props.isAutoQuality}
+                                    activeQuality={props.activeQuality}
+                                    onSelectQuality={props.onSelectQuality}
+                                    onEnableAuto={props.onEnableAutoQuality}
+                                />
+                            )}
+
+                            {/* Cast */}
+                            {props.googleCastEnabled && props.onCast && (
+                                <button
+                                    onClick={props.onCast}
+                                    title="Cast to device"
+                                    class={`player-control-btn ${props.isCasting ? 'text-[var(--c-player-accent-color,#00A8E1)]' : ''}`}
+                                >
+                                    <CIcon icon="airplay" size={18} />
+                                </button>
+                            )}
+
+                            <PluginOutlet name="player:top-controls:right" />
+
+                            {/* Divider */}
+                            <div class="w-px h-5 bg-white/[0.12] mx-1" />
+
+                            {/* Close */}
+                            <button
+                                onClick={() => props.backToContent()}
+                                class="player-control-btn"
+                                aria-label="Close player"
                             >
-                                <CIcon icon="settings" class="transform transition-transform duration-200 ease-out group-data-[open]:rotate-90" />
-                            </media-menu-button>
-                            <media-menu-items
-                                class="flex h-[var(--menu-height)] max-h-[400px] min-w-[260px] flex-col overflow-y-auto overscroll-y-contain rounded-md border border-white/10 bg-black/95 p-2.5 font-sans text-[15px] font-medium outline-none backdrop-blur-sm transition-[height] duration-300 will-change-[height] animate-out fade-out slide-out-to-bottom-2 data-[resizing]:overflow-hidden data-[open]:animate-in data-[open]:fade-in data-[open]:slide-in-from-bottom-4"
-                                placement="top"
-                                offset="0"
-                            >
-                            </media-menu-items>
-                        </media-menu>
-
-                        <media-fullscreen-button
-                            class="group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 aria-hidden:hidden data-[focus]:ring-4"
-                        >
-                            <CIcon icon="maximize" class=" group-data-[active]:hidden" />
-                            <CIcon icon="shrink" class="hidden group-data-[active]:block" />
-                        </media-fullscreen-button>
-
-                        {
-                            googleCastEnabled && (
-                                <media-tooltip class="contents">
-                                    <media-tooltip-trigger>
-                                        <media-google-cast-button
-                                            class="group relative inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4"
-                                        >
-                                            <CIcon icon="airplay" />
-                                        </media-google-cast-button>
-                                    </media-tooltip-trigger>
-                                    <media-tooltip-content
-                                        class="z-10 rounded-sm border border-gray-400/20 bg-black/90 px-2 py-0.5 text-sm font-medium text-white animate-fade-out animate-duration-200 data-[visible]:animate-fade-in data-[visible]:animate-duration-100"
-                                        placement="top start"
-                                    >
-                                        Cast to device
-                                    </media-tooltip-content>
-                                </media-tooltip>
-
-                            )
-                        }
-
-
-                        <PluginOutlet name="player:top-controls:right" />
-
-                        <hr class="h-6 border-l border-white/10" />
-                        <button
-                            onClick={() => backToContent()}
-                            class="group relative flex size-10 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-[var(--c-player-accent-50)] hover:bg-white/20 data-[focus]:ring-4">
-                            <CIcon icon="x" />
-                        </button>
+                                <CIcon icon="x" size={18} />
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-            </media-controls-group>
-        )
+            </div>
+        );
     }
 });

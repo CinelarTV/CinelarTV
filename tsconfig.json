@@ -8,9 +8,7 @@
       "dom.iterable",
       "ESNext"
     ],
-    "types": [
-      "vidstack/vue"
-    ],
+    "types": [],
     "moduleResolution": "bundler",
     "target": "es2022",
     "emitDecoratorMetadata": true,

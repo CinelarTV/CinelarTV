@@ -1,36 +1,85 @@
-import { defineComponent } from "vue";
+import { defineComponent, PropType, onMounted, onBeforeUnmount } from "vue";
 
 export default defineComponent({
     name: "PlayerGestures",
-    setup() {
+    props: {
+        videoRef: {
+            type: Function as PropType<() => HTMLVideoElement | null>,
+            required: true
+        },
+        onTogglePlay: {
+            type: Function as PropType<() => void>,
+            required: true
+        },
+        onSeek: {
+            type: Function as PropType<(delta: number) => void>,
+            required: true
+        },
+        onToggleFullscreen: {
+            type: Function as PropType<() => void>,
+            required: true
+        },
+        onToggleControls: {
+            type: Function as PropType<() => void>,
+            required: true
+        }
+    },
+    setup(props) {
+        let lastTap = 0;
+        let lastTapX = 0;
+
+        function handlePointerUp(e: PointerEvent) {
+            const video = props.videoRef();
+            if (!video) return;
+
+            const now = Date.now();
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const width = rect.width;
+
+            // Double tap detection
+            if (now - lastTap < 300) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const deltaX = Math.abs(x - lastTapX);
+                if (deltaX < 50) {
+                    // Double tap center = fullscreen
+                    props.onToggleFullscreen();
+                } else if (x < width / 2) {
+                    // Double tap left = seek -10s
+                    props.onSeek(-10);
+                } else {
+                    // Double tap right = seek +10s
+                    props.onSeek(10);
+                }
+                lastTap = 0;
+                return;
+            }
+
+            lastTap = now;
+            lastTapX = x;
+
+            // Single tap after delay
+            setTimeout(() => {
+                if (lastTap === now) {
+                    // Check if touch device
+                    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+                    if (isTouch) {
+                        props.onToggleControls();
+                    } else {
+                        props.onTogglePlay();
+                    }
+                }
+            }, 300);
+        }
+
         return () => (
-            <>
-                <media-gesture
-                    class="pointer-coarse:hidden absolute inset-0 z-0 block h-full w-full"
-                    event="pointerup"
-                    action="toggle:paused"
-                ></media-gesture>
-                <media-gesture
-                    class="pointer-fine:hidden absolute inset-0 z-0 block h-full w-full"
-                    event="pointerup"
-                    action="toggle:controls"
-                ></media-gesture>
-                <media-gesture
-                    class="absolute inset-0 z-10 block h-full w-1/5"
-                    event="dblpointerup"
-                    action="seek:-10"
-                ></media-gesture>
-                <media-gesture
-                    class="absolute inset-0 z-10 block h-full w-1/5"
-                    event="dblpointerup"
-                    action="seek:10"
-                ></media-gesture>
-                <media-gesture
-                    class="absolute inset-0 z-0 block h-full w-full"
-                    event="dblpointerup"
-                    action="toggle:fullscreen"
-                ></media-gesture>
-            </>
-        )
+            <div
+                class="absolute inset-0 z-10"
+                onPointerup={handlePointerUp}
+                style={{ touchAction: 'none' }}
+            />
+        );
     }
 });

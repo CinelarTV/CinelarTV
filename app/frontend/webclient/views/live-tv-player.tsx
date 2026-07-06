@@ -1,28 +1,23 @@
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue';
+import { defineComponent, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ajax } from '@/lib/Ajax';
 import { useHead } from 'unhead';
 import { toast } from 'vue-sonner';
 import { useSiteSettings } from '@/app/services/site-settings';
 
-import 'vidstack/player/styles/base.css';
-import 'vidstack/player';
-import 'vidstack/player/ui';
-import { defineCustomElement, MediaTitleElement, MediaSpinnerElement } from 'vidstack/elements';
-import { MediaPlayer } from 'vidstack';
+import shaka from 'shaka-player';
 
 import CSpinner from '@/components/c-spinner';
 import CIcon from '@/components/c-icon.vue';
 import PlayerGestures from '@/components/videoplayer/PlayerGestures';
 import PlayerVolumeSlider from '@/components/videoplayer/PlayerVolumeSlider';
 import PlayerTopControls from '@/components/videoplayer/PlayerTopControls';
+import { useMediaPlayerState } from '@/composables/useMediaPlayerState';
+import { useChromecast } from '@/composables/useChromecast';
 
 export default defineComponent({
     name: 'LiveTvPlayer',
     setup() {
-        defineCustomElement(MediaTitleElement);
-        defineCustomElement(MediaSpinnerElement);
-
         const { siteSettings } = useSiteSettings();
         const route = useRoute();
         const router = useRouter();
@@ -33,11 +28,63 @@ export default defineComponent({
         const epgOpen = ref(false);
         const epgLoading = ref(false);
         const epgPrograms = ref<any[]>([]);
-        const videoPlayer = ref<MediaPlayer | null>(null);
+
+        const videoRef = ref<HTMLVideoElement | null>(null);
+        const playerContainerRef = ref<HTMLDivElement | null>(null);
         const isOnFullscreen = ref(false);
         const isLoading = ref(true);
 
+        // Shaka Player instance (NOT reactive)
+        let shakaPlayer: shaka.Player | null = null;
+        let eventManager: any = null;
+        const playerReady = ref(false);
+
+        const mediaState = useMediaPlayerState();
+        const chromecast = useChromecast();
+
         useHead({ title: 'Live TV' });
+
+        async function initShakaPlayer() {
+            const video = videoRef.value;
+            if (!video) return;
+
+            if (shakaPlayer) {
+                eventManager?.removeAll();
+                await shakaPlayer.destroy();
+                shakaPlayer = null;
+                eventManager = null;
+            }
+
+            shaka.polyfill.installAll();
+            if (!shaka.Player.isBrowserSupported()) return;
+
+            shakaPlayer = new shaka.Player();
+            await shakaPlayer.attach(video);
+
+            eventManager = new shaka.util.EventManager();
+            mediaState.attach(shakaPlayer, video, eventManager);
+
+            eventManager.listen(shakaPlayer, 'error', (event: any) => {
+                console.error('Shaka error:', event.detail.code, event.detail);
+            });
+
+            eventManager.listen(document, 'fullscreenchange', () => {
+                isOnFullscreen.value = !!document.fullscreenElement;
+            });
+
+            // Initialize Chromecast
+            if (siteSettings?.enable_chromecast) {
+                chromecast.init(shakaPlayer, video);
+            }
+
+            playerReady.value = true;
+        }
+
+        watch(playerContainerRef, async () => {
+            if (playerContainerRef.value) {
+                await initShakaPlayer();
+            }
+        });
 
         async function fetchData() {
             try {
@@ -58,21 +105,48 @@ export default defineComponent({
             }
         }
 
+        async function loadStream() {
+            if (!shakaPlayer || !channelData.value) return;
+
+            const streamUrl = channelData.value.stream_url;
+            try {
+                await shakaPlayer.load(streamUrl);
+            } catch (error) {
+                console.error('Failed to load live stream:', error);
+                toast.error('Error al cargar el stream en vivo.');
+            }
+        }
+
+        watch(channelData, async () => {
+            if (channelData.value && shakaPlayer) {
+                await loadStream();
+            }
+        });
+
         onMounted(async () => {
             document.body.classList.add('video-player');
             await fetchData();
-
-            const player = videoPlayer.value;
-            if (!player) return;
-
-            player.addEventListener('fullscreenchange', () => {
-                isOnFullscreen.value = !!document.fullscreenElement;
-            });
         });
 
         onBeforeUnmount(() => {
             document.body.classList.remove('video-player');
+            eventManager?.removeAll();
+            shakaPlayer?.destroy();
+            shakaPlayer = null;
         });
+
+        const isControlsVisible = ref(true);
+        let controlsTimeout: ReturnType<typeof setTimeout> | null = null;
+
+        function showControls() {
+            isControlsVisible.value = true;
+            if (controlsTimeout) clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(() => {
+                if (!mediaState.paused.value) {
+                    isControlsVisible.value = false;
+                }
+            }, 3000);
+        }
 
         const backToLiveTv = () => {
             if (isOnFullscreen.value) document.exitFullscreen();
@@ -80,6 +154,7 @@ export default defineComponent({
         };
 
         const backToContent = backToLiveTv;
+
         const loadGuide = async () => {
             try {
                 epgLoading.value = true;
@@ -103,13 +178,8 @@ export default defineComponent({
 
         const formatProgramTime = (value: string) => {
             const date = new Date(value);
-            if (Number.isNaN(
-                date.getTime())) return '--:--';
-
-            return date.toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            if (Number.isNaN(date.getTime())) return '--:--';
+            return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         };
 
         const isProgramLive = (program: any) => {
@@ -119,6 +189,20 @@ export default defineComponent({
             return !Number.isNaN(start) && !Number.isNaN(end) && start <= now && end >= now;
         };
 
+        const togglePlay = () => {
+            if (mediaState.paused.value) {
+                mediaState.play();
+                showControls();
+            } else {
+                mediaState.pause();
+                isControlsVisible.value = true;
+            }
+        };
+
+        const handleContainerMouseMove = () => {
+            showControls();
+        };
+
         return () => {
             if (isLoading.value || !channelData.value) {
                 return (
@@ -126,13 +210,6 @@ export default defineComponent({
                         <CSpinner class="w-full h-full" />
                     </div>
                 );
-            }
-
-            const streamUrl = channelData.value.stream_url;
-            let streamType = 'application/x-mpegurl'; // Default to HLS
-
-            if (channelData.value.stream_format === 'dash') {
-                streamType = 'application/dash+xml';
             }
 
             const displayPrograms = epgPrograms.value
@@ -145,37 +222,35 @@ export default defineComponent({
 
             return (
                 <div class="video-container">
-                    <media-player
-                        ref={videoPlayer}
-                        class="video-shell w-full h-full min-w-0 min-h-0"
-                        autoplay
-                        title={`${channelData.value.name}`}
-                        live
-                        streamType="live"
+                    <div
+                        ref={playerContainerRef}
+                        class="video-shell w-full h-full min-w-0 min-h-0 relative"
+                        onMousemove={handleContainerMouseMove}
                     >
-                        <media-provider>
-                            <media-poster
-                                class="absolute inset-0 block h-full w-full rounded-md bg-black opacity-0 transition-opacity data-[visible]:opacity-100 [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
-                                src={channelData.value.logo_url || ''}
-                                alt={channelData.value.name}
-                            />
-                            <source src={streamUrl} type={streamType} />
-                        </media-provider>
+                        <video
+                            ref={videoRef}
+                            class="w-full h-full object-contain bg-black"
+                            autoplay
+                            title={`${channelData.value.name}`}
+                            playsinline
+                        />
 
-                        <PlayerGestures />
+                        <PlayerGestures
+                            videoRef={() => videoRef.value}
+                            onTogglePlay={togglePlay}
+                            onSeek={(delta) => mediaState.seek(mediaState.currentTime.value + delta)}
+                            onToggleFullscreen={() => mediaState.toggleFullscreen(playerContainerRef.value || undefined)}
+                            onToggleControls={showControls}
+                        />
+
+                        {/* Buffering indicator */}
                         <div class="pointer-events-none absolute inset-0 z-50 flex h-full w-full items-center justify-center">
-                            <media-spinner
-                                class="text-white opacity-0 transition-opacity duration-200 ease-linear media-buffering:animate-spin media-buffering:opacity-100 [&>[data-part='track']]:opacity-25"
-                                size="96"
-                                track-width="8"
-                            >
-                                Cargando
-                            </media-spinner>
-                            <div class="absolute inset-0 flex items-center justify-center opacity-0 media-buffering:opacity-100">
+                            <div class={`transition-opacity duration-200 ease-linear ${mediaState.buffering.value ? 'opacity-100' : 'opacity-0'}`}>
                                 <CSpinner class="w-16 h-16 text-white" />
                             </div>
                         </div>
 
+                        {/* EPG Panel */}
                         {epgOpen.value && (
                             <aside class="pointer-events-auto absolute bottom-28 left-2 right-2 z-[120] w-auto overflow-hidden rounded-xl border border-white/15 bg-black/85 shadow-2xl backdrop-blur sm:bottom-auto sm:left-auto sm:right-4 sm:top-16 sm:w-[min(92vw,380px)]">
                                 <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
@@ -204,10 +279,7 @@ export default defineComponent({
                                             {displayPrograms.map((program) => (
                                                 <div
                                                     key={`${program.id}-${program.start_time}`}
-                                                    class={`rounded-lg border px-3 py-2 ${isProgramLive(program)
-                                                            ? 'border-red-400/60 bg-red-500/15'
-                                                            : 'border-white/10 bg-white/5'
-                                                        }`}
+                                                    class={`rounded-lg border px-3 py-2 ${isProgramLive(program) ? 'border-red-400/60 bg-red-500/15' : 'border-white/10 bg-white/5'}`}
                                                 >
                                                     <div class="mb-1 flex items-center justify-between">
                                                         <span class="text-xs text-white/70">
@@ -226,16 +298,20 @@ export default defineComponent({
                             </aside>
                         )}
 
-                        <media-controls class="pointer-events-none absolute inset-0 z-99 flex h-full w-full flex-col opacity-0 transition-opacity data-[visible]:opacity-100 media-buffering:opacity-100 in-media-buffering:opacity-100">
+                        {/* Controls overlay */}
+                        <div
+                            class={`pointer-events-none absolute inset-0 z-[99] flex h-full w-full flex-col transition-opacity duration-300 ${isControlsVisible.value || mediaState.paused.value ? 'opacity-100' : 'opacity-0'}`}
+                            onMousemove={handleContainerMouseMove}
+                        >
+                            {/* Top controls */}
                             <PlayerTopControls
                                 googleCastEnabled={siteSettings?.enable_chromecast || false}
                                 backToContent={backToContent}
                                 content={{
-                                    content: {
-                                        title: channelData.value.name,
-                                        banner: channelData.value.logo_url,
-                                    },
+                                    content: { title: channelData.value.name, banner: channelData.value.logo_url },
                                 }}
+                                onCast={chromecast.toggleCast}
+                                isCasting={chromecast.isCasting.value}
                             />
 
                             {/* Live badge overlay */}
@@ -251,17 +327,23 @@ export default defineComponent({
                                 )}
                             </div>
 
-                            <div class="flex-1"></div>
-                            <media-controls-group class="pointer-events-auto flex w-full justify-center items-center px-2">
-                                <media-play-button class="group relative inline-flex size-24 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 data-[focus]:ring-4">
-                                    <CIcon icon="play" size={40} class="hidden group-data-[paused]:block" />
-                                    <CIcon icon="pause" size={40} class="group-data-[paused]:hidden" />
-                                </media-play-button>
-                            </media-controls-group>
-                            <div class="flex-1"></div>
+                            <div class="flex-1" />
 
-                            {/* Live TV controls - no time slider, just volume */}
-                            <media-controls-group class="pointer-events-auto bg-gradient-to-t from-black h-24 to-transparent px-4">
+                            {/* Center play button */}
+                            <div class="pointer-events-auto flex w-full justify-center items-center px-2">
+                                <button
+                                    onClick={togglePlay}
+                                    class="group relative inline-flex size-24 cursor-pointer items-center justify-center rounded-md outline-none ring-inset ring-sky-400 hover:bg-white/20 focus:ring-4"
+                                >
+                                    <CIcon icon="play" size={40} class={`${!mediaState.paused.value ? 'hidden' : 'block'}`} />
+                                    <CIcon icon="pause" size={40} class={`${mediaState.paused.value ? 'hidden' : 'block'}`} />
+                                </button>
+                            </div>
+
+                            <div class="flex-1" />
+
+                            {/* Bottom controls */}
+                            <div class="pointer-events-auto bg-gradient-to-t from-black h-24 to-transparent px-4">
                                 <div class="max-w-7xl mx-auto w-full flex-col flex">
                                     {/* Live indicator with current program info */}
                                     {currentProgram.value && (
@@ -281,13 +363,15 @@ export default defineComponent({
                                         <div class="flex items-center text-red-500 font-bold shrink-0">
                                             <span class="uppercase">EN VIVO</span>
                                         </div>
-                                        <PlayerVolumeSlider playerElement={videoPlayer.value as MediaPlayer} />
+                                        <PlayerVolumeSlider
+                                            volume={mediaState.volume.value}
+                                            muted={mediaState.muted.value}
+                                            onVolumeChange={mediaState.setVolume}
+                                            onToggleMute={mediaState.toggleMute}
+                                        />
                                         <button
                                             type="button"
-                                            class={`inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-xs font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${epgOpen.value
-                                                ? 'border-white/40 bg-white/20'
-                                                : 'border-white/20 bg-black/40 hover:bg-black/60'
-                                                }`}
+                                            class={`inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-xs font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${epgOpen.value ? 'border-white/40 bg-white/20' : 'border-white/20 bg-black/40 hover:bg-black/60'}`}
                                             onClick={toggleEpgPanel}
                                             aria-label="Mostrar EPG"
                                         >
@@ -296,9 +380,9 @@ export default defineComponent({
                                         </button>
                                     </div>
                                 </div>
-                            </media-controls-group>
-                        </media-controls>
-                    </media-player>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             );
         };

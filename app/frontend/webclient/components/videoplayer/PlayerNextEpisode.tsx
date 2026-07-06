@@ -47,21 +47,18 @@ export default defineComponent({
         const visible = ref(false);
         const countdown = ref(10);
         const countdownInterval = ref<number | null>(null);
-        const cancelled = ref(false); // Track if user cancelled
+        const cancelled = ref(false);
 
         const NEXT_EPISODE_COUNTDOWN_SECONDS = 10;
 
-        // Reset cancelled state when episode changes
         watch(() => props.nextEpisode?.id, () => {
             cancelled.value = false;
         });
 
-        // Check if we should show next episode button
         watch(() => props.currentTime, (time) => {
             if (!props.nextEpisode) return;
-            if (cancelled.value) return; // Don't show if user cancelled
+            if (cancelled.value) return;
 
-            // Check for next_episode segment
             const nextEpisodeSegment = props.segments.find(seg =>
                 seg.segment_type === 'next_episode' &&
                 seg.start_time !== null &&
@@ -69,9 +66,7 @@ export default defineComponent({
                 time >= seg.start_time
             );
 
-            // Also check if we're near the end of the video (last 30 seconds)
             const nearEnd = props.duration > 0 && (props.duration - time) <= 30;
-
             const shouldShow = nextEpisodeSegment || nearEnd;
 
             if (shouldShow && !visible.value) {
@@ -82,7 +77,6 @@ export default defineComponent({
             }
         });
 
-        // Hide when nextEpisode becomes unavailable
         watch(() => props.nextEpisode, (episode) => {
             if (!episode && visible.value) {
                 hideNextEpisode();
@@ -115,7 +109,7 @@ export default defineComponent({
         };
 
         const handleCancel = () => {
-            cancelled.value = true; // Mark as cancelled so it doesn't show again
+            cancelled.value = true;
             hideNextEpisode();
             props.onCancel();
         };
@@ -134,54 +128,57 @@ export default defineComponent({
         return () => (
             <div
                 class={[
-                    'absolute bottom-32 right-4 z-50 transition-all duration-300 ease-out',
-                    visible.value ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                    'absolute bottom-32 right-5 z-50 transition-all duration-400 ease-out',
+                    visible.value
+                        ? 'opacity-100 translate-y-0'
+                        : 'opacity-0 translate-y-3 pointer-events-none'
                 ]}
             >
-                <div class="flex items-center gap-3 bg-zinc-900/95 backdrop-blur-sm rounded-lg shadow-lg shadow-black/30 border border-white/10 px-4 py-3">
-                    {/* Mini thumbnail */}
+                <div class="next-episode-card flex items-center gap-3.5 bg-[var(--c-surface-2,rgba(255,255,255,0.05))] backdrop-blur-2xl rounded-2xl shadow-xl shadow-black/40 border border-white/[0.08] px-4 py-3">
+                    {/* Thumbnail */}
                     {props.nextEpisode?.thumbnail ? (
                         <img
                             src={props.nextEpisode.thumbnail}
                             alt=""
-                            class="w-16 h-10 rounded object-cover"
+                            class="w-[4.5rem] h-[2.75rem] rounded-xl object-cover flex-shrink-0"
                         />
                     ) : (
-                        <div class="w-16 h-10 rounded bg-zinc-700 flex items-center justify-center">
-                            <CIcon icon="play" size={14} class="text-white/40" />
+                        <div class="w-[4.5rem] h-[2.75rem] rounded-xl bg-white/[0.08] flex items-center justify-center flex-shrink-0">
+                            <CIcon icon="play" size={14} class="text-white/30" />
                         </div>
                     )}
 
                     {/* Info */}
-                    <div class="flex flex-col min-w-0">
-                        <span class="text-white/60 text-xs">
+                    <div class="flex flex-col min-w-0 gap-0.5">
+                        <span class="text-[0.65rem] font-semibold uppercase tracking-wider text-white/40">
                             Siguiente episodio
                         </span>
-                        <span class="text-white text-sm font-medium truncate max-w-[150px]">
+                        <span class="text-white text-sm font-medium truncate max-w-[160px]">
                             {props.nextEpisode?.title || 'Episodio siguiente'}
                         </span>
                     </div>
 
-                    {/* Countdown badge */}
-                    <div class="flex items-center gap-2">
-                        <span class="text-white/80 text-xs font-semibold bg-white/10 px-2 py-1 rounded">
+                    {/* Actions */}
+                    <div class="flex items-center gap-2 ml-1">
+                        {/* Countdown */}
+                        <span class="text-white/70 text-xs font-semibold tabular-nums bg-white/[0.08] px-2 py-1 rounded-lg">
                             {countdown.value}s
                         </span>
 
-                        {/* Play button */}
+                        {/* Play now */}
                         <button
                             onClick={handleNextNow}
-                            class="flex items-center justify-center w-9 h-9 bg-white hover:bg-white/90 text-black rounded-md transition-all hover:scale-105 active:scale-95"
+                            class="flex items-center justify-center w-9 h-9 bg-white hover:bg-white/90 text-black rounded-xl transition-all duration-200 ease-out hover:scale-105 active:scale-95 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--c-player-accent-color,#38bdf8)]"
                         >
-                            <CIcon icon="play" size={16} />
+                            <CIcon icon="play" size={15} />
                         </button>
 
-                        {/* Cancel button */}
+                        {/* Cancel */}
                         <button
                             onClick={handleCancel}
-                            class="flex items-center justify-center w-8 h-8 text-white/60 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                            class="player-control-btn player-control-btn--sm"
                         >
-                            <CIcon icon="x" size={16} />
+                            <CIcon icon="x" size={14} />
                         </button>
                     </div>
                 </div>
