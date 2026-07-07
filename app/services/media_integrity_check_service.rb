@@ -269,12 +269,7 @@ class MediaIntegrityCheckService
     if target.start_with?("http://", "https://")
       target
     else
-      base_path = base.path.to_s
-      dir = base_path.include?("/") ? base_path.sub(%r{/[^/]*\z}, "/") : "/"
-      resolved = File.join(dir, target).gsub("//", "/")
-      # Encode spaces and reserved chars in each path segment (keep / . - _ ~)
-      encoded_path = resolved.split("/").map { |seg| seg.gsub(/[^a-zA-Z0-9\-._~\/]/) { |c| "%#{c.ord.to_s(16).upcase}" } }.join("/")
-      "#{base.scheme}://#{base.host}#{":#{base.port}" unless base.port == base.default_port}#{encoded_path}"
+      URI.join(base, URI::DEFAULT_PARSER.escape(target)).to_s
     end
   rescue URI::InvalidURIError => e
     Rails.logger.warn("[MediaIntegrity] resolve_url FAILED: target=#{target.inspect} base=#{base_url.inspect} error=#{e.message}")
