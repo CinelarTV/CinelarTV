@@ -23,6 +23,7 @@ class ContentSerializer < ApplicationSerializer
 
   attribute :seasons, if: :include_seasons?
   attribute :liked, key: "liked"
+  attribute :disliked, key: "disliked"
   attribute :similar_items, key: "related_content"
   attribute :continue_watching, key: "continue_watching"
   attribute :categories
@@ -58,6 +59,13 @@ class ContentSerializer < ApplicationSerializer
     return false unless profile&.respond_to?(:liked_contents)
 
     profile.liked_contents.include?(object)
+  end
+
+  def disliked
+    profile = @options[:current_profile]
+    return false unless profile&.respond_to?(:disliked_contents)
+
+    profile.disliked_contents.include?(object)
   end
 
   def categories

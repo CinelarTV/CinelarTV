@@ -244,7 +244,7 @@ export default defineComponent({
                                         e.preventDefault();
                                         e.stopPropagation();
                                     },
-                                    'aria-label': 'Me gusta',
+                                    'aria-label': 'No me gusta',
                                 }, [
                                     h('svg', {
                                         width: 14, height: 14,
@@ -255,7 +255,7 @@ export default defineComponent({
                                         'stroke-linejoin': 'round',
                                     }, [
                                         h('path', {
-                                            d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z',
+                                            d: 'M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17',
                                         }),
                                     ]),
                                 ]),

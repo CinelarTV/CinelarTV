@@ -38,6 +38,7 @@ class ContentsController < ApplicationController
         @data = {
           content: @content.as_json(except: %i[created_at updated_at url available]),
           liked: current_profile&.liked_content_ids&.include?(@content.id),
+          disliked: current_profile&.disliked_content_ids&.include?(@content.id),
           related_content: @content.similar_items.as_json(only: %i[id title description banner]),
         }
 

@@ -512,11 +512,15 @@ pt-BR:
       title: "Time Segments"
     user:
       added_to_favorites: "\"{{title}}\" added to your favorites"
+      added_to_dislikes: "\"{{title}}\" added to your dislikes"
       nav:
         dashboard: "Dashboard"
         settings: "Settings"
         subscriptions: "Subscriptions"
       removed_from_favorites: "\"{{title}}\" removed from your favorites"
+      removed_from_dislikes: "\"{{title}}\" removed from your dislikes"
+      like_error: "Error toggling like"
+      dislike_error: "Error toggling dislike"
     video_player:
       back: "Back"
       next_episode: "Next episode"

@@ -7,47 +7,44 @@ class LikesController < ApplicationController
 
   def like
     @content = Content.find(params[:id])
+    # Remove dislike if it exists (mutual exclusion)
+    current_profile.disliked_contents.delete(@content)
+
     if current_profile.liked_contents.include?(@content)
-      render json: {
-        error: "You already liked this content"
-      }, status: :unprocessable_entity
+      current_profile.liked_contents.delete(@content)
     else
       current_profile.liked_contents << @content
-      render json: {
-        message: "Content liked successfully"
-      }
     end
+
+    head :no_content
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Content not found" }, status: :not_found
   end
 
   def unlike
     @content = Content.find(params[:id])
     if current_profile.liked_contents.include?(@content)
       current_profile.liked_contents.delete(@content)
-      render json: {
-        message: "Content unliked successfully"
-      }
+      head :no_content
     else
-      render json: {
-        error: "You didn't like this content"
-      }, status: :unprocessable_entity
+      render json: { error: "You didn't like this content" }, status: :unprocessable_entity
     end
   end
 
-  # This method can be used in the future to toggle like/unlike with a single endpoint
-  # Return 204 No Content on success, and 422 Unprocessable Entity if the content is not found or any other error occurs
   def toggle_like
     @content = Content.find(params[:id])
+    # Remove dislike if it exists (mutual exclusion)
+    current_profile.disliked_contents.delete(@content)
+
     if current_profile.liked_contents.include?(@content)
       current_profile.liked_contents.delete(@content)
-      head :no_content
     else
       current_profile.liked_contents << @content
-      head :no_content
     end
+
+    head :no_content
   rescue ActiveRecord::RecordNotFound
-    render json: {
-      error: "Content not found"
-    }, status: :not_found
+    render json: { error: "Content not found" }, status: :not_found
   end
 
   private
@@ -55,6 +52,9 @@ class LikesController < ApplicationController
   def require_profile_selected
     return if current_profile.present?
 
-    render json: { error: "missing_profile", message: "Please select a profile to perform this action" }, status: :unprocessable_entity
+    render json: {
+      error: "missing_profile",
+      message: "Please select a profile to perform this action"
+    }, status: :unprocessable_entity
   end
 end

@@ -145,13 +145,35 @@ export default defineComponent({
                     console.error(`Content with id ${id} not found`);
                     return;
                 }
-                const endpoint = content.liked ? 'unlike' : 'like';
-                await ajax.post(`/contents/${id}/${endpoint}.json`);
+                await ajax.post(`/contents/${id}/like.json`);
                 content.liked = !content.liked;
+                content.disliked = false;
                 toast.success(content.liked ? $t('js.user.added_to_favorites', { title: content.title }) : $t('js.user.removed_from_favorites', { title: content.title }));
             } catch (error) {
                 console.error('Error toggling like:', error);
                 toast.error($t('js.user.like_error'));
+            }
+        };
+
+        const toggleDislike = async (id: number | string, fromBanner = false) => {
+            if (!currentUser) {
+                toast.error($t('js.user.login_required'));
+                return;
+            }
+            try {
+                const targetArray = fromBanner ? bannerItems.value : contentCategories.value.flatMap((cat: any) => cat.content || []);
+                const content = targetArray.find((item: any) => item.id === id);
+                if (!content) {
+                    console.error(`Content with id ${id} not found`);
+                    return;
+                }
+                await ajax.post(`/contents/${id}/dislike.json`);
+                content.disliked = !content.disliked;
+                content.liked = false;
+                toast.success(content.disliked ? $t('js.user.added_to_dislikes', { title: content.title }) : $t('js.user.removed_from_dislikes', { title: content.title }));
+            } catch (error) {
+                console.error('Error toggling dislike:', error);
+                toast.error($t('js.user.dislike_error'));
             }
         };
 
@@ -207,6 +229,7 @@ export default defineComponent({
                                 onToggleCollection={toggleCollection}
                                 onShowInfo={showInfo}
                                 onToggleLike={id => toggleLike(id, true)}
+                                onToggleDislike={id => toggleDislike(id, true)}
                             />
                         )}
 

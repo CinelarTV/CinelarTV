@@ -518,6 +518,11 @@ customization:
     refresh: true
     default: true
     type: "boolean"
+  enable_dislike_feature:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
   enable_trending_section:
     client: true
     refresh: true

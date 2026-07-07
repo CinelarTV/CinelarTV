@@ -24,6 +24,7 @@ class Content < ApplicationRecord
   has_many :people, through: :cast_members
   has_many :continue_watchings, dependent: :destroy
   has_and_belongs_to_many :liking_profiles, class_name: "Profile", join_table: "likes"
+  has_and_belongs_to_many :disliking_profiles, class_name: "Profile", join_table: "dislikes"
 
   similar_by :liking_profiles
 

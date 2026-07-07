@@ -53,6 +53,10 @@ Rails.application.routes.draw do
   post "/contents/:id/unlike", to: "likes#unlike"
   post "/contents/:id/toggle_like", to: "likes#toggle_like"
 
+  post "/contents/:id/dislike", to: "dislikes#dislike"
+  post "/contents/:id/undislike", to: "dislikes#undislike"
+  post "/contents/:id/toggle_dislike", to: "dislikes#toggle_dislike"
+
 
   get "/contents/:id", to: "contents#show"
   get "/c/:id", to: redirect("/contents/%<id>s"), as: :content_short_url

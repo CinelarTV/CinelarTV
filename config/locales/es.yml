@@ -574,11 +574,15 @@ es:
       error_cancel: "Error al cancelar la suscripción."
     user:
       added_to_favorites: "&quot;{{title}} &quot;añadido a tus favoritos"
+      added_to_dislikes: "&quot;{{title}} &quot;añadido a tus no me gusta"
       nav:
         dashboard: "Panel de control"
         settings: "Preferencias"
         subscriptions: "Suscripciones"
       removed_from_favorites: "&quot;{{title}} &quot;Eliminado de tus favoritos"
+      removed_from_dislikes: "&quot;{{title}} &quot;Eliminado de tus no me gusta"
+      like_error: "Error al dar me gusta"
+      dislike_error: "Error al dar no me gusta"
     video_player:
       back: "Volver"
       next_episode: "Siguiente episodio"

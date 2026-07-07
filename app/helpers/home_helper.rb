@@ -62,6 +62,10 @@ module HomeHelper
     @liked_content_ids ||= Set.new(current_profile&.liked_contents&.pluck(:id) || [])
   end
 
+  def disliked_content_ids
+    @disliked_content_ids ||= Set.new(current_profile&.disliked_contents&.pluck(:id) || [])
+  end
+
   def infer_trailer_mime_type(url, sources)
     if sources.any? { |s| s[:format] == "m3u8" }
       return "application/x-mpegurl"
@@ -234,6 +238,22 @@ module HomeHelper
     SQL
 
     #
+    # 6b. Penalizar contenido que el perfil ya dio dislike.
+    #
+    scores << <<~SQL.squish
+      CASE
+        WHEN EXISTS (
+          SELECT 1
+          FROM dislikes d
+          WHERE d.content_id = contents.id
+            AND d.profile_id = #{quoted_pid}
+        )
+        THEN -500
+        ELSE 0
+      END
+    SQL
+
+    #
     # 7. Exploración controlada.
     #
     scores << "RANDOM() * 2"
@@ -258,7 +278,7 @@ module HomeHelper
     return { title: nil, content: [] } unless random_liked
 
     similar_content = random_liked.similar_items
-                                  .reject { |c| c.id == random_liked.id }
+                                  .reject { |c| c.id == random_liked.id || disliked_content_ids.include?(c.id) }
                                   .map do |c|
                                     build_content_hash(c.id, c.title, c.description, c.banner, liked_ids,
                                                        banner_resized: c.banner_resized, cover_resized: c.cover_resized)
@@ -468,7 +488,8 @@ module HomeHelper
       banner: banner,
       banner_resized: banner_resized,
       cover_resized: cover_resized,
-      liked: liked_ids.include?(id)
+      liked: liked_ids.include?(id),
+      disliked: disliked_content_ids.include?(id)
     }
   end
 

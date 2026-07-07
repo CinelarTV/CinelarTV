@@ -26,6 +26,7 @@ interface ContentData {
     premium: boolean;
     seasons?: SeasonData[];
     liked?: boolean;
+    disliked?: boolean;
     related_content?: ContentData[];
     continue_watching?: ContinueWatchingData | null;
 }
@@ -43,6 +44,10 @@ class Content extends RestModel {
 
         if ('liked' in data) {
             this.data.liked = data.liked;
+        }
+
+        if ('disliked' in data) {
+            this.data.disliked = data.disliked;
         }
 
         if ('related_content' in data) {
@@ -110,6 +115,10 @@ class Content extends RestModel {
         return this.data.liked;
     }
 
+    get disliked(): boolean | undefined {
+        return this.data.disliked;
+    }
+
     get relatedContent(): Content[] | undefined {
         return this.data.related_content?.map((relatedContentData) => new Content(relatedContentData));
     }
@@ -139,7 +148,18 @@ class Content extends RestModel {
     async like(): Promise<void> {
         try {
             await ajax.post(`/contents/${this.id}/like.json`);
-            this.data.liked = true;
+            this.data.liked = !this.data.liked;
+            this.data.disliked = false;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async dislike(): Promise<void> {
+        try {
+            await ajax.post(`/contents/${this.id}/dislike.json`);
+            this.data.disliked = !this.data.disliked;
+            this.data.liked = false;
         } catch (error) {
             console.error(error);
         }

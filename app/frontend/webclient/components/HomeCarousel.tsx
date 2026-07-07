@@ -10,6 +10,7 @@ interface BannerItem {
     banner: string;
     poster?: string;
     liked?: boolean;
+    disliked?: boolean;
     year?: number;
     rating?: string;
     genres?: string[];
@@ -27,6 +28,7 @@ export default defineComponent({
         onToggleCollection: Function as PropType<(id: BannerItem['id']) => void>,
         onShowInfo: Function as PropType<(id: BannerItem['id']) => void>,
         onToggleLike: Function as PropType<(id: BannerItem['id']) => void>,
+        onToggleDislike: Function as PropType<(id: BannerItem['id']) => void>,
         loading: {
             type: Boolean,
             default: false,
@@ -329,6 +331,14 @@ export default defineComponent({
                                             aria-pressed={item.liked ? 'true' : 'false'}
                                             aria-label={$t(item.liked ? 'js.home_carousel.remove_like' : 'js.home_carousel.like')}
                                             onClick={() => props.onToggleLike?.(item.id)}
+                                        />
+
+                                        <CIconButton
+                                            icon="thumbs-down"
+                                            class={['home-carousel__btn home-carousel__btn--icon', item.disliked && 'home-carousel__btn--disliked']}
+                                            aria-pressed={item.disliked ? 'true' : 'false'}
+                                            aria-label={$t(item.disliked ? 'js.home_carousel.remove_dislike' : 'js.home_carousel.dislike')}
+                                            onClick={() => props.onToggleDislike?.(item.id)}
                                         />
                                     </div>
                                 </div>

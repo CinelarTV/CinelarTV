@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_05_100001) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pgcrypto"
@@ -125,6 +125,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_05_100001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_custom_pages_on_slug", unique: true
+  end
+
+  create_table "dislikes", force: :cascade do |t|
+    t.uuid "profile_id"
+    t.uuid "content_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_dislikes_on_content_id"
+    t.index ["profile_id"], name: "index_dislikes_on_profile_id"
   end
 
   create_table "email_templates", force: :cascade do |t|
@@ -562,6 +571,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_05_100001) do
   add_foreign_key "continue_watchings", "contents"
   add_foreign_key "continue_watchings", "episodes"
   add_foreign_key "continue_watchings", "profiles"
+  add_foreign_key "dislikes", "contents"
+  add_foreign_key "dislikes", "profiles"
   add_foreign_key "episodes", "seasons", name: "fk_rails_episodes_seasons"
   add_foreign_key "likes", "contents"
   add_foreign_key "likes", "profiles"
