@@ -8,7 +8,7 @@ class TvProgram < ApplicationRecord
   validates :end_time, presence: true
   validate :end_time_after_start_time
 
-  scope :currently_playing, -> { where("start_time <= ? AND end_time >= ?", Time.current, Time.current) }
+  scope :currently_playing, -> { where("start_time <= ? AND end_time > ?", Time.current, Time.current) }
   scope :upcoming, -> { where("start_time > ?", Time.current).order(:start_time) }
   scope :past, -> { where("end_time < ?", Time.current).order(start_time: :desc) }
   scope :for_time_range, ->(start_time, end_time) {
@@ -16,7 +16,7 @@ class TvProgram < ApplicationRecord
   }
 
   def currently_playing?
-    Time.current.between?(start_time, end_time)
+    Time.current >= start_time && Time.current < end_time
   end
 
   def upcoming?

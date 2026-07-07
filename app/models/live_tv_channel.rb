@@ -14,7 +14,7 @@ class LiveTvChannel < ApplicationRecord
   scope :inactive, -> { where(is_active: false) }
 
   def current_program
-    tv_programs.where("start_time <= ? AND end_time >= ?", Time.current, Time.current)
+    tv_programs.where("start_time <= ? AND end_time > ?", Time.current, Time.current)
                .order(start_time: :asc)
                .first
   end
