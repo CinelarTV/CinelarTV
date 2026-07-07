@@ -2,6 +2,8 @@
 
 module Oauth
   class DeviceAuthorizationsController < Doorkeeper::DeviceAuthorizationGrant::DeviceAuthorizationsController
+    skip_before_action :verify_authenticity_token, if: -> { request.format.json? }
+
     def index
       respond_to do |format|
         format.html { render "application/index", layout: "application" }
