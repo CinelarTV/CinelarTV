@@ -160,6 +160,8 @@ module Admin
       @episode.position = @season.episodes.maximum(:position).to_i + 1
 
       if @episode.save
+        thumb = params.dig(:episode, :thumbnail)
+        process_episode_thumbnail(thumb) if thumb.present?
         render json: { episode: @episode }, status: :created
       else
         render json: { errors: @episode.errors.full_messages }, status: :unprocessable_entity
@@ -515,8 +517,15 @@ module Admin
     end
 
     def process_episode_thumbnail(thumb_param)
-      temp_file = save_temp_file(thumb_param)
-      ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
+      if thumb_param.to_s.starts_with?("tmdb://")
+        tmdb_path = thumb_param.sub("tmdb://", "")
+        url = "https://image.tmdb.org/t/p/original/#{tmdb_path}"
+        temp_file = download_to_temp_file(url)
+        ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
+      else
+        temp_file = save_temp_file(thumb_param)
+        ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
+      end
     end
 
     def reorder_records(relation, order_array)
