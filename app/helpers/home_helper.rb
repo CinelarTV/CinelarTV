@@ -91,6 +91,7 @@ module HomeHelper
 
     Content.where(available: true)
            .where.not(banner: nil)
+           .where.not(id: profile.disliked_contents.select(:id))
            .left_joins(:content_analytic)
            .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
            .limit(10)
@@ -102,9 +103,18 @@ module HomeHelper
   end
 
   def random_banner_content(liked_ids)
+    profile_id = current_profile&.id
+    quoted_pid = ActiveRecord::Base.connection.quote(profile_id)
+
+    order_sql = if profile_id
+                  "CASE WHEN EXISTS (SELECT 1 FROM dislikes d WHERE d.content_id = contents.id AND d.profile_id = #{quoted_pid}) THEN 1 ELSE 0 END, RANDOM()"
+                else
+                  "RANDOM()"
+                end
+
     Content.where(available: true)
            .where.not(banner: nil)
-           .order("RANDOM()")
+           .order(Arel.sql(order_sql))
            .limit(10)
            .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
            .map do |id, title, desc, banner, banner_resized, cover_resized|
@@ -248,7 +258,7 @@ module HomeHelper
           WHERE d.content_id = contents.id
             AND d.profile_id = #{quoted_pid}
         )
-        THEN -500
+        THEN -5000
         ELSE 0
       END
     SQL
