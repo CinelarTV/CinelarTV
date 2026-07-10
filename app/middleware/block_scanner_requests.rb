@@ -50,14 +50,18 @@ class BlockScannerRequests
 
   SCANNER_REGEX = /\.(env|git|svn|bak|swp|old|save|sql|dump|log)\b/i
 
+  AI_PROXY_PATTERN = %r{(/anthropic)?/v1/(messages|chat/completions)}i
+
   def initialize(app)
     @app = app
   end
 
   def call(env)
-    path = env["PATH_INFO"].downcase
+    path = env["PATH_INFO"]
 
-    if blocked?(path)
+    if ai_proxy_attempt?(path)
+      [418, { "Content-Type" => "application/json" }, [teapot_response(env)]]
+    elsif blocked?(path.downcase)
       [404, { "Content-Type" => "text/plain" }, ["Not Found"]]
     else
       @app.call(env)
@@ -70,5 +74,18 @@ class BlockScannerRequests
     return true if SCANNER_REGEX.match?(path)
 
     BLOCKED_PATTERNS.any? { |pattern| path.include?(pattern) }
+  end
+
+  def ai_proxy_attempt?(path)
+    AI_PROXY_PATTERN.match?(path)
+  end
+
+  def teapot_response(env)
+    accept = env["HTTP_ACCEPT_LANGUAGE"].to_s.downcase
+    if accept.start_with?("es")
+      '{"error": "Soy una tetera"}'
+    else
+      '{"error": "I am a teapot"}'
+    end
   end
 end
