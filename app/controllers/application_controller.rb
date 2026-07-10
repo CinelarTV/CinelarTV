@@ -49,9 +49,11 @@ class ApplicationController < ActionController::Base
     return @current_profile if defined?(@current_profile)
 
     profile_id = using_doorkeeper? ? doorkeeper_token.current_profile_id : session[:current_profile_id]
+    return @current_profile = nil if profile_id.blank?
 
-    @current_profile = current_user&.profiles&.find_by(id: profile_id) if profile_id.present?
-    @current_profile
+    @current_profile = Rails.cache.fetch("profile/#{profile_id}", expires_in: 30.minutes) do
+      current_user&.profiles&.find_by(id: profile_id)
+    end
   end
 
   def is_app_request?
@@ -63,11 +65,13 @@ class ApplicationController < ActionController::Base
   end
 
   def current_user
-    @current_user ||= if using_doorkeeper?
-                        User.find_by(id: doorkeeper_token.resource_owner_id)
-                      else
-                        super
-                      end
+    @current_user ||= Rails.cache.fetch("user_session/#{session[:user_id] || doorkeeper_token&.resource_owner_id}", expires_in: 30.minutes) do
+      if using_doorkeeper?
+        User.find_by(id: doorkeeper_token.resource_owner_id)
+      else
+        super
+      end
+    end
   end
 
   rescue_from CinelarTV::NotFound do |e|

@@ -2,8 +2,6 @@
 
 # app/serializers/current_user_serializer.rb
 class CurrentUserSerializer < ApplicationSerializer
-  cache key: 'current_user', expires_in: 1.hour
-  
   include Rails.application.routes.url_helpers
   include ActionView::Helpers::AssetUrlHelper
 
@@ -21,6 +19,14 @@ class CurrentUserSerializer < ApplicationSerializer
   attribute :profiles, if: :include_profiles?
   attribute :current_profile, if: :include_profiles?
   attribute :admin
+
+  def as_json(options = {})
+    cache_key = "user_v1/#{object.cache_key_with_version}/profile/#{@options[:current_profile_id]}"
+
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+      super(options)
+    end
+  end
 
   def include_profiles?
     @options[:include_profiles]

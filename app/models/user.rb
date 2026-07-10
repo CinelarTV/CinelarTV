@@ -3,6 +3,7 @@
 class User < ApplicationRecord
   before_create :developer_email?
   after_create :create_main_profile
+  after_commit :clear_user_cache
   rolify
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :trackable and :omniauthable
@@ -145,5 +146,9 @@ class User < ApplicationRecord
       avatar_id: "dino", # Default avatar
     }
     Profile.create(main_profile_data)
+  end
+
+  def clear_user_cache
+    Rails.cache.delete("user_session/#{id}")
   end
 end

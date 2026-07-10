@@ -96,7 +96,7 @@ class PlayerController < ApplicationController
     }, expires_in: 24.hours)
 
     # 2. Encolar job de sincronización
-    SyncProgressJob.perform_later(profile.id, content_id, episode_id, progress, duration)
+    SyncProgressJob.perform_async(profile.id, content_id, episode_id, progress, duration)
 
     # 3. Actualizar la sesión activa (podemos mantener esta parte síncrona si es poco frecuente, 
     # pero para máximo rendimiento también podría ir al job)

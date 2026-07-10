@@ -29,10 +29,15 @@ class Profile < ApplicationRecord
   validate :validate_profile_count, on: :create
   validates :name, presence: true, length: { minimum: 3, maximum: 20 }
 
+  after_commit :clear_profile_cache
 
   def validate_profile_count
     return unless user && user.profiles.count >= 5
 
     errors.add(:base, "User can't have more than 5 profiles")
+  end
+
+  def clear_profile_cache
+    Rails.cache.delete("profile/#{id}")
   end
 end
