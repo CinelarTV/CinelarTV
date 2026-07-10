@@ -87,18 +87,19 @@ class PlayerController < ApplicationController
     progress = params[:progress].to_d
     duration = params[:duration].to_d
 
-    cw = ContinueWatching.find_or_create_by!(
-      profile_id: profile.id,
-      content_id: content_id,
-      episode_id: episode_id
-    )
-
-    cw.update_columns(
+    # 1. Guardar solo en Redis
+    episode_key = episode_id.presence || 'movie'
+    Rails.cache.write("progress/#{profile.id}/#{content_id}/#{episode_key}", {
       progress: progress,
       duration: duration,
       last_watched_at: Time.current
-    )
+    }, expires_in: 24.hours)
 
+    # 2. Encolar job de sincronización
+    SyncProgressJob.perform_later(profile.id, content_id, episode_id, progress, duration)
+
+    # 3. Actualizar la sesión activa (podemos mantener esta parte síncrona si es poco frecuente, 
+    # pero para máximo rendimiento también podría ir al job)
     update_watch_session(profile, content_id, episode_id, progress, duration)
 
     head :no_content

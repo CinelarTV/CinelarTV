@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 class Preference < ApplicationRecord
-  belongs_to :profile
+  belongs_to :profile, touch: true
 end

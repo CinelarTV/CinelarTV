@@ -2,6 +2,8 @@
 
 # app/serializers/current_user_serializer.rb
 class CurrentUserSerializer < ApplicationSerializer
+  cache key: 'current_user', expires_in: 1.hour
+  
   include Rails.application.routes.url_helpers
   include ActionView::Helpers::AssetUrlHelper
 
