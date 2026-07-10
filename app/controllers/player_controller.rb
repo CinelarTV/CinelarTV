@@ -84,8 +84,8 @@ class PlayerController < ApplicationController
 
     content_id = params[:id]
     episode_id = params[:episode_id].presence
-    progress = params[:progress].to_d
-    duration = params[:duration].to_d
+    progress = params[:progress].to_f
+    duration = params[:duration].to_f
 
     # 1. Guardar solo en Redis
     episode_key = episode_id.presence || 'movie'
