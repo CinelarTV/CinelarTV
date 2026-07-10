@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-class SyncProgressJob < ApplicationJob
-  queue_as :default
+class SyncProgressJob
+  include Sidekiq::Job
+
+  sidekiq_options queue: :default, retry: 3
 
   def perform(profile_id, content_id, episode_id, progress, duration)
     cw = ContinueWatching.find_or_initialize_by(
@@ -10,8 +12,6 @@ class SyncProgressJob < ApplicationJob
       episode_id: episode_id
     )
 
-    # Solo actualizar si el dato de la base de datos es más antiguo que el dato recibido
-    # O si es un registro nuevo.
     if cw.new_record? || cw.last_watched_at.nil? || cw.last_watched_at < Time.current
       cw.update!(
         progress: progress,
