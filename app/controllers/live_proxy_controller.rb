@@ -41,7 +41,6 @@ class LiveProxyController < ApplicationController
     attr_reader :proxy_requests_mutex
   end
 
-  before_action :authenticate_user!
   before_action :check_live_tv_enabled
   around_action :silence_proxy_logs
   around_action :enforce_proxy_concurrency_limit

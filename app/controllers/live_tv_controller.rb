@@ -4,7 +4,6 @@ class LiveTvController < ApplicationController
   before_action :check_live_tv_enabled
   before_action :set_channel, only: [:show, :watch, :guide]
   before_action :check_channel_active, only: [:show, :watch, :guide]
-  before_action :authenticate_user!
 
   def index
     @channels = LiveTvChannel.active.order(:position)
