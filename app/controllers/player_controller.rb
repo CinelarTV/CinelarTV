@@ -89,7 +89,7 @@ class PlayerController < ApplicationController
 
     # 1. Guardar solo en Redis
     episode_key = episode_id.presence || 'movie'
-    Rails.cache.write("progress/#{profile.id}/#{content_id}/#{episode_key}", {
+    CinelarTV.cache.write("progress/#{profile.id}/#{content_id}/#{episode_key}", {
       progress: progress,
       duration: duration,
       last_watched_at: Time.current

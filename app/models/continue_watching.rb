@@ -11,7 +11,7 @@ class ContinueWatching < ApplicationRecord
 
   def progress
     episode_key = episode_id.presence || 'movie'
-    cached = Rails.cache.read("progress/#{profile_id}/#{content_id}/#{episode_key}")
+    cached = CinelarTV.cache.read("progress/#{profile_id}/#{content_id}/#{episode_key}")
     cached ? cached[:progress] : super
   end
 end

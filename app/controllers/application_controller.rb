@@ -51,7 +51,7 @@ class ApplicationController < ActionController::Base
     profile_id = using_doorkeeper? ? doorkeeper_token.current_profile_id : session[:current_profile_id]
     return @current_profile = nil if profile_id.blank?
 
-    @current_profile = Rails.cache.fetch("profile/#{profile_id}", expires_in: 30.minutes) do
+    @current_profile = CinelarTV.cache.fetch("profile/#{profile_id}", expires_in: 30.minutes) do
       current_user&.profiles&.find_by(id: profile_id)
     end
   end
@@ -73,7 +73,7 @@ class ApplicationController < ActionController::Base
              end
 
       if user
-        Rails.cache.fetch("user/#{user.id}", expires_in: 30.minutes) { user }
+        CinelarTV.cache.fetch("user/#{user.id}", expires_in: 30.minutes) { user }
       end
     end
   end

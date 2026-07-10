@@ -63,10 +63,10 @@ class DislikesController < ApplicationController
   end
 
   def clearDislikedCache
-    Rails.cache.delete("profile_disliked_ids/#{current_profile.id}")
+    CinelarTV.cache.delete("profile_disliked_ids/#{current_profile.id}")
   end
 
   def clearLikedCache
-    Rails.cache.delete("profile_liked_ids/#{current_profile.id}")
+    CinelarTV.cache.delete("profile_liked_ids/#{current_profile.id}")
   end
 end

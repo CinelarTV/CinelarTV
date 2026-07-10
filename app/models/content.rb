@@ -180,6 +180,6 @@ class Content < ApplicationRecord
   end
 
   def clear_global_sections_cache
-    Rails.cache.delete("homepage/global_sections")
+    CinelarTV.cache.delete("homepage/global_sections")
   end
 end

@@ -70,7 +70,7 @@ module HomeHelper
     return @liked_content_ids = Set.new unless current_profile
 
     @liked_content_ids = Set.new(
-      Rails.cache.fetch("profile_liked_ids/#{current_profile.id}", expires_in: 30.minutes) do
+      CinelarTV.cache.fetch("profile_liked_ids/#{current_profile.id}", expires_in: 30.minutes) do
         current_profile.liked_contents.pluck(:id)
       end
     )
@@ -81,7 +81,7 @@ module HomeHelper
     return @disliked_content_ids = Set.new unless current_profile
 
     @disliked_content_ids = Set.new(
-      Rails.cache.fetch("profile_disliked_ids/#{current_profile.id}", expires_in: 30.minutes) do
+      CinelarTV.cache.fetch("profile_disliked_ids/#{current_profile.id}", expires_in: 30.minutes) do
         current_profile.disliked_contents.pluck(:id)
       end
     )
@@ -439,7 +439,7 @@ module HomeHelper
   end
 
   def build_global_sections
-    sections = Rails.cache.fetch("homepage/global_sections", expires_in: 15.minutes) do
+    sections =     CinelarTV.cache.fetch("homepage/global_sections", expires_in: 15.minutes) do
       result = []
 
       new_this_week = add_new_this_week(Set.new)

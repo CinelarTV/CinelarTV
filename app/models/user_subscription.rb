@@ -31,6 +31,6 @@ class UserSubscription < ApplicationRecord
   private
 
   def clear_subscription_cache
-    Rails.cache.delete("user_subscribed/#{user_id}")
+    CinelarTV.cache.delete("user_subscribed/#{user_id}")
   end
 end

@@ -38,6 +38,6 @@ class Profile < ApplicationRecord
   end
 
   def clear_profile_cache
-    Rails.cache.delete("profile/#{id}")
+    CinelarTV.cache.delete("profile/#{id}")
   end
 end
