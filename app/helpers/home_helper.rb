@@ -554,6 +554,6 @@ module HomeHelper
   end
 
   def get_ip_address
-    @get_ip_address ||= request.remote_ip
+    @get_ip_address ||= request.headers["CF-Connecting-IP"] || request.remote_ip
   end
 end

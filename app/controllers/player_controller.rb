@@ -55,7 +55,7 @@ class PlayerController < ApplicationController
       @stream_session_result = StreamSessionManager::Result.new(success: true, skipped: true)
     end
 
-    ip_address = request.remote_ip
+    ip_address = request.headers["CF-Connecting-IP"] || request.remote_ip
 
     if ip_address.present?
       Rails.logger.info "IP address: #{ip_address}"

@@ -10,7 +10,7 @@ class UserSubscriptionsController < ApplicationController
     @subscriptions = UserSubscription.where(user_id: current_user.id)
     @payments = SubscriptionPayment.where(user_id: current_user.id).order(paid_at: :desc)
 
-    ip_address = request.remote_ip
+    ip_address = request.headers["CF-Connecting-IP"] || request.remote_ip
     ip_info = IpInfo.lookup(ip_address)
     country_code = ip_info[:country_code]
 
@@ -39,9 +39,9 @@ class UserSubscriptionsController < ApplicationController
     provider = if provider_key.present? && ::Subscriptions::Providers::Registry.enabled?(provider_key)
                  ::Subscriptions::Providers::Registry.build(provider_key)
                else
-                 recommend = recommend_provider(
-                   IpInfo.lookup(request.remote_ip)[:country_code]
-                 )
+                  recommend = recommend_provider(
+                    IpInfo.lookup(request.headers["CF-Connecting-IP"] || request.remote_ip)[:country_code]
+                  )
                  ::Subscriptions::Providers::Registry.build(recommend)
                end
 
