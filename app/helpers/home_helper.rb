@@ -7,7 +7,14 @@ module HomeHelper
       include_trailers = params[:include_trailers] == "true"
 
       banner = load_banner_content(ids_set)
-      sections = build_content_sections(ids_set)
+
+      # Secciones personalizadas (por perfil)
+      personalized = build_personalized_sections(ids_set)
+
+      # Secciones globales (cacheadas, iguales para todos)
+      global = build_global_sections
+
+      sections = personalized + global
 
       if include_trailers
         inject_trailers_into_content(banner)
@@ -59,11 +66,25 @@ module HomeHelper
   private
 
   def liked_content_ids
-    @liked_content_ids ||= Set.new(current_profile&.liked_contents&.pluck(:id) || [])
+    return @liked_content_ids if defined?(@liked_content_ids)
+    return @liked_content_ids = Set.new unless current_profile
+
+    @liked_content_ids = Set.new(
+      Rails.cache.fetch("profile_liked_ids/#{current_profile.id}", expires_in: 30.minutes) do
+        current_profile.liked_contents.pluck(:id)
+      end
+    )
   end
 
   def disliked_content_ids
-    @disliked_content_ids ||= Set.new(current_profile&.disliked_contents&.pluck(:id) || [])
+    return @disliked_content_ids if defined?(@disliked_content_ids)
+    return @disliked_content_ids = Set.new unless current_profile
+
+    @disliked_content_ids = Set.new(
+      Rails.cache.fetch("profile_disliked_ids/#{current_profile.id}", expires_in: 30.minutes) do
+        current_profile.disliked_contents.pluck(:id)
+      end
+    )
   end
 
   def infer_trailer_mime_type(url, sources)
@@ -395,7 +416,7 @@ module HomeHelper
       .sort_by { |cw| -cw[:last_watched_at].to_i }
   end
 
-  def build_content_sections(liked_ids)
+  def build_personalized_sections(liked_ids)
     sections = []
 
     continue_watching = add_continue_watching(liked_ids)
@@ -414,34 +435,46 @@ module HomeHelper
       end
     end
 
-    new_this_week = add_new_this_week(liked_ids)
-    if new_this_week.present?
-      sections << { title: I18n.t("js.home.new_this_week"), content: new_this_week }
+    sections
+  end
+
+  def build_global_sections
+    sections = Rails.cache.fetch("homepage/global_sections", expires_in: 15.minutes) do
+      result = []
+
+      new_this_week = add_new_this_week(Set.new)
+      if new_this_week.present?
+        result << { title: I18n.t("js.home.new_this_week"), content: new_this_week }
+      end
+
+      trending = add_trending(Set.new)
+      if trending.present?
+        result << { title: I18n.t("js.home.trending"), content: trending }
+      end
+
+      added_recently = add_added_recently(Set.new)
+      if added_recently.present?
+        result << { title: I18n.t("js.home.added_recently"), content: added_recently }
+      end
+
+      most_viewed = add_most_viewed(Set.new)
+      if most_viewed.present?
+        result << { title: I18n.t("js.home.most_viewed"), content: most_viewed }
+      end
+
+      most_liked = add_most_liked(Set.new)
+      if most_liked.present?
+        result << { title: I18n.t("js.home.most_liked"), content: most_liked }
+      end
+
+      by_genre = add_by_genre(Set.new)
+      result.concat(by_genre) if by_genre.present?
+
+      result
     end
 
-    trending = add_trending(liked_ids)
-    if trending.present?
-      sections << { title: I18n.t("js.home.trending"), content: trending }
-    end
-
-    added_recently = add_added_recently(liked_ids)
-    if added_recently.present?
-      sections << { title: I18n.t("js.home.added_recently"), content: added_recently }
-    end
-
-    most_viewed = add_most_viewed(liked_ids)
-    if most_viewed.present?
-      sections << { title: I18n.t("js.home.most_viewed"), content: most_viewed }
-    end
-
-    most_liked = add_most_liked(liked_ids)
-    if most_liked.present?
-      sections << { title: I18n.t("js.home.most_liked"), content: most_liked }
-    end
-
-    by_genre = add_by_genre(liked_ids)
-    sections.concat(by_genre) if by_genre.present?
-
+    # Top 10 se agrega por separado porque depende del país del usuario
+    # (ya está cacheado en Redis por Top10ContentJob)
     if (top_10 = top_10_content_by_country)&.present?
       sections << { title: I18n.t("js.home.top_10_content_by_country", country: top_10[:country]),
                     content: top_10[:content] }

@@ -15,6 +15,8 @@ class DislikesController < ApplicationController
       current_profile.disliked_contents << @content
     end
 
+    clearDislikedCache
+    clearLikedCache
     head :no_content
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Content not found" }, status: :not_found
@@ -24,6 +26,7 @@ class DislikesController < ApplicationController
     @content = Content.find(params[:id])
     if current_profile.disliked_contents.include?(@content)
       current_profile.disliked_contents.delete(@content)
+      clearDislikedCache
       head :no_content
     else
       render json: { error: "You didn't dislike this content" }, status: :unprocessable_entity
@@ -41,6 +44,8 @@ class DislikesController < ApplicationController
       current_profile.disliked_contents << @content
     end
 
+    clearDislikedCache
+    clearLikedCache
     head :no_content
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Content not found" }, status: :not_found
@@ -55,5 +60,13 @@ class DislikesController < ApplicationController
       error: "missing_profile",
       message: "Please select a profile to perform this action"
     }, status: :unprocessable_entity
+  end
+
+  def clearDislikedCache
+    Rails.cache.delete("profile_disliked_ids/#{current_profile.id}")
+  end
+
+  def clearLikedCache
+    Rails.cache.delete("profile_liked_ids/#{current_profile.id}")
   end
 end

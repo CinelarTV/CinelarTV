@@ -4,6 +4,8 @@ class UserSubscription < ApplicationRecord
   belongs_to :user
   has_many :subscription_payments, dependent: :destroy
 
+  after_commit :clear_subscription_cache
+
   # Canonical statuses: active, trialing, pending, past_due, cancelled, expired, granted
   ACTIVE_STATUSES = %w[active trialing approved].freeze
   INACTIVE_STATUSES = %w[cancelled canceled rejected expired unpaid].freeze
@@ -24,5 +26,11 @@ class UserSubscription < ApplicationRecord
 
   def trialing?
     status.to_s == "trialing" && trial_ends_at.present? && trial_ends_at >= Time.zone.now
+  end
+
+  private
+
+  def clear_subscription_cache
+    Rails.cache.delete("user_subscribed/#{user_id}")
   end
 end

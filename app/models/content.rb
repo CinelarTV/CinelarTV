@@ -122,6 +122,7 @@ class Content < ApplicationRecord
   }
 
   before_destroy :cleanup_images
+  after_commit :clear_global_sections_cache, if: -> { saved_change_to_available? || saved_change_to_created_at? }
 
   def update_categories(category_ids)
     self.category_ids = category_ids
@@ -176,5 +177,9 @@ class Content < ApplicationRecord
       # S3 storage cleanup - rely on overwrite for now
       Rails.logger.info("S3 storage detected - old image cleanup skipped (relying on overwrite)")
     end
+  end
+
+  def clear_global_sections_cache
+    Rails.cache.delete("homepage/global_sections")
   end
 end

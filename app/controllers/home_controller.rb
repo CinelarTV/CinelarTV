@@ -20,7 +20,14 @@ class HomeController < ApplicationController
     content_type = params[:content_type]
     sort = params[:sort] || "trending"
 
-    content = Content.where(available: true)
+    categories = Category
+      .joins(:contents)
+      .where(contents: { available: true })
+      .group("categories.id")
+      .having("COUNT(contents.id) >= 1")
+      .order(:name)
+
+    content = Content.includes(:categories, :content_analytic)
 
     content = content.where(content_type: content_type) if content_type.present?
     content = content.joins(:content_categories).where(content_categories: { category_id: category_id }) if category_id.present?
@@ -37,17 +44,15 @@ class HomeController < ApplicationController
                        .order(Arel.sql("COALESCE(content_analytics.total_views, 0) DESC"))
     end
 
-    categories = Category
-      .joins(:contents)
-      .where(contents: { available: true })
-      .group("categories.id")
-      .having("COUNT(contents.id) >= 1")
-      .order(:name)
+    contents_data = content.limit(50).map do |c|
+      { id: c.id, title: c.title, description: c.description, 
+        banner: c.banner, banner_resized: c.banner_resized, 
+        cover_resized: c.cover_resized, content_type: c.content_type, 
+        year: c.year, category_ids: c.category_ids }
+    end
 
     render json: {
-      contents: content.limit(50).pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized, :content_type, :year).map { |id, title, desc, banner, banner_resized, cover_resized, type, year|
-        { id: id, title: title, description: desc, banner: banner, banner_resized: banner_resized, cover_resized: cover_resized, content_type: type, year: year }
-      },
+      contents: contents_data,
       categories: categories.map { |c| { id: c.id, name: c.name } }
     }
   end

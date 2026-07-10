@@ -122,8 +122,16 @@ class User < ApplicationRecord
   end
 
   def is_subscribed?
-    return true if has_role?(:admin)
-    user_subscriptions.active.exists?
+    return true if is_admin?
+    Rails.cache.fetch("user_subscribed/#{id}", expires_in: 1.hour) do
+      user_subscriptions.active.exists?
+    end
+  end
+
+  def is_admin?
+    Rails.cache.fetch("user_admin/#{id}", expires_in: 5.minutes) do
+      has_role?(:admin)
+    end
   end
 
   protected
@@ -150,5 +158,7 @@ class User < ApplicationRecord
 
   def clear_user_cache
     Rails.cache.delete("user/#{id}")
+    Rails.cache.delete("user_admin/#{id}")
+    Rails.cache.delete("user_subscribed/#{id}")
   end
 end
