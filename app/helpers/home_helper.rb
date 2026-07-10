@@ -542,10 +542,15 @@ module HomeHelper
       return nil unless ip_address
 
       ip_info = IpInfo.lookup(ip_address)
+      return nil unless ip_info && ip_info[:country_code].present?
+
       content = CinelarTV.cache.read("top_10_content_#{ip_info[:country_code]}")
 
       { country: ip_info[:country], content: content } if content.present?
     end
+  rescue => e
+    Rails.logger.warn("top_10_content_by_country failed: #{e.message}")
+    nil
   end
 
   def get_ip_address

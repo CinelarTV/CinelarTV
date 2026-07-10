@@ -5,12 +5,10 @@ class Top10ContentJob
   include Sidekiq::Job
 
   def perform
-    # Get a list of all country_code on Reproductions
     country_codes = Reproduction.distinct.pluck(:country_code)
 
     Rails.logger.info("Found #{country_codes.count} country codes on Reproductions.")
 
-    # For each country_code, get the top 10 content
     country_codes.each do |country_code|
       top_10_content = Reproduction.top_content_by_country(country_code)
 
@@ -19,9 +17,10 @@ class Top10ContentJob
         next
       end
 
-      # Save the top 10 content on Redis
-      CinelarTV.cache.write("top_10_content_#{country_code}", top_10_content)
-      Rails.logger.info("Top 10 content for country #{country_code} saved on Redis, #{top_10_content.size} contents.")
+      # Convertir a array serializable antes de cachear
+      serialized = top_10_content.as_json(only: %i[id title description banner banner_resized cover_resized content_type year])
+      CinelarTV.cache.write("top_10_content_#{country_code}", serialized)
+      Rails.logger.info("Top 10 content for country #{country_code} saved on Redis, #{serialized.size} contents.")
     end
   end
 end
