@@ -65,11 +65,15 @@ class ApplicationController < ActionController::Base
   end
 
   def current_user
-    @current_user ||= Rails.cache.fetch("user_session/#{session[:user_id] || doorkeeper_token&.resource_owner_id}", expires_in: 30.minutes) do
-      if using_doorkeeper?
-        User.find_by(id: doorkeeper_token.resource_owner_id)
-      else
-        super
+    @current_user ||= begin
+      user = if using_doorkeeper?
+               User.find_by(id: doorkeeper_token.resource_owner_id)
+             else
+               super
+             end
+
+      if user
+        Rails.cache.fetch("user/#{user.id}", expires_in: 30.minutes) { user }
       end
     end
   end

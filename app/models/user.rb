@@ -149,6 +149,6 @@ class User < ApplicationRecord
   end
 
   def clear_user_cache
-    Rails.cache.delete("user_session/#{id}")
+    Rails.cache.delete("user/#{id}")
   end
 end
