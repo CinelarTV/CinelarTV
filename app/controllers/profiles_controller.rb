@@ -4,7 +4,7 @@ class ProfilesController < ApplicationController
   before_action :authenticate_user! # Ensure the user is authenticated
 
   def index
-    @profiles = current_user.profiles
+    @profiles = current_user.profiles.order(:created_at)
   end
 
   def show

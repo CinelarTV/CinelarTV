@@ -61,6 +61,6 @@ class CurrentUserSerializer < ApplicationSerializer
   end
 
   def profiles
-    object.profiles.as_json(include: :preferences)
+    object.profiles.order(:created_at).as_json(include: :preferences)
   end
 end
