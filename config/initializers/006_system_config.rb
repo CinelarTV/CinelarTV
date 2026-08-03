@@ -30,6 +30,42 @@ Rails.application.reloader.to_prepare do
         main_app: true,
       },
     ]
+
+    if Rails.env.production?
+      Logster.store.ignore = [
+        # These errors are caused by client requests. No need to log them.
+        # Rails itself defines these as 'silent exceptions', but this does
+        # not entirely prevent them from being logged
+        # https://github.com/rails/rails/blob/f2caed1e/actionpack/lib/action_dispatch/middleware/exception_wrapper.rb#L39-L42
+        /^ActionController::RoutingError \(No route matches/,
+        /^ActionDispatch::Http::MimeNegotiation::InvalidType/,
+        /^PG::Error: ERROR:\s+duplicate key/,
+        /^ActionController::UnknownFormat/,
+        /^ActionController::UnknownHttpMethod/,
+        /^AbstractController::ActionNotFound/,
+        # ignore any empty JS errors that contain blanks or zeros for line and column fields
+        #
+        # Line:
+        # Column:
+        #
+        /(?m).*?Line: (?:\D|0).*?Column: (?:\D|0)/,
+        # suppress empty JS errors (covers MSIE 9, etc)
+        /^(Syntax|Script) error.*Line: (0|1)\b/m,
+        # CSRF errors are not providing enough data
+        # suppress unconditionally for now
+        /^Can't verify CSRF token authenticity.$/,
+        # related to browser plugins somehow, we don't care
+        /Error calling method on NPObject/,
+        # 404s can be dealt with elsewhere
+        /^ActiveRecord::RecordNotFound/,
+        # bad asset requested, no need to log
+        /^ActionController::BadRequest/,
+        # we can't do anything about invalid parameters
+        /Rack::QueryParser::InvalidParameterError/,
+      ]
+      Logster.config.env_expandable_keys.push(:hostname)
+    end
+
 Logster.set_environments([:development, :production])
   end
 end
