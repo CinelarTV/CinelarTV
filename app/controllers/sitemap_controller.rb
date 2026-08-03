@@ -59,29 +59,17 @@ class SitemapController < ApplicationController
 
   helper_method :canonical_base
 
+  # Claves basadas en tiempo (bucket de 30 min) — elimina COUNT/MAX queries por request.
+  # El sitemap se regenera cada 30 min automáticamente.
   def sitemap_index_cache_key
-    content_count = Content.available.count
-    episode_count = Episode.joins(season: :content).where(contents: { available: true }).count
-    latest_content_at = Content.available.maximum(:updated_at)
-    latest_episode_at = Episode.joins(season: :content).where(contents: { available: true }).maximum(:updated_at)
-    latest_update_at = [latest_content_at, latest_episode_at].compact.max || Time.current
-
-    [
-      "sitemap:index",
-      canonical_base,
-      content_count,
-      episode_count,
-      latest_update_at.to_i
-    ].join(":")
+    "sitemap:index:#{canonical_base}:#{Time.current.to_i / 30.minutes.to_i}"
   end
 
-  def sitemap_contents_cache_key(contents)
-    latest_updated = contents.maximum(:updated_at) || Time.current
-    ["sitemap:contents", canonical_base, contents.count, latest_updated.to_i].join(":")
+  def sitemap_contents_cache_key(_contents)
+    "sitemap:contents:#{canonical_base}:#{Time.current.to_i / 30.minutes.to_i}"
   end
 
-  def sitemap_episodes_cache_key(episodes)
-    latest_updated = episodes.maximum(:updated_at) || Time.current
-    ["sitemap:episodes", canonical_base, episodes.count, latest_updated.to_i].join(":")
+  def sitemap_episodes_cache_key(_episodes)
+    "sitemap:episodes:#{canonical_base}:#{Time.current.to_i / 30.minutes.to_i}"
   end
 end

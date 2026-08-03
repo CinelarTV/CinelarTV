@@ -6,11 +6,18 @@ class LiveTvController < ApplicationController
   before_action :check_channel_active, only: [:show, :watch, :guide]
 
   def index
-    @channels = LiveTvChannel.active.order(:position)
+    @channels = LiveTvChannel.active.includes(:tv_programs).order(:position)
 
     respond_to do |format|
       format.html
       format.json do
+        # public: la lista de canales es igual para todos los usuarios.
+        # Cache-Control: public, max-age=0, must-revalidate (ETag-based).
+        channel_updated = LiveTvChannel.maximum(:updated_at) || Time.current
+        program_updated = TvProgram.maximum(:updated_at) || Time.current
+        composite_etag = Digest::MD5.hexdigest("#{channel_updated.to_i}-#{program_updated.to_i}")
+
+        fresh_when(last_modified: [channel_updated, program_updated].max, etag: composite_etag, public: true)
         render json: {
           live_tv_channels: @channels.map { |ch| channel_json(ch) }
         }
@@ -89,7 +96,7 @@ class LiveTvController < ApplicationController
   private
 
   def set_channel
-    @channel = LiveTvChannel.find(params[:id])
+    @channel = LiveTvChannel.includes(:tv_programs).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render_error("Live TV channel not found", :not_found)
   end
@@ -107,6 +114,12 @@ class LiveTvController < ApplicationController
   end
 
   def channel_json(channel)
+    now = Time.current
+    programs = channel.tv_programs
+
+    current = programs.find { |p| p.start_time <= now && p.end_time > now }
+    upcoming = programs.select { |p| p.start_time > now }.sort_by(&:start_time).first(3)
+
     {
       id: channel.id,
       name: channel.name,
@@ -116,8 +129,8 @@ class LiveTvController < ApplicationController
       stream_format: channel.stream_format,
       is_active: channel.is_active,
       xmltv_channel_id: channel.xmltv_channel_id,
-      current_program: channel.current_program&.as_json(only: %i[id title description start_time end_time icon_url category]),
-      upcoming_programs: channel.upcoming_programs(3).map { |p| program_json(p) },
+      current_program: current&.as_json(only: %i[id title description start_time end_time icon_url category]),
+      upcoming_programs: upcoming.map { |p| program_json(p) },
       created_at: channel.created_at,
       updated_at: channel.updated_at,
     }

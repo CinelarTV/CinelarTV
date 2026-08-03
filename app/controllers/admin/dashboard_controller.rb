@@ -115,7 +115,7 @@ module Admin
     private
 
     def admin?
-      render status: 404 unless current_user.has_role?(:admin)
+      render status: 404 unless current_user.is_admin?
     end
   end
 end

@@ -365,12 +365,10 @@ module Admin
         next if person_data.id.blank?
 
         person = Person.find_or_initialize_by(tmdb_id: person_data.id)
-        if person.new_record?
-          person.name = person_data.name || "Unknown"
-          person.profile_path = person_data.profile_path
-          person.known_for_department = person_data.known_for_department || "Acting"
-          person.save!
-        end
+        person.name = person_data.name || "Unknown"
+        person.profile_path = person_data.profile_path.presence || person.profile_path
+        person.known_for_department = person_data.known_for_department || "Acting"
+        person.save! if person.changed?
 
         cast_member = CastMember.find_or_initialize_by(content: @content, person: person)
         cast_member.character_name = person_data.character

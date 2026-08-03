@@ -58,9 +58,13 @@ class XmltvSource < ApplicationRecord
 
     updated_channel_names = []
 
-    # Remove stale programs within the feed range for each channel before saving fresh data.
+    # Prefetch all channels in one query to avoid N+1
+    channel_map = LiveTvChannel.where(xmltv_channel_id: programs_data.map { |d| d[:xmltv_id] }.uniq)
+                               .index_by(&:xmltv_channel_id)
+
+    # Remove stale programs and insert new ones in batches per channel
     programs_data.group_by { |data| data[:xmltv_id] }.each do |xmltv_channel_id, channel_programs|
-      channel = LiveTvChannel.find_by(xmltv_channel_id: xmltv_channel_id)
+      channel = channel_map[xmltv_channel_id]
       next unless channel
 
       updated_channel_names << channel.name
@@ -71,8 +75,8 @@ class XmltvSource < ApplicationRecord
                      .where(start_time: start_range..end_range)
                      .delete_all
 
-      channel_programs.each do |data|
-        channel.tv_programs.create!(
+      rows = channel_programs.map do |data|
+        {
           live_tv_channel_id: channel.id,
           xmltv_id: xmltv_channel_id,
           title: data[:title],
@@ -80,8 +84,14 @@ class XmltvSource < ApplicationRecord
           start_time: data[:start_time],
           end_time: data[:end_time],
           icon_url: data[:icon_url],
-          category: data[:category]
-        )
+          category: data[:category],
+          created_at: Time.current,
+          updated_at: Time.current
+        }
+      end
+
+      rows.each_slice(500) do |batch|
+        TvProgram.insert_all(batch)
       end
     end
 

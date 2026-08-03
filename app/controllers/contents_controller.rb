@@ -17,7 +17,7 @@ class ContentsController < ApplicationController
       return
     end
 
-    @contents = Content.search_by_title_and_description(query)
+    @contents = Content.search_by_title_and_description(query).limit(30)
     respond_to do |format|
       format.html
       format.json {
@@ -29,67 +29,27 @@ class ContentsController < ApplicationController
   end
 
   def show
-    @content = Content.find_by(id: params[:id])
+    @content = Content.includes(:categories, :cast_members, :trailer_video_sources, seasons: :episodes)
+                      .find_by(id: params[:id])
 
     raise CinelarTV::NotFound unless @content
 
-    respond_to do |format|
-      format.html {
-        @data = {
-          content: @content.as_json(except: %i[created_at updated_at url available]),
-          liked: current_profile&.liked_content_ids&.include?(@content.id),
-          disliked: current_profile&.disliked_content_ids&.include?(@content.id),
-          related_content: @content.similar_items.as_json(only: %i[id title description banner]),
+    if CrawlerDetection.crawler?(request.user_agent)
+      @is_crawler = true
+      render :show, layout: "crawler"
+    else
+      respond_to do |format|
+        format.html
+        format.json {
+          # stale? retorna false (y renderiza 304 automáticamente) si el ETag/Last-Modified coincide.
+          # Cache-Control: private (por liked/disliked per-profile) + must-revalidate.
+          if stale?(@content, public: false)
+            render json: ContentSerializer.new(@content, current_profile: current_profile).serializable_hash
+          end
         }
-
-        @data[:content][:available] = available?
-
-        handle_seasons_and_episodes if @content.content_type == "TVSHOW"
-        handle_continue_watching
-      }
-      format.json {
-        render json: ContentSerializer.new(@content, current_profile: current_profile).serializable_hash
-      }
+      end
     end
   end
 
   private
-
-  def available?
-    if @content.content_type == "MOVIE"
-      @content.available && !@content.video_sources.empty?
-    elsif @content.content_type == "TVSHOW"
-      @content.available && !@content.seasons.empty? && !@content.seasons.first.episodes.empty?
-    end
-  end
-
-  def handle_seasons_and_episodes
-    @data[:content][:seasons] = @content.seasons.order(position: :asc).map do |s|
-      {
-        id: s.id,
-        title: s.title,
-        description: s.description,
-        position: s.position,
-        episodes: s.episodes.order(position: :asc).map do |e|
-          {
-            id: e.id,
-            title: e.title,
-            description: e.description,
-            thumbnail: e.thumbnail.presence || @content.banner,
-            position: e.position,
-          }
-        end,
-      }
-    end
-  end
-
-  def handle_continue_watching
-    most_recent_watched_episode = ContinueWatching.where(profile: current_profile,
-                                                          content: @content).where.not(episode_id: nil).order(updated_at: :desc).first if @content.content_type == "TVSHOW"
-    continue_watching = ContinueWatching.where(profile: current_profile,
-                                               content: @content).order(updated_at: :desc).first
-
-    @data[:content][:most_recent_watched_episode] = most_recent_watched_episode.as_json(only: %i[episode_id progress duration]) if most_recent_watched_episode.present?
-    @data[:content][:continue_watching] = continue_watching.as_json(only: %i[progress duration]) if continue_watching.present?
-  end
 end

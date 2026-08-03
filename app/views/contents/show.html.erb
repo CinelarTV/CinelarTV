@@ -2,6 +2,10 @@
 <% @description = @content.description %>
 <% @banner = @content.banner %>
 
-<%= render partial: "partials/schema_video_object" %>
-<%= render partial: "partials/schema_tv_series" %>
-<%= render partial: "partials/schema_breadcrumb" %>
+<% if @is_crawler %>
+  <%= render partial: "crawler_view" %>
+<% else %>
+  <%= render partial: "partials/schema_video_object" %>
+  <%= render partial: "partials/schema_tv_series" %>
+  <%= render partial: "partials/schema_breadcrumb" %>
+<% end %>

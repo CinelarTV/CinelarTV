@@ -1,30 +1,134 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "digest"
 
 class BackupManager
   class RestoreDisabledError < StandardError; end
   class BackupError < StandardError; end
+  class RestoreError < StandardError; end
 
-  def self.create_backup(notes: nil, backup_type: "manual")
+  UPLOAD_DIRECTORIES = %w[
+    uploads/content_images/banners
+    uploads/content_images/covers
+    uploads/content_images/episode_thumbnails
+    uploads/logos
+    public/content-media
+  ].freeze
+
+  # --- Create backup ---
+
+  def self.create_backup(notes: nil, backup_type: "manual", include_files: true, encrypt: false)
     Backup.ensure_base_directory_exists!
-    
+
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
     filename = "cinelar_backup_#{timestamp}.dump"
     filepath = File.join(Backup.base_directory, filename)
 
+    backup = Backup.create!(
+      filename: filename,
+      backup_type: backup_type,
+      status: "running",
+      notes: notes,
+      source: "system",
+      retention_days: SiteSetting.backup_retention_days || 30,
+      expires_at: (SiteSetting.backup_retention_days || 30).days.from_now
+    )
+
+    begin
+      backup.append_audit("started", "backup_type=#{backup_type}, include_files=#{include_files}")
+
+      # 1. Database dump
+      run_pg_dump(filepath, backup)
+      backup.update!(size: File.size(filepath))
+
+      # 2. File manifest (track uploaded files)
+      if include_files
+        manifest = build_file_manifest
+        backup.update!(file_manifest: manifest)
+        backup.append_audit("files_manifested", "#{manifest[:total_files]} files, #{manifest[:total_size]} bytes")
+      end
+
+      # 3. Encryption
+      if encrypt
+        password = SiteSetting.backup_encryption_password
+        if password.present?
+          backup.encrypt_file!(password)
+        else
+          backup.append_audit("encryption_skipped", "No encryption password configured")
+        end
+      end
+
+      backup.mark_completed!
+      backup
+    rescue StandardError => e
+      backup.mark_failed!(e.message)
+      FileUtils.rm_f(filepath) if File.exist?(filepath)
+      Rails.logger.error "Backup failed: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+      raise BackupError, "Failed to create backup: #{e.message}"
+    end
+  end
+
+  # --- Restore from backup ---
+
+  def self.restore_backup(filename, force: false, restore_files: true)
+    unless force || SiteSetting.allow_restore
+      raise RestoreDisabledError, "Restoration is disabled. Enable 'allow_restore' in Site Settings."
+    end
+
+    backup = Backup.find_by!(filename: filename)
+    filepath = backup.path
+
+    unless File.exist?(filepath)
+      raise RestoreError, "Backup file not found on disk: #{filename}"
+    end
+
+    # Verify checksum if available
+    if backup.checksum.present?
+      actual = Digest::SHA256.file(filepath).hexdigest
+      unless actual == backup.checksum
+        raise RestoreError, "Checksum mismatch! Backup file may be corrupted."
+      end
+    end
+
+    # Decrypt if needed
+    if backup.encrypted?
+      password = SiteSetting.backup_encryption_password
+      raise RestoreError, "Backup is encrypted but no password configured" if password.blank?
+      backup.decrypt_file!(password)
+    end
+
+    backup.append_audit("restore_started")
+
+    # 1. Restore database
+    run_pg_restore(filepath, backup)
+
+    # 2. Restore file manifest info
+    if restore_files && backup.file_manifest.present?
+      backup.append_audit("files_manifest_restored", "File manifest available for manual restoration")
+    end
+
+    backup.append_audit("restore_completed")
+    true
+  end
+
+  # --- Download ---
+
+  def self.download_path(filename)
+    backup = Backup.find_by!(filename: filename)
+    return nil unless backup.exist?
+    backup.path
+  end
+
+  private
+
+  def self.run_pg_dump(filepath, backup)
     db_config = ActiveRecord::Base.connection_db_config.configuration_hash
-    
-    # Construct pg_dump command
-    # -F c: Custom format (recommended for pg_restore)
-    # -v: Verbose
-    # -f: Output file
-    
+
     env = {
       "PGPASSWORD" => db_config[:password].to_s,
       "PGSSLMODE" => db_config[:sslmode].to_s
     }
-
 
     command = [
       "pg_dump",
@@ -36,57 +140,24 @@ class BackupManager
       db_config[:database]
     ]
 
-    Rails.logger.info "Starting backup: #{filename}"
-    
+    backup.append_audit("pg_dump_started")
     success = system(env, *command)
 
-    if success
-      size = File.size(filepath)
-      backup = Backup.create!(
-        filename: filename,
-        size: size,
-        backup_type: backup_type,
-        notes: notes,
-        source: "system"
-      )
-      Rails.logger.info "Backup created successfully: #{filename} (#{size} bytes)"
-      backup
-    else
-      Rails.logger.error "Backup failed: pg_dump exited with non-zero status"
-      FileUtils.rm_f(filepath) if File.exist?(filepath)
-      raise BackupError, "Failed to create database dump"
+    unless success
+      raise BackupError, "pg_dump exited with non-zero status"
     end
+
+    backup.append_audit("pg_dump_completed")
   end
 
-  def self.restore_backup(filename, force: false)
-    unless force || SiteSetting.allow_restore
-      raise RestoreDisabledError, "Restoration is disabled by default. Enable it in Site Settings or use FORCE=true via Rake."
-    end
-
-    backup = Backup.find_by!(filename: filename)
-    filepath = backup.path
-
-    unless File.exist?(filepath)
-      raise BackupError, "Backup file not found on disk: #{filename}"
-    end
-
+  def self.run_pg_restore(filepath, backup)
     db_config = ActiveRecord::Base.connection_db_config.configuration_hash
 
-    # Construct pg_restore command
-    # -c: Clean (drop database objects before recreating)
-    # --if-exists: Use with -c
-    # -d: Database name
-    # -v: Verbose
-    
     env = {
       "PGPASSWORD" => db_config[:password].to_s,
       "PGSSLMODE" => db_config[:sslmode].to_s
     }
 
-
-    # IMPORTANT: We need to disconnect other sessions if possible, or warn the user.
-    # In a development/simple environment, -c --if-exists is usually enough if no one is using the DB.
-    
     command = [
       "pg_restore",
       "-h", db_config[:host] || "localhost",
@@ -98,19 +169,38 @@ class BackupManager
       filepath
     ]
 
-    Rails.logger.info "Starting restoration of: #{filename}"
-    
-    # We might need to terminate other connections to the database to avoid "database is being accessed by other users" errors.
-    # But for a basic implementation, we'll try pg_restore directly.
-    
+    backup.append_audit("pg_restore_started")
     success = system(env, *command)
 
-    if success
-      Rails.logger.info "Back up restored successfully: #{filename}"
-      true
-    else
-      Rails.logger.error "Restoration failed: pg_restore exited with non-zero status"
-      raise BackupError, "Failed to restore database from dump"
+    unless success
+      raise RestoreError, "pg_restore exited with non-zero status"
     end
+
+    backup.append_audit("pg_restore_completed")
+  end
+
+  def self.build_file_manifest
+    manifest = { files: [], total_files: 0, total_size: 0 }
+    root = Rails.root
+
+    UPLOAD_DIRECTORIES.each do |dir|
+      full_path = root.join(dir)
+      next unless Dir.exist?(full_path)
+
+      Dir.glob(File.join(full_path, "**", "*")).select { |f| File.file?(f) }.each do |file|
+        relative = file.sub(root.to_s, "")
+        size = File.size(file)
+        manifest[:files] << {
+          path: relative,
+          size: size,
+          checksum: Digest::SHA256.file(file).hexdigest,
+          modified_at: File.mtime(file).iso8601
+        }
+        manifest[:total_files] += 1
+        manifest[:total_size] += size
+      end
+    end
+
+    manifest
   end
 end

@@ -22,7 +22,7 @@ class UserSubscriptionsController < ApplicationController
           data: @subscriptions.as_json,
           payments: @payments.as_json,
           provider: @provider.provider_key,
-          admin: current_user.has_role?(:admin),
+          admin: current_user.is_admin?,
           enabled_providers: enabled_providers.map { |key| { key: key, label: provider_label(key) } },
           geo: {
             country_code: country_code,

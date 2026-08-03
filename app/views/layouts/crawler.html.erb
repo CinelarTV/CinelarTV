@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta
+      name="generator"
+      content="CinelarTV <%= CinelarTV::Application::Version::FULL %> - https://github.com/CinelarTV/CinelarTV-AIO <%= CinelarTV.git_branch %> version <%= CinelarTV.git_version %>"
+    >
+    <%= tag.meta name: "theme-color", content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "msapplication-navbutton-color",
+             content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "apple-mobile-web-app-status-bar-style",
+             content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "mobile-web-app-capable", content: "yes" %>
+    <%= tag.meta name: "apple-mobile-web-app-title", content: SiteSetting.site_name %>
+    <%= tag.meta name: "application-name", content: SiteSetting.site_name %>
+    <%= tag.meta name: "msapplication-tooltip", content: SiteSetting.site_name %>
+    <%= tag.meta name: "msapplication-starturl", content: "/" %>
+    <%= tag.meta name: "msapplication-TileColor",
+             content: SiteSetting.header_background_color %>
+    <%= tag.meta name: "msapplication-TileImage", content: SiteSetting.site_favicon %>
+    <title><%= seo_title %></title>
+    <meta name="description" content="<%= seo_description %>">
+    <link rel="canonical" href="<%= canonical_url %>">
+    <link rel="icon" type="image/png" href="<%= SiteSetting.site_favicon %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= render partial: "partials/opengraph" %>
+    <%= render partial: "partials/schema_web_site" %>
+    <%= render_third_party_plugins_css %>
+  </head>
+  <body class="app-body<% if device == "mobile" %> is-mobile<% end %>">
+    <cinelar-assets>
+      <cinelar-assets-stylesheets>
+        <%= render partial: "partials/stylesheet" %>
+      </cinelar-assets-stylesheets>
+      <cinelar-assets-icons>
+        <%= tag.div(id: "cinelar-icon-sheet") %>
+      </cinelar-assets-icons>
+      <cinelar-essentials-preload>
+        <%= tag.div(id: "data-preloaded", "data-preloaded": preloaded_json) %>
+      </cinelar-essentials-preload>
+    </cinelar-assets>
+    
+    <main class="container mx-auto mt-28 px-5 flex">
+      <%= yield %>
+    </main>
+
+  </body>
+</html>

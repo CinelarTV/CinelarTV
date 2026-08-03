@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
   enable_extension "unaccent"
@@ -26,7 +27,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.jsonb "metadata", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status", default: "pending", null: false
+    t.string "checksum"
+    t.boolean "encrypted", default: false, null: false
+    t.text "encryption_key_fingerprint"
+    t.jsonb "file_manifest", default: {}
+    t.jsonb "audit_log", default: []
+    t.datetime "completed_at"
+    t.datetime "expires_at"
+    t.integer "retention_days", default: 30
+    t.string "error_message"
+    t.index ["created_at"], name: "index_backups_on_created_at"
+    t.index ["expires_at"], name: "index_backups_on_expires_at"
     t.index ["filename"], name: "index_backups_on_filename", unique: true
+    t.index ["status"], name: "index_backups_on_status"
   end
 
   create_table "cast_members", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -93,8 +107,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.string "banner_resized"
     t.string "cover_resized"
     t.datetime "scheduled_launch_at"
+    t.index "lower(immutable_unaccent((title)::text)) gin_trgm_ops", name: "index_contents_on_title_trgm", using: :gin
     t.index ["available"], name: "index_contents_on_available_true", where: "(available = true)"
     t.index ["content_type"], name: "index_contents_on_content_type"
+    t.index ["created_at"], name: "index_contents_on_available_and_created_at", order: :desc, where: "(available = true)"
     t.index ["scheduled_launch_at"], name: "index_contents_on_scheduled_launch_pending", where: "((scheduled_launch_at IS NOT NULL) AND (available = false))"
     t.index ["tmdb_id"], name: "index_contents_on_tmdb_id"
   end
@@ -171,6 +187,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["content_id"], name: "index_likes_on_content_id"
+    t.index ["created_at"], name: "index_likes_on_created_at"
     t.index ["profile_id"], name: "index_likes_on_profile_id"
     t.index ["updated_at"], name: "index_likes_on_updated_at"
   end
@@ -382,6 +399,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.index ["live_tv_channel_id", "start_time", "end_time"], name: "index_tv_programs_on_channel_and_times"
     t.index ["live_tv_channel_id"], name: "index_tv_programs_on_live_tv_channel_id"
     t.index ["start_time"], name: "index_tv_programs_on_start_time"
+    t.index ["xmltv_id"], name: "index_tv_programs_on_xmltv_id"
   end
 
   create_table "user_subscriptions", force: :cascade do |t|
@@ -424,6 +442,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.index ["provider", "provider_subscription_id"], name: "idx_user_subscriptions_provider_external_id", unique: true, where: "(provider_subscription_id IS NOT NULL)"
     t.index ["provider"], name: "index_user_subscriptions_on_provider"
     t.index ["purchase_token"], name: "index_user_subscriptions_on_purchase_token"
+    t.index ["status"], name: "index_user_subscriptions_on_status"
     t.index ["user_id"], name: "index_user_subscriptions_on_user_id", unique: true
   end
 
@@ -486,6 +505,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.integer "failure_count", default: 0
     t.boolean "trailer", default: false, null: false
     t.index ["last_checked_at"], name: "index_video_sources_on_last_checked_at"
+    t.index ["media_status", "last_checked_at"], name: "index_video_sources_on_media_status_and_last_checked"
     t.index ["media_status"], name: "index_video_sources_on_media_status"
     t.index ["status"], name: "index_video_sources_on_status"
     t.index ["videoable_id", "videoable_type", "trailer"], name: "index_video_sources_on_videoable_and_trailer"
@@ -496,12 +516,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.bigint "watch_party_session_id", null: false
     t.uuid "user_id", null: false
     t.boolean "is_host", default: false
-    t.datetime "joined_at", precision: nil
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.index ["user_id"], name: "idx_watch_party_session_users_on_user_id"
-    t.index ["watch_party_session_id", "user_id"], name: "idx_watch_party_session_users_on_session_and_user", unique: true
-    t.index ["watch_party_session_id"], name: "idx_watch_party_session_users_on_watch_party_session_id"
+    t.datetime "joined_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_watch_party_session_users_on_user_id"
+    t.index ["watch_party_session_id", "user_id"], name: "idx_on_watch_party_session_id_user_id_46fa650fed", unique: true
     t.index ["watch_party_session_id"], name: "index_watch_party_session_users_on_watch_party_session_id"
   end
 
@@ -511,14 +530,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.uuid "user_id", null: false
     t.float "playback_current_time", default: 0.0
     t.boolean "is_playing", default: false
-    t.datetime "started_at", precision: nil
-    t.datetime "ended_at", precision: nil
-    t.datetime "last_sync_at", precision: nil
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.index ["content_id"], name: "idx_watch_party_sessions_on_content_id"
-    t.index ["host_id"], name: "idx_watch_party_sessions_on_host_id"
-    t.index ["user_id"], name: "idx_watch_party_sessions_on_user_id"
+    t.datetime "started_at"
+    t.datetime "ended_at"
+    t.datetime "last_sync_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_watch_party_sessions_on_content_id"
+    t.index ["host_id"], name: "index_watch_party_sessions_on_host_id"
+    t.index ["user_id"], name: "index_watch_party_sessions_on_user_id"
   end
 
   create_table "watch_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -538,6 +557,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.index ["content_id", "started_at"], name: "index_watch_sessions_on_content_id_and_started_at"
     t.index ["content_id"], name: "index_watch_sessions_on_content_id"
     t.index ["episode_id"], name: "index_watch_sessions_on_episode_id"
+    t.index ["profile_id", "content_id", "episode_id", "started_at"], name: "index_watch_sessions_on_profile_content_episode_started", order: { started_at: :desc }
+    t.index ["profile_id", "content_id"], name: "index_watch_sessions_active", where: "(ended_at IS NULL)"
     t.index ["profile_id", "started_at"], name: "index_watch_sessions_on_profile_id_and_started_at"
     t.index ["profile_id"], name: "index_watch_sessions_on_profile_id"
     t.index ["started_at"], name: "index_watch_sessions_on_started_at"
@@ -548,6 +569,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
     t.text "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_webhook_logs_on_created_at"
   end
 
   create_table "xmltv_sources", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -573,7 +595,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
   add_foreign_key "continue_watchings", "profiles"
   add_foreign_key "dislikes", "contents"
   add_foreign_key "dislikes", "profiles"
-  add_foreign_key "episodes", "seasons", name: "fk_rails_episodes_seasons"
+  add_foreign_key "episodes", "seasons"
   add_foreign_key "likes", "contents"
   add_foreign_key "likes", "profiles"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
@@ -588,10 +610,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_07_000000) do
   add_foreign_key "subscription_payments", "user_subscriptions"
   add_foreign_key "subscription_payments", "users"
   add_foreign_key "tv_programs", "live_tv_channels"
-  add_foreign_key "watch_party_session_users", "users", name: "fk_watch_party_session_users_user"
-  add_foreign_key "watch_party_session_users", "watch_party_sessions", name: "fk_watch_party_session_users_session"
-  add_foreign_key "watch_party_sessions", "users", column: "host_id", name: "fk_watch_party_sessions_host"
-  add_foreign_key "watch_party_sessions", "users", name: "fk_watch_party_sessions_user"
+  add_foreign_key "watch_party_session_users", "users"
+  add_foreign_key "watch_party_session_users", "watch_party_sessions"
+  add_foreign_key "watch_party_sessions", "users"
+  add_foreign_key "watch_party_sessions", "users", column: "host_id"
   add_foreign_key "watch_sessions", "contents"
   add_foreign_key "watch_sessions", "episodes"
   add_foreign_key "watch_sessions", "profiles"

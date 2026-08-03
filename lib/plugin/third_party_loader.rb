@@ -10,11 +10,22 @@ module Plugin
       def installed_plugins
         return @plugins if defined?(@plugins)
 
-        @plugins = if File.exist?(MANIFEST_PATH)
-          JSON.parse(File.read(MANIFEST_PATH))
-        else
-          []
+        # 1. Manifiesto local (siempre compilado localmente)
+        local = File.exist?(MANIFEST_PATH) ? JSON.parse(File.read(MANIFEST_PATH)) : []
+
+        # 2. Si prebuilt está deshabilitado o si queremos compilar todo localmente,
+        # solo usamos el manifiesto local.
+        unless PrebuiltAssets.enabled?
+          return @plugins = local
         end
+
+        # 3. Si prebuilt está habilitado, mezclamos local (que gana por ser override) 
+        # con el prebuilt.
+        prebuilt_path = Rails.root.join("public", "plugins", "manifest.prebuilt.json")
+        prebuilt = File.exist?(prebuilt_path) ? JSON.parse(File.read(prebuilt_path)) : []
+        
+        # Merge: Prioridad al local
+        @plugins = (prebuilt + local).uniq { |p| p["name"] }
       end
 
       def reset!

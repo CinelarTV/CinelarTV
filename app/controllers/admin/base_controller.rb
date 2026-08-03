@@ -8,7 +8,7 @@ module Admin
     private
 
     def verify_admin
-      return if current_user.has_role?(:admin)
+      return if current_user.is_admin?
 
       redirect_to "/",
                   alert: "No tienes permisos suficientes para acceder a esta página."

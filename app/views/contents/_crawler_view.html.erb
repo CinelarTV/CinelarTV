@@ -1,0 +1,20 @@
+<div class="content-static-view" itemscope itemtype="https://schema.org/<%= @content.TVSHOW? ? 'TVSeries' : 'Movie' %>">
+  <h1 itemprop="name"><%= @content.title %></h1>
+  <p itemprop="description"><%= @content.description %></p>
+  
+  <% if @content.TVSHOW? %>
+    <h2>Temporadas</h2>
+    <% @content.seasons.each do |season| %>
+      <div itemprop="containsSeason" itemscope itemtype="https://schema.org/Season">
+        <h3 itemprop="name"><%= season.title %></h3>
+        <ul>
+          <% season.episodes.each do |episode| %>
+            <li itemprop="episode" itemscope itemtype="https://schema.org/Episode">
+              <span itemprop="name"><%= episode.title %></span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
+</div>

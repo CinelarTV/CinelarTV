@@ -188,6 +188,14 @@ const AdminRoutes = {
                     }
                 }
             ]
+        },
+        {
+            name: 'admin.backups',
+            path: 'backups',
+            component: () => import('../views/admin/backups/Backups.vue'),
+            meta: {
+                requireAdmin: true
+            }
         }
     ],
     meta: {

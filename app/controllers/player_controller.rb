@@ -70,7 +70,7 @@ class PlayerController < ApplicationController
       Rails.logger.error "Error saving reproduction: #{e.message}"
     end
 
-    create_watch_session(profile, ip_address) if request.format.json?
+    create_watch_session_async(profile, ip_address) if request.format.json?
 
     respond_to do |format|
       format.html
@@ -100,7 +100,7 @@ class PlayerController < ApplicationController
 
     # 3. Actualizar la sesión activa (podemos mantener esta parte síncrona si es poco frecuente, 
     # pero para máximo rendimiento también podría ir al job)
-    update_watch_session(profile, content_id, episode_id, progress, duration)
+    update_watch_session_async(profile, content_id, episode_id, progress, duration)
 
     head :no_content
   end
@@ -108,7 +108,8 @@ class PlayerController < ApplicationController
   private
 
   def find_content
-    @content = Content.includes(:video_sources, :segments, seasons: { episodes: :video_sources })
+    @content = Content.includes(:video_sources, :segments, :categories,
+                                seasons: { episodes: [:video_sources, :segments] })
                       .find_by(id: params[:id])
   end
 
@@ -128,13 +129,16 @@ class PlayerController < ApplicationController
     is_premium ||= @episode&.premium? if @content.content_type == "TVSHOW"
 
     return unless is_premium
-    return if current_user.has_role?(:admin) # Admins bypass check
+    return if current_user.is_admin? # Admins bypass check
     return if current_user.is_subscribed?
 
     render_subscription_required
   end
 
   def find_episode_and_season
+    return if @episode_and_season_loaded
+
+    @episode_and_season_loaded = true
     if params[:episode_id]
       @episode = Episode.find_by(id: params[:episode_id])
       @season = @content.seasons.find_by(id: @episode&.season_id)
@@ -179,18 +183,18 @@ class PlayerController < ApplicationController
       data[:episode] = @episode.as_json(except: %i[created_at updated_at])
       data[:episode][:segments] = sources_data[:segments]
     end
-    # Temporada actual con episodios
-    data[:season] = @season.as_json(except: %i[created_at updated_at]) if @season
+    # Temporada actual con episodios (ya preloadados — solo ordenar en memoria)
     if @season
+      data[:season] = @season.as_json(except: %i[created_at updated_at])
       data[:season][:episodes] =
-        @season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position])
+        @season.episodes.sort_by(&:position).as_json(only: %i[id title description thumbnail position])
     end
 
     # Todas las temporadas para navegación entre temporadas
     if @content.content_type == "TVSHOW"
-      data[:seasons] = @content.seasons.order(position: :asc).map do |season|
+      data[:seasons] = @content.seasons.sort_by(&:position).map do |season|
         season_data = season.as_json(except: %i[created_at updated_at])
-        season_data[:episodes] = season.episodes.order(position: :asc).as_json(only: %i[id title description thumbnail position duration])
+        season_data[:episodes] = season.episodes.sort_by(&:position).as_json(only: %i[id title description thumbnail position duration])
         season_data
       end
     end
@@ -202,28 +206,30 @@ class PlayerController < ApplicationController
   end
 
   def video_sources_data
+    non_trailers = @content.video_sources.select { |vs| vs.trailer != true }
     {
-      sources: @content.video_sources.content_sources.map do |vs|
+      sources: non_trailers.map do |vs|
         {
           id: vs.id,
           url: vs.url,
           quality: vs.quality,
         }
       end,
-      segments: @content.segments.order(:start_time).as_json(only: %i[id segment_type start_time end_time])
+      segments: @content.segments.sort_by(&:start_time).as_json(only: %i[id segment_type start_time end_time])
     }
   end
 
   def episode_video_sources_data
+    non_trailers = @episode.video_sources.select { |vs| vs.trailer != true }
     {
-      sources: @episode.video_sources.content_sources.map do |vs|
+      sources: non_trailers.map do |vs|
         {
           id: vs.id,
           url: vs.url,
           quality: vs.quality,
         }
       end,
-      segments: @episode.segments.order(:start_time).as_json(only: %i[id segment_type start_time end_time])
+      segments: @episode.segments.sort_by(&:start_time).as_json(only: %i[id segment_type start_time end_time])
     }
   end
 
@@ -231,7 +237,7 @@ class PlayerController < ApplicationController
     return false if @content.blank?
 
     if @content.content_type == "MOVIE"
-      @content.available && !@content.video_sources.content_sources.empty?
+      @content.available && @content.video_sources.any? { |vs| vs.trailer != true }
     else
       @content.available
     end
@@ -302,6 +308,12 @@ class PlayerController < ApplicationController
     Rails.logger.error "Error creating watch session: #{e.message}"
   end
 
+  def create_watch_session_async(profile, ip_address)
+    CreateWatchSessionJob.perform_async(
+      profile.id, @content.id, @episode&.id, ip_address
+    )
+  end
+
   def update_watch_session(profile, content_id, episode_id, progress, duration)
     session = WatchSession.active
                           .where(profile: profile, content_id: content_id)
@@ -327,6 +339,12 @@ class PlayerController < ApplicationController
       total_duration: dur,
       completed: completed,
       ended_at: completed ? Time.current : nil
+    )
+  end
+
+  def update_watch_session_async(profile, content_id, episode_id, progress, duration)
+    SyncWatchSessionJob.perform_async(
+      profile.id, content_id, episode_id, progress, duration
     )
   end
 

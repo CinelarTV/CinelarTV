@@ -31,7 +31,8 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Pool must cover all threads: Puma (default 5) + Sidekiq (25) + margin
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 30 } %>
   sslmode: <%= db_sslmode %>
 
 development:

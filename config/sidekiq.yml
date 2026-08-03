@@ -58,3 +58,13 @@
       class: ScheduledLaunchJob
       queue: "default"
       description: "Publish content whose scheduled_launch_at has arrived"
+    daily_backup:
+      cron: "0 3 * * *"
+      class: BackupJob
+      queue: "default"
+      description: "Create daily automatic database backup"
+    cleanup_expired_backups:
+      cron: "0 4 * * *"
+      class: CleanupOldBackupsJob
+      queue: "default"
+      description: "Remove expired backups based on retention policy"

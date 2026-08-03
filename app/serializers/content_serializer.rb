@@ -47,7 +47,7 @@ class ContentSerializer < ApplicationSerializer
         id: season.id,
         title: season.title,
         description: season.description,
-        episodes: season.episodes.order(position: :asc).map { |episode| 
+        episodes: season.episodes.sort_by(&:position).map { |episode| 
           episode_attributes(episode, continue_watching_by_episode[episode.id]) 
         },
       }
@@ -56,16 +56,20 @@ class ContentSerializer < ApplicationSerializer
 
   def liked
     profile = @options[:current_profile]
-    return false unless profile&.respond_to?(:liked_contents)
+    return false unless profile
 
-    profile.liked_contents.include?(object)
+    CinelarTV.cache.fetch("profile_liked_ids/#{profile.id}", expires_in: 30.minutes) do
+      profile.liked_contents.pluck(:id)
+    end.include?(object.id)
   end
 
   def disliked
     profile = @options[:current_profile]
-    return false unless profile&.respond_to?(:disliked_contents)
+    return false unless profile
 
-    profile.disliked_contents.include?(object)
+    CinelarTV.cache.fetch("profile_disliked_ids/#{profile.id}", expires_in: 30.minutes) do
+      profile.disliked_contents.pluck(:id)
+    end.include?(object.id)
   end
 
   def categories
@@ -99,8 +103,8 @@ class ContentSerializer < ApplicationSerializer
     profile = @options[:current_profile]
     return {} unless profile
 
-    # Una sola consulta para obtener todos los continue_watching de los episodios del contenido
-    episode_ids = object.seasons.flat_map { |season| season.episodes.pluck(:id) }
+    # Episodios ya preloaded en el controller — lectura en memoria, sin query
+    episode_ids = object.seasons.flat_map { |season| season.episodes.map(&:id) }
     
     ContinueWatching
       .where(profile: profile, episode_id: episode_ids)

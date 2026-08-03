@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-ruby "3.4.4"
+ruby "3.4.10"
 
 # Bump this to issue a Rails update
 rails_version = "7.2.0"

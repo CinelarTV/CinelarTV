@@ -35,7 +35,9 @@ class Content < ApplicationRecord
   ].freeze
 
   def similar_items(n_results: 10)
-    combined_similar_items(SIMILARITY_SOURCES, n_results: n_results)
+    Rails.cache.fetch("similar/#{id}/#{updated_at.to_i}", expires_in: 6.hours) do
+      combined_similar_items(SIMILARITY_SOURCES, n_results: n_results)
+    end
   end
 
   enum :content_type, { TVSHOW: "TVSHOW", MOVIE: "MOVIE" }
@@ -115,8 +117,8 @@ class Content < ApplicationRecord
   scope :search_by_title_and_description, lambda { |query|
     normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase)
     available.where(
-      "(unaccent(lower(title)) LIKE unaccent(?) OR " \
-      "unaccent(lower(description)) LIKE unaccent(?))",
+      "(immutable_unaccent(lower(title)) LIKE immutable_unaccent(?) OR " \
+      "immutable_unaccent(lower(description)) LIKE immutable_unaccent(?))",
       "%#{normalized}%", "%#{normalized}%"
     )
   }
@@ -130,9 +132,7 @@ class Content < ApplicationRecord
 
   def self.publish_scheduled!
     where("scheduled_launch_at IS NOT NULL AND scheduled_launch_at <= ? AND available = false", Time.current)
-      .find_each do |content|
-        content.update!(available: true, scheduled_launch_at: nil)
-      end
+      .update_all(available: true, scheduled_launch_at: nil)
   end
 
   def scheduled?

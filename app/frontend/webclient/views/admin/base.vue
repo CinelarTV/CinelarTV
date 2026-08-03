@@ -69,6 +69,11 @@ const adminLinks = [
     enabled: SiteSettings.enable_subscription || false // Webhooks are only available if subscriptions are enabled
   },
   {
+    title: $t("js.admin.nav.backups") || 'Backups',
+    icon: 'database',
+    to: '/admin/backups'
+  },
+  {
     title: $t("js.admin.nav.updater"),
     icon: 'package-open',
     to: '/admin/updates',

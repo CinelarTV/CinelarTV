@@ -56,5 +56,15 @@
       class: EndStaleWatchSessionsJob
       queue: "default"
       description: "Close stale watch sessions older than 2 hours"
+    daily_backup:
+      cron: "0 3 * * *"
+      class: BackupJob
+      queue: "default"
+      description: "Create daily automatic database backup"
+    cleanup_expired_backups:
+      cron: "0 4 * * *"
+      class: CleanupOldBackupsJob
+      queue: "default"
+      description: "Remove expired backups based on retention policy"
 :pidfile: tmp/pids/sidekiq_general.pid
 :logfile: log/sidekiq_general.log

@@ -1,0 +1,15 @@
+# CinelarTV monorepo workspace definition.
+# Mirrors the Discourse approach: a single pnpm workspace that links the
+# root application with every plugin under `plugins/*`, so plugins can
+# resolve shared dependencies (vue, pinia, @/) from the host without
+# re-bundling them.
+
+strictPeerDependencies: true
+
+packages:
+  # Root application (CinelarTV web client + Rails host)
+  - "."
+  # First-party and third-party plugins discovered by convention
+  - "plugins/*"
+  # Shared monorepo packages
+  - "packages/*"

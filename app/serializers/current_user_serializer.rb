@@ -21,7 +21,9 @@ class CurrentUserSerializer < ApplicationSerializer
   attribute :admin
 
   def as_json(options = {})
-    cache_key = "user_v1/#{object.cache_key_with_version}/profile/#{@options[:current_profile_id]}"
+    include_profiles = @options[:include_profiles]
+    include_subscription = @options.fetch(:include_subscription, true)
+    cache_key = "user_v1/#{object.cache_key_with_version}/profile/#{@options[:current_profile_id]}/p#{include_profiles}/s#{include_subscription}"
 
     CinelarTV.cache.fetch(cache_key, expires_in: 1.hour) do
       super(options)

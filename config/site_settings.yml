@@ -691,3 +691,26 @@ backup:
     refresh: true
     default: false
     type: "boolean"
+  backup_retention_days:
+    client: false
+    default: 30
+    type: "number"
+    min: 1
+    max: 365
+  backup_include_files:
+    client: false
+    default: true
+    type: "boolean"
+  backup_encrypt:
+    client: false
+    default: false
+    type: "boolean"
+  backup_encryption_password:
+    client: false
+    default: ""
+    type: "string"
+    secret: true
+  enable_scheduled_backups:
+    client: false
+    default: true
+    type: "boolean"

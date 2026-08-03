@@ -108,19 +108,24 @@ module HomeHelper
   end
 
   def personalized_banner_content(liked_ids, profile)
-    liked_category_ids = liked_category_ids_for(profile)
+    liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
+    cache_key = "homepage/banner/#{profile.id}/#{liked_hash}"
 
-    Content.where(available: true)
-           .where.not(banner: nil)
-           .where.not(id: profile.disliked_contents.select(:id))
-           .left_joins(:content_analytic)
-           .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
-           .limit(10)
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
+      liked_category_ids = liked_category_ids_for(profile)
+
+      Content.where(available: true)
+             .where.not(banner: nil)
+             .where.not(id: profile.disliked_contents.select(:id))
+             .left_joins(:content_analytic)
+             .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
+             .limit(10)
+             .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
+             .map do |id, title, desc, banner, banner_resized, cover_resized|
+               build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
+                                                                          cover_resized: cover_resized)
+             end
+    end
   end
 
   def random_banner_content(liked_ids)
@@ -417,25 +422,34 @@ module HomeHelper
   end
 
   def build_personalized_sections(liked_ids)
-    sections = []
+    return [] unless current_profile
 
-    continue_watching = add_continue_watching(liked_ids)
-    if continue_watching.present?
-      sections << { title: I18n.t("js.home.continue_watching"), content: continue_watching }
-    end
+    # Clave basada en profile + versión de liked/disliked (cambia al hacer like/unlike)
+    liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
+    disliked_hash = Digest::MD5.hexdigest(disliked_content_ids.sort.join(","))
+    cache_key = "homepage/personal/#{current_profile.id}/#{liked_hash}/#{disliked_hash}"
 
-    recommended = add_recommended_based_on_liked(liked_ids)
-    if recommended[:content].present?
-      sections << { title: I18n.t("js.home.because_you_liked", title: recommended[:title]),
-                    content: recommended[:content].shuffle }
-    elsif liked_ids.empty?
-      maybe_like = add_most_viewed(liked_ids)
-      if maybe_like.present?
-        sections << { title: I18n.t("js.home.you_might_like"), content: maybe_like }
+    CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
+      sections = []
+
+      continue_watching = add_continue_watching(liked_ids)
+      if continue_watching.present?
+        sections << { title: I18n.t("js.home.continue_watching"), content: continue_watching }
       end
-    end
 
-    sections
+      recommended = add_recommended_based_on_liked(liked_ids)
+      if recommended[:content].present?
+        sections << { title: I18n.t("js.home.because_you_liked", title: recommended[:title]),
+                      content: recommended[:content].shuffle }
+      elsif liked_ids.empty?
+        maybe_like = add_most_viewed(liked_ids)
+        if maybe_like.present?
+          sections << { title: I18n.t("js.home.you_might_like"), content: maybe_like }
+        end
+      end
+
+      sections
+    end
   end
 
   def build_global_sections
