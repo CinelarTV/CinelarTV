@@ -45,8 +45,11 @@ module CinelarTV
     default_value
   end
 
+  # Fachada de compatibilidad. Delega en Rails.cache (RedisCacheStore en producción,
+  # MemoryStore/NullStore en dev/test). La clase Cache se mantiene temporalmente
+  # para stream_session_manager y será eliminada cuando se migre a Rails.cache.
   def self.cache
-    @cache ||= ENV["REDIS_URL"].nil? ? ActiveSupport::Cache::MemoryStore.new : Cache.new
+    Rails.cache
   end
 
   def self.maintenance_enabled
