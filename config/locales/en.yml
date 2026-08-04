@@ -183,10 +183,13 @@ en:
         body_text_color:
           description: "The color of the text of the application"
           title: "Body text color"
+        enable_cinelar_intelligence:
+          title: "Enable Cinelar Intelligence"
         categories:
           content: "Content"
           customization: "Customization"
           developer: "Developer"
+          cinelar_intelligence: "Cinelar Intelligence"
           experimental: "Experimental"
           general: "General"
           live_tv: "Live TV"
