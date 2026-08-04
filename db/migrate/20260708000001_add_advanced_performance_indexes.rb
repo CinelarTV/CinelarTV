@@ -5,6 +5,7 @@ class AddAdvancedPerformanceIndexes < ActiveRecord::Migration[7.2]
 
   def up
     # Create immutable wrapper for unaccent (required for GIN index expressions)
+    enable_extension "unaccent" unless extension_enabled?("unaccent")
     execute <<~SQL
       CREATE OR REPLACE FUNCTION immutable_unaccent(text)
       RETURNS text AS $$
