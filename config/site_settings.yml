@@ -685,6 +685,43 @@ internal:
     default: false
     type: "boolean"
     hidden: true # Internal use only
+crawlers:
+  non_crawler_user_agents:
+    client: false
+    refresh: true
+    default: "IE|Internet Explorer|Windows|Macintosh|Chrome|Safari|Firefox|Opera|AppleWebKit"
+    type: "list"
+  crawler_user_agents:
+    client: false
+    refresh: true
+    default: "Googlebot|Bingbot|YandexBot|BaiduSpider|DuckDuckBot|Sogou|Exabot|facebot|ia_archiver"
+    type: "list"
+  crawler_check_bypass_agents:
+    client: false
+    refresh: true
+    default: ""
+    type: "list"
+  browser_update_user_agents:
+    client: false
+    refresh: true
+    default: ""
+    type: "list"
+  allowed_crawler_user_agents:
+    client: false
+    refresh: true
+    default: ""
+    type: "list"
+  blocked_crawler_user_agents:
+    client: false
+    refresh: true
+    default: ""
+    type: "list"
+  enable_escaped_fragments:
+    client: false
+    refresh: true
+    default: false
+    type: "boolean"
+
 backup:
   allow_restore:
     client: false
