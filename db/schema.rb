@@ -18,6 +18,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
   enable_extension "plpgsql"
   enable_extension "unaccent"
 
+  # Immutable wrapper for unaccent (required for GIN index expressions)
+  execute <<-SQL
+    CREATE OR REPLACE FUNCTION immutable_unaccent(text)
+    RETURNS text AS $$
+      SELECT unaccent('unaccent', $1)
+    $$ LANGUAGE sql IMMUTABLE STRICT;
+  SQL
+
   create_table "backups", force: :cascade do |t|
     t.string "filename", null: false
     t.bigint "size"

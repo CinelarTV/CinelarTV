@@ -3,7 +3,7 @@
 class Segment < ApplicationRecord
   belongs_to :segmentable, polymorphic: true
 
-  enum segment_type: {
+  enum :segment_type, {
     skip_intro: 'skip_intro',
     skip_resume: 'skip_resume',
     next_episode: 'next_episode',
