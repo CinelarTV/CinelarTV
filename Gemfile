@@ -31,6 +31,7 @@ gem "sprockets-rails"
 gem "csv"
 gem "fiddle"
 gem "ostruct"
+gem "rubyzip", "~> 2.3"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 6.0"

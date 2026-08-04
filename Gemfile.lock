@@ -572,6 +572,7 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   rubocop-rspec
+  rubyzip (~> 2.3)
   selenium-webdriver
   sidekiq
   sidekiq-scheduler

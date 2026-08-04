@@ -2,6 +2,8 @@
 
 require "fileutils"
 require "digest"
+require "open3"
+require "zip"
 
 class BackupManager
   class RestoreDisabledError < StandardError; end
@@ -22,7 +24,7 @@ class BackupManager
     Backup.ensure_base_directory_exists!
 
     timestamp = Time.now.strftime("%Y%m%d%H%M%S")
-    filename = "cinelar_backup_#{timestamp}.dump"
+    filename = "cinelar_backup_#{timestamp}.zip"
     filepath = File.join(Backup.base_directory, filename)
 
     backup = Backup.create!(
@@ -35,21 +37,45 @@ class BackupManager
       expires_at: (SiteSetting.backup_retention_days || 30).days.from_now
     )
 
+    tmp_dir = Rails.root.join("tmp", "backup_#{backup.id}")
+    FileUtils.mkdir_p(tmp_dir)
+
     begin
       backup.append_audit("started", "backup_type=#{backup_type}, include_files=#{include_files}")
 
-      # 1. Database dump
-      run_pg_dump(filepath, backup)
-      backup.update!(size: File.size(filepath))
+      # 1. Database dump into tmp
+      dump_path = File.join(tmp_dir, "database.dump")
+      run_pg_dump(dump_path, backup)
 
-      # 2. File manifest (track uploaded files)
+      # 2. Build file manifest and copy uploads into tmp
+      manifest = { files: [], total_files: 0, total_size: 0, db_dump_size: File.size(dump_path) }
+      uploads_dir = File.join(tmp_dir, "uploads")
+
       if include_files
-        manifest = build_file_manifest
-        backup.update!(file_manifest: manifest)
+        manifest = build_file_manifest(uploads_dir)
         backup.append_audit("files_manifested", "#{manifest[:total_files]} files, #{manifest[:total_size]} bytes")
       end
 
-      # 3. Encryption
+      # 3. Write manifest JSON into tmp
+      manifest_path = File.join(tmp_dir, "manifest.json")
+      File.write(manifest_path, JSON.pretty_generate(manifest))
+
+      # 4. Create zip from tmp contents
+      Zip::File.open(filepath, Zip::File::CREATE) do |zipfile|
+        zipfile.add("database.dump", dump_path)
+        zipfile.add("manifest.json", manifest_path)
+
+        if include_files && Dir.exist?(uploads_dir)
+          Dir.glob(File.join(uploads_dir, "**", "*")).select { |f| File.file?(f) }.each do |file|
+            relative = file.sub("#{uploads_dir}/", "")
+            zipfile.add(File.join("uploads", relative), file)
+          end
+        end
+      end
+
+      backup.update!(size: File.size(filepath))
+
+      # 5. Encryption
       if encrypt
         password = SiteSetting.backup_encryption_password
         if password.present?
@@ -66,6 +92,8 @@ class BackupManager
       FileUtils.rm_f(filepath) if File.exist?(filepath)
       Rails.logger.error "Backup failed: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
       raise BackupError, "Failed to create backup: #{e.message}"
+    ensure
+      FileUtils.rm_rf(tmp_dir) if Dir.exist?(tmp_dir)
     end
   end
 
@@ -100,16 +128,38 @@ class BackupManager
 
     backup.append_audit("restore_started")
 
-    # 1. Restore database
-    run_pg_restore(filepath, backup)
+    # Extract zip to tmp
+    tmp_dir = Rails.root.join("tmp", "restore_#{backup.id}")
+    FileUtils.mkdir_p(tmp_dir)
 
-    # 2. Restore file manifest info
-    if restore_files && backup.file_manifest.present?
-      backup.append_audit("files_manifest_restored", "File manifest available for manual restoration")
+    begin
+      Zip::File.open(filepath) do |zipfile|
+        zipfile.extract("database.dump", File.join(tmp_dir, "database.dump"))
+        if restore_files && zipfile.find_entry("manifest.json")
+          zipfile.extract("manifest.json", File.join(tmp_dir, "manifest.json"))
+        end
+      end
+
+      # 1. Restore database
+      dump_path = File.join(tmp_dir, "database.dump")
+      run_pg_restore(dump_path, backup)
+
+      # 2. Restore files if present in zip
+      if restore_files
+        uploads_dir = File.join(tmp_dir, "uploads")
+        if Dir.exist?(uploads_dir) && Dir.glob(File.join(uploads_dir, "**", "*")).any?
+          restore_uploaded_files(uploads_dir)
+          backup.append_audit("files_restored")
+        else
+          backup.append_audit("files_manifest_restored", "No uploaded files in backup")
+        end
+      end
+
+      backup.append_audit("restore_completed")
+      true
+    ensure
+      FileUtils.rm_rf(tmp_dir) if Dir.exist?(tmp_dir)
     end
-
-    backup.append_audit("restore_completed")
-    true
   end
 
   # --- Download ---
@@ -124,6 +174,7 @@ class BackupManager
 
   def self.run_pg_dump(filepath, backup)
     db_config = ActiveRecord::Base.connection_db_config.configuration_hash
+    pg_dump_path = find_pg_dump
 
     env = {
       "PGPASSWORD" => db_config[:password].to_s,
@@ -131,7 +182,7 @@ class BackupManager
     }
 
     command = [
-      "pg_dump",
+      pg_dump_path,
       "-h", db_config[:host] || "localhost",
       "-p", (db_config[:port] || 5432).to_s,
       "-U", db_config[:username],
@@ -141,10 +192,10 @@ class BackupManager
     ]
 
     backup.append_audit("pg_dump_started")
-    success = system(env, *command)
+    _stdout, stderr, status = Open3.capture3(env, *command)
 
-    unless success
-      raise BackupError, "pg_dump exited with non-zero status"
+    unless status.success?
+      raise BackupError, "pg_dump failed: #{stderr.strip.presence || "exit status #{status.exitstatus}"}"
     end
 
     backup.append_audit("pg_dump_completed")
@@ -152,6 +203,7 @@ class BackupManager
 
   def self.run_pg_restore(filepath, backup)
     db_config = ActiveRecord::Base.connection_db_config.configuration_hash
+    pg_restore_path = find_pg_restore
 
     env = {
       "PGPASSWORD" => db_config[:password].to_s,
@@ -159,7 +211,7 @@ class BackupManager
     }
 
     command = [
-      "pg_restore",
+      pg_restore_path,
       "-h", db_config[:host] || "localhost",
       "-p", (db_config[:port] || 5432).to_s,
       "-U", db_config[:username],
@@ -170,16 +222,69 @@ class BackupManager
     ]
 
     backup.append_audit("pg_restore_started")
-    success = system(env, *command)
+    _stdout, stderr, status = Open3.capture3(env, *command)
 
-    unless success
-      raise RestoreError, "pg_restore exited with non-zero status"
+    unless status.success?
+      raise RestoreError, "pg_restore failed: #{stderr.strip.presence || "exit status #{status.exitstatus}"}"
     end
 
     backup.append_audit("pg_restore_completed")
   end
 
-  def self.build_file_manifest
+  def self.restore_uploaded_files(source_dir)
+    UPLOAD_DIRECTORIES.each do |dir|
+      full_path = Rails.root.join(dir)
+      FileUtils.mkdir_p(full_path)
+    end
+
+    Dir.glob(File.join(source_dir, "**", "*")).select { |f| File.file?(f) }.each do |file|
+      relative = file.sub("#{source_dir}/", "")
+      dest = Rails.root.join(relative)
+      FileUtils.mkdir_p(File.dirname(dest))
+      FileUtils.cp(file, dest)
+    end
+  end
+
+  def self.find_pg_dump
+    %w[pg_dump pg_dump.exe].each do |name|
+      path = find_executable(name)
+      return path if path
+    end
+    raise BackupError, "pg_dump not found. Install PostgreSQL and add its bin/ directory to PATH."
+  end
+
+  def self.find_pg_restore
+    %w[pg_restore pg_restore.exe].each do |name|
+      path = find_executable(name)
+      return path if path
+    end
+    raise BackupError, "pg_restore not found. Install PostgreSQL and add its bin/ directory to PATH."
+  end
+
+  def self.find_executable(name)
+    exts = Gem.win_platform? ? %w[.exe .cmd .bat] : [""]
+    exts.each do |ext|
+      cmd_name = name.end_with?(".exe", ".cmd", ".bat") ? name : "#{name}#{ext}"
+      ENV["PATH"].to_s.split(File::PATH_SEPARATOR).each do |dir|
+        full = File.join(dir, cmd_name)
+        return full if File.executable?(full) && !File.directory?(full)
+      end
+    end
+
+    if Gem.win_platform?
+      %w[17 16 15 14 13].each do |ver|
+        base = "C:/Program Files/PostgreSQL/#{ver}/bin"
+        exts.each do |ext|
+          full = File.join(base, "#{name}#{ext}")
+          return full if File.exist?(full)
+        end
+      end
+    end
+
+    nil
+  end
+
+  def self.build_file_manifest(uploads_dir)
     manifest = { files: [], total_files: 0, total_size: 0 }
     root = Rails.root
 
@@ -190,6 +295,12 @@ class BackupManager
       Dir.glob(File.join(full_path, "**", "*")).select { |f| File.file?(f) }.each do |file|
         relative = file.sub(root.to_s, "")
         size = File.size(file)
+
+        # Copy file into zip staging area
+        dest = File.join(uploads_dir, relative)
+        FileUtils.mkdir_p(File.dirname(dest))
+        FileUtils.cp(file, dest)
+
         manifest[:files] << {
           path: relative,
           size: size,

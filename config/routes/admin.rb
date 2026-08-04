@@ -135,11 +135,13 @@ namespace :admin do
   put "/customize/email-style" => "email_styles#update", defaults: { format: 'json' }
 
   # Backup Management routes
+  get "/backups" => "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/backups" => "backups#index", defaults: { format: 'json' }
   post "/backups" => "backups#create", defaults: { format: 'json' }
   get "/backups/sync" => "backups#sync", defaults: { format: 'json' }
   get "/backups/encryption_check" => "backups#encryption_check", defaults: { format: 'json' }
   post "/backups/cleanup" => "backups#cleanup", defaults: { format: 'json' }
+  get "/backups/:id" => "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/backups/:id" => "backups#show", defaults: { format: 'json' }
   get "/backups/:id/download" => "backups#download"
   post "/backups/:id/verify" => "backups#verify", defaults: { format: 'json' }

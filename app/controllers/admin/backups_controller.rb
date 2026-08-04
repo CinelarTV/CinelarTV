@@ -2,7 +2,7 @@
 
 module Admin
   class BackupsController < Admin::BaseController
-    before_action :set_backup, only: %i[show destroy download verify]
+    before_action :set_backup, only: %i[show destroy download verify restore]
 
     # GET /admin/backups
     def index

@@ -21,7 +21,7 @@ class Backup < ApplicationRecord
   end
 
   def manifest_path
-    path.sub(/\.dump$/, ".manifest.json")
+    path.sub(/\.zip$/, ".manifest.json")
   end
 
   def exist?
@@ -143,7 +143,7 @@ class Backup < ApplicationRecord
 
   def self.sync_with_disk
     ensure_base_directory_exists!
-    disk_files = Dir.glob(File.join(base_directory, "*.dump")).map { |f| File.basename(f) }
+    disk_files = Dir.glob(File.join(base_directory, "*.zip")).map { |f| File.basename(f) }
     db_files = Backup.pluck(:filename)
 
     (disk_files - db_files).each do |filename|

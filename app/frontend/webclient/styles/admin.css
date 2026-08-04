@@ -2249,3 +2249,364 @@ body.is-mobile {
         padding: 12px;
     }
 }
+
+/* ── Backups Admin ──────────────────────────────────────── */
+.backups-admin__hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+    padding: 1.25rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background:
+        radial-gradient(900px 240px at 0% 0%, rgba(var(--c-tertiary-color-rgb, 0, 136, 255), 0.17), transparent),
+        linear-gradient(135deg, var(--c-surface-1), var(--c-surface-0));
+    border: 1px solid var(--c-border-default);
+}
+
+.backups-admin__hero-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.backups-admin__eyebrow {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-text-muted);
+    font-weight: 700;
+}
+
+.backups-admin__title {
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.5rem, 1.2rem + 0.75vw, 2rem);
+    line-height: 1.1;
+    color: var(--c-body-text-color);
+    font-weight: 700;
+}
+
+.backups-admin__subtitle {
+    margin: 0.6rem 0 0;
+    color: var(--c-text-secondary);
+    max-width: 70ch;
+    font-size: 0.93rem;
+    line-height: 1.45;
+}
+
+.backups-admin__hero-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.backups-admin__stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.backups-admin__stat-card {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.backups-admin__stat-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.backups-admin__stat-icon {
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 2px;
+}
+
+.backups-admin__stat-icon--success {
+    color: #1ec08a;
+}
+
+.backups-admin__stat-icon--warning {
+    color: #f09a5a;
+}
+
+.backups-admin__stat-icon--info {
+    color: #00a8e1;
+}
+
+.backups-admin__stat-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.72rem;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.backups-admin__stat-value {
+    color: #fff;
+    font-size: 1.25rem;
+    line-height: 1;
+    font-weight: 600;
+}
+
+.backups-admin__card {
+    border: 1px solid var(--c-border-subtle);
+    background: var(--c-surface-1);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.backups-admin__section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.backups-admin__section-header h2 {
+    margin: 0;
+    color: var(--c-body-text-color);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.backups-admin__section-header p {
+    margin: 4px 0 0;
+    color: var(--c-text-muted);
+    font-size: 0.8rem;
+}
+
+.backups-admin__settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.backups-admin__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--c-text-secondary);
+    cursor: pointer;
+}
+
+.backups-admin__toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--c-tertiary-400, #0095d9);
+    cursor: pointer;
+}
+
+.backups-admin__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.backups-admin__field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--c-text-muted);
+}
+
+.backups-admin__loading,
+.backups-admin__empty {
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 32px 18px;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 0.85rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.backups-admin__empty-icon {
+    color: rgba(255, 255, 255, 0.25);
+    margin-bottom: 4px;
+}
+
+.backups-admin__empty-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--c-text-secondary);
+}
+
+.backups-admin__empty-description {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--c-text-muted);
+}
+
+.backups-admin__filename {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--c-text-secondary);
+}
+
+.backups-admin__badge {
+    font-size: 0.68rem;
+    line-height: 1;
+    padding: 4px 7px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.backups-admin__badge--manual {
+    color: #00a8e1;
+    background: rgba(0, 168, 225, 0.14);
+    border-color: rgba(0, 168, 225, 0.33);
+}
+
+.backups-admin__badge--scheduled {
+    color: #a78bfa;
+    background: rgba(167, 139, 250, 0.14);
+    border-color: rgba(167, 139, 250, 0.33);
+}
+
+.backups-admin__badge--completed {
+    color: #1ec08a;
+    background: rgba(30, 192, 138, 0.14);
+    border-color: rgba(30, 192, 138, 0.33);
+}
+
+.backups-admin__badge--running {
+    color: #f09a5a;
+    background: rgba(240, 154, 90, 0.14);
+    border-color: rgba(240, 154, 90, 0.33);
+}
+
+.backups-admin__badge--pending {
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.backups-admin__badge--failed {
+    color: #ff7878;
+    background: rgba(255, 120, 120, 0.14);
+    border-color: rgba(255, 120, 120, 0.33);
+}
+
+.backups-admin__actions {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.backups-admin__action-link {
+    text-decoration: none;
+}
+
+.backups-admin__modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.backups-admin__modal {
+    background: rgba(20, 20, 25, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    max-width: 480px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.backups-admin__modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 0;
+}
+
+.backups-admin__modal-header h3 {
+    margin: 0;
+    color: var(--c-body-text-color);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.backups-admin__modal-body {
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.backups-admin__modal-body p {
+    margin: 0;
+    color: var(--c-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.backups-admin__modal-filename {
+    font-family: monospace;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.backups-admin__modal-warning {
+    color: #ff7878 !important;
+    font-weight: 600;
+}
+
+.backups-admin__modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 18px 16px;
+}
+
+@media screen and (max-width: 768px) {
+    .backups-admin__hero {
+        padding: 1rem 0.9rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .backups-admin__stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .backups-admin__settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .backups-admin__stats {
+        grid-template-columns: 1fr;
+    }
+}

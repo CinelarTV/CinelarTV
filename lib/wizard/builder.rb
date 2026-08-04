@@ -39,46 +39,46 @@ class Wizard
         end
       end
 
-      @wizard.append_step("license") do |step|
-        step.emoji = "💸"
-
-        step.add_field(
-          id: "license_key",
-          type: "text",
-          required: true,
-          value: SiteSetting.license_key || ""
-        )
-
-        step.on_update do |updater|
-          # Activate the license, and set the license key (POST)
-
-          activate_url = "https://api.lemonsqueezy.com/v1/licenses/activate"
-
-          response = HTTParty.post(activate_url, {
-                                     body: {
-                                       license_key: updater.fields[:license_key],
-                                       instance_name: "CTV_#{SecureRandom.hex(10)}"
-                                     }.to_json,
-                                     headers: {
-                                       "Content-Type" => "application/json"
-                                     }
-                                   })
-
-          if response.code == 200
-            # La licencia se activó con éxito, puedes procesar la respuesta si es necesario
-            Rails.logger.info("Licencia activada con éxito")
-            Rails.logger.info("Respuesta: #{response.body}")
-
-            updater.apply_settings(:license_key)
-          else
-            # La API devolvió un código de estado diferente de 200, lo que indica un error
-            Rails.logger.error("Error al activar la licencia, código de estado: #{response.code}")
-            Rails.logger.error("Respuesta: #{response.body}")
-
-            updater.errors.add(:license_key, I18n.t("js.wizard.license.errors.invalid"))
-          end
-        end
-      end
+      #@wizard.append_step("license") do |step|
+      #  step.emoji = "💸"
+      #
+      #  step.add_field(
+      #    id: "license_key",
+      #    type: "text",
+      #    required: false,
+      #    value: SiteSetting.license_key || ""
+      #  )
+      #  
+      #  step.on_update do |updater|
+      #    # Activate the license, and set the license key (POST)
+      #
+      #    activate_url = "https://api.lemonsqueezy.com/v1/licenses/activate"
+      #
+      #    response = HTTParty.post(activate_url, {
+      #                                   body: {
+      #                                     license_key: updater.fields[:license_key],
+      #                                     instance_name: "CTV_#{SecureRandom.hex(10)}"
+      #                                   }.to_json,
+      #                                   headers: {
+      #                                 "Content-Type" => "application/json"
+      #                               }
+      #                             })
+      #
+      #    if response.code == 200
+      #      # La licencia se activó con éxito, puedes procesar la respuesta si es necesario
+      #      Rails.logger.info("Licencia activada con éxito")
+      #      Rails.logger.info("Respuesta: #{response.body}")
+      #
+      #      updater.apply_settings(:license_key)
+      #    else
+      #      # La API devolvió un código de estado diferente de 200, lo que indica un error
+      #      Rails.logger.error("Error al activar la licencia, código de estado: #{response.code}")
+      #      Rails.logger.error("Respuesta: #{response.body}")
+      #
+      #      updater.errors.add(:license_key, I18n.t("js.wizard.license.errors.invalid"))
+      #    end
+      #  end
+      #end
 
       @wizard.append_step("tmdb") do |step|
         step.emoji = "🎬"

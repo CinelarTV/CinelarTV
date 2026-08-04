@@ -1,6 +1,5 @@
-import { useSiteSettings } from "@/app/services/site-settings";
-import { registerPluginOutlet } from "@/components/PluginOutlet";
-import { usePluginOutlets } from "@/stores/pluginOutlets";
+import { useSiteSettings, usePluginOutlets } from "@cinelartv/services";
+import { registerPluginOutlet } from "@cinelartv/plugin-api";
 import { defineAsyncComponent, defineComponent, h, ref, provide } from "vue";
 import WatchPartyChat from "./assets/javascripts/components/WatchPartyChat";
 import { useWatchParty } from "./assets/javascripts/services/watchparty-service";

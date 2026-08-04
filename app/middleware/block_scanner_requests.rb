@@ -37,7 +37,10 @@ class BlockScannerRequests
     config/master.key
     config/secrets.yml
     config/credentials.yml.enc
-    backup
+    backup.sql
+    backup.zip
+    backup.tar
+    backup.gz
     db.sql
     dump.sql
     .aws/credentials

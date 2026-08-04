@@ -10,6 +10,9 @@ import { resolve } from 'path'
 
 
 export default defineConfig({
+  define: {
+    "process.env": {},
+  },
   server: {
     hmr: {
       host: 'localhost',

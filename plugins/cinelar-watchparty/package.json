@@ -1,0 +1,9 @@
+{
+  "name": "cinelar-watchparty",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@cinelartv/services": "workspace:*",
+    "@cinelartv/plugin-api": "workspace:*"
+  }
+}

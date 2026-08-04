@@ -1,18 +1,9 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
-import { resolve, basename } from "path";
+import { resolve } from "path";
 import { readFileSync } from "fs";
-
-/**
- * Vite config for building individual third-party CinelarTV plugins.
- *
- * Usage:
- *   PLUGIN_DIR=/path/to/plugins/my-plugin npx vite build --config vite.config.plugins.ts
- *
- * The plugin must have a plugin.json with at least { name, version, entry }.
- * Core dependencies (vue, pinia, @/*) are externalized and provided by the host at runtime.
- */
+import { sharedAlias } from "./vite.config.shared";
 
 const pluginDir = process.env.PLUGIN_DIR;
 if (!pluginDir) {
@@ -21,7 +12,7 @@ if (!pluginDir) {
 }
 
 const pluginJsonPath = resolve(pluginDir, "plugin.json");
-let pluginJson: { name: string; version: string; entry?: string; externals?: string[] };
+let pluginJson: { name: string; version: string; entry?: string };
 
 try {
   pluginJson = JSON.parse(readFileSync(pluginJsonPath, "utf-8"));
@@ -34,32 +25,11 @@ const pluginName = pluginJson.name;
 const entryFile = pluginJson.entry || "app/index.ts";
 const entryPath = resolve(pluginDir, entryFile);
 
-// Core modules that plugins can import from the host app.
-// These are mapped to window.CinelarTV.* at runtime.
-const coreExternals: Record<string, string> = {
-  vue: "CinelarTV.Vue",
-  "vue-router": "CinelarTV.VueRouter",
-  pinia: "CinelarTV.Pinia",
-  axios: "CinelarTV.axios",
-  // Core CinelarTV modules — mapped via the @/ alias
-  "@/lib/plugin-events": "CinelarTV.PluginEvents",
-  "@/app/services/site-settings": "CinelarTV.SiteSettings",
-  "@/components/PluginOutlet": "CinelarTV.PluginOutlet",
-  "@/stores/pluginOutlets": "CinelarTV.PluginOutlets",
-};
-
-// Plugin-declared externals override defaults
-const externals = { ...coreExternals };
-if (pluginJson.externals) {
-  for (const ext of pluginJson.externals) {
-    if (!externals[ext]) {
-      externals[ext] = `CinelarTV.libs.${ext}`;
-    }
-  }
-}
-
 export default defineConfig({
   mode: "production",
+  define: {
+    "process.env": {},
+  },
   publicDir: false,
   build: {
     target: "esnext",
@@ -71,12 +41,17 @@ export default defineConfig({
     outDir: resolve("public", "plugins", pluginName),
     emptyOutDir: true,
     rollupOptions: {
-      external: Object.keys(externals),
+      external: ["vue", "pinia", "vue-router", "axios"],
       output: {
-        globals: externals,
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith(".css")) return "style.[hash].css";
           return "assets/[name].[hash][extname]";
+        },
+        globals: {
+          vue: "Vue",
+          pinia: "Pinia",
+          "vue-router": "VueRouter",
+          axios: "axios",
         },
       },
     },
@@ -85,10 +60,7 @@ export default defineConfig({
     minify: true,
   },
   resolve: {
-    alias: {
-      "@": resolve(__dirname, "app/frontend/webclient"),
-      "@plugins": resolve(__dirname, "plugins"),
-    },
+    alias: sharedAlias,
   },
   plugins: [
     vue({

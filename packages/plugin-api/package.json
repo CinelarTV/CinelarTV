@@ -1,0 +1,9 @@
+{
+  "name": "@cinelartv/plugin-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@cinelartv/services": "workspace:*"
+  }
+}
