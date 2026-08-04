@@ -53,7 +53,13 @@ class BlockScannerRequests
 
   SCANNER_REGEX = /\.(env|git|svn|bak|swp|old|save|sql|dump|log)\b/i
 
-  AI_PROXY_PATTERN = %r{(/anthropic)?/v1/(messages|chat/completions)}i
+  # Patrones que además de bloquearse, se responden con 418 (tetera)
+  # en vez de 404: intentos de proxy hacia IA, y escaneos típicos
+  # de stacks PHP/ASP/JSP que buscan endpoints ejecutables.
+  TEAPOT_PATTERN = %r{
+    (/anthropic)?/v1/(messages|chat/completions) |
+    \.(php\d?|phtml|asp|aspx|jsp)\b
+  }ix.freeze
 
   def initialize(app)
     @app = app
@@ -61,10 +67,11 @@ class BlockScannerRequests
 
   def call(env)
     path = env["PATH_INFO"]
+    downcased = path.downcase
 
-    if ai_proxy_attempt?(path)
+    if teapot_attempt?(downcased)
       [418, { "Content-Type" => "application/json" }, [teapot_response(env)]]
-    elsif blocked?(path.downcase)
+    elsif blocked?(downcased)
       [404, { "Content-Type" => "text/plain" }, ["Not Found"]]
     else
       @app.call(env)
@@ -79,8 +86,8 @@ class BlockScannerRequests
     BLOCKED_PATTERNS.any? { |pattern| path.include?(pattern) }
   end
 
-  def ai_proxy_attempt?(path)
-    AI_PROXY_PATTERN.match?(path)
+  def teapot_attempt?(path)
+    TEAPOT_PATTERN.match?(path)
   end
 
   def teapot_response(env)
