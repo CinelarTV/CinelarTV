@@ -126,7 +126,7 @@
                 <a :href="`/admin/backups/${backup.id}/download`" class="backups-admin__action-link">
                   <c-button icon="download" title="Descargar" />
                 </a>
-                <c-button icon="refresh-cw" @click="confirmRestore(backup)" title="Restaurar"
+                <c-button icon="refresh-cw" @click="openRestoreSummary(backup)" title="Restaurar"
                   :disabled="backup.status !== 'completed'" />
                 <c-button icon="trash-2" variant="danger" @click="confirmDelete(backup)" title="Eliminar" />
               </div>
@@ -136,68 +136,166 @@
       </table>
     </section>
 
-    <!-- Restore Confirmation Modal -->
-    <Teleport to="body">
-      <div v-if="showRestoreModal" class="backups-admin__modal-overlay" @click.self="showRestoreModal = false">
-        <div class="backups-admin__modal">
-          <div class="backups-admin__modal-header">
-            <h3>Confirmar Restauracion</h3>
-            <c-button icon="x" @click="showRestoreModal = false" />
-          </div>
-          <div class="backups-admin__modal-body">
-            <p>Esto <strong>reemplazara completamente</strong> la base de datos actual con:</p>
-            <p class="backups-admin__modal-filename">{{ restoreTarget?.filename }}</p>
-            <p class="backups-admin__modal-warning">Esta accion no se puede deshacer. Todos los datos actuales se
-              perderan.</p>
+    <!-- Restore Modal: Step 1 = Summary, Step 2 = Progress -->
+    <c-modal v-model="showRestoreModal" :persistent="restoreStep === 'progress'" size="lg">
+      <template #header>
+        <div v-if="restoreStep === 'summary'">
+          <h3 class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
+            Resumen del Backup
+          </h3>
+          <p class="mt-1 text-sm text-[var(--c-primary-100)]">
+            Revisa los datos antes de confirmar la restauracion.
+          </p>
+        </div>
+        <div v-else-if="restoreStep === 'progress'">
+          <h3 class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
+            Restaurando Sistema
+          </h3>
+          <p class="mt-1 text-sm text-[var(--c-primary-100)]">
+            {{ restoreProgress.message || 'Iniciando...' }}
+          </p>
+        </div>
+      </template>
 
-            <label class="backups-admin__toggle">
-              <input type="checkbox" v-model="restoreOptions.force" />
-              <span>Forzar restauracion (omitir configuracion allow_restore)</span>
-            </label>
-            <label class="backups-admin__toggle">
-              <input type="checkbox" v-model="restoreOptions.restoreFiles" />
-              <span>Incluir manifiesto de archivos</span>
-            </label>
+      <!-- Step 1: Summary -->
+      <template v-if="restoreStep === 'summary'">
+        <div v-if="summaryLoading" class="flex items-center justify-center py-8">
+          <c-spinner />
+        </div>
+        <div v-else-if="summaryError" class="text-center py-8">
+          <c-icon icon="alert-circle" :size="32" class="text-red-400 mx-auto mb-3" />
+          <p class="text-red-400">{{ summaryError }}</p>
+        </div>
+        <div v-else-if="restoreSummary" class="backups-admin__summary">
+          <div class="backups-admin__summary-filename">{{ restoreSummary.filename }}</div>
+
+          <div class="backups-admin__summary-grid">
+            <div class="backups-admin__summary-stat">
+              <c-icon icon="database" :size="16" />
+              <span class="backups-admin__summary-label">Base de datos</span>
+              <strong>{{ restoreSummary.human_database_size }}</strong>
+            </div>
+            <div class="backups-admin__summary-stat">
+              <c-icon icon="file" :size="16" />
+              <span class="backups-admin__summary-label">Archivos</span>
+              <strong>{{ restoreSummary.files_count }}</strong>
+            </div>
+            <div class="backups-admin__summary-stat">
+              <c-icon icon="hard-drive" :size="16" />
+              <span class="backups-admin__summary-label">Tamano archivos</span>
+              <strong>{{ restoreSummary.human_files_total_size }}</strong>
+            </div>
+            <div class="backups-admin__summary-stat">
+              <c-icon icon="shield" :size="16" />
+              <span class="backups-admin__summary-label">Cifrado</span>
+              <strong>{{ restoreSummary.encrypted ? 'Si' : 'No' }}</strong>
+            </div>
           </div>
-          <div class="backups-admin__modal-footer">
-            <c-button @click="showRestoreModal = false">Cancelar</c-button>
-            <c-button variant="danger" icon="refresh-cw" :loading="restoring" @click="executeRestore">
-              Restaurar Ahora
-            </c-button>
+
+          <div v-if="restoreSummary.files?.length" class="backups-admin__summary-files">
+            <p class="backups-admin__summary-files-title">
+              Archivos incluidos ({{ restoreSummary.files.length }})
+            </p>
+            <div class="backups-admin__summary-files-list">
+              <div v-for="(file, idx) in restoreSummary.files.slice(0, 20)" :key="idx"
+                class="backups-admin__summary-file">
+                <span class="backups-admin__summary-file-path">{{ file.path }}</span>
+                <span class="backups-admin__summary-file-size">{{ formatBytes(file.size) }}</span>
+              </div>
+              <div v-if="restoreSummary.files.length > 20" class="backups-admin__summary-file backups-admin__summary-file--more">
+                ... y {{ restoreSummary.files.length - 20 }} archivos mas
+              </div>
+            </div>
+          </div>
+
+          <div class="backups-admin__summary-warning">
+            <c-icon icon="alert-triangle" :size="16" />
+            <p>Esta accion <strong>reemplazara completamente</strong> la base de datos actual. Todos los datos actuales se perderan. Esta accion no se puede deshacer.</p>
+          </div>
+
+          <label class="backups-admin__toggle backups-admin__summary-option">
+            <input type="checkbox" v-model="restoreOptions.force" />
+            <span>Forzar restauracion (omitir configuracion allow_restore)</span>
+          </label>
+          <label class="backups-admin__toggle backups-admin__summary-option">
+            <input type="checkbox" v-model="restoreOptions.restoreFiles" />
+            <span>Incluir archivos subidos</span>
+          </label>
+        </div>
+      </template>
+
+      <!-- Step 2: Progress -->
+      <template v-if="restoreStep === 'progress'">
+        <div class="backups-admin__progress">
+          <div class="backups-admin__progress-bar-track">
+            <div
+              class="backups-admin__progress-bar-fill"
+              :style="{ width: `${restoreProgress.percent || 0}%` }"
+              :class="{ 'backups-admin__progress-bar-fill--error': restoreProgress.type === 'failed' }"
+            />
+          </div>
+          <div class="backups-admin__progress-info">
+            <span class="backups-admin__progress-percent">{{ restoreProgress.percent || 0 }}%</span>
+            <span class="backups-admin__progress-step">{{ restoreProgress.message || 'Esperando...' }}</span>
+          </div>
+
+          <div v-if="restoreProgress.type === 'completed'" class="backups-admin__progress-result backups-admin__progress-result--success">
+            <c-icon icon="check-circle" :size="20" />
+            <span>Restauracion completada exitosamente.</span>
+          </div>
+          <div v-else-if="restoreProgress.type === 'failed'" class="backups-admin__progress-result backups-admin__progress-result--error">
+            <c-icon icon="x-circle" :size="20" />
+            <span>{{ restoreProgress.message }}</span>
           </div>
         </div>
-      </div>
-    </Teleport>
+      </template>
+
+      <template #footer>
+        <div v-if="restoreStep === 'summary'" class="flex items-center justify-end gap-3">
+          <c-button @click="showRestoreModal = false">Cancelar</c-button>
+          <c-button variant="danger" icon="refresh-cw" :loading="restoring" @click="executeRestore">
+            Restaurar Ahora
+          </c-button>
+        </div>
+        <div v-else-if="restoreStep === 'progress'" class="flex items-center justify-end gap-3">
+          <c-button v-if="restoreProgress.type === 'completed' || restoreProgress.type === 'failed'"
+            @click="showRestoreModal = false">
+            Cerrar
+          </c-button>
+        </div>
+      </template>
+    </c-modal>
 
     <!-- Delete Confirmation Modal -->
-    <Teleport to="body">
-      <div v-if="showDeleteModal" class="backups-admin__modal-overlay" @click.self="showDeleteModal = false">
-        <div class="backups-admin__modal">
-          <div class="backups-admin__modal-header">
-            <h3>Confirmar Eliminacion</h3>
-            <c-button icon="x" @click="showDeleteModal = false" />
-          </div>
-          <div class="backups-admin__modal-body">
-            <p>Estas seguro de que deseas eliminar este backup?</p>
-            <p class="backups-admin__modal-filename">{{ deleteTarget?.filename }}</p>
-          </div>
-          <div class="backups-admin__modal-footer">
-            <c-button @click="showDeleteModal = false">Cancelar</c-button>
-            <c-button variant="danger" icon="trash-2" :loading="deleting" @click="executeDelete">
-              Eliminar
-            </c-button>
-          </div>
+    <c-modal v-model="showDeleteModal" size="md">
+      <template #header>
+        <h3 class="text-xl font-semibold tracking-tight text-[var(--c-body-text-color)]">
+          Confirmar Eliminacion
+        </h3>
+      </template>
+
+      <p class="text-[var(--c-body-text-color)]">Estas seguro de que deseas eliminar este backup?</p>
+      <p class="mt-2 text-sm font-mono text-[var(--c-primary-100)]">{{ deleteTarget?.filename }}</p>
+
+      <template #footer>
+        <div class="flex items-center justify-end gap-3">
+          <c-button @click="showDeleteModal = false">Cancelar</c-button>
+          <c-button variant="danger" icon="trash-2" :loading="deleting" @click="executeDelete">
+            Eliminar
+          </c-button>
         </div>
-      </div>
-    </Teleport>
+      </template>
+    </c-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onUnmounted, watch } from 'vue'
 import { useHead } from 'unhead'
 import { toast } from 'vue3-toastify'
 import { ajax } from '../../../lib/Ajax'
+import { messageBus } from '../../../application'
+
 useHead({ title: 'Backups - Admin' })
 
 const backups = ref([])
@@ -212,6 +310,18 @@ const showRestoreModal = ref(false)
 const showDeleteModal = ref(false)
 const restoreTarget = ref(null)
 const deleteTarget = ref(null)
+
+const restoreStep = ref('summary')
+const summaryLoading = ref(false)
+const summaryError = ref('')
+const restoreSummary = ref(null)
+
+const restoreProgress = ref({
+  type: '',
+  step: '',
+  percent: 0,
+  message: '',
+})
 
 const settings = ref({
   includeFiles: true,
@@ -242,6 +352,14 @@ const statusClass = (status) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleString()
+}
+
+const formatBytes = (bytes) => {
+  if (!bytes) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  let exp = Math.floor(Math.log(bytes) / Math.log(1024))
+  exp = Math.min(exp, units.length - 1)
+  return `${(bytes / Math.pow(1024, exp)).toFixed(1)} ${units[exp]}`
 }
 
 const fetchBackups = async () => {
@@ -312,27 +430,76 @@ const verifyBackup = async (backup) => {
   }
 }
 
-const confirmRestore = (backup) => {
+let restoreChannel = null
+let restoreCallback = null
+
+const openRestoreSummary = async (backup) => {
   restoreTarget.value = backup
+  restoreStep.value = 'summary'
+  summaryLoading.value = true
+  summaryError.value = ''
+  restoreSummary.value = null
   restoreOptions.value = { force: false, restoreFiles: true }
   showRestoreModal.value = true
+
+  try {
+    const { data } = await ajax.get(`/admin/backups/${backup.id}/summary.json`)
+    restoreSummary.value = data.data
+  } catch (e) {
+    summaryError.value = e.response?.data?.error || 'No se pudo cargar el resumen del backup'
+  } finally {
+    summaryLoading.value = false
+  }
 }
 
 const executeRestore = async () => {
   restoring.value = true
   try {
-    await ajax.post(`/admin/backups/${restoreTarget.value.id}/restore`, {
+    const { data } = await ajax.post(`/admin/backups/${restoreTarget.value.id}/restore`, {
       force: restoreOptions.value.force,
       restore_files: restoreOptions.value.restoreFiles
     })
-    toast.success('Sistema restaurado correctamente')
-    showRestoreModal.value = false
+
+    restoreStep.value = 'progress'
+    restoreProgress.value = { type: 'started', step: 'started', percent: 0, message: 'Iniciando restauracion...' }
+    restoreChannel = data.channel
+
+    restoreCallback = (msg) => {
+      restoreProgress.value = {
+        type: msg.type || 'progress',
+        step: msg.step || '',
+        percent: msg.percent || 0,
+        message: msg.message || '',
+      }
+
+      if (msg.type === 'completed' || msg.type === 'failed') {
+        unsubRestore()
+        fetchBackups()
+      }
+    }
+
+    messageBus.subscribe(restoreChannel, restoreCallback)
   } catch (e) {
-    toast.error(e.response?.data?.error || 'Error al restaurar')
+    toast.error(e.response?.data?.error || 'Error al iniciar restauracion')
+    showRestoreModal.value = false
   } finally {
     restoring.value = false
   }
 }
+
+const unsubRestore = () => {
+  if (restoreCallback && restoreChannel) {
+    messageBus.unsubscribe(restoreChannel, restoreCallback)
+    restoreCallback = null
+    restoreChannel = null
+  }
+}
+
+watch(showRestoreModal, (val) => {
+  if (!val) {
+    unsubRestore()
+  }
+})
 
 const confirmDelete = (backup) => {
   deleteTarget.value = backup
@@ -342,7 +509,7 @@ const confirmDelete = (backup) => {
 const executeDelete = async () => {
   deleting.value = true
   try {
-    const { data } = await ajax.delete(`/admin/backups/${deleteTarget.value.id}.json`)
+    await ajax.delete(`/admin/backups/${deleteTarget.value.id}.json`)
     toast.success('Backup eliminado')
     showDeleteModal.value = false
     await fetchBackups()
@@ -353,7 +520,9 @@ const executeDelete = async () => {
   }
 }
 
-onMounted(() => {
-  fetchBackups()
+onUnmounted(() => {
+  unsubRestore()
 })
+
+fetchBackups()
 </script>

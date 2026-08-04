@@ -2,7 +2,7 @@
 
 module Admin
   class BackupsController < Admin::BaseController
-    before_action :set_backup, only: %i[show destroy download verify restore]
+    before_action :set_backup, only: %i[show destroy download verify restore summary]
 
     # GET /admin/backups
     def index
@@ -23,6 +23,11 @@ module Admin
     # GET /admin/backups/:id
     def show
       render json: { data: backup_json(@backup, full: true) }
+    end
+
+    # GET /admin/backups/:id/summary
+    def summary
+      render json: { data: backup_summary(@backup) }
     end
 
     # POST /admin/backups
@@ -55,11 +60,16 @@ module Admin
         }, status: :forbidden
       end
 
-      @backup.append_audit("restore_requested", "user_id=#{current_user.id}")
-      RestoreManager.restore(@backup.filename, force: force, restore_files: restore_files)
+      @backup.append_audit("restore_requested", "user_id=#{current_user&.id}")
 
-      render json: { message: "System restored successfully from #{@backup.filename}" }
-    rescue RestoreManager::RestoreError => e
+      RestoreJob.perform_async(@backup.id, force: force, restore_files: restore_files)
+
+      render json: {
+        message: "Restore started",
+        backup_id: @backup.id,
+        channel: "/admin/backups/#{@backup.id}/restore"
+      }
+    rescue StandardError => e
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
@@ -69,7 +79,7 @@ module Admin
         return render json: { error: "Backup file not found on disk" }, status: :not_found
       end
 
-      @backup.append_audit("downloaded", "user_id=#{current_user.id}")
+      @backup.append_audit("downloaded", "user_id=#{current_user&.id}")
 
       send_file @backup.path,
                 filename: @backup.filename,
@@ -89,7 +99,7 @@ module Admin
 
     # DELETE /admin/backups/:id
     def destroy
-      @backup.append_audit("deleted", "user_id=#{current_user.id}")
+      @backup.append_audit("deleted", "user_id=#{current_user&.id}")
       @backup.destroy_file!
       render json: { message: "Backup deleted" }
     end
@@ -148,6 +158,65 @@ module Admin
       end
 
       data
+    end
+
+    def backup_summary(backup)
+      manifest_data = backup.file_manifest || {}
+
+      # Fallback: read manifest from zip if DB column is empty
+      if manifest_data.blank? || (manifest_data["total_files"] || 0).zero?
+        manifest_data = read_manifest_from_zip(backup) || {}
+      end
+
+      db_size = manifest_data["db_dump_size"] || 0
+
+      files = (manifest_data["files"] || []).map do |f|
+        {
+          path: f["path"],
+          size: f["size"],
+          modified_at: f["modified_at"]
+        }
+      end
+
+      {
+        id: backup.id,
+        filename: backup.filename,
+        human_size: backup.human_size,
+        size: backup.size,
+        backup_type: backup.backup_type,
+        status: backup.status,
+        encrypted: backup.encrypted,
+        created_at: backup.created_at,
+        database_size: db_size,
+        human_database_size: human_size(db_size),
+        files_count: manifest_data["total_files"] || 0,
+        files_total_size: manifest_data["total_size"] || 0,
+        human_files_total_size: human_size(manifest_data["total_size"] || 0),
+        files: files
+      }
+    end
+
+    def human_size(bytes)
+      return "0 B" if bytes.zero?
+      units = %w[B KB MB GB TB]
+      exp = (Math.log(bytes) / Math.log(1024)).to_i
+      exp = units.length - 1 if exp >= units.length
+      format("%.1f %s", bytes.to_f / (1024**exp), units[exp])
+    end
+
+    def read_manifest_from_zip(backup)
+      return nil unless backup.exist?
+
+      require "zip"
+      Zip::File.open(backup.path) do |zipfile|
+        entry = zipfile.find_entry("manifest.json")
+        return nil unless entry
+
+        json = entry.get_input_stream.read
+        JSON.parse(json)
+      end
+    rescue StandardError
+      nil
     end
   end
 end

@@ -53,13 +53,19 @@ class BackupManager
       uploads_dir = File.join(tmp_dir, "uploads")
 
       if include_files
-        manifest = build_file_manifest(uploads_dir)
+        file_manifest = build_file_manifest(uploads_dir)
+        manifest[:files] = file_manifest[:files]
+        manifest[:total_files] = file_manifest[:total_files]
+        manifest[:total_size] = file_manifest[:total_size]
         backup.append_audit("files_manifested", "#{manifest[:total_files]} files, #{manifest[:total_size]} bytes")
       end
 
       # 3. Write manifest JSON into tmp
       manifest_path = File.join(tmp_dir, "manifest.json")
       File.write(manifest_path, JSON.pretty_generate(manifest))
+
+      # Save manifest to DB
+      backup.update!(file_manifest: manifest)
 
       # 4. Create zip from tmp contents
       Zip::File.open(filepath, Zip::File::CREATE) do |zipfile|
@@ -201,7 +207,7 @@ class BackupManager
       "PGSSLMODE" => db_config[:sslmode].to_s
     }
 
-    command = [pg_restore_path, "-c", "--if-exists", filepath] + pg_connection_args(db_config)
+    command = [pg_restore_path, "-c", "--if-exists"] + pg_connection_args(db_config) + [filepath]
 
     backup.append_audit("pg_restore_started")
     _stdout, stderr, status = Open3.capture3(env, *command)

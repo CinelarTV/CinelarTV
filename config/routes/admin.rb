@@ -145,6 +145,7 @@ namespace :admin do
   get "/backups/:id" => "backups#show", defaults: { format: 'json' }
   get "/backups/:id/download" => "backups#download"
   post "/backups/:id/verify" => "backups#verify", defaults: { format: 'json' }
+  get "/backups/:id/summary" => "backups#summary", defaults: { format: 'json' }
   post "/backups/:id/restore" => "backups#restore", defaults: { format: 'json' }
   delete "/backups/:id" => "backups#destroy", defaults: { format: 'json' }
 end
