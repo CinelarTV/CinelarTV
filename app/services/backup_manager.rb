@@ -183,6 +183,7 @@ class BackupManager
 
     backup.append_audit("pg_dump_started")
     _stdout, stderr, status = Open3.capture3(env, *command)
+    stderr = stderr.encode("UTF-8", invalid: :replace, undef: :replace, replace: "?")
 
     unless status.success?
       raise BackupError, "pg_dump failed: #{stderr.strip.presence || "exit status #{status.exitstatus}"}"
@@ -204,6 +205,7 @@ class BackupManager
 
     backup.append_audit("pg_restore_started")
     _stdout, stderr, status = Open3.capture3(env, *command)
+    stderr = stderr.encode("UTF-8", invalid: :replace, undef: :replace, replace: "?")
 
     unless status.success?
       raise RestoreError, "pg_restore failed: #{stderr.strip.presence || "exit status #{status.exitstatus}"}"
@@ -256,12 +258,11 @@ class BackupManager
 
     Zip::File.open(zip_path) do |zipfile|
       zipfile.each do |entry|
-        # Zip entries created by create_backup are stored under "uploads/..."
-        # e.g. "uploads/public/uploads/content_images/banners/123.webp"
-        next unless entry.name.start_with?("uploads/")
+        name = entry.name.encode("UTF-8", invalid: :replace, undef: :replace)
+        next unless name.start_with?("uploads/")
         next if entry.directory?
 
-        relative = entry.name.delete_prefix("uploads/")
+        relative = name.delete_prefix("uploads/")
         dest = Rails.root.join(relative.delete_prefix("/"))
         FileUtils.mkdir_p(File.dirname(dest))
         entry.extract(dest) { true } # force overwrite
