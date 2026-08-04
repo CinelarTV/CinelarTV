@@ -36,7 +36,7 @@ class ContentsController < ApplicationController
 
     if CrawlerDetection.crawler?(request.user_agent)
       @is_crawler = true
-      render :show, layout: "crawler"
+      render :show, layout: "crawler", formats: [:html]
     else
       respond_to do |format|
         format.html
