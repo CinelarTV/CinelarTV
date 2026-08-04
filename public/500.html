@@ -1,66 +1,272 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
-  <title>We're sorry, but something went wrong (500)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oops — Something went wrong</title>
   <style>
-  .rails-default-error-page {
-    background-color: #EFEFEF;
-    color: #2E2F30;
-    text-align: center;
-    font-family: arial, sans-serif;
-    margin: 0;
-  }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  .rails-default-error-page div.dialog {
-    width: 95%;
-    max-width: 33em;
-    margin: 4em auto 0;
-  }
+    .not-found-page {
+      --not-found-accent: #42c0ff;
+      --not-found-surface: color-mix(in srgb, #0f1218 90%, #ffffff 10%);
+      --not-found-surface-soft: color-mix(in srgb, #0f1218 84%, #ffffff 16%);
+      --not-found-border: color-mix(in srgb, #ffffff 14%, transparent 86%);
+      --not-found-text-soft: color-mix(in srgb, #ffffff 72%, transparent 28%);
+      position: relative;
+      isolation: isolate;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(14px, 2.2vw, 28px);
+      background: #0f1218;
+      overflow-x: clip;
+      overflow-y: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
 
-  .rails-default-error-page div.dialog > div {
-    border: 1px solid #CCC;
-    border-right-color: #999;
-    border-left-color: #999;
-    border-bottom-color: #BBB;
-    border-top: #B00100 solid 4px;
-    border-top-left-radius: 9px;
-    border-top-right-radius: 9px;
-    background-color: white;
-    padding: 7px 12% 0;
-    box-shadow: 0 3px 8px rgba(50, 50, 50, 0.17);
-  }
+    @supports not (overflow: clip) {
+      .not-found-page {
+        overflow-x: hidden;
+      }
+    }
 
-  .rails-default-error-page h1 {
-    font-size: 100%;
-    color: #730E15;
-    line-height: 1.5em;
-  }
+    .not-found-page__bg-shape {
+      position: absolute;
+      z-index: 0;
+      border-radius: 999px;
+      filter: blur(40px);
+      pointer-events: none;
+      opacity: 0.45;
+      will-change: transform;
+    }
 
-  .rails-default-error-page div.dialog > p {
-    margin: 0 0 1em;
-    padding: 1em;
-    background-color: #F7F7F7;
-    border: 1px solid #CCC;
-    border-right-color: #999;
-    border-left-color: #999;
-    border-bottom-color: #999;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-top-color: #DADADA;
-    color: #666;
-    box-shadow: 0 3px 8px rgba(50, 50, 50, 0.17);
-  }
+    .not-found-page__bg-shape--one {
+      width: min(34vw, 420px);
+      height: min(34vw, 420px);
+      top: 0;
+      right: 0;
+      transform: translate(34%, -36%);
+      background: color-mix(in srgb, #00a9ff 52%, transparent 48%);
+    }
+
+    .not-found-page__bg-shape--two {
+      width: min(28vw, 320px);
+      height: min(28vw, 320px);
+      left: 0;
+      bottom: 0;
+      transform: translate(-36%, 42%);
+      background: color-mix(in srgb, #2f90ff 40%, transparent 60%);
+    }
+
+    .not-found-page__container {
+      position: relative;
+      z-index: 1;
+      width: min(600px, 100%);
+      margin: 0 auto;
+    }
+
+    .not-found-page__hero {
+      border: 1px solid var(--not-found-border);
+      border-radius: 16px;
+      background: var(--not-found-surface);
+      box-shadow: 0 14px 50px rgba(0, 0, 0, 0.24);
+      padding: clamp(16px, 2.8vw, 30px);
+      animation: not-found-enter 0.32s ease both;
+    }
+
+    .not-found-page__status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--not-found-accent) 30%, transparent 70%);
+      background: color-mix(in srgb, var(--not-found-accent) 16%, transparent 84%);
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .not-found-page__status .icon {
+      width: 16px;
+      height: 16px;
+      color: var(--not-found-accent);
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .not-found-page__title {
+      margin: 12px 0 0;
+      color: #ffffff;
+      font-size: clamp(1.55rem, 3.5vw, 2.35rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .not-found-page__description {
+      margin: 10px 0 0;
+      max-width: 680px;
+      color: var(--not-found-text-soft);
+      font-size: 0.96rem;
+      line-height: 1.55;
+    }
+
+    .not-found-page__actions {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .not-found-page__home-link,
+    .not-found-page__retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+      font-family: inherit;
+    }
+
+    .not-found-page__home-link .icon,
+    .not-found-page__retry-btn .icon {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .not-found-page__home-link {
+      background: var(--not-found-accent);
+      color: #ffffff;
+    }
+
+    .not-found-page__home-link:hover {
+      background: var(--not-found-accent);
+      filter: brightness(1.1);
+    }
+
+    .not-found-page__retry-btn {
+      background: var(--not-found-surface-soft);
+      border-color: var(--not-found-border);
+      color: #ffffff;
+    }
+
+    .not-found-page__home-link:hover,
+    .not-found-page__retry-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 640px) {
+      .not-found-page {
+        padding: 8px 12px 18px;
+      }
+
+      .not-found-page__hero {
+        border-radius: 14px;
+      }
+
+      .not-found-page__actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .not-found-page__home-link,
+      .not-found-page__retry-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @keyframes not-found-enter {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 
-<body class="rails-default-error-page">
-  <!-- This file lives in public/500.html -->
-  <div class="dialog">
-    <div>
-      <h1>We're sorry, but something went wrong.</h1>
+<body>
+  <div class="not-found-page">
+    <div class="not-found-page__bg-shape not-found-page__bg-shape--one" aria-hidden="true"></div>
+    <div class="not-found-page__bg-shape not-found-page__bg-shape--two" aria-hidden="true"></div>
+
+    <div class="not-found-page__container">
+      <section class="not-found-page__hero">
+        <div class="not-found-page__status">
+          <svg class="icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
+            <line x1="9" y1="9" x2="9.01" y2="9" />
+            <line x1="15" y1="9" x2="15.01" y2="9" />
+          </svg>
+          <span>Error 500</span>
+        </div>
+
+        <h1 class="not-found-page__title">Oops</h1>
+        <p class="not-found-page__description">
+          The software powering this streaming platform encountered an unexpected problem.
+          We apologize for the inconvenience.
+        </p>
+        <p class="not-found-page__description">
+          Detailed information about the error was logged, and an automatic notification was
+          generated. We'll take a look at it.
+        </p>
+        <p class="not-found-page__description">
+          No further action is necessary. However, if the error condition persists, you can
+          contact us providing additional detail, including steps to reproduce the error.
+        </p>
+
+        <div class="not-found-page__actions">
+          <a href="/" class="not-found-page__home-link">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            Back to home
+          </a>
+          <button class="not-found-page__retry-btn" onclick="window.location.reload()">
+            <svg class="icon" viewBox="0 0 24 24">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+            Retry
+          </button>
+        </div>
+      </section>
     </div>
-    <p>If you are the application owner check the logs for more information.</p>
   </div>
 </body>
+
 </html>
