@@ -12,10 +12,10 @@ class BackupManager
   class RestoreError < StandardError; end
 
   UPLOAD_DIRECTORIES = %w[
-    uploads/content_images/banners
-    uploads/content_images/covers
-    uploads/content_images/episode_thumbnails
-    uploads/logos
+    public/uploads/content_images/banners
+    public/uploads/content_images/covers
+    public/uploads/content_images/episode_thumbnails
+    public/uploads/logos
     public/content-media
   ].freeze
 
@@ -147,13 +147,10 @@ class BackupManager
 
       # 2. Restore files if present in zip
       if restore_files
-        uploads_dir = File.join(tmp_dir, "uploads")
-        if Dir.exist?(uploads_dir) && Dir.glob(File.join(uploads_dir, "**", "*")).any?
-          restore_uploaded_files(uploads_dir)
-          backup.append_audit("files_restored")
-        else
-          backup.append_audit("files_manifest_restored", "No uploaded files in backup")
-        end
+        restored = restore_uploaded_files(filepath)
+        backup.append_audit("files_restored", "#{restored} files")
+      else
+        backup.append_audit("files_manifest_restored", "No uploaded files in backup")
       end
 
       backup.append_audit("restore_completed")
@@ -249,18 +246,30 @@ class BackupManager
     host.split(".").first
   end
 
-  def self.restore_uploaded_files(source_dir)
+  def self.restore_uploaded_files(zip_path)
     UPLOAD_DIRECTORIES.each do |dir|
       full_path = Rails.root.join(dir)
       FileUtils.mkdir_p(full_path)
     end
 
-    Dir.glob(File.join(source_dir, "**", "*")).select { |f| File.file?(f) }.each do |file|
-      relative = file.sub("#{source_dir}/", "")
-      dest = Rails.root.join(relative)
-      FileUtils.mkdir_p(File.dirname(dest))
-      FileUtils.cp(file, dest)
+    restored = 0
+
+    Zip::File.open(zip_path) do |zipfile|
+      zipfile.each do |entry|
+        # Zip entries created by create_backup are stored under "uploads/..."
+        # e.g. "uploads/public/uploads/content_images/banners/123.webp"
+        next unless entry.name.start_with?("uploads/")
+        next if entry.directory?
+
+        relative = entry.name.delete_prefix("uploads/")
+        dest = Rails.root.join(relative.delete_prefix("/"))
+        FileUtils.mkdir_p(File.dirname(dest))
+        entry.extract(dest) { true } # force overwrite
+        restored += 1
+      end
     end
+
+    restored
   end
 
   def self.find_pg_dump
