@@ -18,8 +18,9 @@ class HomeController < ApplicationController
         profile_version = current_profile&.updated_at&.to_i || 0
         composite_etag = Digest::MD5.hexdigest("#{latest_updated.to_i}-#{profile_version}")
 
-        fresh_when(last_modified: latest_updated, etag: composite_etag, public: false)
-        render json: homepage_data
+        if stale?(last_modified: latest_updated, etag: composite_etag, public: false)
+          render json: homepage_data
+        end
       }
     end
   end

@@ -17,10 +17,11 @@ class LiveTvController < ApplicationController
         program_updated = TvProgram.maximum(:updated_at) || Time.current
         composite_etag = Digest::MD5.hexdigest("#{channel_updated.to_i}-#{program_updated.to_i}")
 
-        fresh_when(last_modified: [channel_updated, program_updated].max, etag: composite_etag, public: true)
-        render json: {
-          live_tv_channels: @channels.map { |ch| channel_json(ch) }
-        }
+        if stale?(last_modified: [channel_updated, program_updated].max, etag: composite_etag, public: true)
+          render json: {
+            live_tv_channels: @channels.map { |ch| channel_json(ch) }
+          }
+        end
       end
     end
   end
