@@ -18,14 +18,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
   enable_extension "plpgsql"
   enable_extension "unaccent"
 
-  # Immutable wrapper for unaccent (required for GIN index expressions)
-  execute <<-SQL
-    CREATE OR REPLACE FUNCTION immutable_unaccent(text)
-    RETURNS text AS $$
-      SELECT unaccent('unaccent', $1)
-    $$ LANGUAGE sql IMMUTABLE STRICT;
-  SQL
-
   create_table "backups", force: :cascade do |t|
     t.string "filename", null: false
     t.bigint "size"
@@ -115,7 +107,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
     t.string "banner_resized"
     t.string "cover_resized"
     t.datetime "scheduled_launch_at"
-    t.index "lower(immutable_unaccent((title)::text)) gin_trgm_ops", name: "index_contents_on_title_trgm", using: :gin
     t.index ["available"], name: "index_contents_on_available_true", where: "(available = true)"
     t.index ["content_type"], name: "index_contents_on_content_type"
     t.index ["created_at"], name: "index_contents_on_available_and_created_at", order: :desc, where: "(available = true)"
