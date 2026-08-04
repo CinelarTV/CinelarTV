@@ -4,6 +4,7 @@ require "fileutils"
 require "digest"
 require "open3"
 require "zip"
+require "uri"
 
 class BackupManager
   class RestoreDisabledError < StandardError; end
@@ -181,15 +182,7 @@ class BackupManager
       "PGSSLMODE" => db_config[:sslmode].to_s
     }
 
-    command = [
-      pg_dump_path,
-      "-h", db_config[:host] || "localhost",
-      "-p", (db_config[:port] || 5432).to_s,
-      "-U", db_config[:username],
-      "-F", "c",
-      "-f", filepath,
-      db_config[:database]
-    ]
+    command = [pg_dump_path, "-F", "c", "-f", filepath] + pg_connection_args(db_config)
 
     backup.append_audit("pg_dump_started")
     _stdout, stderr, status = Open3.capture3(env, *command)
@@ -210,16 +203,7 @@ class BackupManager
       "PGSSLMODE" => db_config[:sslmode].to_s
     }
 
-    command = [
-      pg_restore_path,
-      "-h", db_config[:host] || "localhost",
-      "-p", (db_config[:port] || 5432).to_s,
-      "-U", db_config[:username],
-      "-d", db_config[:database],
-      "-c",
-      "--if-exists",
-      filepath
-    ]
+    command = [pg_restore_path, "-c", "--if-exists", filepath] + pg_connection_args(db_config)
 
     backup.append_audit("pg_restore_started")
     _stdout, stderr, status = Open3.capture3(env, *command)
@@ -229,6 +213,40 @@ class BackupManager
     end
 
     backup.append_audit("pg_restore_completed")
+  end
+
+  # Build the connection arguments for pg_dump/pg_restore. Neon requires the
+  # endpoint ID to be passed explicitly when the client libpq lacks SNI
+  # support (libpq < 15), otherwise it fails with "Endpoint ID is not specified".
+  def self.pg_connection_args(db_config)
+    host = db_config[:host] || "localhost"
+    endpoint_id = neon_endpoint_id(host)
+
+    if endpoint_id
+      uri = URI::Generic.build(
+        scheme: "postgres",
+        userinfo: db_config[:username],
+        host: host,
+        port: (db_config[:port] || 5432).to_i,
+        path: "/#{db_config[:database]}"
+      )
+      uri.query = "options=endpoint%3D#{endpoint_id}"
+      ["-d", uri.to_s]
+    else
+      [
+        "-h", host,
+        "-p", (db_config[:port] || 5432).to_s,
+        "-U", db_config[:username],
+        "-d", db_config[:database]
+      ]
+    end
+  end
+
+  # Neon hosts look like "ep-fancy-name-123456.us-east-2.aws.neon.tech"; the
+  # endpoint ID is everything before the first dot.
+  def self.neon_endpoint_id(host)
+    return nil unless host.to_s.match?(/\.neon\.tech\z/i)
+    host.split(".").first
   end
 
   def self.restore_uploaded_files(source_dir)
