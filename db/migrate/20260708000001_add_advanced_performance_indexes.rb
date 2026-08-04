@@ -6,11 +6,11 @@ class AddAdvancedPerformanceIndexes < ActiveRecord::Migration[7.2]
   def up
     # Create immutable wrapper for unaccent (required for GIN index expressions)
     enable_extension "unaccent" unless extension_enabled?("unaccent")
-    unaccent_schema = select_value("SELECT extnamespace::regnamespace::text FROM pg_extension WHERE extname = 'unaccent'") || "public"
+
     execute <<~SQL
       CREATE OR REPLACE FUNCTION immutable_unaccent(text)
       RETURNS text AS $$
-        SELECT #{unaccent_schema}.unaccent('unaccent', $1)
+        SELECT public.unaccent($1)
       $$ LANGUAGE sql IMMUTABLE;
     SQL
 
