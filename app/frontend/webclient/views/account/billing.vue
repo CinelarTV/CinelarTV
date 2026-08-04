@@ -115,9 +115,18 @@
               <span class="billing-page__history-provider" v-if="payment.provider">
                 vía {{ formatProvider(payment.provider) }}
               </span>
-            </div>
-          </div>
         </div>
+      </div>
+
+      <!-- No providers configured -->
+      <div v-if="!hasWebProviders && !isGooglePlayEnabled" class="billing-page__subscribe-card">
+        <div class="billing-page__disabled" style="padding: 2rem; text-align: center;">
+          <CIcon icon="credit-card-off" :size="40" class="billing-page__disabled-icon" />
+          <h3 class="billing-page__disabled-title">{{ $t('js.billing.no_providers_title') }}</h3>
+          <p class="billing-page__disabled-description">{{ $t('js.billing.no_providers_description') }}</p>
+        </div>
+      </div>
+    </div>
       </div>
     </div>
 

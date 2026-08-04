@@ -71,7 +71,7 @@ module Subscriptions
       def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
         start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
         repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil,
-        package_name: nil, store: nil)
+        package_name: nil, store: nil, external_reference: nil)
         plan_id = selected_plan_id
         raise "Lemon Squeezy plan id is missing" if plan_id.blank?
 
@@ -86,7 +86,8 @@ module Subscriptions
           failure_url: failure_url,
           pending_url: pending_url,
           checkout_mode: checkout_mode,
-          amount: amount
+          amount: amount,
+          external_reference: external_reference
         )
 
         response = HTTParty.post(
@@ -229,8 +230,8 @@ module Subscriptions
 
       private
 
-      def checkout_payload(user:, store_id:, plan_id:, success_url:, failure_url:, pending_url:, checkout_mode:, amount:)
-        custom_data = { user_id: user.id, provider: provider_key }
+      def checkout_payload(user:, store_id:, plan_id:, success_url:, failure_url:, pending_url:, checkout_mode:, amount:, external_reference: nil)
+        custom_data = { user_id: user.id, provider: provider_key, subscription_id: external_reference }.compact
         custom_data[:checkout_mode] = checkout_mode.to_s if checkout_mode.present?
         custom_data[:failure_url]   = failure_url.to_s   if failure_url.present?
         custom_data[:pending_url]   = pending_url.to_s   if pending_url.present?

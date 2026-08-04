@@ -11,9 +11,7 @@ class WebhooksController < ApplicationController
       return render plain: "Empty body", status: :bad_request
     end
 
-    event_name = request.headers["X-Topic"].presence || payload["type"].presence || "payment"
-
-    WebhookLog.create!(event_name: "#{provider_key}:#{event_name}", payload: payload.to_json)
+    event_name = request.headers["X-Topic"].presence || payload.dig("meta", "event_name").presence || payload["type"].presence || "payment"
 
     # Snapshot request data before enqueuing — the request object is not
     # serializable and won't be available inside the Sidekiq job.
@@ -23,7 +21,23 @@ class WebhooksController < ApplicationController
       "params"  => request.query_parameters.to_h
     }
 
-    ProcessSubscriptionWebhookJob.perform_async(provider_key, snapshot)
+    resource_id = payload.dig("data", "id").presence || payload.dig("data", "id").presence ||
+      payload["id"].presence || request.query_parameters["data.id"].presence
+    event_id = payload["id"].presence || request.headers["X-Request-Id"].presence
+    digest = Digest::SHA256.hexdigest(request.raw_post.to_s)
+    event = ProviderEvent.find_or_create_by!(
+      provider_key: provider_key, event_type: event_name, resource_id: resource_id,
+      payload_sha256: digest
+    ) do |record|
+      record.provider_event_id = event_id
+      record.resource_type = payload["type"]
+      record.signature_valid = true
+      record.received_at = Time.current
+      record.payload = payload
+      record.headers = extract_webhook_headers
+    end
+
+    ProcessSubscriptionWebhookJob.perform_async(provider_key, snapshot, event.id)
 
     # Respond immediately so MP doesn't timeout and retry.
     render plain: "accepted", status: :accepted

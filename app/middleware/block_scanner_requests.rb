@@ -53,6 +53,9 @@ class BlockScannerRequests
 
   SCANNER_REGEX = /\.(env|git|svn|bak|swp|old|save|sql|dump|log)\b/i
 
+  # Rails web console path prefix — must not be blocked
+  WEB_CONSOLE_PREFIX = "/__web_console"
+
   # Patrones que además de bloquearse, se responden con 418 (tetera)
   # en vez de 404: intentos de proxy hacia IA, y escaneos típicos
   # de stacks PHP/ASP/JSP que buscan endpoints ejecutables.
@@ -68,6 +71,8 @@ class BlockScannerRequests
   def call(env)
     path = env["PATH_INFO"]
     downcased = path.downcase
+
+    return @app.call(env) if Rails.env.development? && path.start_with?(WEB_CONSOLE_PREFIX)
 
     if teapot_attempt?(downcased)
       [418, { "Content-Type" => "application/json" }, [teapot_response(env)]]

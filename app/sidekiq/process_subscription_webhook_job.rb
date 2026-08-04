@@ -17,15 +17,20 @@ class ProcessSubscriptionWebhookJob
 
   # @param provider_key [String]  e.g. "mercado_pago"
   # @param snapshot     [Hash]    { "headers" => {}, "body" => "", "params" => {} }
-  def perform(provider_key, snapshot)
+  def perform(provider_key, snapshot, provider_event_id = nil)
     provider = ::Subscriptions::Providers::Registry.build(provider_key)
     request  = WebhookRequestSnapshot.new(snapshot)
 
     provider.process_webhook!(request)
+    event = ProviderEvent.find_by(id: provider_event_id)
+    Billing::ProcessProviderEvent.call(event:, provider:) if event
+    event&.update!(processed_at: Time.current, processing_error: nil, attempt_count: event.attempt_count + 1)
   rescue ActiveRecord::RecordNotFound => e
     # Subscription or user not found — ignore silently (already logged in provider)
     Rails.logger.warn("ProcessSubscriptionWebhookJob ignored: #{e.message}")
   rescue StandardError => e
+    event = ProviderEvent.find_by(id: provider_event_id)
+    event&.update!(processing_error: "#{e.class}: #{e.message}", attempt_count: event.attempt_count + 1)
     Rails.logger.error(
       "ProcessSubscriptionWebhookJob failed for #{provider_key}: #{e.class} - #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
     )

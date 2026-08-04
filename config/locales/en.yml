@@ -538,6 +538,8 @@ en:
       description: "Manage your subscription and payment methods"
       disabled_title: "Subscriptions Disabled"
       disabled_description: "The administrator has temporarily disabled platform subscriptions."
+      no_providers_title: "No Payment Methods Available"
+      no_providers_description: "No payment providers are configured. Contact the administrator to set up billing."
       loading_title: "Loading your membership"
       loading_description: "Syncing your subscription status..."
       price_hero: "{{amount}} {{currency}}/month"

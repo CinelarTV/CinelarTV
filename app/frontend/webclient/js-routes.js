@@ -798,14 +798,6 @@ export const adminSubscriptionsLogsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [
 
 /**
  * Generates rails route to
- * /admin/subscriptions/plans(.:format)
- * @param {object | undefined} options
- * @returns {string} route path
- */
-export const adminSubscriptionsPlansPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"subscriptions"],[2,[7,"/"],[2,[6,"plans"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
-
-/**
- * Generates rails route to
  * /admin/subscriptions/stats(.:format)
  * @param {object | undefined} options
  * @returns {string} route path

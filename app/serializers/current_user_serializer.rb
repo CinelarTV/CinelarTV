@@ -59,7 +59,7 @@ class CurrentUserSerializer < ApplicationSerializer
   end
 
   def subscription
-    object.user_subscriptions.active.first || object.user_subscriptions.last
+    object.subscriptions.order(updated_at: :desc).first
   end
 
   def profiles

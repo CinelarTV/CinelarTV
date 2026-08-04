@@ -3,320 +3,124 @@
 module Admin
   class SubscriptionsController < Admin::BaseController
     def index
-      subscriptions = UserSubscription.includes(:user).order(updated_at: :desc)
-      subscriptions = subscriptions.where(provider: params[:provider]) if params[:provider].present?
-      subscriptions = subscriptions.where(status: params[:status]) if params[:status].present?
-
+      scope = Subscription.includes(:user).order(updated_at: :desc)
+      scope = scope.where(provider_key: params[:provider]) if params[:provider].present?
+      scope = scope.where(status: params[:status]) if params[:status].present?
       if params[:query].present?
-        q = "%#{params[:query].downcase}%"
-        subscriptions = subscriptions.joins(:user).where(
-          "LOWER(users.email) LIKE ? OR LOWER(users.username) LIKE ? OR CAST(user_subscriptions.id AS TEXT) LIKE ?",
-          q,
-          q,
-          q
-        )
+        query = "%#{params[:query].downcase}%"
+        scope = scope.joins(:user).where("LOWER(users.email) LIKE ? OR LOWER(users.username) LIKE ? OR CAST(subscriptions.id AS TEXT) LIKE ?", query, query, query)
       end
 
       page = params[:page].to_i.positive? ? params[:page].to_i : 1
-      per_page = params[:per_page].to_i.positive? ? params[:per_page].to_i : 30
-
-      paginated = subscriptions.offset((page - 1) * per_page).limit(per_page)
-
-      respond_to do |format|
-        format.html { render "application/index" }
-        format.json do
-          render json: {
-            data: paginated.as_json(include: { user: { only: %i[id email username] } }),
-            meta: {
-              page: page,
-              per_page: per_page,
-              total_count: subscriptions.count,
-              available_providers: available_provider_options,
-              current_provider: current_provider.provider_key
-            }
-          }
-        end
-      end
+      per_page = [[params[:per_page].to_i, 1].max, 100].min
+      per_page = 30 if params[:per_page].blank?
+      records = scope.offset((page - 1) * per_page).limit(per_page)
+      render json: { data: records.map { |record| subscription_payload(record) }, meta: metadata(scope, page, per_page) }
     end
 
     def show
-      subscription = UserSubscription.includes(:user).find(params[:id])
-      render json: { data: subscription.as_json(include: { user: { only: %i[id email username] } }) }
-    end
-
-    def create_grant
-      user = User.find(params[:user_id])
-      duration_days = params[:days].to_i.positive? ? params[:days].to_i : 30
-
-      if user.user_subscriptions.active.exists?
-        render json: { error: "El usuario ya tiene una suscripción activa" }, status: :unprocessable_entity
-        return
-      end
-
-      subscription = Subscriptions::Providers::ManualProvider.new.create_subscription!(
-        user: user,
-        days: duration_days
-      )
-
-      render json: { data: subscription.reload.as_json(include: { user: { only: %i[id email username] } }) }
-    rescue ActiveRecord::RecordNotFound
-      render json: { error: "User not found" }, status: :not_found
-    rescue StandardError => e
-      render json: { error: e.message }, status: :unprocessable_entity
+      render json: { data: subscription_payload(Subscription.includes(:user).find(params[:id])) }
     end
 
     def cancel
-      subscription = UserSubscription.find(params[:id])
-
-      if subscription.provider == "manual"
-        subscription.update!(
-          cancelled: true,
-          cancelled_at: Time.zone.now,
-          status: "cancelled",
-          status_formatted: "Cancelled",
-          external_status: "cancelled_by_admin"
-        )
-        render json: { data: subscription.reload.as_json }
-        return
-      end
-
-      provider = provider_for(subscription)
-
-      provider.cancel_subscription!(subscription)
-      render json: { data: subscription.reload.as_json }
+      subscription = Subscription.find(params[:id])
+      provider_for(subscription).cancel(subscription)
+      Billing::SubscriptionTransition.apply!(subscription:, status: "cancelled")
+      render json: { data: subscription_payload(subscription.reload) }
     rescue StandardError => e
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
     def sync
-      subscription = UserSubscription.find(params[:id])
-      provider = provider_for(subscription)
-      remote = provider.fetch_subscription!(subscription)
+      subscription = Subscription.find(params[:id])
+      remote = provider_for(subscription).fetch_remote_subscription(subscription)
+      return render json: { error: "Provider did not return a subscription" }, status: :unprocessable_entity if remote.blank?
 
-      if remote.is_a?(Hash)
-        # Use provider normalization for consistent status handling
-        normalized_data = provider.normalize_remote_for_update(subscription, remote)
-        subscription.update(normalized_data)
-      end
-
-      render json: { data: subscription.reload.as_json, remote: remote }
+      Billing::RemoteSnapshot.apply!(subscription:, remote:)
+      render json: { data: subscription_payload(subscription.reload), remote: remote }
     rescue StandardError => e
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
+    # A grant is independent from payment subscriptions; it never impersonates a provider.
+    def create_grant
+      user = User.find(params[:user_id])
+      days = params[:days].to_i.positive? ? params[:days].to_i : 30
+      grant = user.subscription_access_grants.create!(starts_at: Time.current, ends_at: days.days.from_now, reason: params[:reason].presence || "Admin grant", granted_by_user: current_user)
+      render json: { data: grant.as_json(include: { user: { only: %i[id email username] } }) }
+    end
+
     def grant
-      subscription = UserSubscription.find(params[:id])
-      duration_days = params[:days].to_i.positive? ? params[:days].to_i : 30
-
-      subscription.update!(
-        status: "active",
-        status_formatted: "Active",
-        cancelled: false,
-        granted_by_admin: true,
-        granted_until: duration_days.days.from_now,
-        renews_at: duration_days.days.from_now,
-        ends_at: nil,
-        external_status: "granted_by_admin"
-      )
-
-      render json: { data: subscription.reload.as_json }
+      subscription = Subscription.find(params[:id])
+      days = params[:days].to_i.positive? ? params[:days].to_i : 30
+      grant = subscription.user.subscription_access_grants.create!(starts_at: Time.current, ends_at: days.days.from_now, reason: params[:reason].presence || "Admin grant", granted_by_user: current_user)
+      render json: { data: grant.as_json }
     end
 
     def stats
-      this_month_start = Time.zone.now.beginning_of_month
-      this_month_end = Time.zone.now.end_of_month
-      month_payments = SubscriptionPayment.where(paid_at: this_month_start..this_month_end)
-
+      payments = Payment.where(status: "succeeded", paid_at: Time.current.beginning_of_month..Time.current.end_of_month)
       render json: {
-        total:     UserSubscription.count,
-        active:    UserSubscription.active.count,
-        pending:   UserSubscription.where(status: "pending").count,
-        cancelled: UserSubscription.where(status: %w[cancelled canceled]).count,
-        granted:   UserSubscription.where(granted_by_admin: true).count,
-        revenue_this_month: month_payments.sum(:amount).to_f,
-        payments_count_this_month: month_payments.count,
-        currency: SiteSetting.respond_to?(:subscription_currency) ? SiteSetting.subscription_currency : "UYU"
+        total: Subscription.count, active: Subscription.where(status: "active").count,
+        pending: Subscription.where(status: "pending").count,
+        cancelled: Subscription.where(status: %w[cancelled expired]).count,
+        granted: SubscriptionAccessGrant.active_at.count,
+        revenue_this_month: payments.sum(:amount_cents) / 100.0,
+        payments_count_this_month: payments.count, currency: Billing::Offering.current.currency
       }
     end
 
     def logs
-      logs = WebhookLog.order(created_at: :desc).limit(200)
-      render json: { data: logs.as_json }
+      events = ProviderEvent.order(received_at: :desc).limit(200).map do |event|
+        event.as_json.merge(
+          "event_name" => "#{event.provider_key}:#{event.event_type}",
+          "status" => event.processing_error.present? ? 500 : (event.processed_at.present? ? 200 : 202)
+        )
+      end
+      render json: { data: events }
     end
 
     def test_webhook
-      # Fetch the most recent subscription to test with
-      subscription = UserSubscription.order(updated_at: :desc).first
-      
-      if subscription.blank?
-        render json: { error: 'No subscriptions found to test with' }, status: :unprocessable_entity
-        return
-      end
+      subscription = Subscription.order(updated_at: :desc).first
+      return render json: { error: "No subscriptions found" }, status: :unprocessable_entity unless subscription
+      remote = provider_for(subscription).fetch_remote_subscription(subscription)
+      return render json: { error: "Provider did not return a subscription" }, status: :unprocessable_entity if remote.blank?
 
-      provider = provider_for(subscription)
-      
-      begin
-        # Fetch the subscription from provider
-        remote = provider.fetch_subscription!(subscription)
-        
-        if remote.is_a?(Hash)
-          # Use provider normalization for consistent status handling
-          normalized_data = provider.normalize_remote_for_update(subscription, remote)
-          # Add test-specific metadata
-          normalized_data[:metadata] = normalized_data[:metadata].merge("last_test_sync" => Time.zone.now.iso8601, "remote_data" => remote)
-          subscription.update(normalized_data)
-          
-          render json: {
-            message: 'Webhook test successful',
-            data: subscription.as_json,
-            remote_data: remote
-          }
-        else
-          render json: { error: 'Invalid response from provider' }, status: :unprocessable_entity
-        end
-      rescue StandardError => e
-        render json: { error: "Webhook test failed: #{e.message}" }, status: :unprocessable_entity
-      end
+      Billing::RemoteSnapshot.apply!(subscription:, remote:)
+      render json: { message: "Reconciliation successful", data: subscription_payload(subscription.reload), remote_data: remote }
     end
 
+    # Transitional response for the existing SPA. There are no remotely-managed plans.
     def plans
-      provider = provider_from_params
-      managed_only = ActiveModel::Type::Boolean.new.cast(params.fetch(:managed_only, true))
-      plans_response = provider.list_plans!(managed_only: managed_only)
-      plans = plans_response["results"] || plans_response["data"] || []
-
-      render json: {
-        data: plans,
-        meta: {
-          active_plan_id: active_plan_id_for(provider.provider_key),
-          provider: provider.provider_key,
-          provider_label: provider_label(provider.provider_key)
-        }
-      }
-    rescue StandardError => e
-      render json: { error: e.message }, status: :unprocessable_entity
-    end
-
-    def select_plan
-      plan_id = params[:plan_id].to_s
-      raise ArgumentError, "Plan id is required" if plan_id.blank?
-
-      provider = provider_from_params
-      set_active_plan_id_for(provider.provider_key, plan_id)
-
-      render json: {
-        data: {
-          active_plan_id: active_plan_id_for(provider.provider_key),
-          provider: provider.provider_key,
-          message: "Plan selected for CinelarTV"
-        }
-      }
-    rescue StandardError => e
-      render json: { error: e.message }, status: :unprocessable_entity
-    end
-
-    def create_plan
-      provider = provider_from_params
-      plan = provider.create_plan!(plan_params)
-
-      render json: { data: plan }, status: :ok
-    rescue StandardError => e
-      render json: { error: e.message }, status: :unprocessable_entity
-    end
-
-    def update_plan
-      provider = provider_from_params
-      plan = provider.update_plan!(params[:plan_id], plan_params)
-
-      render json: { data: plan }, status: :ok
-    rescue StandardError => e
-      render json: { error: e.message }, status: :unprocessable_entity
-    end
-
-    def deactivate_plan
-      provider = provider_from_params
-      plan = provider.deactivate_plan!(params[:plan_id])
-
-      render json: { data: plan }, status: :ok
-    rescue StandardError => e
-      render json: { error: e.message }, status: :unprocessable_entity
+      offering = Billing::Offering.current
+      render json: { data: [{ id: offering.key, reason: "CinelarTV", auto_recurring: { transaction_amount: offering.amount, currency_id: offering.currency, frequency: offering.interval_count, frequency_type: offering.interval_unit } }], meta: { provider: current_provider.provider_key } }
     end
 
     private
 
+    def metadata(scope, page, per_page)
+      { page:, per_page:, total_count: scope.count, available_providers: available_provider_options, current_provider: current_provider.provider_key }
+    end
+
+    def subscription_payload(subscription)
+      subscription.as_json(include: { user: { only: %i[id email username] } }).merge(
+        "provider" => subscription.provider_key, "status_formatted" => subscription.status.humanize,
+        "product_name" => "CinelarTV", "renews_at" => subscription.current_period_ends_at,
+        "ends_at" => subscription.access_until, "cancelled" => subscription.status == "cancelled"
+      )
+    end
+
     def provider_for(subscription)
-      provider_key = subscription.provider.presence || SiteSetting.subscription_provider_primary
-      ::Subscriptions::Providers::Registry.build(provider_key)
+      ::Subscriptions::Providers::Registry.build(subscription.provider_key)
     end
 
     def current_provider
       ::Subscriptions::Providers::Registry.current
     end
 
-    def provider_from_params
-      requested = params[:provider].to_s.presence
-      if requested.present? && ::Subscriptions::Providers::Registry.enabled?(requested)
-        ::Subscriptions::Providers::Registry.build(requested)
-      else
-        current_provider
-      end
-    end
-
-    def plan_params
-      params.permit(:reason, :currency_id, :amount, :frequency, :frequency_type, :status, :back_url)
-    end
-
     def available_provider_options
-      # Get all enabled providers from Registry
-      provider_keys = ::Subscriptions::Providers::Registry.enabled_provider_keys
-      
-      # Also include providers that have existing subscriptions (for historical data)
-      provider_keys += UserSubscription.distinct.pluck(:provider).compact
-
-      # Always include "manual" (house subscriptions created by admins)
-      provider_keys << "manual"
-
-      provider_keys
-        .uniq
-        .sort
-        .map do |provider_key|
-          {
-            key: provider_key,
-            label: provider_label(provider_key)
-          }
-        end
-    end
-
-    def provider_label(provider_key)
-      ::Subscriptions::Providers::Registry.label_for(provider_key)
-    end
-
-    def active_plan_setting_method_for(provider_key)
-      return "google_play_subscription_product_id" if provider_key.to_s == "google_play"
-
-      "#{provider_key}_plan_id"
-    end
-
-    def active_plan_id_for(provider_key)
-      method_name = active_plan_setting_method_for(provider_key)
-
-      if SiteSetting.respond_to?(method_name)
-        SiteSetting.public_send(method_name).to_s
-      else
-        nil
+      (Subscriptions::Providers::Registry.enabled_provider_keys + Subscription.distinct.pluck(:provider_key)).uniq.sort.map do |key|
+        { key: key, label: Subscriptions::Providers::Registry.label_for(key) }
       end
     end
-
-    def set_active_plan_id_for(provider_key, plan_id)
-      method_name = "#{active_plan_setting_method_for(provider_key)}="
-
-      if SiteSetting.respond_to?(method_name)
-        SiteSetting.public_send(method_name, plan_id)
-      else
-        # Do nothing if the provider doesn't have a dedicated setting
-        Rails.logger.warn "No plan setting method found for provider: #{provider_key}"
-      end
-    end
-
   end
 end

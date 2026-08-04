@@ -22,6 +22,39 @@ module Subscriptions
         raise NotImplementedError, "create_subscription! must be implemented"
       end
 
+      # New billing boundary. The legacy provider methods remain temporarily
+      # behind this adapter so controllers never receive provider SDK objects.
+      def start_checkout(subscription:, return_url:)
+        checkout = create_subscription!(
+          user: subscription.user,
+          success_url: return_url,
+          amount: subscription.amount_cents / 100.0,
+          currency_id: subscription.currency,
+          frequency: subscription.interval_count,
+          frequency_type: "#{subscription.interval_unit}s",
+          external_reference: subscription.id
+        )
+        {
+          redirect_url: checkout.fetch(:checkout_url),
+          provider_subscription_id: checkout[:preapproval_id],
+          provider_customer_id: checkout[:customer_id],
+          provider_plan_id: checkout[:plan_id]
+        }
+      end
+
+      def fetch_remote_subscription(subscription)
+        legacy = UserSubscription.new(provider_subscription_id: subscription.provider_subscription_id)
+        fetch_subscription!(legacy)
+      end
+
+      def cancel(subscription)
+        legacy = UserSubscription.new(
+          provider: provider_key,
+          provider_subscription_id: subscription.provider_subscription_id
+        )
+        cancel_subscription!(legacy) if subscription.provider_subscription_id.present?
+      end
+
       def create_checkout!(_user:, _success_url: nil, _failure_url: nil, _pending_url: nil, _checkout_mode: nil, _card_token_id: nil,
         _start_date: nil, _end_date: nil, _amount: nil, _currency_id: nil, _frequency: nil, _frequency_type: nil,
         _repetitions: nil, _billing_day: nil, _billing_day_proportional: nil)

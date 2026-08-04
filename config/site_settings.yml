@@ -320,6 +320,36 @@ monetization:
     default: false
     type: "boolean"
 
+  subscription_amount_cents:
+    client: false
+    refresh: true
+    default: 999
+    type: "integer"
+    min: 1
+
+  subscription_currency:
+    client: true
+    refresh: true
+    default: UYU
+    type: "string"
+    maxlength: 3
+
+  subscription_interval_unit:
+    client: false
+    refresh: true
+    default: month
+    type: "enum"
+    allowed_values:
+      - month
+      - year
+
+  subscription_interval_count:
+    client: false
+    refresh: true
+    default: 1
+    type: "integer"
+    min: 1
+
   enable_google_play_provider:
     client: true
     refresh: true

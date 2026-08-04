@@ -12,6 +12,11 @@
       class: LicenseValidationJob
       queue: "default"
       description: "Verify if the license for this CinelarTV instance is valid"
+    reconcile_subscriptions:
+      every: "15m"
+      class: ReconcileSubscriptionsJob
+      queue: "subscriptions"
+      description: "Reconcile subscription state after missed or delayed provider webhooks"
     check_for_updates:
       every: "15m"
       class: UpdateCheckJob
@@ -68,3 +73,8 @@
       class: CleanupOldBackupsJob
       queue: "default"
       description: "Remove expired backups based on retention policy"
+    expire_stale_pending_subscriptions:
+      every: "1h"
+      class: ExpireStalePendingSubscriptionsJob
+      queue: "subscriptions"
+      description: "Destroy pending subscriptions stuck without provider confirmation (>2h)"

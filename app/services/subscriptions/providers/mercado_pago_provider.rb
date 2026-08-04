@@ -69,7 +69,7 @@ module Subscriptions
       def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
         start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
         repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil,
-        package_name: nil, store: nil)
+        package_name: nil, store: nil, external_reference: nil)
         plan_id = SiteSetting.mercadopago_plan_id.to_s
         validate_credentials_consistency!
         requested_checkout_mode = checkout_mode.to_s.presence
@@ -90,7 +90,8 @@ module Subscriptions
                       frequency_type:,
                       repetitions:,
                       billing_day:,
-                      billing_day_proportional:
+                      billing_day_proportional:,
+                      external_reference:
                     )
                   else
                     preapproval_payload_without_plan(
@@ -106,7 +107,8 @@ module Subscriptions
                       frequency_type:,
                       repetitions:,
                       billing_day:,
-                      billing_day_proportional:
+                      billing_day_proportional:,
+                      external_reference:
                     )
                   end
 
@@ -611,6 +613,11 @@ module Subscriptions
       end
 
       def find_user_for_preapproval(external_reference, metadata, preapproval)
+        # New billing domain correlates Mercado Pago with the local subscription
+        # UUID, rather than overloading external_reference with a user ID.
+        domain_subscription = Subscription.find_by(id: external_reference)
+        return domain_subscription.user if domain_subscription.present?
+
         user_id = external_reference.presence || metadata["user_id"]
         return User.find_by(id: user_id) if user_id.present?
 
@@ -647,7 +654,7 @@ module Subscriptions
 
       def preapproval_payload_with_plan(user, plan_id:, success_url:, failure_url:, pending_url:, card_token_id:,
         start_date:, end_date:, amount:, currency_id:, frequency:, frequency_type:, repetitions:, billing_day:,
-        billing_day_proportional:)
+        billing_day_proportional:, external_reference: nil)
         # When using a preapproval plan, Mercado Pago validates recurring values
         # against the plan definition. Sending defaults here can trigger
         # "transaction_amount must be the same as preapproval_plan".
@@ -666,7 +673,7 @@ module Subscriptions
         payload = {
           preapproval_plan_id: plan_id,
           reason: "CinelarTV Subscription",
-          external_reference: user.id,
+          external_reference: external_reference.presence || user.id,
           payer_email: user.email,
           card_token_id: card_token_id.presence,
           back_url: success_url.presence || default_return_url,
@@ -685,10 +692,10 @@ module Subscriptions
       end
 
       def preapproval_payload_without_plan(user, success_url:, failure_url:, pending_url:, start_date:, end_date:, amount:,
-        currency_id:, frequency:, frequency_type:, repetitions:, billing_day:, billing_day_proportional:)
+        currency_id:, frequency:, frequency_type:, repetitions:, billing_day:, billing_day_proportional:, external_reference: nil)
         {
           reason: "CinelarTV Subscription",
-          external_reference: user.id,
+          external_reference: external_reference.presence || user.id,
           payer_email: user.email,
           back_url: success_url.presence || default_return_url,
           status: "pending",

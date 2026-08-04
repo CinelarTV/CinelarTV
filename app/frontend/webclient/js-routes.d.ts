@@ -404,16 +404,6 @@ export const adminSubscriptionsLogsPath: ((
 
 /**
  * Generates rails route to
- * /admin/subscriptions/plans(.:format)
- * @param {object | undefined} options
- * @returns {string} route path
- */
-export const adminSubscriptionsPlansPath: ((
-  options?: {format?: OptionalRouteParameter} & RouteOptions
-) => string) & RouteHelperExtras;
-
-/**
- * Generates rails route to
  * /admin/subscriptions/stats(.:format)
  * @param {object | undefined} options
  * @returns {string} route path

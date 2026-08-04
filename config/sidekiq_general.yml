@@ -20,6 +20,11 @@
       class: LicenseValidationJob
       queue: 'default'
       description: 'Verify if the license for this CinelarTV instance is valid'
+    reconcile_subscriptions:
+      every: '15m'
+      class: ReconcileSubscriptionsJob
+      queue: 'subscriptions'
+      description: 'Reconcile subscription state after missed or delayed provider webhooks'
     check_for_updates:
       every: '15m'
       class: UpdateCheckJob

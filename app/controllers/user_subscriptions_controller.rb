@@ -6,9 +6,8 @@ class UserSubscriptionsController < ApplicationController
   before_action :set_subscription
 
   def index
-    link_preapproval_from_return_param!
-    @subscriptions = UserSubscription.where(user_id: current_user.id)
-    @payments = SubscriptionPayment.where(user_id: current_user.id).order(paid_at: :desc)
+    @subscriptions = current_user.subscriptions.order(updated_at: :desc)
+    @payments = current_user.payments.order(paid_at: :desc, created_at: :desc)
 
     ip_address = request.headers["CF-Connecting-IP"] || request.remote_ip
     ip_info = IpInfo.lookup(ip_address)
@@ -19,8 +18,8 @@ class UserSubscriptionsController < ApplicationController
       format.json do
         enabled_providers = ::Subscriptions::Providers::Registry.enabled_provider_keys
         render json: {
-          data: @subscriptions.as_json,
-          payments: @payments.as_json,
+          data: @subscriptions.map { |subscription| subscription_payload(subscription) },
+          payments: @payments.map { |payment| payment_payload(payment) },
           provider: @provider.provider_key,
           admin: current_user.is_admin?,
           enabled_providers: enabled_providers.map { |key| { key: key, label: provider_label(key) } },
@@ -35,55 +34,23 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def plan
-    provider_key = params[:provider].to_s.presence
-    provider = if provider_key.present? && ::Subscriptions::Providers::Registry.enabled?(provider_key)
-                 ::Subscriptions::Providers::Registry.build(provider_key)
-               else
-                  recommend = recommend_provider(
-                    IpInfo.lookup(request.headers["CF-Connecting-IP"] || request.remote_ip)[:country_code]
-                  )
-                 ::Subscriptions::Providers::Registry.build(recommend)
-               end
-
-    plan_id = active_plan_id_for(provider.provider_key)
-    if plan_id.blank?
-      render json: { data: nil, provider: provider.provider_key }
-      return
-    end
-
-    plans_response = provider.list_plans!(managed_only: false)
-    plans = plans_response["results"] || plans_response["data"] || []
-    selected = plans.find { |p| p["id"].to_s == plan_id.to_s }
-
-    if selected.blank?
-      render json: { data: nil, provider: provider.provider_key }
-      return
-    end
-
-    recurring = selected["auto_recurring"] || {}
+    offering = Billing::Offering.current
     render json: {
       data: {
-        id: selected["id"],
-        name: selected["reason"],
-        amount: recurring["transaction_amount"],
-        currency: recurring["currency_id"],
-        frequency: recurring["frequency"],
-        frequency_type: recurring["frequency_type"]
+        id: offering.key,
+        name: "CinelarTV",
+        amount: offering.amount,
+        currency: offering.currency,
+        frequency: offering.interval_count,
+        frequency_type: offering.interval_unit
       },
-      provider: provider.provider_key
+      provider: @provider.provider_key
     }
-  rescue StandardError => e
-    Rails.logger.error("Billing plan fetch failed: #{e.message}")
-    render json: { data: nil, provider: provider_key, error: e.message }
   end
 
   def subscribe
-    # Advisory lock per user+provider to prevent race conditions with webhooks
-    # and duplicate subscription requests.
-    lock_key = "subscription_#{current_user.id}_#{@provider.provider_key}_#{params[:product_id]}"
-    result = nil
-
-    UserSubscription.with_advisory_lock(lock_key, timeout_seconds: 10) do
+    lock_key = "billing_checkout_#{current_user.id}"
+    current_user.with_advisory_lock(lock_key, timeout_seconds: 10) do
       # For mobile app purchases, keep the provider token bound to the current
       # account and reject tokens already linked to another account in the provider.
       if @provider.provider_key == "google_play" && params[:product_id].present?
@@ -121,35 +88,15 @@ class UserSubscriptionsController < ApplicationController
         end
       end
 
-      checkout = @provider.create_subscription!(
-        user: current_user,
-        success_url: params[:success_url],
-        failure_url: params[:failure_url],
-        pending_url: params[:pending_url],
-        checkout_mode: params[:checkout_mode],
-        card_token_id: params[:card_token_id],
-        purchase_token: params[:purchase_token],
-        product_id: params[:product_id],
-        package_name: params[:package_name],
-        start_date: params[:start_date],
-        end_date: params[:end_date],
-        amount: params[:amount],
-        currency_id: params[:currency_id],
-        frequency: params[:frequency],
-        frequency_type: params[:frequency_type],
-        repetitions: params[:repetitions],
-        billing_day: params[:billing_day],
-        billing_day_proportional: params[:billing_day_proportional]
+      subscription, checkout = Billing::StartCheckout.call(
+        user: current_user, provider_key: @provider.provider_key,
+        return_url: params[:success_url].presence || account_billing_url
       )
 
-      persist_checkout_attempt!(checkout)
-      persist_preapproval_link!(checkout[:preapproval_id])
-
-      if !request.xhr? && request.format.html? && checkout[:checkout_url].present?
-        result = -> { redirect_to checkout[:checkout_url], allow_other_host: true }
+      if !request.xhr? && request.format.html? && checkout[:redirect_url].present?
+        result = -> { redirect_to checkout[:redirect_url], allow_other_host: true }
       else
-        checkout_response = checkout.merge(provider: @provider.provider_key)
-        result = { data: checkout_response }
+        result = { data: checkout.merge(subscription: subscription_payload(subscription), provider: @provider.provider_key) }
       end
     end
 
@@ -237,15 +184,16 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def destroy
-    subscription = UserSubscription.find_by(user_id: current_user.id)
+    subscription = current_user.subscriptions.open.order(updated_at: :desc).first
     return render json: { error: "Subscription not found" }, status: :not_found if subscription.blank?
 
-    provider = ::Subscriptions::Providers::Registry.build(subscription.provider.presence || @provider.provider_key)
-    provider.cancel_subscription!(subscription)
+    provider = ::Subscriptions::Providers::Registry.build(subscription.provider_key)
+    provider.cancel(subscription)
+    Billing::SubscriptionTransition.apply!(subscription:, status: "cancelled")
 
     # Don't delete - keep the record so user can see when their access ends
     render json: { 
-      message: "Subscription cancelled successfully. You'll have access until #{subscription.ends_at&.strftime('%B %d, %Y') || 'your next billing date'}",
+      message: "Subscription cancelled successfully. You'll have access until #{subscription.access_until&.strftime('%B %d, %Y') || 'your current period ends'}",
       status: :ok 
     }
   rescue StandardError => e
@@ -253,22 +201,21 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def sync
-    subscription = UserSubscription.find_by(user_id: current_user.id)
+    subscription = current_user.subscriptions.open.order(updated_at: :desc).first
     return render json: { error: "No subscription found" }, status: :not_found if subscription.blank?
 
-    provider = ::Subscriptions::Providers::Registry.build(subscription.provider.presence || @provider.provider_key)
+    provider = ::Subscriptions::Providers::Registry.build(subscription.provider_key)
 
     # Fetch fresh data from provider (returns raw provider Hash)
-    remote = provider.fetch_subscription!(subscription)
+    remote = provider.fetch_remote_subscription(subscription)
     return render json: { error: "Could not fetch subscription from provider" }, status: :unprocessable_entity if remote.blank?
 
     # Normalize only the fields we know and trust — never dump the raw Hash
     # directly into the model to avoid accidental overwrites.
-    normalized = provider.normalize_remote_for_update(subscription, remote)
-    subscription.update!(normalized)
+    Billing::RemoteSnapshot.apply!(subscription:, remote:)
 
     render json: {
-      data: subscription.reload.as_json,
+      data: subscription_payload(subscription.reload),
       message: "Subscription synced successfully"
     }, status: :ok
   rescue ActiveRecord::RecordNotFound => e
@@ -344,6 +291,26 @@ class UserSubscriptionsController < ApplicationController
 
   def provider_label(provider_key)
     ::Subscriptions::Providers::Registry.label_for(provider_key)
+  end
+
+  def subscription_payload(subscription)
+    subscription.as_json.merge(
+      "provider" => subscription.provider_key,
+      "status_formatted" => subscription.status.humanize,
+      "product_name" => "CinelarTV",
+      "variant_name" => "Suscripción",
+      "renews_at" => subscription.current_period_ends_at,
+      "ends_at" => subscription.access_until,
+      "cancelled" => subscription.status == "cancelled",
+      "user_email" => current_user.email
+    )
+  end
+
+  def payment_payload(payment)
+    payment.as_json.merge(
+      "provider" => payment.provider_key,
+      "amount" => payment.amount_cents / 100.0
+    )
   end
 
   def active_plan_id_for(provider_key)

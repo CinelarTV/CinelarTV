@@ -50,11 +50,7 @@ module Subscriptions
             SiteSetting.respond_to?(flag) && SiteSetting.public_send(flag)
           end.keys
 
-          return keys if keys.any?
-
-          # Backward compatibility: fall back to subscription_provider_primary
-          primary = SiteSetting.subscription_provider_primary.to_s.presence
-          primary && PROVIDERS.key?(primary) ? [primary] : ["mercado_pago"]
+          keys
         end
 
         # Returns a human-readable label for a provider key.

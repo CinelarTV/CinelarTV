@@ -94,7 +94,7 @@ module Subscriptions
 
       def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
         start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
-        repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil, package_name: nil, store: nil)
+        repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil, package_name: nil, store: nil, external_reference: nil)
         raise ArgumentError, "purchase_token and product_id are required for Google Play subscriptions" if purchase_token.blank? || product_id.blank?
 
         ensure_expected_product!(product_id)

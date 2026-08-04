@@ -525,6 +525,8 @@ es:
       description: "Administra tu suscripción y métodos de pago"
       disabled_title: "Suscripciones Desactivadas"
       disabled_description: "El administrador ha desactivado temporalmente las suscripciones de la plataforma."
+      no_providers_title: "Sin Métodos de Pago Disponibles"
+      no_providers_description: "No hay proveedores de pago configurados. Contacta al administrador para configurar la facturación."
       loading_title: "Cargando tu membresía"
       loading_description: "Sincronizando estado de tu suscripción..."
       price_hero: "{{amount}} {{currency}}/mes"

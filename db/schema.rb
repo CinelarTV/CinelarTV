@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_04_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -265,6 +265,29 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
     t.index ["user_code"], name: "index_oauth_device_grants_on_user_code", unique: true
   end
 
+  create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "subscription_id", null: false
+    t.uuid "user_id", null: false
+    t.string "provider_key", null: false
+    t.string "provider_invoice_id"
+    t.string "provider_payment_id"
+    t.string "kind", default: "renewal", null: false
+    t.string "status", null: false
+    t.bigint "amount_cents", null: false
+    t.string "currency", limit: 3, null: false
+    t.datetime "attempted_at"
+    t.datetime "paid_at"
+    t.string "failure_code"
+    t.text "failure_message"
+    t.jsonb "provider_metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider_key", "provider_invoice_id"], name: "index_payments_remote_invoice_id", unique: true, where: "(provider_invoice_id IS NOT NULL)"
+    t.index ["provider_key", "provider_payment_id"], name: "index_payments_remote_payment_id", unique: true, where: "(provider_payment_id IS NOT NULL)"
+    t.index ["subscription_id"], name: "index_payments_on_subscription_id"
+    t.index ["user_id"], name: "index_payments_on_user_id"
+  end
+
   create_table "people", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "tmdb_id", null: false
     t.string "name", null: false
@@ -292,6 +315,27 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_profiles_on_user_id"
+  end
+
+  create_table "provider_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "provider_key", null: false
+    t.string "provider_event_id"
+    t.string "event_type", null: false
+    t.string "resource_type"
+    t.string "resource_id"
+    t.boolean "signature_valid", null: false
+    t.datetime "occurred_at"
+    t.datetime "received_at", null: false
+    t.datetime "processed_at"
+    t.text "processing_error"
+    t.integer "attempt_count", default: 0, null: false
+    t.string "payload_sha256", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.jsonb "headers", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider_key", "event_type", "resource_id", "payload_sha256"], name: "index_provider_events_dedup_fallback", unique: true
+    t.index ["provider_key", "provider_event_id"], name: "index_provider_events_external_id", unique: true, where: "(provider_event_id IS NOT NULL)"
   end
 
   create_table "reproductions", force: :cascade do |t|
@@ -366,6 +410,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
     t.index ["var"], name: "index_settings_on_var", unique: true
   end
 
+  create_table "subscription_access_grants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.uuid "granted_by_user_id"
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.string "reason", null: false
+    t.datetime "revoked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["granted_by_user_id"], name: "index_subscription_access_grants_on_granted_by_user_id"
+    t.index ["user_id", "starts_at", "ends_at"], name: "index_access_grants_active_lookup"
+    t.index ["user_id"], name: "index_subscription_access_grants_on_user_id"
+  end
+
   create_table "subscription_payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.bigint "user_subscription_id", null: false
@@ -381,6 +439,38 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
     t.index ["provider", "provider_payment_id"], name: "index_subscription_payments_on_provider_and_provider_payment_id", unique: true
     t.index ["user_id"], name: "index_subscription_payments_on_user_id"
     t.index ["user_subscription_id"], name: "index_subscription_payments_on_user_subscription_id"
+  end
+
+  create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "offering_key", default: "cinelartv_membership_monthly", null: false
+    t.string "status", default: "pending", null: false
+    t.string "provider_key", null: false
+    t.string "provider_subscription_id"
+    t.string "provider_customer_id"
+    t.string "provider_plan_id"
+    t.bigint "amount_cents", null: false
+    t.string "currency", limit: 3, null: false
+    t.string "interval_unit", default: "month", null: false
+    t.integer "interval_count", default: 1, null: false
+    t.datetime "current_period_started_at"
+    t.datetime "current_period_ends_at"
+    t.datetime "access_until"
+    t.datetime "grace_ends_at"
+    t.boolean "cancel_at_period_end", default: false, null: false
+    t.datetime "cancelled_at"
+    t.datetime "expired_at"
+    t.datetime "remote_updated_at"
+    t.datetime "last_reconciled_at"
+    t.jsonb "provider_metadata", default: {}, null: false
+    t.integer "lock_version", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_until"], name: "index_subscriptions_on_access_until"
+    t.index ["provider_key", "provider_subscription_id"], name: "index_subscriptions_remote_id", unique: true, where: "(provider_subscription_id IS NOT NULL)"
+    t.index ["status"], name: "index_subscriptions_on_status"
+    t.index ["user_id"], name: "index_one_open_subscription_per_user", unique: true, where: "((status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'past_due'::character varying, 'cancelled'::character varying])::text[]))"
+    t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
   create_table "tv_programs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -601,13 +691,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_000001) do
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_device_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_device_grants", "users", column: "resource_owner_id"
+  add_foreign_key "payments", "subscriptions"
+  add_foreign_key "payments", "users"
   add_foreign_key "preferences", "profiles"
   add_foreign_key "profiles", "users"
   add_foreign_key "reproductions", "contents"
   add_foreign_key "reproductions", "profiles"
   add_foreign_key "seasons", "contents"
+  add_foreign_key "subscription_access_grants", "users"
+  add_foreign_key "subscription_access_grants", "users", column: "granted_by_user_id"
   add_foreign_key "subscription_payments", "user_subscriptions"
   add_foreign_key "subscription_payments", "users"
+  add_foreign_key "subscriptions", "users"
   add_foreign_key "tv_programs", "live_tv_channels"
   add_foreign_key "watch_party_session_users", "users"
   add_foreign_key "watch_party_session_users", "watch_party_sessions"

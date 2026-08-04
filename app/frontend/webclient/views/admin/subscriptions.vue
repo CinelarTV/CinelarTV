@@ -8,7 +8,7 @@
                     Gestor de Suscripciones
                 </h1>
                 <p class="subscriptions-admin__description">
-                    Administra planes, monitorea suscripciones y realiza acciones administrativas
+                    Monitorea suscripciones, pagos y la sincronización de cobros
                 </p>
             </div>
             <div class="subscriptions-admin__actions">
@@ -30,10 +30,6 @@
                 :class="{ 'subscriptions-admin__tab--active': currentTab === 'subscriptions' }"
                 @click="currentTab = 'subscriptions'">
                 <CIcon icon="users" :size="16" /> Suscripciones
-            </button>
-            <button class="subscriptions-admin__tab"
-                :class="{ 'subscriptions-admin__tab--active': currentTab === 'plans' }" @click="currentTab = 'plans'">
-                <CIcon icon="package" :size="16" /> Planes
             </button>
             <button class="subscriptions-admin__tab"
                 :class="{ 'subscriptions-admin__tab--active': currentTab === 'logs' }"
@@ -106,8 +102,8 @@
                         <CIcon icon="package" :size="24" />
                     </div>
                     <div class="subscriptions-admin__stat-content">
-                        <span class="subscriptions-admin__stat-label">Planes Disponibles</span>
-                        <strong class="subscriptions-admin__stat-value">{{ plans.length }}</strong>
+                        <span class="subscriptions-admin__stat-label">Oferta comercial</span>
+                        <strong class="subscriptions-admin__stat-value">1</strong>
                     </div>
                 </div>
             </div>
@@ -290,7 +286,7 @@
         </div>
 
         <!-- Plans Tab -->
-        <div v-show="currentTab === 'plans'" class="subscriptions-admin__card">
+        <div v-if="false" class="subscriptions-admin__card">
             <div class="subscriptions-admin__card-header">
                 <div>
                     <h2 class="subscriptions-admin__card-title">
@@ -497,7 +493,7 @@ import { computed, onMounted, ref } from 'vue'
 import { ajax } from '../../lib/Ajax'
 import CIcon from '@/components/c-icon.vue'
 
-const currentTab = ref('overview') // 'overview', 'subscriptions', 'plans', 'logs'
+const currentTab = ref('overview') // 'overview', 'subscriptions', 'logs'
 const loading = ref(false)
 const loadingLogs = ref(false)
 const error = ref('')
@@ -566,7 +562,7 @@ const refreshStats = async () => {
 
 const refreshAll = async () => {
     loading.value = true
-    await Promise.all([fetchSubscriptions(), fetchPlans(), refreshStats()])
+    await Promise.all([fetchSubscriptions(), refreshStats()])
     loading.value = false
 }
 

@@ -16,6 +16,9 @@ class User < ApplicationRecord
   has_many :profiles, dependent: :destroy # Si se elimina un usuario, se eliminan sus perfiles
   has_many :user_subscriptions, dependent: :destroy
   has_many :subscription_payments, dependent: :destroy
+  has_many :subscriptions, dependent: :destroy
+  has_many :payments, dependent: :destroy
+  has_many :subscription_access_grants, dependent: :destroy
 
   # Doorkeeper related
 
@@ -124,7 +127,7 @@ class User < ApplicationRecord
   def is_subscribed?
     return true if is_admin?
     CinelarTV.cache.fetch("user_subscribed/#{id}", expires_in: 1.hour) do
-      user_subscriptions.active.exists?
+      Billing::AccessPolicy.active?(self)
     end
   end
 
