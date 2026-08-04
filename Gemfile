@@ -33,6 +33,10 @@ gem "fiddle"
 gem "ostruct"
 gem "rubyzip", "~> 2.3"
 
+# Rails 7.2 passes a positional argument to ConnectionPool.new, which
+# connection_pool 3.x removed. Pin to < 3.0 until Rails is upgraded.
+gem "connection_pool", "~> 2.4"
+
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 6.0"
 
