@@ -149,17 +149,33 @@ namespace :image_variants do
     temp_dir = Rails.root.join("tmp", "uploads")
     FileUtils.mkdir_p(temp_dir)
 
-    ext = File.extname(URI.parse(url).path).delete(".")
+    # Strip query params (?t=..., ?_cb=...) — local paths don't use them
+    clean_path = url.split("?").first
+    ext = File.extname(clean_path).delete(".")
     ext = "jpg" if ext.blank?
 
     temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_backfill.#{ext}")
-    URI.open(url) do |downloaded|
-      File.open(temp_file, "wb") { |f| f.write(downloaded.read) }
+
+    if clean_path.start_with?("http://", "https://")
+      # Remote URL — download via HTTP
+      URI.open(clean_path) do |downloaded|
+        File.open(temp_file, "wb") { |f| f.write(downloaded.read) }
+      end
+    else
+      # Local path — resolve against public/
+      full_path = clean_path.start_with?("/") ? Rails.root.join("public", clean_path.sub(/\A\//, "")) : Rails.root.join("public", clean_path)
+
+      unless File.exist?(full_path)
+        Rails.logger.error("File not found: #{full_path} (original url: #{url})")
+        return nil
+      end
+
+      FileUtils.cp(full_path, temp_file)
     end
 
     temp_file
   rescue StandardError => e
-    Rails.logger.error("Failed to download #{url}: #{e.message}")
+    Rails.logger.error("Failed to read #{url}: #{e.message}")
     nil
   end
 
