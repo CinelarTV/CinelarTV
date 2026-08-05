@@ -7,7 +7,7 @@
                     {{ $t("js.admin.content_manager.title") || "Content Manager" }}
                 </h1>
                 <p class="content-manager-header__subtitle">
-                    {{ content.length }} {{ $t("js.admin.content_manager.total_items") || "items" }}
+                    {{ meta.total }} {{ $t("js.admin.content_manager.total_items") || "items" }}
                 </p>
             </div>
             <c-button @click="createContent" class="content-manager-header__btn">
@@ -39,13 +39,13 @@
             </div>
         </div>
 
-        <!-- Loading state -->
-        <div v-if="loading" class="content-manager-loading">
+        <!-- Loading state (initial) -->
+        <div v-if="loading && content.length === 0" class="content-manager-loading">
             <c-spinner />
         </div>
 
         <!-- Empty state -->
-        <div v-else-if="filteredContent.length === 0" class="content-manager-empty">
+        <div v-else-if="!loading && content.length === 0" class="content-manager-empty">
             <ClapperboardIcon :size="48" class="content-manager-empty__icon" />
             <h3 class="content-manager-empty__title">
                 {{ $t("js.admin.content_manager.no_content") || "No content yet" }}
@@ -63,7 +63,7 @@
 
         <!-- Content grid -->
         <div v-else class="content-manager-grid">
-            <RouterLink v-for="item in filteredContent" :key="item.id" class="content-manager-card"
+            <RouterLink v-for="item in content" :key="item.id" class="content-manager-card"
                 :to="{ name: 'admin.content.manager.edit', params: { id: item.id } }">
                 <div class="content-manager-card__image">
                     <ResponsiveImage :images="item.images" type="backdrop" :fallback="item.cover || item.banner" :alt="item.title" />
@@ -87,12 +87,19 @@
             </RouterLink>
         </div>
 
-        <CreateContentModal ref="createContentModalRef" @content-created="fetchContent" />
+        <!-- Infinite scroll sentinel -->
+        <div ref="scrollSentinel" class="content-manager-scroll-sentinel">
+            <div v-if="loading && content.length > 0" class="content-manager-loading-more">
+                <c-spinner />
+            </div>
+        </div>
+
+        <CreateContentModal ref="createContentModalRef" @content-created="resetAndFetch" />
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, reactive, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { PlusIcon, SearchIcon, Edit3Icon, ClapperboardIcon } from 'lucide-vue-next';
 import { ajax } from '../../../lib/Ajax';
@@ -100,45 +107,82 @@ import CreateContentModal from '../../../components/modals/create-content.modal.
 import ResponsiveImage from '../../../components/ResponsiveImage';
 
 const router = useRouter();
-const loading = ref(true);
+const loading = ref(false);
 const content = ref([]);
 const searchQuery = ref('');
 const typeFilter = ref('');
 const sortBy = ref('newest');
 const createContentModalRef = ref(null);
+const scrollSentinel = ref(null);
 
-const filteredContent = computed(() => {
-    let result = [...content.value];
-
-    // Search filter
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(item =>
-            item.title?.toLowerCase().includes(query) ||
-            item.id?.toLowerCase().includes(query)
-        );
-    }
-
-    // Type filter
-    if (typeFilter.value) {
-        result = result.filter(item => item.content_type === typeFilter.value);
-    }
-
-    // Sort
-    switch (sortBy.value) {
-        case 'newest':
-            result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-            break;
-        case 'oldest':
-            result.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
-            break;
-        case 'title':
-            result.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-            break;
-    }
-
-    return result;
+const meta = reactive({
+    total: 0,
+    page: 1,
+    per_page: 24,
+    total_pages: 1,
 });
+
+let searchTimeout = null;
+let observer = null;
+
+const buildParams = (page = 1) => {
+    const params = { page, per_page: meta.per_page };
+    if (searchQuery.value) params.q = searchQuery.value;
+    if (typeFilter.value) params.content_type = typeFilter.value;
+    if (sortBy.value) params.sort = sortBy.value;
+    return params;
+};
+
+const fetchContent = async (page = 1, append = false) => {
+    if (loading.value) return;
+    loading.value = true;
+    try {
+        const response = await ajax.get('/admin/content-manager/all.json', { params: buildParams(page) });
+        const result = response.data;
+        if (append) {
+            content.value = [...content.value, ...result.data];
+        } else {
+            content.value = result.data || [];
+        }
+        Object.assign(meta, result.meta);
+    } catch (error) {
+        console.error('Failed to fetch content:', error);
+    }
+    loading.value = false;
+};
+
+const resetAndFetch = () => {
+    content.value = [];
+    meta.page = 1;
+    fetchContent(1, false);
+};
+
+// Debounced search
+watch(searchQuery, () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        resetAndFetch();
+    }, 300);
+});
+
+// Immediate filter/sort changes
+watch(typeFilter, () => resetAndFetch());
+watch(sortBy, () => resetAndFetch());
+
+// Infinite scroll via IntersectionObserver
+const setupObserver = () => {
+    if (!scrollSentinel.value) return;
+    observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting && !loading.value && meta.page < meta.total_pages) {
+                meta.page++;
+                fetchContent(meta.page, true);
+            }
+        },
+        { rootMargin: '200px' }
+    );
+    observer.observe(scrollSentinel.value);
+};
 
 const editContent = (item) => {
     router.push({
@@ -151,18 +195,13 @@ const createContent = () => {
     createContentModalRef.value?.setIsOpen(true);
 };
 
-const fetchContent = async () => {
-    loading.value = true;
-    try {
-        const response = await ajax.get('/admin/content-manager/all.json');
-        content.value = response.data.data || [];
-    } catch (error) {
-        console.error('Failed to fetch content:', error);
-    }
-    loading.value = false;
-};
-
 onMounted(() => {
     fetchContent();
+    setupObserver();
+});
+
+onUnmounted(() => {
+    if (observer) observer.disconnect();
+    clearTimeout(searchTimeout);
 });
 </script>

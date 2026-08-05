@@ -295,7 +295,7 @@ module Admin
     def update
       ActiveRecord::Base.transaction do
         handle_uploaded_images
-        @content.update!(content_params.except(:banner, :cover))
+        @content.update!(content_params.except(:banner, :cover, :logo))
         render json: { message: "Content updated successfully", status: :ok }
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -431,10 +431,70 @@ module Admin
     end
 
     def index
-      @contents = Content.includes(:seasons, :video_sources).all
+      contents = Content.all
+
+      # Server-side search
+      if params[:q].present?
+        query = "%#{params[:q]}%"
+        contents = contents.where("title ILIKE ? OR description ILIKE ?", query, query)
+      end
+
+      # Server-side type filter
+      if params[:content_type].present?
+        contents = contents.where(content_type: params[:content_type])
+      end
+
+      # Server-side sort
+      case params[:sort]
+      when "oldest"
+        contents = contents.order(created_at: :asc)
+      when "title"
+        contents = contents.order(title: :asc)
+      else
+        contents = contents.order(created_at: :desc)
+      end
+
+      # Pagination
+      page = (params[:page] || 1).to_i
+      per_page = (params[:per_page] || 24).to_i.clamp(1, 100)
+      total = contents.count
+
+      contents = contents
+                 .includes(:image_variants)
+                 .offset((page - 1) * per_page)
+                 .limit(per_page)
+
+      items = contents.map do |content|
+        {
+          id: content.id,
+          title: content.title,
+          content_type: content.content_type,
+          year: content.year,
+          available: content.available,
+          premium: content.premium,
+          created_at: content.created_at,
+          images: {
+            poster: content.image_variants_for("poster", only: %w[original medium]),
+            backdrop: content.image_variants_for("backdrop", only: %w[original medium])
+          },
+          banner: content.image_url_for("backdrop"),
+          cover: content.image_url_for("poster")
+        }
+      end
+
       respond_to do |format|
         format.html
-        format.json { render json: { data: @contents.as_json } }
+        format.json {
+          render json: {
+            data: items,
+            meta: {
+              total: total,
+              page: page,
+              per_page: per_page,
+              total_pages: (total.to_f / per_page).ceil
+            }
+          }
+        }
       end
     end
 
