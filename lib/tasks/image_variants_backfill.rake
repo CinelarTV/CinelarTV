@@ -21,17 +21,26 @@ namespace :image_variants do
   desc "Regenerate all variants for all content (downloads and reprocesses)"
   task regenerate_all: :environment do
     puts "=== Regenerating All Image Variants ==="
+    puts "(s = skipped, already complete)"
     puts ""
 
+    processed = 0
+    skipped = 0
+
     Content.find_each do |content|
-      process_content_images(content)
+      result = process_content_images(content)
+      processed += 1 if result
+      skipped += 1 unless result
     end
 
     Episode.find_each do |episode|
-      process_episode_images(episode)
+      result = process_episode_images(episode)
+      processed += 1 if result
+      skipped += 1 unless result
     end
 
-    puts "Regeneration complete!"
+    puts ""
+    puts "Done! Processed: #{processed}, Skipped: #{skipped}"
   end
 
   desc "Regenerate variants for a single content"
@@ -91,24 +100,46 @@ namespace :image_variants do
     poster_url = content[:cover]
     backdrop_url = content[:banner]
 
-    generate_variants_for(content, "poster", poster_url) if poster_url.present?
-    generate_variants_for(content, "backdrop", backdrop_url) if backdrop_url.present?
+    poster_done = poster_url.present? ? generate_variants_for(content, "poster", poster_url) : false
+    backdrop_done = backdrop_url.present? ? generate_variants_for(content, "backdrop", backdrop_url) : false
+
+    poster_done || backdrop_done
   end
 
   def process_episode_images(episode)
     thumbnail_url = episode[:thumbnail]
-    generate_variants_for(episode, "episode_thumbnail", thumbnail_url) if thumbnail_url.present?
+    thumbnail_url.present? ? generate_variants_for(episode, "episode_thumbnail", thumbnail_url) : false
   end
 
+  # Standard image types: 6 variants × 2 formats = 12
+  # Logo: 3 variants × 1 format = 3
+  EXPECTED_VARIANT_COUNTS = {
+    "poster" => 12,
+    "backdrop" => 12,
+    "episode_thumbnail" => 12,
+    "logo" => 3
+  }.freeze
+
   def generate_variants_for(model, image_type, original_url)
-    puts "Processing #{model.class.name} ##{model.id} #{image_type}..."
+    expected = EXPECTED_VARIANT_COUNTS[image_type] || 12
+    current_count = model.image_variants.where(image_type: image_type).count
+
+    if current_count >= expected
+      print "s" # skip
+      return false
+    end
+
+    puts "Processing #{model.class.name} ##{model.id} #{image_type} (#{current_count}/#{expected} variants)..."
 
     # Clean existing variants
     model.image_variants.where(image_type: image_type).destroy_all
 
     # Download original to temp file
     temp_file = download_to_temp(original_url)
-    return puts "  Failed to download: #{original_url}" unless temp_file
+    unless temp_file
+      puts "  Failed to download: #{original_url}"
+      return false
+    end
 
     # Compute store dir
     subfolder = case image_type
@@ -138,9 +169,11 @@ namespace :image_variants do
     model.save!
 
     File.delete(temp_file) if File.exist?(temp_file)
+    true
   rescue StandardError => e
     puts "  Error: #{e.message}"
     File.delete(temp_file) if temp_file && File.exist?(temp_file)
+    false
   end
 
   def download_to_temp(url)
