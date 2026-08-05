@@ -307,6 +307,7 @@ monetization:
     allowed_values:
       - mercado_pago
       - lemon_squeezy
+      - paypal
 
   enable_mercado_pago_provider:
     client: true
@@ -350,7 +351,7 @@ monetization:
     type: "integer"
     min: 1
 
-  enable_google_play_provider:
+  enable_paypal_provider:
     client: true
     refresh: true
     default: false
@@ -437,6 +438,31 @@ monetization:
     type: "integer"
     min: 1
     max: 1440
+
+  paypal_client_id:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
+
+  paypal_client_secret:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
+    secret: true
+
+  paypal_webhook_id:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
+
+  paypal_plan_id:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
 
   google_play_package_name:
     client: false

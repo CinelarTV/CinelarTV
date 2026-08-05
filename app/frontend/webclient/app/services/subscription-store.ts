@@ -34,19 +34,18 @@ export const useSubscriptionStore = defineStore('subscription', {
     isActive: (state): boolean => {
       if (!state.subscription) return false;
       const status = (state.subscription.status || '').toLowerCase();
-      if (['active', 'approved'].includes(status)) return true;
-      if (state.subscription.ends_at && new Date(state.subscription.ends_at) > new Date()) return true;
-      if (state.subscription.granted_until && new Date(state.subscription.granted_until) > new Date()) return true;
+      if (status === 'active') return true;
+      if (state.subscription.access_until && new Date(state.subscription.access_until) > new Date()) return true;
       return false;
     },
 
     isCancelled: (state): boolean => {
-      return state.subscription?.cancelled === true;
+      return state.subscription?.status === 'cancelled';
     },
 
     daysUntilExpiry: (state): number | null => {
-      if (!state.subscription?.ends_at) return null;
-      const diff = new Date(state.subscription.ends_at).getTime() - Date.now();
+      if (!state.subscription?.access_until) return null;
+      const diff = new Date(state.subscription.access_until).getTime() - Date.now();
       return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     },
 

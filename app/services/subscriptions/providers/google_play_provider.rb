@@ -71,9 +71,13 @@ module Subscriptions
         ensure_expected_package!(package_name) if package_name.present?
         ensure_expected_product!(product_id)
 
-        subscription = UserSubscription.find_by(provider: provider_key, purchase_token: purchase_token)
+        # Find subscription by purchase_token stored in provider_metadata
+        subscription = Subscription.where(provider_key: provider_key)
+          .where("provider_metadata->>'purchase_token' = ?", purchase_token)
+          .first
+
         if subscription.blank?
-          Rails.logger.warn("#{self.class.name}: No local subscription for Pub/Sub token=#{purchase_token.truncate(20)} product=#{product_id}")
+          Rails.logger.warn("#{self.class.name}: No local subscription for token=#{purchase_token.truncate(20)} product=#{product_id}")
           return
         end
 
@@ -81,63 +85,61 @@ module Subscriptions
         return if remote.blank?
 
         event_type = notification_type_name(sub_notification["notificationType"])
-        subscription.update!(
-          normalize_remote_for_update(subscription, remote).deep_merge(
-            metadata: {
-              "last_google_play_event" => event_type,
-              "last_google_play_event_at" => Time.zone.now.iso8601,
-              "last_google_play_notification" => notification
-            }
-          ) { |_key, old_value, new_value| old_value.is_a?(Hash) && new_value.is_a?(Hash) ? old_value.merge(new_value) : new_value }
+        Billing::RemoteSnapshot.apply!(
+          subscription:,
+          remote:,
+          metadata: {
+            "last_google_play_event" => event_type,
+            "last_google_play_event_at" -> Time.zone.now.iso8601,
+            "last_google_play_notification" => notification
+          }
         )
       end
 
-      def create_subscription!(user:, success_url: nil, failure_url: nil, pending_url: nil, checkout_mode: nil, card_token_id: nil,
-        start_date: nil, end_date: nil, amount: nil, currency_id: nil, frequency: nil, frequency_type: nil,
-        repetitions: nil, billing_day: nil, billing_day_proportional: nil, purchase_token: nil, product_id: nil, package_name: nil, store: nil, external_reference: nil)
-        raise ArgumentError, "purchase_token and product_id are required for Google Play subscriptions" if purchase_token.blank? || product_id.blank?
+      def start_checkout(subscription:, return_url:)
+        purchase_token = subscription.provider_metadata["purchase_token"]
+        product_id = subscription.provider_metadata["product_id"] || selected_product_id
+
+        raise ArgumentError, "purchase_token is required for Google Play subscriptions" if purchase_token.blank?
+        raise ArgumentError, "product_id is required for Google Play subscriptions" if product_id.blank?
 
         ensure_expected_product!(product_id)
-        ensure_expected_package!(package_name) if package_name.present?
-
-        existing = UserSubscription.find_by(provider: provider_key, purchase_token: purchase_token)
-        if existing.present? && existing.user_id != user.id
-          raise ArgumentError, "This Google Play purchase is already linked to another account"
-        end
+        ensure_expected_package!(package_name)
 
         remote = verify_purchase(product_id: product_id, purchase_token: purchase_token)
         raise StandardError, "Google Play verification failed" if remote.blank?
 
-        subscription = UserSubscription.find_or_initialize_by(user_id: user.id)
-        subscription.provider = provider_key
-        subscription.purchase_token = purchase_token
-        subscription.iap_product_id = product_id
-        subscription.provider_subscription_id = remote["latestOrderId"].presence || purchase_token
-        subscription.provider_plan_id = product_id
-        subscription.checkout_reference = user.id
-        subscription.product_name = "Google Play Subscription"
-        subscription.variant_name = product_id
-        subscription.user_name = user.username
-        subscription.user_email = user.email
-        subscription.assign_attributes(normalize_remote_for_update(subscription, remote))
-        subscription.save!
+        # Update subscription with Google Play identifiers
+        subscription.update!(
+          provider_subscription_id: remote["latestOrderId"].presence || purchase_token,
+          provider_plan_id: product_id,
+          provider_metadata: subscription.provider_metadata.merge(
+            "purchase_token" => purchase_token,
+            "product_id" => product_id
+          )
+        )
+
+        # Apply remote state
+        Billing::RemoteSnapshot.apply!(subscription:, remote:)
 
         {
-          subscription: subscription.as_json,
-          plan_id: product_id,
-          checkout_url: nil,
-          checkout_mode: "in_app",
-          provider: provider_key
+          redirect_url: nil,
+          provider_subscription_id: subscription.provider_subscription_id,
+          provider_customer_id: nil,
+          provider_plan_id: product_id
         }
       end
 
-      def fetch_subscription!(subscription)
-        return nil if subscription.purchase_token.blank? || subscription.iap_product_id.blank?
+      def fetch_remote_subscription(subscription)
+        purchase_token = subscription.provider_metadata["purchase_token"]
+        product_id = subscription.provider_plan_id
 
-        verify_purchase(product_id: subscription.iap_product_id, purchase_token: subscription.purchase_token)
+        return nil if purchase_token.blank? || product_id.blank?
+
+        verify_purchase(product_id: product_id, purchase_token: purchase_token)
       end
 
-      def cancel_subscription!(_subscription)
+      def cancel(_subscription)
         raise "Google Play subscriptions must be cancelled by the user in Google Play"
       end
 
@@ -168,37 +170,6 @@ module Subscriptions
 
       def deactivate_plan!(_plan_id)
         raise "Google Play products must be managed in Google Play Console"
-      end
-
-      def normalize_remote_for_update(subscription, remote)
-        raw_state = remote["subscriptionState"].to_s
-        line_item = Array(remote["lineItems"]).first || {}
-        product_id = line_item["productId"].presence || subscription.iap_product_id
-        expiry_time = parse_time(line_item["expiryTime"])
-        linked_token = remote.dig("linkedPurchaseToken").presence
-        latest_order_id = remote["latestOrderId"].presence
-        status = normalize_google_play_state(raw_state)
-
-        {
-          status: status,
-          status_formatted: status.humanize,
-          external_status: raw_state,
-          provider_subscription_id: latest_order_id || subscription.provider_subscription_id,
-          provider_plan_id: product_id || subscription.provider_plan_id,
-          iap_product_id: product_id || subscription.iap_product_id,
-          renews_at: active_renewal_state?(raw_state) ? expiry_time : subscription.renews_at,
-          ends_at: expiry_time || subscription.ends_at,
-          cancelled: cancelled_state?(raw_state),
-          cancelled_at: cancelled_state?(raw_state) ? (subscription.cancelled_at || Time.zone.now) : nil,
-          test_mode: remote.key?("testPurchase") ? true : subscription.test_mode,
-          metadata: (subscription.metadata || {}).merge(
-            "store" => "google",
-            "package_name" => package_name,
-            "linked_purchase_token" => linked_token,
-            "remote_sync" => remote.slice("subscriptionState", "latestOrderId", "lineItems", "testPurchase", "acknowledgementState"),
-            "synced_at" => Time.zone.now.iso8601
-          ).compact
-        }.compact
       end
 
       def verify_purchase(product_id:, purchase_token:)

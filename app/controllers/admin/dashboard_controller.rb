@@ -41,7 +41,7 @@ module Admin
         completion_rate: "Completion Rate",
       }
 
-      report_types[:user_subscriptions] = "User Subscriptions" if SiteSetting.enable_subscription
+      report_types[:user_subscriptions] = "Subscriptions" if SiteSetting.enable_subscription
 
       report_types.each do |type, title|
         report = Report.new(type)

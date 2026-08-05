@@ -272,6 +272,9 @@ en:
             new content, this will help you to fill the fields of the content
             automatically"
           title: "Enable metadata recommendation"
+        enable_paypal_provider:
+          description: "Enable PayPal as a subscription provider"
+          title: "Enable PayPal provider"
         enable_plugins:
           description: "Allows to enable plugins in <a
             href='/admin/plugins'>/admin/plugins</a>"
@@ -380,6 +383,18 @@ en:
           description: "Webhook secret used to verify Mercado Pago notifications"
           title: "Mercado Pago webhook secret"
         no_changes: "You haven't made any changes"
+        paypal_client_id:
+          description: "PayPal REST API client ID from the PayPal Developer Dashboard"
+          title: "PayPal client ID"
+        paypal_client_secret:
+          description: "PayPal REST API client secret from the PayPal Developer Dashboard"
+          title: "PayPal client secret"
+        paypal_plan_id:
+          description: "PayPal Billing Plan ID created in the PayPal Dashboard for subscriptions"
+          title: "PayPal plan ID"
+        paypal_webhook_id:
+          description: "PayPal webhook ID used to verify incoming webhook notifications"
+          title: "PayPal webhook ID"
         primary_color:
           description: ""
           title: "Primary color"
@@ -434,6 +449,7 @@ en:
           values:
             lemon_squeezy: "Lemon Squeezy"
             mercado_pago: "Mercado Pago"
+            paypal: "PayPal"
         tertiary_color:
           description: "Used for some links and tabs"
           title: "Tertiary color"

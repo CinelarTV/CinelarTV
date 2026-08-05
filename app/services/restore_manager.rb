@@ -86,7 +86,7 @@ class RestoreManager
       content_analytics settings email_templates custom_pages backups
       live_tv_channels tv_programs xmltv_sources
       oauth_access_grants oauth_access_tokens oauth_applications oauth_device_grants
-      user_subscriptions subscription_payments
+      subscriptions payments provider_events subscription_access_grants
       watch_party_sessions watch_party_session_users
       webhook_logs scheduler_stats preferences
     ]

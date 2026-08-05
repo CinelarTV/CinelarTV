@@ -66,7 +66,8 @@
             <RouterLink v-for="item in content" :key="item.id" class="content-manager-card"
                 :to="{ name: 'admin.content.manager.edit', params: { id: item.id } }">
                 <div class="content-manager-card__image">
-                    <ResponsiveImage :images="item.images" type="backdrop" :fallback="item.cover || item.banner" :alt="item.title" />
+                    <ResponsiveImage :images="item.images" type="poster" :fallback="item.cover || item.banner"
+                        :alt="item.title" />
                     <div class="content-manager-card__type">
                         {{ $t(`js.admin.content_manager.content_types.${item.content_type}`) || item.content_type }}
                     </div>

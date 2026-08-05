@@ -85,6 +85,24 @@ export const buildBillingProviderUiProfile = (
         };
     }
 
+    if (key === 'paypal') {
+        return {
+            ...profile,
+            supportsInlineCardForm: false,
+            supportsWalletCheckout: true,
+            sdkPublicKey: '',
+            secureBadgeText: 'Payments processed securely by PayPal',
+            subscribeDescription: 'Continue with PayPal to activate your subscription.',
+            checkoutCta: 'Continue with PayPal',
+            checkoutLoadingCta: 'Opening PayPal checkout...',
+            walletCta: 'Pay with PayPal balance',
+            walletLoadingCta: 'Opening PayPal...',
+            cardCta: 'Subscribe with card via PayPal',
+            cardLoadingCta: 'Processing...',
+            supportedRegions: [],
+            checkoutType: 'redirect',
+        };
+    }
 
     if (key === 'google_play') {
         return {
@@ -100,7 +118,7 @@ export const buildBillingProviderUiProfile = (
             walletLoadingCta: 'Opening mobile wallet...',
             cardCta: 'Subscribe with card',
             cardLoadingCta: 'Processing card...',
-            supportedRegions: [], // Global
+            supportedRegions: [],
             checkoutType: 'redirect',
         };
     }

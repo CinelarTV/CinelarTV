@@ -42,7 +42,6 @@ module Admin
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
-    # A grant is independent from payment subscriptions; it never impersonates a provider.
     def create_grant
       user = User.find(params[:user_id])
       days = params[:days].to_i.positive? ? params[:days].to_i : 30
@@ -89,7 +88,6 @@ module Admin
       render json: { message: "Reconciliation successful", data: subscription_payload(subscription.reload), remote_data: remote }
     end
 
-    # Transitional response for the existing SPA. There are no remotely-managed plans.
     def plans
       offering = Billing::Offering.current
       render json: { data: [{ id: offering.key, reason: "CinelarTV", auto_recurring: { transaction_amount: offering.amount, currency_id: offering.currency, frequency: offering.interval_count, frequency_type: offering.interval_unit } }], meta: { provider: current_provider.provider_key } }
@@ -103,9 +101,12 @@ module Admin
 
     def subscription_payload(subscription)
       subscription.as_json(include: { user: { only: %i[id email username] } }).merge(
-        "provider" => subscription.provider_key, "status_formatted" => subscription.status.humanize,
-        "product_name" => "CinelarTV", "renews_at" => subscription.current_period_ends_at,
-        "ends_at" => subscription.access_until, "cancelled" => subscription.status == "cancelled"
+        "provider" => subscription.provider_key,
+        "status_formatted" => subscription.status.humanize,
+        "product_name" => "CinelarTV",
+        "renews_at" => subscription.current_period_ends_at,
+        "ends_at" => subscription.access_until,
+        "cancelled" => subscription.status == "cancelled"
       )
     end
 

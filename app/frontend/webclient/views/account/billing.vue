@@ -48,33 +48,27 @@
         </div>
 
         <!-- Plan name + cancellation notice -->
-        <h2 class="billing-plan-card__title">{{ subscription.product_name || 'CinelarTV+' }}</h2>
-        <p class="billing-plan-card__variant">{{ subscription.variant_name || $t('js.billing.active_plan') }}</p>
+        <h2 class="billing-plan-card__title">CinelarTV</h2>
+        <p class="billing-plan-card__variant">{{ $t('js.billing.active_plan') }}</p>
 
-        <div v-if="subscription.cancelled" class="billing-plan-card__cancellation-notice">
+        <div v-if="isCancelled" class="billing-plan-card__cancellation-notice">
           <CIcon icon="alert-circle" :size="16" />
           {{ $t('js.billing.cancelled_notice', { date: formatDate(subscription.ends_at) }) }}
         </div>
 
         <!-- Details grid -->
         <div class="billing-plan-card__details">
-          <div class="billing-plan-detail" v-if="!subscription.cancelled && subscription.renews_at">
+          <div class="billing-plan-detail" v-if="!isCancelled && subscription.renews_at">
             <span class="billing-plan-detail__label">{{ $t('js.billing.renews_at') }}</span>
             <span class="billing-plan-detail__value">{{ formatDate(subscription.renews_at) }}</span>
           </div>
-          <div class="billing-plan-detail" v-if="subscription.cancelled && subscription.ends_at">
+          <div class="billing-plan-detail" v-if="isCancelled && subscription.ends_at">
             <span class="billing-plan-detail__label">{{ $t('js.billing.ends_at') }}</span>
             <span class="billing-plan-detail__value">{{ formatDate(subscription.ends_at) }}</span>
           </div>
-          <div class="billing-plan-detail" v-if="subscription.card_last_four">
-            <span class="billing-plan-detail__label">Método de pago</span>
-            <span class="billing-plan-detail__value">
-              {{ subscription.card_brand?.toUpperCase() || 'Tarjeta' }} ···· {{ subscription.card_last_four }}
-            </span>
-          </div>
           <div class="billing-plan-detail">
             <span class="billing-plan-detail__label">{{ $t('js.billing.billing_email') }}</span>
-            <span class="billing-plan-detail__value">{{ subscription.user_email || currentUser?.email || '—' }}</span>
+            <span class="billing-plan-detail__value">{{ currentUser?.email || '—' }}</span>
           </div>
           <div class="billing-plan-detail" v-if="lastPaymentInfo">
             <span class="billing-plan-detail__label">{{ $t('js.billing.last_payment') }}</span>
@@ -91,7 +85,7 @@
             @click="manageSubscription">
             {{ $t('js.billing.manage_provider', { provider: formatProvider(subscription.provider) }) }}
           </BillingActionButton>
-          <BillingActionButton v-if="subscription.cancelled" icon="refresh-cw" variant="primary" @click="resubscribe">
+          <BillingActionButton v-if="isCancelled" icon="refresh-cw" variant="primary" @click="resubscribe">
             {{ $t('js.billing.resubscribe') }}
           </BillingActionButton>
           <BillingActionButton v-else-if="canCancel" icon="x-circle" variant="danger" @click="cancelSubscription">
@@ -115,6 +109,8 @@
               <span class="billing-page__history-provider" v-if="payment.provider">
                 vía {{ formatProvider(payment.provider) }}
               </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -125,8 +121,6 @@
           <h3 class="billing-page__disabled-title">{{ $t('js.billing.no_providers_title') }}</h3>
           <p class="billing-page__disabled-description">{{ $t('js.billing.no_providers_description') }}</p>
         </div>
-      </div>
-    </div>
       </div>
     </div>
 
@@ -185,7 +179,7 @@
           </li>
         </ul>
 
-        <!-- Primary CTA — recommended provider -->
+        <!-- Primary CTA -->
         <BillingActionButton id="billing-subscribe-btn" large icon="external-link" loading-icon="loader"
           variant="primary" :loading="isCreatingCheckout && selectedCheckoutMode === 'redirect'"
           :disabled="isCreatingCheckout" @click="createSubscription('redirect')">
@@ -209,111 +203,6 @@
             {{ alternativeProviders[0].label }}
           </button>
         </div>
-
-        <!-- Secondary payment options (wallet + inline card) -->
-        <div v-if="providerProfile.supportsWalletCheckout || providerProfile.supportsInlineCardForm"
-          class="billing-page__alt-methods">
-          <span class="billing-page__alt-methods-label">Otras formas de pago:</span>
-          <div class="billing-page__alt-methods-list">
-            <button v-if="providerProfile.supportsWalletCheckout" class="billing-page__alt-btn"
-              :class="{ 'billing-page__alt-btn--active': selectedPayMethod === 'wallet' }"
-              :disabled="isCreatingCheckout"
-              @click="selectedPayMethod = selectedPayMethod === 'wallet' ? null : 'wallet'">
-              <CIcon icon="wallet" :size="15" />
-              Dinero en cuenta
-            </button>
-            <button v-if="providerProfile.supportsInlineCardForm" class="billing-page__alt-btn"
-              :class="{ 'billing-page__alt-btn--active': selectedPayMethod === 'card' }" :disabled="isCreatingCheckout"
-              @click="toggleCardForm">
-              <CIcon icon="credit-card" :size="15" />
-              {{ $t('js.billing.card_form_title') }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Wallet CTA -->
-        <div v-if="selectedPayMethod === 'wallet'" class="billing-page__secondary-action">
-          <BillingActionButton icon="dollar-sign" loading-icon="loader"
-            :loading="isCreatingCheckout && selectedCheckoutMode === 'wallet_balance'" :disabled="isCreatingCheckout"
-            @click="createSubscription('wallet_balance')">
-            {{ isCreatingCheckout && selectedCheckoutMode === 'wallet_balance'
-              ? providerProfile.walletLoadingCta
-              : providerProfile.walletCta }}
-          </BillingActionButton>
-        </div>
-
-        <!-- Inline card form -->
-        <form v-if="selectedPayMethod === 'card' && providerProfile.supportsInlineCardForm" class="billing-page__form"
-          @submit.prevent="createSubscriptionWithCardToken">
-
-          <div v-if="isInitializingMercadoPago" class="billing-page__form-loading">
-            <CIcon icon="loader" :size="18" class="animate-spin" />
-            Inicializando formulario seguro...
-          </div>
-
-          <template v-else>
-            <div class="billing-page__secure-badge">
-              <CIcon icon="shield-check" :size="15" />
-              {{ $t('js.billing.secure_badge', { provider: providerProfile.displayName }) }}
-            </div>
-
-            <div class="billing-page__form-grid">
-              <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-cardholder-name">{{ $t('js.billing.cardholder_name')
-                  }}</label>
-                <BillingInputControl id="mp-cardholder-name" v-model="cardForm.cardholderName" type="text"
-                  autocomplete="cc-name" required />
-              </div>
-
-              <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-card-number">{{ $t('js.billing.card_number') }}</label>
-                <BillingInputControl id="mp-card-number" v-model="cardForm.cardNumber" type="text" inputmode="numeric"
-                  autocomplete="cc-number" placeholder="5031 4332 1540 6351" required />
-              </div>
-
-              <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-exp-month">{{ $t('js.billing.exp_month') }}</label>
-                <BillingInputControl id="mp-exp-month" v-model="cardForm.cardExpirationMonth" type="text"
-                  inputmode="numeric" autocomplete="cc-exp-month" placeholder="MM" required />
-              </div>
-
-              <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-exp-year">{{ $t('js.billing.exp_year') }}</label>
-                <BillingInputControl id="mp-exp-year" v-model="cardForm.cardExpirationYear" type="text"
-                  inputmode="numeric" autocomplete="cc-exp-year" placeholder="YY" required />
-              </div>
-
-              <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-security-code">{{ $t('js.billing.cvv') }}</label>
-                <BillingInputControl id="mp-security-code" v-model="cardForm.securityCode" type="text"
-                  inputmode="numeric" autocomplete="cc-csc" placeholder="123" required />
-              </div>
-
-              <div class="billing-page__field">
-                <label class="billing-page__label" for="mp-identification-type">{{ $t('js.billing.id_type') }}</label>
-                <BillingInputControl id="mp-identification-type" as="select" v-model="cardForm.identificationType"
-                  :options="identificationTypeOptions" select-placeholder="Select"
-                  :disabled="!identificationTypeOptions.length" required />
-              </div>
-
-              <div class="billing-page__field billing-page__field--full">
-                <label class="billing-page__label" for="mp-identification-number">{{ $t('js.billing.id_number')
-                  }}</label>
-                <BillingInputControl id="mp-identification-number" v-model="cardForm.identificationNumber" type="text"
-                  inputmode="numeric" autocomplete="off" required />
-              </div>
-            </div>
-
-            <BillingActionButton type="submit" variant="primary" large icon="lock" loading-icon="loader"
-              :loading="isCreatingCheckout" :disabled="!canSubmitCardForm">
-              {{ isCreatingCheckout ? $t('js.billing.processing_card') : $t('js.billing.subscribe_with_card') }}
-            </BillingActionButton>
-          </template>
-        </form>
-
-        <p v-if="mercadoPagoInitError" class="billing-page__form-hint billing-page__form-hint--warning">
-          {{ mercadoPagoInitError }}
-        </p>
       </div>
 
       <!-- Google Play section — mobile only -->
@@ -346,12 +235,10 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, markRaw, computed, watch, onMounted, onBeforeUnmount, inject, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject } from 'vue';
 import { useHead } from 'unhead';
 import { ajax } from '../../lib/Ajax';
-import loadScript from '../../lib/load-script';
 import CIcon from '@/components/c-icon.vue';
-import BillingInputControl from '@/components/billing/BillingInputControl';
 import BillingActionButton from '@/components/billing/BillingActionButton';
 import {
   buildBillingProviderUiProfile,
@@ -368,30 +255,12 @@ const returnedFromCheckout = ref(false);
 const isCreatingCheckout = ref(false);
 const selectedCheckoutMode = ref(null);
 const checkoutError = ref('');
-const isInitializingMercadoPago = ref(false);
-const mercadoPagoClient = shallowRef(null);
-const mercadoPagoInitError = ref('');
-const identificationTypes = ref([]);
 const selectedProviderKey = ref('');
-const selectedPayMethod = ref(null);
 const planData = ref(null);
 const isFetchingPlan = ref(false);
 
-const cardForm = ref({
-  cardholderName: '',
-  cardNumber: '',
-  cardExpirationMonth: '',
-  cardExpirationYear: '',
-  securityCode: '',
-  identificationType: '',
-  identificationNumber: ''
-});
-
 const SiteSettings = inject('SiteSettings');
 const currentUser = inject('currentUser');
-
-const MERCADO_PAGO_SDK_URL = 'https://sdk.mercadopago.com/js/v2';
-let mercadoPagoSdkPromise = null;
 
 // ─── Computed (from store) ────────────────────────────────────────────────────
 const subscription = computed(() => subscriptionStore.subscription);
@@ -399,6 +268,8 @@ const payments = computed(() => subscriptionStore.payments);
 const isSyncing = computed(() => subscriptionStore.isSyncing);
 const enabledProviders = computed(() => subscriptionStore.enabledProviders);
 const geoData = computed(() => subscriptionStore.geoData);
+
+const isCancelled = computed(() => subscription.value?.status === 'cancelled');
 
 const planPrice = computed(() => {
   if (planData.value) {
@@ -424,9 +295,9 @@ const planFrequencyText = computed(() => {
 const subscriptionStatusClass = computed(() => {
   if (!subscription.value) return 'inactive';
   const status = (subscription.value.status || '').toLowerCase();
-  if (['active', 'approved'].includes(status)) return 'active';
-  if (['pending', 'in_process'].includes(status)) return 'pending';
-  if (['cancelled', 'canceled', 'rejected'].includes(status)) return 'cancelled';
+  if (status === 'active') return 'active';
+  if (status === 'pending') return 'pending';
+  if (status === 'cancelled') return 'cancelled';
   return 'inactive';
 });
 
@@ -442,20 +313,19 @@ const subscriptionStatusIcon = computed(() => {
 const canCancel = computed(() => {
   if (!subscription.value) return false;
   const status = (subscription.value.status || '').toLowerCase();
-  return ['active', 'approved'].includes(status) && !subscription.value.cancelled;
+  return status === 'active' && !isCancelled.value;
 });
 
 const canSubscribe = computed(() => {
   if (!subscription.value) return true;
   const status = (subscription.value.status || '').toLowerCase();
-  const isInactiveStatus = ['cancelled', 'canceled', 'rejected', 'expired'].includes(status);
-  const isCancelled = subscription.value.cancelled;
+  const isInactiveStatus = ['cancelled', 'expired'].includes(status);
   let isExpired = false;
-  if (subscription.value.ends_at) {
-    const endDate = new Date(subscription.value.ends_at);
+  if (subscription.value.access_until) {
+    const endDate = new Date(subscription.value.access_until);
     isExpired = endDate < new Date();
   }
-  return isInactiveStatus || isCancelled || isExpired;
+  return isInactiveStatus || isExpired;
 });
 
 const hasManagementUrl = computed(() => {
@@ -480,7 +350,7 @@ const lastPaymentInfo = computed(() => {
   return `${date.toLocaleDateString('es-UY', { month: 'short', day: 'numeric', year: 'numeric' })}${amount}`;
 });
 
-// Provider logic — geo-recommended provider
+// Provider logic
 const activeProviderKey = computed(() => {
   return (
     String(subscription.value?.provider || '').trim().toLowerCase()
@@ -492,7 +362,6 @@ const activeProviderKey = computed(() => {
 });
 
 const providerProfile = computed(() => buildBillingProviderUiProfile(activeProviderKey.value, SiteSettings));
-const mercadoPagoPublicKey = computed(() => providerProfile.value.sdkPublicKey);
 
 const alternativeProviders = computed(() =>
   enabledProviders.value.filter(p =>
@@ -510,39 +379,9 @@ const isGooglePlayEnabled = computed(() =>
 
 const googlePlayUrl = computed(() => SiteSettings?.google_play_store_url || '#');
 
-const identificationTypeOptions = computed(() =>
-  identificationTypes.value.map((t) => ({ value: t.id, label: t.name }))
-);
-
 const isAwaitingActivation = computed(() => returnedFromCheckout.value && !subscription.value);
 
-const canSubmitCardForm = computed(() => {
-  if (
-    !providerProfile.value.supportsInlineCardForm
-    || providerProfile.value.key !== 'mercado_pago'
-    || isCreatingCheckout.value
-    || isInitializingMercadoPago.value
-    || !mercadoPagoClient.value
-  ) return false;
-
-  return Boolean(
-    cardForm.value.cardholderName.trim()
-    && sanitizeDigits(cardForm.value.cardNumber).length >= 13
-    && sanitizeDigits(cardForm.value.cardExpirationMonth).length >= 1
-    && sanitizeDigits(cardForm.value.cardExpirationYear).length >= 2
-    && sanitizeDigits(cardForm.value.securityCode).length >= 3
-    && cardForm.value.identificationType
-    && sanitizeDigits(cardForm.value.identificationNumber).length >= 5
-  );
-});
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const sanitizeDigits = (v) => String(v || '').replace(/\D+/g, '');
-const normalizeExpirationYear = (v) => {
-  const d = sanitizeDigits(v);
-  return d.length === 2 ? `20${d}` : d;
-};
-
 const formatDate = (value) => {
   if (!value) return '—';
   const d = new Date(value);
@@ -558,105 +397,6 @@ const formatAmount = (amount, currency) => {
 };
 
 const formatProvider = (provider) => formatProviderLabel(provider);
-
-const parseMercadoPagoError = (error) => {
-  const cause = error?.cause;
-  if (Array.isArray(cause) && cause.length > 0)
-    return cause.map((i) => i?.description || i?.message).filter(Boolean).join(' | ');
-  if (typeof cause === 'string' && cause.trim()) return cause;
-  return error?.message || 'Could not tokenize the card.';
-};
-
-const fallbackIdentificationTypeForSite = () => {
-  const siteId = String(SiteSettings?.mercadopago_site_id || 'MLU').toUpperCase();
-  const map = { MLA: 'DNI', MLB: 'CPF', MLC: 'RUT', MLM: 'INE', MCO: 'CC' };
-  return map[siteId] || 'CI';
-};
-
-const fallbackIdentificationTypes = () => {
-  const t = fallbackIdentificationTypeForSite();
-  return [{ id: t, name: t }];
-};
-
-const mercadoPagoLocaleForSite = () => {
-  const siteId = String(SiteSettings?.mercadopago_site_id || 'MLU').toUpperCase();
-  const map = { MLA: 'es-AR', MLB: 'pt-BR', MLC: 'es-CL', MLM: 'es-MX', MPE: 'es-PE', MCO: 'es-CO', MLU: 'es-UY' };
-  return map[siteId] || 'es-UY';
-};
-
-// ─── MP SDK ──────────────────────────────────────────────────────────────────
-const loadMercadoPagoSdk = async () => {
-  if (typeof window === 'undefined' || window.MercadoPago) return;
-  if (!mercadoPagoSdkPromise) mercadoPagoSdkPromise = loadScript(MERCADO_PAGO_SDK_URL);
-  await mercadoPagoSdkPromise;
-};
-
-const initializeMercadoPago = async () => {
-  if (providerProfile.value.key !== 'mercado_pago') return;
-  if (mercadoPagoClient.value || isInitializingMercadoPago.value) return;
-
-  if (!mercadoPagoPublicKey.value) {
-    mercadoPagoInitError.value = `${providerProfile.value.displayName} public key is missing. Contact support.`;
-    return;
-  }
-
-  isInitializingMercadoPago.value = true;
-  mercadoPagoInitError.value = '';
-
-  try {
-    await loadMercadoPagoSdk();
-    const MP = window.MercadoPago;
-    if (typeof MP !== 'function') throw new Error('MercadoPago.js did not load correctly.');
-
-    mercadoPagoClient.value = markRaw(new MP(mercadoPagoPublicKey.value, {
-      locale: mercadoPagoLocaleForSite()
-    }));
-
-    const fetchedTypes = await mercadoPagoClient.value.getIdentificationTypes();
-    identificationTypes.value = Array.isArray(fetchedTypes) && fetchedTypes.length > 0
-      ? fetchedTypes
-      : fallbackIdentificationTypes();
-
-    if (!cardForm.value.identificationType && identificationTypes.value.length > 0) {
-      cardForm.value.identificationType = identificationTypes.value[0].id;
-    }
-  } catch (error) {
-    console.error('Error initializing MercadoPago.js:', error);
-    mercadoPagoClient.value = null;
-    identificationTypes.value = fallbackIdentificationTypes();
-    if (!cardForm.value.identificationType) {
-      cardForm.value.identificationType = identificationTypes.value[0].id;
-    }
-    mercadoPagoInitError.value = parseMercadoPagoError(error);
-  } finally {
-    isInitializingMercadoPago.value = false;
-  }
-};
-
-const createCardToken = async () => {
-  if (providerProfile.value.key !== 'mercado_pago') {
-    throw new Error(`Inline card tokenization is not available for ${providerProfile.value.displayName}.`);
-  }
-
-  await initializeMercadoPago();
-  if (!mercadoPagoClient.value) {
-    throw new Error(mercadoPagoInitError.value || `${providerProfile.value.displayName} SDK is not ready.`);
-  }
-
-  const tokenResponse = await mercadoPagoClient.value.createCardToken({
-    cardNumber: sanitizeDigits(cardForm.value.cardNumber),
-    cardholderName: cardForm.value.cardholderName.trim(),
-    cardExpirationMonth: sanitizeDigits(cardForm.value.cardExpirationMonth).slice(0, 2),
-    cardExpirationYear: normalizeExpirationYear(cardForm.value.cardExpirationYear).slice(-4),
-    securityCode: sanitizeDigits(cardForm.value.securityCode),
-    identificationType: cardForm.value.identificationType,
-    identificationNumber: sanitizeDigits(cardForm.value.identificationNumber)
-  });
-
-  const cardTokenId = tokenResponse?.id;
-  if (!cardTokenId) throw new Error(`${providerProfile.value.displayName} did not return a valid card token.`);
-  return cardTokenId;
-};
 
 // ─── Manual sync ──────────────────────────────────────────────────────────────
 const manualSync = async () => {
@@ -680,61 +420,20 @@ const createSubscription = async (mode = 'redirect') => {
     if (selectedProviderKey.value) payload.provider = selectedProviderKey.value;
 
     const { data } = await ajax.post('/account/billing/subscribe.json', payload);
-    const provider = String(data?.data?.provider || activeProviderKey.value).toLowerCase();
+    const checkoutUrl = data?.data?.checkout_url;
 
-    if (provider === 'lemon_squeezy') {
-      const checkoutUrl = data?.data?.checkout_url;
-      if (!checkoutUrl) {
-        checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
-        return;
-      }
-      let attempts = 0;
-      while (!window.LemonSqueezy?.Url?.Open && attempts < 50) {
-        await new Promise((r) => setTimeout(r, 100));
-        attempts++;
-      }
-      if (!window.LemonSqueezy?.Url?.Open) throw new Error('Lemon Squeezy SDK failed to load.');
-      window.LemonSqueezy.Url.Open(checkoutUrl);
-      returnedFromCheckout.value = true;
-    } else {
-      const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
-      if (!checkoutUrl) {
-        checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
-        return;
-      }
-      window.location.href = checkoutUrl;
+    if (!checkoutUrl) {
+      checkoutError.value = `Could not obtain checkout URL for ${providerProfile.value.displayName}.`;
+      return;
     }
+
+    window.location.href = checkoutUrl;
   } catch (error) {
     console.error('Error creating subscription:', error);
     checkoutError.value = error?.response?.data?.error || 'Could not start subscription. Please try again.';
   } finally {
     isCreatingCheckout.value = false;
     selectedCheckoutMode.value = null;
-  }
-};
-
-const createSubscriptionWithCardToken = async () => {
-  isCreatingCheckout.value = true;
-  checkoutError.value = '';
-
-  try {
-    const cardTokenId = await createCardToken();
-    const { data } = await ajax.post('/account/billing/subscribe.json', { card_token_id: cardTokenId });
-
-    const checkoutUrl = data?.data?.checkout_url || data?.data?.sandbox_checkout_url;
-    if (checkoutUrl) {
-      window.location.href = checkoutUrl;
-      return;
-    }
-
-    await subscriptionStore.fetchBillingData();
-    subscriptionStore.refreshCurrentUser(currentUser);
-    if (!subscription.value) returnedFromCheckout.value = true;
-  } catch (error) {
-    console.error('Error creating subscription with card tokenization:', error);
-    checkoutError.value = error?.response?.data?.error || parseMercadoPagoError(error) || 'Could not start subscription.';
-  } finally {
-    isCreatingCheckout.value = false;
   }
 };
 
@@ -751,8 +450,8 @@ const manageSubscription = () => {
 };
 
 const cancelSubscription = async () => {
-  const endDate = subscription.value?.ends_at
-    ? formatDate(subscription.value.ends_at)
+  const endDate = subscription.value?.access_until
+    ? formatDate(subscription.value.access_until)
     : 'su próximo ciclo de facturación';
 
   const message = `Tu suscripción será cancelada, pero mantendrás tu acceso hasta el: ${endDate}. ¿Deseas continuar?`;
@@ -768,13 +467,11 @@ const cancelSubscription = async () => {
 };
 
 const resubscribe = () => {
-  // Reset subscription state to show the subscribe view
   subscriptionStore.subscription = null;
 };
 
 const switchProvider = (key) => {
   selectedProviderKey.value = key;
-  selectedPayMethod.value = null;
   checkoutError.value = '';
 };
 
@@ -797,17 +494,7 @@ watch(activeProviderKey, (newKey) => {
   }
 });
 
-const toggleCardForm = async () => {
-  if (selectedPayMethod.value === 'card') {
-    selectedPayMethod.value = null;
-    return;
-  }
-  selectedPayMethod.value = 'card';
-  checkoutError.value = '';
-  await initializeMercadoPago();
-};
-
-// ─── Focus listener — sync when tab regains focus ─────────────────────────────
+// ─── Focus listener ───────────────────────────────────────────────────────────
 let handleWindowFocusRef = null;
 
 const setupFocusListener = () => {

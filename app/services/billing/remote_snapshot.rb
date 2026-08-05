@@ -2,7 +2,7 @@
 
 module Billing
   class RemoteSnapshot
-    def self.apply!(subscription:, remote:)
+    def self.apply!(subscription:, remote:, metadata: {})
       status = normalize_status(remote["status"])
       recurring = remote["auto_recurring"] || {}
       period_end = parse_time(
@@ -14,7 +14,7 @@ module Billing
         period_start: parse_time(remote["current_period_start"]),
         period_end:,
         remote_updated_at: parse_time(remote["updated_at"] || remote["last_modified"]),
-        metadata: { "remote_status" => remote["status"], "last_remote_sync" => Time.current.iso8601 }
+        metadata: { "remote_status" => remote["status"], "last_remote_sync" => Time.current.iso8601 }.merge(metadata)
       )
     end
 

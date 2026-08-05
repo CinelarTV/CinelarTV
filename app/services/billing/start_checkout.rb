@@ -33,8 +33,6 @@ module Billing
         action = provider.start_checkout(subscription: @subscription, return_url: @return_url)
         @subscription.update!(
           provider_subscription_id: action[:provider_subscription_id].presence || @subscription.provider_subscription_id,
-          provider_customer_id: action[:provider_customer_id].presence || @subscription.provider_customer_id,
-          provider_plan_id: action[:provider_plan_id].presence || @subscription.provider_plan_id,
           provider_metadata: @subscription.provider_metadata.merge("checkout_url" => action[:redirect_url])
         )
         [@subscription, action]

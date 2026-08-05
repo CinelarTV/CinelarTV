@@ -29,32 +29,64 @@ module Billing
     end
 
     def process_payment
-      return unless @event.provider_key == "mercado_pago" && @event.resource_id.present?
+      resource_id = @event.resource_id
+      return if resource_id.blank?
 
-      remote = @provider.send(:fetch_payment, @event.resource_id)
-      preapproval_id = remote["preapproval_id"].to_s
-      subscription = Subscription.find_by(provider_key: @event.provider_key, provider_subscription_id: preapproval_id)
+      # Delegate payment recording to the provider if it has a payment fetch method
+      return unless @provider.respond_to?(:fetch_payment, true)
+
+      remote_payment = @provider.send(:fetch_payment, resource_id)
+      return if remote_payment.blank?
+
+      # Find subscription from the payment's reference to the subscription
+      subscription = find_subscription_from_payment(remote_payment)
       return unless subscription
 
-      status = case remote["status"].to_s
+      record_payment(subscription, remote_payment)
+    end
+
+    def find_subscription_from_payment(remote_payment)
+      # Try preapproval/subscription reference first
+      sub_id = remote_payment["preapproval_id"].to_s.presence ||
+               remote_payment["subscription_id"].to_s.presence
+      return Subscription.find_by(provider_key: @event.provider_key, provider_subscription_id: sub_id) if sub_id.present?
+
+      # Try external_reference (may be the Subscription UUID)
+      external_ref = remote_payment["external_reference"].to_s
+      return Subscription.find_by(id: external_ref) if external_ref.present?
+
+      nil
+    end
+
+    def record_payment(subscription, remote_payment)
+      status = case remote_payment["status"].to_s
                when "approved" then "succeeded"
-               when "refunded" then "refunded"
+               when "refunded", "charged_back" then "refunded"
                when "rejected", "cancelled" then "failed"
                else "pending"
                end
-      payment = Payment.find_or_initialize_by(provider_key: @event.provider_key, provider_payment_id: remote["id"].to_s)
+
+      payment = Payment.find_or_initialize_by(
+        provider_key: @event.provider_key,
+        provider_payment_id: remote_payment["id"].to_s
+        )
       payment.assign_attributes(
-        subscription:, user: subscription.user, kind: payment.persisted? ? payment.kind : "renewal", status:,
-        amount_cents: (BigDecimal(remote["transaction_amount"].to_s) * 100).round.to_i,
-        currency: remote["currency_id"].presence || subscription.currency,
-        attempted_at: parse_time(remote["date_created"]), paid_at: parse_time(remote["date_approved"]),
-        failure_code: remote["status_detail"], provider_metadata: remote.slice("operation_type", "payment_method_id", "status_detail")
+        subscription:,
+        user: subscription.user,
+        kind: payment.persisted? ? payment.kind : "renewal",
+        status:,
+        amount_cents: (BigDecimal(remote_payment["transaction_amount"].to_s) * 100).round.to_i,
+        currency: remote_payment["currency_id"].presence || subscription.currency,
+        attempted_at: parse_time(remote_payment["date_created"]),
+        paid_at: parse_time(remote_payment["date_approved"]),
+        failure_code: remote_payment["status_detail"],
+        provider_metadata: remote_payment.slice("operation_type", "payment_method_id", "status_detail")
       )
       payment.save!
     end
 
     def payment_event?
-      @event.event_type.to_s == "payment"
+      @event.event_type.to_s.in?(%w[payment PAYMENT.SALE.COMPLETED])
     end
 
     def parse_time(value)

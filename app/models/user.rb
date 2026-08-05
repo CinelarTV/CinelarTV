@@ -14,8 +14,6 @@ class User < ApplicationRecord
   validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 20 }
 
   has_many :profiles, dependent: :destroy # Si se elimina un usuario, se eliminan sus perfiles
-  has_many :user_subscriptions, dependent: :destroy
-  has_many :subscription_payments, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :subscription_access_grants, dependent: :destroy
