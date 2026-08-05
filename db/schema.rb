@@ -182,7 +182,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_04_000001) do
 
   create_table "image_variants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "imageable_type", null: false
-    t.bigint "imageable_id", null: false
+    t.uuid "imageable_id", null: false
     t.string "image_type", null: false
     t.string "variant", null: false
     t.string "format", null: false
