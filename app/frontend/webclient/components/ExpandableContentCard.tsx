@@ -1,5 +1,7 @@
 import { defineComponent, ref, computed, PropType, onUnmounted, watch, h, render, nextTick } from 'vue';
 import { RouterLink } from 'vue-router';
+import ResponsiveImage from './ResponsiveImage';
+import type { ContentImages } from '../app/types/image';
 
 interface ContentItem {
     id: number | string;
@@ -7,6 +9,7 @@ interface ContentItem {
     description?: string;
     banner: string;
     poster?: string;
+    images?: ContentImages;
     year?: number;
     rating?: string;
     genres?: string[];
@@ -143,8 +146,10 @@ export default defineComponent({
                     onClick: (e: MouseEvent) => e.stopPropagation(),
                 }, [
                     h('div', { class: 'relative' }, [
-                        h('img', {
-                            src: item.banner,
+                        h(ResponsiveImage, {
+                            images: item.images,
+                            type: 'backdrop',
+                            fallback: item.banner,
                             alt: item.title,
                             class: 'w-full aspect-video object-cover',
                         }),
@@ -388,11 +393,12 @@ export default defineComponent({
                         },
                     ]}
                 >
-                    <img
-                        src={props.item.banner}
+                    <ResponsiveImage
+                        images={props.item.images}
+                        type="backdrop"
+                        fallback={props.item.banner}
                         alt={props.item.title}
                         class="w-full h-full object-cover"
-                        loading="lazy"
                     />
 
                     <div

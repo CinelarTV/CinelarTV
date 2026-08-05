@@ -8,10 +8,7 @@ module HomeHelper
 
       banner = load_banner_content(ids_set)
 
-      # Secciones personalizadas (por perfil)
       personalized = build_personalized_sections(ids_set)
-
-      # Secciones globales (cacheadas, iguales para todos)
       global = build_global_sections
 
       sections = personalized + global
@@ -35,35 +32,46 @@ module HomeHelper
                       .where.not(trailer_url: nil)
                       .order("RANDOM()")
                       .limit(10)
-                      .pluck(:id, :title, :description, :banner, :trailer_url, :content_type, :year)
 
-    content_ids = contents.map(&:first)
+    content_ids = contents.map(&:id)
 
     trailer_sources = VideoSource.where(trailer: true, videoable_id: content_ids, videoable_type: "Content")
                                  .pluck(:videoable_id, :url, :format, :quality)
                                  .group_by(&:first)
 
-    contents.map do |id, title, desc, banner, trailer_url, content_type, year|
-      sources = (trailer_sources[id] || []).map do |_, url, fmt, qlt|
-        { url: url, format: fmt, quality: qlt }
-      end
+    contents.map do |content|
+      sources = (trailer_sources[content.id] || []).map { |_, url, fmt, qlt| { url: url, format: fmt, quality: qlt } }
 
       {
-        id: id,
-        title: title,
-        description: desc,
-        banner: banner,
-        trailer_url: trailer_url,
+        id: content.id,
+        title: content.title,
+        description: content.description,
+        banner: content.banner,
+        trailer_url: content.trailer_url,
         trailer_sources: sources,
-        trailer_mime_type: infer_trailer_mime_type(trailer_url, sources),
-        content_type: content_type,
-        year: year,
-        liked: liked_ids.include?(id)
+        trailer_mime_type: infer_trailer_mime_type(content.trailer_url, sources),
+        content_type: content.content_type,
+        year: content.year,
+        liked: liked_ids.include?(content.id),
+        images: {
+          poster: content.image_variants_for("poster", only: allowed_variants),
+          backdrop: content.image_variants_for("backdrop", only: allowed_variants)
+        }
       }
     end
   end
 
   private
+
+  def allowed_variants
+    @allowed_variants ||= begin
+      raw = params[:img_variants]
+      return %w[original medium large] if raw.blank?
+
+      allowed = raw.split(",").map(&:strip).reject(&:blank?)
+      allowed.presence || %w[original medium large]
+    end
+  end
 
   def liked_content_ids
     return @liked_content_ids if defined?(@liked_content_ids)
@@ -87,14 +95,10 @@ module HomeHelper
     )
   end
 
-  def infer_trailer_mime_type(url, sources)
-    if sources.any? { |s| s[:format] == "m3u8" }
-      return "application/x-mpegurl"
-    end
-
+  def infer_trailer_mime_type(url, _sources)
     case url.to_s
     when /\.m3u8/i then "application/x-mpegurl"
-    when /\.webm/i then "video/webm"
+    when /\.webm/i then "video/webwebm"
     else "video/mp4"
     end
   end
@@ -114,21 +118,19 @@ module HomeHelper
     CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
       liked_category_ids = liked_category_ids_for(profile)
 
-      Content.where(available: true)
-             .where.not(banner: nil)
-             .where.not(id: profile.disliked_contents.select(:id))
-             .left_joins(:content_analytic)
-             .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
-             .limit(10)
-             .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-             .map do |id, title, desc, banner, banner_resized, cover_resized|
-               build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                          cover_resized: cover_resized)
-             end
+      content_ids = Content.where(available: true)
+                           .where.not(banner: nil)
+                           .where.not(id: profile.disliked_contents.select(:id))
+                           .left_joins(:content_analytic)
+                           .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
+                           .limit(10)
+                           .pluck(:id)
+
+      Content.where(id: content_ids).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
     end
   end
 
-  def random_banner_content(liked_ids)
+  def random_banner_content(_liked_ids)
     profile_id = current_profile&.id
     quoted_pid = ActiveRecord::Base.connection.quote(profile_id)
 
@@ -138,15 +140,13 @@ module HomeHelper
                   "RANDOM()"
                 end
 
-    Content.where(available: true)
-           .where.not(banner: nil)
-           .order(Arel.sql(order_sql))
-           .limit(10)
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    content_ids = Content.where(available: true)
+                         .where.not(banner: nil)
+                         .order(Arel.sql(order_sql))
+                         .limit(10)
+                         .pluck(:id)
+
+    Content.where(id: content_ids).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def liked_category_ids_for(profile)
@@ -164,10 +164,6 @@ module HomeHelper
 
     scores = []
 
-    #
-    # 1. Continue Watching
-    # La señal más fuerte del banner.
-    #
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
@@ -183,10 +179,6 @@ module HomeHelper
       END
     SQL
 
-    #
-    # 2. Afinidad con categorías favoritas
-    # Suma 15 puntos por cada categoría compartida.
-    #
     if liked_category_ids.any?
       ids = liked_category_ids.map { |id| connection.quote(id) }.join(",")
 
@@ -200,12 +192,6 @@ module HomeHelper
       SQL
     end
 
-    #
-    # 2b. Afinidad con el elenco (cast)
-    # Si el usuario dio like a contenido con ciertos actores,
-    # potenciar contenido que comparta esos mismos actores.
-    # +10 puntos por actor compartido (máx 50).
-    #
     scores << <<~SQL.squish
       LEAST(
         50,
@@ -223,10 +209,6 @@ module HomeHelper
       )
     SQL
 
-    #
-    # 3. Freshness con decaimiento progresivo.
-    # Los estrenos reciben un impulso fuerte que desaparece gradualmente.
-    #
     scores << <<~SQL.squish
       GREATEST(
         0,
@@ -237,28 +219,10 @@ module HomeHelper
       )
     SQL
 
-    #
-    # 4. Popularidad usando logaritmo.
-    # Evita que los mega hits destruyan el ranking.
-    #
     scores << <<~SQL.squish
       LN(GREATEST(COALESCE(content_analytics.total_views, 1), 1)) * 6
     SQL
 
-    #
-    # 5. Boost editorial opcional. (Future: Puede ser usado para destacar contenido específico)
-    #
-    #scores << <<~SQL.squish
-    #  CASE
-    #    WHEN contents.featured = TRUE
-    #    THEN 40
-    #    ELSE 0
-    #  END
-    #SQL
-
-    #
-    # 6. Penalizar contenido ya finalizado.
-    #
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
@@ -273,9 +237,6 @@ module HomeHelper
       END
     SQL
 
-    #
-    # 6b. Penalizar contenido que el perfil ya dio dislike.
-    #
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
@@ -289,22 +250,13 @@ module HomeHelper
       END
     SQL
 
-    #
-    # 7. Exploración controlada.
-    #
     scores << "RANDOM() * 2"
 
     scores.join(" + ")
   end
 
   def add_added_recently(liked_ids)
-    Content.added_recently
-           .limit(15)
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    Content.added_recently.limit(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_recommended_based_on_liked(liked_ids)
@@ -315,10 +267,7 @@ module HomeHelper
 
     similar_content = random_liked.similar_items
                                   .reject { |c| c.id == random_liked.id || disliked_content_ids.include?(c.id) }
-                                  .map do |c|
-                                    build_content_hash(c.id, c.title, c.description, c.banner, liked_ids,
-                                                       banner_resized: c.banner_resized, cover_resized: c.cover_resized)
-                                  end
+                                  .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
 
     { title: random_liked.title, content: similar_content }
   end
@@ -326,23 +275,13 @@ module HomeHelper
   def add_most_viewed(liked_ids)
     return [] unless SiteSetting.enable_most_viewed_section
 
-    Content.most_viewed(15)
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    Content.most_viewed(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_most_liked(liked_ids)
     return [] unless SiteSetting.enable_most_liked_section
 
-    Content.most_liked(15)
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    Content.most_liked(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_by_genre(liked_ids)
@@ -360,11 +299,7 @@ module HomeHelper
       .limit(6)
       .map do |category|
         content = Content.by_category_id(category.id, per_page * 3)
-                         .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-                         .map do |id, title, desc, banner, banner_resized, cover_resized|
-                           build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                                  cover_resized: cover_resized)
-                         end
+                         .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
                          .shuffle
                          .reject { |c| shown_ids.include?(c[:id]) }
                          .first(per_page)
@@ -378,40 +313,28 @@ module HomeHelper
   end
 
   def add_new_this_week(liked_ids)
-    Content.new_this_week
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    Content.new_this_week.map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_trending(liked_ids)
     return [] unless SiteSetting.enable_trending_section
 
-    Content.trending(15)
-           .pluck(:id, :title, :description, :banner, :banner_resized, :cover_resized)
-           .map do |id, title, desc, banner, banner_resized, cover_resized|
-             build_content_hash(id, title, desc, banner, liked_ids, banner_resized: banner_resized,
-                                                                    cover_resized: cover_resized)
-           end
+    Content.trending(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_continue_watching(liked_ids)
     return [] unless current_profile.present?
 
     ContinueWatching
-      .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner, contents.banner_resized, contents.cover_resized")
+      .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner")
       .joins(:content)
       .where(profile_id: current_profile.id)
       .order("content_id, last_watched_at DESC")
       .limit(20)
-      .includes(:content, :episode)
+      .includes(content: :image_variants, episode: nil)
       .map do |cw|
-        build_content_hash(
-          cw.content.id, cw.content.title, cw.content.description, cw.content.banner, liked_ids,
-          banner_resized: cw.content.banner_resized, cover_resized: cw.content.cover_resized
-        ).merge(
+        content = cw.content
+        content_to_hash(content, allowed_variants: allowed_variants).merge(
           progress: cw.progress,
           duration: cw.duration,
           last_watched_at: cw.last_watched_at,
@@ -424,7 +347,6 @@ module HomeHelper
   def build_personalized_sections(liked_ids)
     return [] unless current_profile
 
-    # Clave basada en profile + versión de liked/disliked (cambia al hacer like/unlike)
     liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
     disliked_hash = Digest::MD5.hexdigest(disliked_content_ids.sort.join(","))
     cache_key = "homepage/personal/#{current_profile.id}/#{liked_hash}/#{disliked_hash}"
@@ -453,7 +375,7 @@ module HomeHelper
   end
 
   def build_global_sections
-    sections =     CinelarTV.cache.fetch("homepage/global_sections", expires_in: 15.minutes) do
+    sections = CinelarTV.cache.fetch("homepage/global_sections", expires_in: 15.minutes) do
       result = []
 
       new_this_week = add_new_this_week(Set.new)
@@ -487,8 +409,6 @@ module HomeHelper
       result
     end
 
-    # Top 10 se agrega por separado porque depende del país del usuario
-    # (ya está cacheado en Redis por Top10ContentJob)
     if (top_10 = top_10_content_by_country)&.present?
       sections << { title: I18n.t("js.home.top_10_content_by_country", country: top_10[:country]),
                     content: top_10[:content] }
@@ -503,9 +423,7 @@ module HomeHelper
     content_ids = items.map { |c| c[:id] }
     trailer_map = load_trailer_map(content_ids)
 
-    items.each do |item|
-      inject_trailer(item, trailer_map)
-    end
+    items.each { |item| inject_trailer(item, trailer_map) }
   end
 
   def inject_trailers_into_sections(sections)
@@ -515,9 +433,7 @@ module HomeHelper
     trailer_map = load_trailer_map(content_ids)
 
     sections.each do |section|
-      section[:content].each do |item|
-        inject_trailer(item, trailer_map)
-      end
+      section[:content].each { |item| inject_trailer(item, trailer_map) }
     end
   end
 
@@ -537,16 +453,21 @@ module HomeHelper
     item[:trailer_mime_type] = infer_trailer_mime_type(sources.first[:url], sources)
   end
 
-  def build_content_hash(id, title, description, banner, liked_ids, banner_resized: nil, cover_resized: nil)
+  def content_to_hash(content, allowed_variants: nil)
     {
-      id: id,
-      title: title,
-      description: description,
-      banner: banner,
-      banner_resized: banner_resized,
-      cover_resized: cover_resized,
-      liked: liked_ids.include?(id),
-      disliked: disliked_content_ids.include?(id)
+      id: content.id,
+      title: content.title,
+      description: content.description,
+      banner: content.image_url_for("backdrop"),
+      poster: content.image_url_for("poster"),
+      banner_resized: content.image_url_for("backdrop", variant: "medium"),
+      cover_resized: content.image_url_for("poster", variant: "medium"),
+      liked: liked_content_ids.include?(content.id),
+      disliked: disliked_content_ids.include?(content.id),
+      images: {
+        poster: content.image_variants_for("poster", only: allowed_variants),
+        backdrop: content.image_variants_for("backdrop", only: allowed_variants)
+      }
     }
   end
 
@@ -562,7 +483,7 @@ module HomeHelper
 
       { country: ip_info[:country], content: content } if content.present?
     end
-  rescue => e
+  rescue StandardError => e
     Rails.logger.warn("top_10_content_by_country failed: #{e.message}")
     nil
   end

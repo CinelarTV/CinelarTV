@@ -2,9 +2,13 @@
 
 module Admin
   class ContentsController < Admin::BaseController
-    before_action :set_content, only: [:show, :analytics, :update, :destroy, :reorder_seasons, :create_season, :sync_categories_from_tmdb, :find_seasons_from_tmdb, :sync_cast_from_tmdb, :remove_cast_member, :add_cast_member]
-    before_action :set_season, only: [:create_episode, :episode_list, :find_episodes_from_tmdb, :reorder_episodes, :update_season, :delete_season]
-    before_action :set_episode, only: [:edit_episode, :update_episode, :delete_episode]
+    before_action :set_content,
+                  only: %i[show analytics update destroy reorder_seasons create_season sync_categories_from_tmdb find_seasons_from_tmdb
+                           sync_cast_from_tmdb remove_cast_member add_cast_member]
+    before_action :set_season,
+                  only: %i[create_episode episode_list find_episodes_from_tmdb reorder_episodes update_season
+                           delete_season]
+    before_action :set_episode, only: %i[edit_episode update_episode delete_episode]
 
     def find_recommended_metadata
       return render_error("TMDB API Key is not set") if SiteSetting.tmdb_api_key.blank?
@@ -92,15 +96,15 @@ module Admin
     def analytics
       analytics = @content.content_analytic
       recent_sessions = @content.watch_sessions
-        .includes(:profile)
-        .order(started_at: :desc)
-        .limit(20)
+                                .includes(:profile)
+                                .order(started_at: :desc)
+                                .limit(20)
 
       daily_watch_time = @content.watch_sessions
-        .where("started_at >= ?", 30.days.ago)
-        .group("DATE(started_at)")
-        .sum(:duration_watched)
-        .transform_values { |seconds| (seconds / 3600.0).round(2) }
+                                 .where("started_at >= ?", 30.days.ago)
+                                 .group("DATE(started_at)")
+                                 .sum(:duration_watched)
+                                 .transform_values { |seconds| (seconds / 3600.0).round(2) }
 
       render json: {
         data: {
@@ -298,23 +302,32 @@ module Admin
     end
 
     def sync_categories_from_tmdb
-      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
-      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
-      return render json: { error: "Category auto-assignment is not enabled" }, status: :unprocessable_entity unless SiteSetting.enable_category_auto_assignment
-
-      configure_tmdb_api
-      
-      # Fetch content from TMDB using tmdb_id
-      tmdb_data = if @content.content_type == "MOVIE"
-        Tmdb::Movie.detail(@content.tmdb_id)
-      elsif @content.content_type == "TVSHOW"
-        Tmdb::TV.detail(@content.tmdb_id)
-      else
-        return render json: { error: "Unsupported content type" }, status: :unprocessable_entity
+      if SiteSetting.tmdb_api_key.blank?
+        return render json: { error: "TMDB API Key is not set" },
+                      status: :unprocessable_entity
+      end
+      if @content.tmdb_id.blank?
+        return render json: { error: "Content does not have a TMDB ID" },
+                      status: :unprocessable_entity
+      end
+      unless SiteSetting.enable_category_auto_assignment
+        return render json: { error: "Category auto-assignment is not enabled" },
+                      status: :unprocessable_entity
       end
 
+      configure_tmdb_api
+
+      # Fetch content from TMDB using tmdb_id
+      tmdb_data = if @content.content_type == "MOVIE"
+                    Tmdb::Movie.detail(@content.tmdb_id)
+                  elsif @content.content_type == "TVSHOW"
+                    Tmdb::TV.detail(@content.tmdb_id)
+                  else
+                    return render json: { error: "Unsupported content type" }, status: :unprocessable_entity
+                  end
+
       genre_ids = tmdb_data["genres"]&.map { |g| g["id"] } || []
-      
+
       if genre_ids.empty?
         return render json: { message: "No genres found in TMDB for this content" }, status: :ok
       end
@@ -331,10 +344,10 @@ module Admin
       @content.category_ids = category_ids
       @content.save!
 
-      render json: { 
-        message: "Categories synchronized successfully", 
+      render json: {
+        message: "Categories synchronized successfully",
         assigned_count: category_ids.count,
-        category_ids: category_ids 
+        category_ids: category_ids
       }, status: :ok
     rescue Tmdb::Error => e
       render json: { error: "TMDB API error: #{e.message}" }, status: :unprocessable_entity
@@ -343,8 +356,14 @@ module Admin
     end
 
     def sync_cast_from_tmdb
-      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
-      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+      if SiteSetting.tmdb_api_key.blank?
+        return render json: { error: "TMDB API Key is not set" },
+                      status: :unprocessable_entity
+      end
+      if @content.tmdb_id.blank?
+        return render json: { error: "Content does not have a TMDB ID" },
+                      status: :unprocessable_entity
+      end
 
       configure_tmdb_api
 
@@ -459,41 +478,40 @@ module Admin
     end
 
     def handle_uploaded_images
-      process_image(:banner) if params[:content][:banner].present?
-      process_image(:cover) if params[:content][:cover].present?
+      banner_param = params[:content][:banner]
+      cover_param = params[:content][:cover]
+      process_image(:backdrop) if banner_param.is_a?(ActionDispatch::Http::UploadedFile) || banner_param.to_s.start_with?("tmdb://")
+      process_image(:poster) if cover_param.is_a?(ActionDispatch::Http::UploadedFile) || cover_param.to_s.start_with?("tmdb://")
       @content.save
     end
 
-    def process_image(type)
-      image_value = @content.send(type)
+    def process_image(image_type)
+      field_name = image_type_to_field(image_type)
+      param_value = params[:content][field_name]
 
-      if image_value&.starts_with?("tmdb://")
-        download_tmdb_image(type, image_value)
-      else
-        # Save uploaded file to temp location and enqueue Sidekiq job
-        temp_file = save_temp_file(params[:content][type])
-        ImageProcessingJob.perform_async("Content", @content.id, type.to_s, temp_file)
+      if param_value.is_a?(ActionDispatch::Http::UploadedFile)
+        temp_file = save_temp_file(param_value)
+        ImageProcessingJob.perform_async("Content", @content.id, image_type.to_s, temp_file)
+      elsif param_value.to_s.start_with?("tmdb://")
+        download_tmdb_image(image_type, param_value)
       end
     end
 
-    def download_tmdb_image(type, image_value)
+    def download_tmdb_image(image_type, image_value)
       tmdb_id = image_value.sub("tmdb://", "")
       url = "https://image.tmdb.org/t/p/original/#{tmdb_id}"
 
-      # Download to temp file
       temp_file = download_to_temp_file(url)
-      ImageProcessingJob.perform_async("Content", @content.id, type.to_s, temp_file)
+      ImageProcessingJob.perform_async("Content", @content.id, image_type.to_s, temp_file)
     end
 
     def save_temp_file(uploaded_file)
       temp_dir = Rails.root.join("tmp", "uploads")
       FileUtils.mkdir_p(temp_dir)
-      
+
       temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_#{uploaded_file.original_filename}")
-      File.open(temp_file, "wb") do |f|
-        f.write(uploaded_file.read)
-      end
-      
+      File.binwrite(temp_file, uploaded_file.read)
+
       temp_file
     end
 
@@ -506,9 +524,7 @@ module Admin
 
       temp_file = File.join(temp_dir, "#{SecureRandom.uuid}_downloaded_image.#{ext}")
       URI.open(url) do |downloaded_file|
-        File.open(temp_file, "wb") do |f|
-          f.write(downloaded_file.read)
-        end
+        File.binwrite(temp_file, downloaded_file.read)
       end
 
       temp_file
@@ -519,11 +535,10 @@ module Admin
         tmdb_path = thumb_param.sub("tmdb://", "")
         url = "https://image.tmdb.org/t/p/original/#{tmdb_path}"
         temp_file = download_to_temp_file(url)
-        ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
       else
         temp_file = save_temp_file(thumb_param)
-        ImageProcessingJob.perform_async("Episode", @episode.id, "thumbnail", temp_file)
       end
+      ImageProcessingJob.perform_async("Episode", @episode.id, "episode_thumbnail", temp_file)
     end
 
     def reorder_records(relation, order_array)
@@ -539,9 +554,13 @@ module Admin
     def serialize_content(content)
       content_data = content.as_json
 
-      # Include categories
       content_data[:categories] = content.categories.map { |c| { id: c.id, name: c.name } }
       content_data[:category_ids] = content.category_ids
+
+      content_data[:images] = {
+        poster: content.image_variants_for("poster"),
+        backdrop: content.image_variants_for("backdrop")
+      }
 
       if content.content_type == "TVSHOW"
         seasons_data = content.seasons.order(position: :asc)
@@ -579,8 +598,20 @@ module Admin
           title: e.title,
           description: e.description,
           thumbnail: e.thumbnail || @content.banner,
-          position: e.position
+          position: e.position,
+          images: {
+            episode_thumbnail: e.image_variants_for("episode_thumbnail")
+          }
         }
+      end
+    end
+
+    def image_type_to_field(image_type)
+      case image_type.to_s
+      when "poster" then :cover
+      when "backdrop" then :banner
+      when "episode_thumbnail" then :thumbnail
+      else image_type.to_sym
       end
     end
 

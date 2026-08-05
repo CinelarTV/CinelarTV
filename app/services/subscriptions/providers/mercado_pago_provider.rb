@@ -212,7 +212,7 @@ module Subscriptions
             transaction_amount: params[:amount].presence&.to_f || 9.99,
             currency_id: params[:currency_id].presence || "UYU"
           },
-          back_url: params[:back_url].presence || default_return_url,
+          back_url: resolve_back_url(params[:back_url]),
           status: params[:status].presence || "active"
         }
 
@@ -231,7 +231,7 @@ module Subscriptions
             transaction_amount: params[:amount]&.to_f,
             currency_id: params[:currency_id]
           }.compact,
-          back_url: params[:back_url],
+          back_url: resolve_back_url(params[:back_url]),
           status: params[:status]
         }.compact
 
@@ -664,7 +664,6 @@ module Subscriptions
           start_date: normalize_iso_datetime(start_date),
           end_date: normalize_iso_datetime(end_date),
           transaction_amount: amount.presence&.to_f,
-          currency_id: currency_id.presence,
           repetitions: repetitions.presence&.to_i,
           billing_day: billing_day.presence&.to_i,
           billing_day_proportional: cast_boolean(billing_day_proportional)
@@ -676,7 +675,7 @@ module Subscriptions
           external_reference: external_reference.presence || user.id,
           payer_email: user.email,
           card_token_id: card_token_id.presence,
-          back_url: success_url.presence || default_return_url,
+          back_url: resolve_back_url(success_url),
           status: card_token_id.present? ? "authorized" : "pending",
           notification_url: webhook_url,
           auto_recurring: auto_recurring_overrides.presence,
@@ -697,8 +696,9 @@ module Subscriptions
           reason: "CinelarTV Subscription",
           external_reference: external_reference.presence || user.id,
           payer_email: user.email,
-          back_url: success_url.presence || default_return_url,
+          back_url: resolve_back_url(success_url),
           status: "pending",
+          currency_id: currency_id.presence || "UYU",
           notification_url: webhook_url,
           auto_recurring: {
             frequency: frequency.presence&.to_i || default_frequency,
@@ -820,11 +820,28 @@ module Subscriptions
       end
 
       def default_return_url
-        "#{SiteSetting.base_url}/account/billing"
+        resolve_back_url(nil)
+      end
+
+      def resolve_back_url(url)
+        url = url.to_s.strip
+        url = default_return_url if url.blank?
+
+        unless url.match?(%r{\Ahttps?://})
+          url = "#{base_url.chomp("/")}/#{url.delete_prefix("/")}"
+        end
+
+        raise "SiteSetting.base_url is not configured. Set it in Admin → Settings → General." if base_url.blank?
+        url
+      end
+
+      def base_url
+        SiteSetting.base_url.to_s.strip
       end
 
       def webhook_url
-        "#{SiteSetting.base_url}/subscriptions/webhooks/#{provider_key}"
+        raise "SiteSetting.base_url is not configured." if base_url.blank?
+        "#{base_url.chomp("/")}/subscriptions/webhooks/#{provider_key}"
       end
 
       def cinelar_plan?(plan)
@@ -845,9 +862,7 @@ module Subscriptions
           preapproval_plan_id: plan_id,
           external_reference: user.id,
           payer_email: user.email,
-          back_url: success_url.presence || default_return_url,
-          # Note: notification_url cannot be passed via checkout URL parameters
-          # It must be configured in the MercadoPago application settings or plan
+          back_url: resolve_back_url(success_url),
         }.compact
 
         "#{base}?#{URI.encode_www_form(params)}"

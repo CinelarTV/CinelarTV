@@ -1,11 +1,14 @@
 import { defineComponent, ref, PropType, inject } from 'vue'
 import CIcon from "../c-icon.vue"
+import ResponsiveImage from '../ResponsiveImage'
+import type { EpisodeImages } from '../../app/types/image'
 
 interface Episode {
     id: string
     title: string
     description: string
     thumbnail: string
+    images?: EpisodeImages
     duration: number | null
     position: number,
     continue_watching?: {
@@ -140,8 +143,10 @@ export default defineComponent({
                                                 >
                                                     {/* Episode Thumbnail */}
                                                     <div class="relative overflow-hidden rounded-lg mb-3">
-                                                        <img
-                                                            src={episode.thumbnail || "/placeholder.svg"}
+                                                        <ResponsiveImage
+                                                            images={episode.images}
+                                                            type="episode_thumbnail"
+                                                            fallback={episode.thumbnail || "/placeholder.svg"}
                                                             alt={episode.title}
                                                             class="w-full h-[40vw] sm:h-[200px] object-cover transition-transform duration-300 group-hover/card:scale-105 min-h-[120px] max-h-[200px]"
                                                         />

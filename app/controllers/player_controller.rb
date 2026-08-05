@@ -88,17 +88,17 @@ class PlayerController < ApplicationController
     duration = params[:duration].to_f
 
     # 1. Guardar solo en Redis
-    episode_key = episode_id.presence || 'movie'
+    episode_key = episode_id.presence || "movie"
     CinelarTV.cache.write("progress/#{profile.id}/#{content_id}/#{episode_key}", {
-      progress: progress,
-      duration: duration,
-      last_watched_at: Time.current
-    }, expires_in: 24.hours)
+                            progress: progress,
+                            duration: duration,
+                            last_watched_at: Time.current
+                          }, expires_in: 24.hours)
 
     # 2. Encolar job de sincronización
     SyncProgressJob.perform_async(profile.id, content_id, episode_id, progress, duration)
 
-    # 3. Actualizar la sesión activa (podemos mantener esta parte síncrona si es poco frecuente, 
+    # 3. Actualizar la sesión activa (podemos mantener esta parte síncrona si es poco frecuente,
     # pero para máximo rendimiento también podría ir al job)
     update_watch_session_async(profile, content_id, episode_id, progress, duration)
 
@@ -109,7 +109,7 @@ class PlayerController < ApplicationController
 
   def find_content
     @content = Content.includes(:video_sources, :segments, :categories,
-                                seasons: { episodes: [:video_sources, :segments] })
+                                seasons: { episodes: %i[video_sources segments] })
                       .find_by(id: params[:id])
   end
 
@@ -187,14 +187,22 @@ class PlayerController < ApplicationController
     if @season
       data[:season] = @season.as_json(except: %i[created_at updated_at])
       data[:season][:episodes] =
-        @season.episodes.sort_by(&:position).as_json(only: %i[id title description thumbnail position])
+        @season.episodes.sort_by(&:position).map do |ep|
+          ep.as_json(only: %i[id title description thumbnail position]).merge(
+            images: { episode_thumbnail: ep.image_variants_for("episode_thumbnail") }
+          )
+        end
     end
 
     # Todas las temporadas para navegación entre temporadas
     if @content.content_type == "TVSHOW"
       data[:seasons] = @content.seasons.sort_by(&:position).map do |season|
         season_data = season.as_json(except: %i[created_at updated_at])
-        season_data[:episodes] = season.episodes.sort_by(&:position).as_json(only: %i[id title description thumbnail position duration])
+        season_data[:episodes] = season.episodes.sort_by(&:position).map do |ep|
+          ep.as_json(only: %i[id title description thumbnail position duration]).merge(
+            images: { episode_thumbnail: ep.image_variants_for("episode_thumbnail") }
+          )
+        end
         season_data
       end
     end
@@ -206,7 +214,7 @@ class PlayerController < ApplicationController
   end
 
   def video_sources_data
-    non_trailers = @content.video_sources.select { |vs| vs.trailer != true }
+    non_trailers = @content.video_sources.reject { |vs| vs.trailer == true }
     {
       sources: non_trailers.map do |vs|
         {
@@ -220,7 +228,7 @@ class PlayerController < ApplicationController
   end
 
   def episode_video_sources_data
-    non_trailers = @episode.video_sources.select { |vs| vs.trailer != true }
+    non_trailers = @episode.video_sources.reject { |vs| vs.trailer == true }
     {
       sources: non_trailers.map do |vs|
         {

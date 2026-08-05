@@ -2,6 +2,8 @@ import { defineComponent, ref, onMounted, onBeforeUnmount, watch, PropType, getC
 import CButton from './forms/c-button';
 import CIconButton from './forms/c-icon-button.vue';
 import CIcon from './c-icon.vue';
+import ResponsiveImage from './ResponsiveImage';
+import type { ImageVariants } from '@/app/types/image';
 
 interface BannerItem {
     id: number | string;
@@ -9,6 +11,10 @@ interface BannerItem {
     description: string;
     banner: string;
     poster?: string;
+    images?: {
+        poster?: ImageVariants;
+        backdrop?: ImageVariants;
+    };
     liked?: boolean;
     disliked?: boolean;
     year?: number;
@@ -246,8 +252,8 @@ export default defineComponent({
                             aria-roledescription="slide"
                             aria-label={$t('js.home_carousel.slide_aria_label', { current: index + 1, total: props.items.length, title: item.title })}
                         >
-                            <img
-                                src={item.banner}
+                            <ResponsiveImage
+                                images={item.images?.backdrop || { original: { webp: item.banner } }}
                                 alt=""
                                 class="home-carousel__bg"
                                 loading={index === 0 ? 'eager' : 'lazy'}
@@ -257,11 +263,15 @@ export default defineComponent({
                             <div class="home-carousel__gradient-bottom" />
 
                             <div class="home-carousel__content">
-                                {item.poster && (
+                                {item.images?.poster ? (
+                                    <div class="home-carousel__poster">
+                                        <ResponsiveImage images={item.images.poster} alt="" />
+                                    </div>
+                                ) : item.poster ? (
                                     <div class="home-carousel__poster">
                                         <img src={item.poster} alt="" />
                                     </div>
-                                )}
+                                ) : null}
 
                                 <div class="home-carousel__info">
                                     <div class="home-carousel__eyebrow-row">

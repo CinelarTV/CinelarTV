@@ -3,6 +3,7 @@
 class Content < ApplicationRecord
   include Videoable
   include Segmenteable
+  include Imageable
   include SimpleRecommender::Recommendable
 
   attribute :available, :boolean, default: false
@@ -126,6 +127,23 @@ class Content < ApplicationRecord
   before_destroy :cleanup_images
   after_commit :clear_global_sections_cache, if: -> { saved_change_to_available? || saved_change_to_created_at? }
 
+  # Legacy accessors (backward compat, read from image_variants)
+  def banner
+    backdrop_url
+  end
+
+  def cover
+    poster_url
+  end
+
+  def banner_resized
+    image_url_for("backdrop", variant: "medium")
+  end
+
+  def cover_resized
+    image_url_for("poster", variant: "medium")
+  end
+
   def update_categories(category_ids)
     self.category_ids = category_ids
   end
@@ -155,28 +173,7 @@ class Content < ApplicationRecord
   end
 
   def cleanup_images
-    cleanup_image_file(banner, "banners")
-    cleanup_image_file(cover, "covers")
-  end
-
-  def cleanup_image_file(url, subfolder)
-    return unless url.present?
-
-    url_without_query = url.split("?").first
-    filename = url_without_query.split("/").last
-
-    # Handle both local and S3 storage
-    if SiteSetting.storage_provider == "local"
-      store_dir = Rails.root.join("public", "uploads", "content_images", subfolder, filename)
-      File.delete(store_dir) if File.exist?(store_dir)
-
-      # Clean up resized version
-      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, "resized_image", filename)
-      File.delete(resized_path) if File.exist?(resized_path)
-    else
-      # S3 storage cleanup - rely on overwrite for now
-      Rails.logger.info("S3 storage detected - old image cleanup skipped (relying on overwrite)")
-    end
+    destroy_all_images
   end
 
   def clear_global_sections_cache

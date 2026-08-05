@@ -474,7 +474,9 @@ module Subscriptions
       end
 
       def default_return_url
-        "#{SiteSetting.base_url}/account/billing"
+        url = SiteSetting.base_url.to_s.strip
+        raise "SiteSetting.base_url is not configured. Set it in Admin → Settings → General." if url.blank? || url.start_with?("/")
+        "#{url.chomp("/")}/account/billing"
       end
     end
   end

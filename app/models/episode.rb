@@ -4,6 +4,7 @@
 class Episode < ApplicationRecord
   include Videoable
   include Segmenteable
+  include Imageable
 
   belongs_to :season
   has_one :content, through: :season
@@ -14,6 +15,15 @@ class Episode < ApplicationRecord
   before_destroy :delete_associated_continue_watching
   before_destroy :cleanup_thumbnail
 
+  # Legacy accessor (backward compat)
+  def thumbnail
+    image_url_for("episode_thumbnail")
+  end
+
+  def thumbnail_resized
+    image_url_for("episode_thumbnail", variant: "medium")
+  end
+
   def delete_associated_continue_watching
     ContinueWatching.where(episode_id: id).destroy_all
   end
@@ -21,26 +31,6 @@ class Episode < ApplicationRecord
   private
 
   def cleanup_thumbnail
-    cleanup_image_file(thumbnail, "episode_thumbnails")
-  end
-
-  def cleanup_image_file(url, subfolder)
-    return unless url.present?
-
-    url_without_query = url.split("?").first
-    filename = url_without_query.split("/").last
-
-    # Handle both local and S3 storage
-    if SiteSetting.storage_provider == "local"
-      store_dir = Rails.root.join("public", "uploads", "content_images", subfolder, filename)
-      File.delete(store_dir) if File.exist?(store_dir)
-
-      # Clean up resized version
-      resized_path = Rails.root.join("public", "uploads", "content_images", subfolder, "resized_image", filename)
-      File.delete(resized_path) if File.exist?(resized_path)
-    else
-      # S3 storage cleanup - rely on overwrite for now
-      Rails.logger.info("S3 storage detected - old image cleanup skipped (relying on overwrite)")
-    end
+    destroy_all_images
   end
 end

@@ -3,6 +3,7 @@ import { con } from '@/js-routes'
 import Season, { SeasonData } from "./Season";
 import ContinueWatching, { ContinueWatchingData } from "./ContinueWatching";
 import RestModel from "./RestModel";
+import type { ContentImages, ImageVariants } from "@/app/types/image";
 
 
 export enum ContentType {
@@ -16,6 +17,11 @@ interface ContentData {
     description: string;
     banner: string;
     cover: string;
+    banner_resized?: string;
+    cover_resized?: string;
+    images?: ContentImages;
+    poster?: string;
+    backdrop?: string;
     content_type: string;
     url: string;
     year: number;
@@ -77,6 +83,18 @@ class Content extends RestModel {
 
     get cover(): string {
         return this.data.cover;
+    }
+
+    get poster(): ImageVariants | undefined {
+        return this.data.images?.poster;
+    }
+
+    get backdrop(): ImageVariants | undefined {
+        return this.data.images?.backdrop;
+    }
+
+    get images(): ContentImages | undefined {
+        return this.data.images;
     }
 
     get contentType(): string {

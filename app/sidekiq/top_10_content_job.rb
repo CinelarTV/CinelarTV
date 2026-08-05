@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "sidekiq-scheduler"
 
 class Top10ContentJob
@@ -18,7 +19,23 @@ class Top10ContentJob
       end
 
       # Convertir a array serializable antes de cachear
-      serialized = top_10_content.as_json(only: %i[id title description banner banner_resized cover_resized content_type year])
+      serialized = top_10_content.map do |content|
+        {
+          id: content.id,
+          title: content.title,
+          description: content.description,
+          content_type: content.content_type,
+          year: content.year,
+          banner: content.image_url_for("backdrop"),
+          poster: content.image_url_for("poster"),
+          banner_resized: content.image_url_for("backdrop", variant: "medium"),
+          cover_resized: content.image_url_for("poster", variant: "medium"),
+          images: {
+            poster: content.image_variants_for("poster"),
+            backdrop: content.image_variants_for("backdrop")
+          }
+        }
+      end
       CinelarTV.cache.write("top_10_content_#{country_code}", serialized)
       Rails.logger.info("Top 10 content for country #{country_code} saved on Redis, #{serialized.size} contents.")
     end

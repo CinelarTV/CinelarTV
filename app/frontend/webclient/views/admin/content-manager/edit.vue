@@ -104,14 +104,14 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-white/80 mb-2">
-                                Cover (2:3)
+                                Poster (2:3)
                             </label>
                             <c-image-upload v-model="editedData.cover" :modelValue="editedData.cover || content.cover"
                                 aspect-ratio="2:3" />
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-white/80 mb-2">
-                                Banner (16:9)
+                                Backdrop (16:9)
                             </label>
                             <c-image-upload v-model="editedData.banner"
                                 :modelValue="editedData.banner || content.banner" aspect-ratio="16:9" />

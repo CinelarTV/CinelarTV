@@ -1,5 +1,7 @@
 import { defineComponent, ref, PropType, watch, onUnmounted } from 'vue';
 import CIcon from '../c-icon.vue';
+import ResponsiveImage from '../ResponsiveImage';
+import type { EpisodeImages } from '../../app/types/image';
 
 interface Segment {
     id: string | number;
@@ -13,6 +15,7 @@ interface Episode {
     position: number | null;
     title: string;
     thumbnail?: string;
+    images?: EpisodeImages;
 }
 
 export default defineComponent({
@@ -137,8 +140,10 @@ export default defineComponent({
                 <div class="next-episode-card flex items-center gap-3.5 bg-[var(--c-surface-2,rgba(255,255,255,0.05))] backdrop-blur-2xl rounded-2xl shadow-xl shadow-black/40 border border-white/[0.08] px-4 py-3">
                     {/* Thumbnail */}
                     {props.nextEpisode?.thumbnail ? (
-                        <img
-                            src={props.nextEpisode.thumbnail}
+                        <ResponsiveImage
+                            images={props.nextEpisode.images}
+                            type="episode_thumbnail"
+                            fallback={props.nextEpisode.thumbnail}
                             alt=""
                             class="w-[4.5rem] h-[2.75rem] rounded-xl object-cover flex-shrink-0"
                         />

@@ -7,6 +7,7 @@ import Content from '../app/models/Content';
 import CButton from '../components/forms/c-button';
 import CSpinner from '../components/c-spinner';
 import EpisodesList from "@/components/content/EpisodesList";
+import ResponsiveImage from '../components/ResponsiveImage';
 
 export default defineComponent({
     name: 'ContentView',
@@ -105,9 +106,15 @@ export default defineComponent({
             onScroll();
 
             const bannerWrapper = document.querySelector('.banner-wrapper') as HTMLElement;
-            if (bannerWrapper) {
+            if (bannerWrapper && contentData.value) {
+                const bannerUrl = contentData.value.images?.backdrop?.large?.webp
+                    || contentData.value.images?.backdrop?.medium?.webp
+                    || contentData.value.banner
+                    || contentData.value.images?.poster?.large?.webp
+                    || contentData.value.cover
+                    || '';
                 const image = new window.Image();
-                image.src = contentData.value?.banner || '';
+                image.src = bannerUrl;
                 image.addEventListener('load', () => {
                     bannerWrapper.style.backgroundImage = `url(${image.src})`;
                     bannerWrapper.classList.add('banner-loaded');
@@ -296,11 +303,12 @@ export default defineComponent({
                                                         to={{ name: 'content.show', params: { id: relatedItem.id }, force: true }}
                                                         class="content-related__card"
                                                     >
-                                                        <img
-                                                            src={relatedItem.banner || relatedItem.cover}
+                                                        <ResponsiveImage
+                                                            images={relatedItem.images}
+                                                            type="backdrop"
+                                                            fallback={relatedItem.banner || relatedItem.cover}
                                                             alt={relatedItem.title}
                                                             class="content-related__card-img"
-                                                            loading="lazy"
                                                         />
                                                         <div class="content-related__card-glow" />
                                                         <div class="content-related__card-overlay">

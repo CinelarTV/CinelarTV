@@ -3,7 +3,13 @@
     @mouseleave="setHover(false)" @focusin="setHover(true)" @focusout="setHover(false)">
     <RouterLink :to="contentLink" class="ctv-content-card__link recyclerview-card-article aspect-video">
       <div class="ctv-content-card__image recyclerview-card-article__image aspect-video">
-        <img v-if="card.banner" :src="card.banner" :alt="card.title || 'Contenido de CinelarTV'" loading="lazy" />
+        <ResponsiveImage
+          v-if="backdropVariants"
+          :images="backdropVariants"
+          :alt="card.title || 'Contenido de CinelarTV'"
+          class="ctv-content-card__img"
+        />
+        <img v-else-if="card.banner" :src="card.banner" :alt="card.title || 'Contenido de CinelarTV'" loading="lazy" />
         <div v-else class="ctv-content-card__placeholder">Sin imagen disponible</div>
       </div>
 
@@ -25,7 +31,13 @@
         </div>
       </div>
 
-      <img v-if="card.banner" :src="card.banner" class="blurred-shadow" :alt="card.title || 'Contenido de CinelarTV'" />
+      <ResponsiveImage
+        v-if="backdropVariants"
+        :images="backdropVariants"
+        class="blurred-shadow"
+        :alt="card.title || 'Contenido de CinelarTV'"
+      />
+      <img v-else-if="card.banner" :src="card.banner" class="blurred-shadow" :alt="card.title || 'Contenido de CinelarTV'" />
     </RouterLink>
 
     <teleport to="body">
@@ -41,6 +53,7 @@
 <script setup>
 import { computed, onUnmounted, ref } from 'vue'
 import CIcon from './c-icon.vue'
+import ResponsiveImage from './ResponsiveImage'
 
 const props = defineProps({
   data: {
@@ -62,6 +75,10 @@ const expandedPanelStyle = ref({
 })
 
 const card = computed(() => props.data || {})
+
+const backdropVariants = computed(() => {
+  return card.value.images?.backdrop || null
+})
 
 const contentLink = computed(() => {
   if (card.value.id === undefined || card.value.id === null) return '/'
@@ -168,7 +185,8 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--c-background-color, #11141a) 80%, #ffffff 20%);
 }
 
-.ctv-content-card__image img {
+.ctv-content-card__image img,
+.ctv-content-card__img {
   width: 100%;
   height: 100%;
   object-fit: cover;

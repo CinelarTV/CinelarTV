@@ -8,18 +8,25 @@ class ContentSerializer < ApplicationSerializer
   attributes :id,
              :title,
              :description,
-             :banner,
-             :cover,
-             :banner_resized,
-             :cover_resized,
              :content_type,
              :year,
              :created_at,
-              :updated_at,
-              :available,
+             :updated_at,
+             :available,
              :premium,
              :tmdb_id,
              :scheduled_launch_at
+
+  # New structured images
+  attribute :images
+
+  # Legacy backward-compatible fields (deprecated, will be removed in v2)
+  attribute :poster
+  attribute :backdrop
+  attribute :cover
+  attribute :banner
+  attribute :banner_resized
+  attribute :cover_resized
 
   attribute :seasons, if: :include_seasons?
   attribute :liked, key: "liked"
@@ -30,6 +37,38 @@ class ContentSerializer < ApplicationSerializer
   attribute :cast_members
   attribute :trailer_video_sources
 
+  def images
+    {
+      poster: object.image_variants_for("poster"),
+      backdrop: object.image_variants_for("backdrop")
+    }
+  end
+
+  # Legacy accessors (backward compat)
+  def poster
+    object.image_url_for("poster")
+  end
+
+  def backdrop
+    object.image_url_for("backdrop")
+  end
+
+  def cover
+    object.image_url_for("poster")
+  end
+
+  def banner
+    object.image_url_for("backdrop")
+  end
+
+  def banner_resized
+    object.image_url_for("backdrop", variant: "medium")
+  end
+
+  def cover_resized
+    object.image_url_for("poster", variant: "medium")
+  end
+
   def include_seasons?
     object.content_type == Content.content_types["TVSHOW"]
   end
@@ -37,7 +76,6 @@ class ContentSerializer < ApplicationSerializer
   def seasons
     return unless object.content_type == Content.content_types["TVSHOW"]
 
-    # Optimización: una sola consulta para todos los continue_watching de los episodios
     continue_watching_by_episode = fetch_episodes_continue_watching
 
     object.seasons
@@ -47,9 +85,9 @@ class ContentSerializer < ApplicationSerializer
         id: season.id,
         title: season.title,
         description: season.description,
-        episodes: season.episodes.sort_by(&:position).map { |episode| 
-          episode_attributes(episode, continue_watching_by_episode[episode.id]) 
-        },
+        episodes: season.episodes.sort_by(&:position).map do |episode|
+          episode_attributes(episode, continue_watching_by_episode[episode.id])
+        end,
       }
     end
   end
@@ -103,20 +141,25 @@ class ContentSerializer < ApplicationSerializer
     profile = @options[:current_profile]
     return {} unless profile
 
-    # Episodios ya preloaded en el controller — lectura en memoria, sin query
     episode_ids = object.seasons.flat_map { |season| season.episodes.map(&:id) }
-    
+
     ContinueWatching
       .where(profile: profile, episode_id: episode_ids)
       .index_by(&:episode_id)
   end
 
   def episode_attributes(episode, continue_watching_data = nil)
-    attributes = episode.as_json(only: %i[id title description position thumbnail thumbnail_resized premium])
-    attributes[:thumbnail] = episode.thumbnail.presence || object.banner
-    attributes[:thumbnail_resized] = episode.thumbnail_resized.presence || object.banner_resized
+    thumbnail_url = episode.image_url_for("episode_thumbnail") || object.image_url_for("backdrop")
+    thumbnail_medium = episode.image_url_for("episode_thumbnail", variant: "medium") ||
+                       object.image_url_for("backdrop", variant: "medium")
 
-    # Agregar continue_watching si existe
+    attributes = episode.as_json(only: %i[id title description position premium])
+    attributes[:thumbnail] = thumbnail_url
+    attributes[:thumbnail_resized] = thumbnail_medium
+    attributes[:images] = {
+      episode_thumbnail: episode.image_variants_for("episode_thumbnail")
+    }
+
     if continue_watching_data
       attributes[:continue_watching] = continue_watching_data.as_json(only: %i[progress duration])
     end
@@ -129,7 +172,19 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def similar_items_attributes(related)
-    related.as_json(only: %i[id title description banner cover banner_resized cover_resized])
+    {
+      id: related.id,
+      title: related.title,
+      description: related.description,
+      banner: related.image_url_for("backdrop"),
+      cover: related.image_url_for("poster"),
+      banner_resized: related.image_url_for("backdrop", variant: "medium"),
+      cover_resized: related.image_url_for("poster", variant: "medium"),
+      images: {
+        poster: related.image_variants_for("poster"),
+        backdrop: related.image_variants_for("backdrop")
+      }
+    }
   end
 
   def continue_watching

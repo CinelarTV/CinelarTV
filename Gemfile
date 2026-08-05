@@ -60,8 +60,8 @@ gem "bootsnap", require: false
 
 # Use Dart Sass to process CSS (installed by dartsass-rails)
 
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
+# Image processing for variant generation (AVIF + WebP)
+gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

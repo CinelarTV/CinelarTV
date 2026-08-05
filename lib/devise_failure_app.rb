@@ -23,7 +23,12 @@ class DeviseFailureApp < Devise::FailureApp
     elsif json_request? || api_request?
       json_error_response
     else
-      super
+      # If is not a JSON request, redirect to the root path with a 302 status code
+      self.status = 302
+      self.headers["Location"] = "/"
+      self.response_body = ""
+
+
     end
   end
 

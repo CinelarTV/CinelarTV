@@ -2,6 +2,8 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted, PropType, getCurrentInstance } from 'vue';
 import { RouterLink } from 'vue-router';
 import ExpandableContentCard from './ExpandableContentCard.tsx';
+import ResponsiveImage from './ResponsiveImage';
+import type { ContentImages } from '../app/types/image';
 
 interface ContentItem {
     id: number | string;
@@ -9,6 +11,7 @@ interface ContentItem {
     description?: string;
     banner: string;
     poster?: string;
+    images?: ContentImages;
     year?: number;
     rating?: string;
     genres?: string[];
@@ -27,6 +30,7 @@ export default defineComponent({
     name: 'ContentRow',
     components: {
         ExpandableContentCard,
+        ResponsiveImage,
     },
     props: {
         title: {
@@ -196,7 +200,8 @@ export default defineComponent({
                             class="relative w-full h-full rounded-lg overflow-hidden bg-white/5 border border-white/[0.06] transition-all duration-200 ease-out group-hover/card:scale-[1.04] group-hover/card:border-white/20 group-hover/card:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
 
                             <!-- Thumbnail -->
-                            <img :src="item.banner" :alt="item.title" class="w-full h-full object-cover" loading="lazy" />
+                            <ResponsiveImage :images="item.images" type="backdrop" :fallback="item.banner" :alt="item.title"
+                                class="w-full h-full object-cover" />
 
                             <!-- Hover overlay -->
                             <div

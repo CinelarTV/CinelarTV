@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_04_000000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_04_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -178,6 +178,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_04_000000) do
     t.index ["season_id", "position"], name: "index_episodes_on_season_id_and_position"
     t.index ["season_id"], name: "index_episodes_on_season_id"
     t.index ["tmdb_id"], name: "index_episodes_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
+  end
+
+  create_table "image_variants", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "imageable_type", null: false
+    t.bigint "imageable_id", null: false
+    t.string "image_type", null: false
+    t.string "variant", null: false
+    t.string "format", null: false
+    t.string "url", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["image_type", "variant", "format"], name: "index_image_variants_on_image_type_and_variant_and_format"
+    t.index ["imageable_type", "imageable_id", "image_type", "variant", "format"], name: "idx_image_variants_on_lookup", unique: true
+    t.index ["imageable_type", "imageable_id"], name: "index_image_variants_on_imageable"
   end
 
   create_table "likes", force: :cascade do |t|

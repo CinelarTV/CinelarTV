@@ -4,6 +4,8 @@ import { toast } from 'vue-sonner';
 import { ajax } from '../lib/Ajax';
 import { useSiteSettings } from '../app/services/site-settings';
 import { PiniaStore } from '../app/lib/Pinia';
+import ResponsiveImage from '../components/ResponsiveImage';
+import type { ContentImages, ImageVariants } from '../app/types/image';
 
 interface ContentItem {
     id: string;
@@ -12,6 +14,7 @@ interface ContentItem {
     banner?: string;
     banner_resized?: string;
     cover_resized?: string;
+    images?: ContentImages;
     content_type: string;
     year?: number;
 }
@@ -84,6 +87,7 @@ export default defineComponent({
                 if (selectedCategory.value) params.append('category_id', String(selectedCategory.value));
                 if (selectedType.value) params.append('content_type', selectedType.value);
                 if (selectedSort.value) params.append('sort', selectedSort.value);
+                params.append('img_variants', 'thumbnail,medium,large');
 
                 const response = await ajax.get(`/explore/browse.json?${params.toString()}`);
                 contents.value = response.data.contents || [];
@@ -214,7 +218,13 @@ export default defineComponent({
                                         href={`/contents/${item.id}`}
                                         class="group relative aspect-video rounded-lg overflow-hidden bg-white/5 border border-white/[0.06] hover:scale-[1.03] hover:border-white/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition-all duration-200"
                                     >
-                                        {(item.banner_resized || item.banner) ? (
+                                        {item.images?.backdrop ? (
+                                            <ResponsiveImage
+                                                images={item.images.backdrop}
+                                                alt={item.title}
+                                                class="w-full h-full object-cover"
+                                            />
+                                        ) : (item.banner_resized || item.banner) ? (
                                             <img
                                                 src={item.banner_resized || item.banner}
                                                 alt={item.title}

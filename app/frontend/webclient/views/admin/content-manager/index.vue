@@ -66,7 +66,7 @@
             <RouterLink v-for="item in filteredContent" :key="item.id" class="content-manager-card"
                 :to="{ name: 'admin.content.manager.edit', params: { id: item.id } }">
                 <div class="content-manager-card__image">
-                    <img :src="item.cover || item.banner" :alt="item.title" loading="lazy" />
+                    <ResponsiveImage :images="item.images" type="backdrop" :fallback="item.cover || item.banner" :alt="item.title" />
                     <div class="content-manager-card__type">
                         {{ $t(`js.admin.content_manager.content_types.${item.content_type}`) || item.content_type }}
                     </div>
@@ -97,6 +97,7 @@ import { useRouter } from 'vue-router';
 import { PlusIcon, SearchIcon, Edit3Icon, ClapperboardIcon } from 'lucide-vue-next';
 import { ajax } from '../../../lib/Ajax';
 import CreateContentModal from '../../../components/modals/create-content.modal.vue';
+import ResponsiveImage from '../../../components/ResponsiveImage';
 
 const router = useRouter();
 const loading = ref(true);

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "mp-integrate": {
+      "source": "mercadopago/mercadopago-claude-marketplace",
+      "sourceType": "github",
+      "skillPath": "plugins/mercadopago/skills/mp-integrate/SKILL.md",
+      "computedHash": "c1afd3417a6ae8ae0f473fc70c8a11e72c348c8eae94eefd39d5e6aeb5ea8482"
+    },
+    "mp-webhooks": {
+      "source": "mercadopago/mercadopago-claude-marketplace",
+      "sourceType": "github",
+      "skillPath": "plugins/mercadopago/skills/mp-webhooks/SKILL.md",
+      "computedHash": "762415334a40b05b85a62a23e8fbaa9ed5a20dc01fac6e1f1caae499920ee47c"
+    }
+  }
+}

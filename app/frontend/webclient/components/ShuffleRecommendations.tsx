@@ -3,6 +3,8 @@ import { useRouter } from 'vue-router';
 import { ajax } from '../lib/Ajax';
 import CButton from './forms/c-button';
 import CIcon from './c-icon.vue';
+import ResponsiveImage from './ResponsiveImage';
+import type { ContentImages } from '../app/types/image';
 import shaka from 'shaka-player';
 
 interface TrailerSource {
@@ -16,6 +18,7 @@ interface ShuffleItem {
     title: string;
     description: string;
     banner: string;
+    images?: ContentImages;
     trailer_url: string;
     trailer_sources?: TrailerSource[];
     trailer_mime_type?: string;
@@ -196,8 +199,10 @@ export default defineComponent({
                                 onClick={openModal}
                             >
                                 <div class="shuffle-recommendations__background absolute inset-0">
-                                    <img
-                                        src={item.banner}
+                                    <ResponsiveImage
+                                        images={item.images}
+                                        type="backdrop"
+                                        fallback={item.banner}
                                         alt={item.title}
                                         class="h-full w-full object-cover opacity-30"
                                     />
@@ -243,7 +248,13 @@ export default defineComponent({
                                 <div class="h-full relative">
                                     {/* Background image */}
                                     <div class="absolute inset-0">
-                                        <img src={item.banner} alt={item.title} class="h-full w-full object-cover" />
+                                        <ResponsiveImage
+                                            images={item.images}
+                                            type="backdrop"
+                                            fallback={item.banner}
+                                            alt={item.title}
+                                            class="h-full w-full object-cover"
+                                        />
                                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                                     </div>
 

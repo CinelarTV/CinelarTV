@@ -50,6 +50,7 @@ class UserSubscriptionsController < ApplicationController
 
   def subscribe
     lock_key = "billing_checkout_#{current_user.id}"
+    result = nil
     current_user.with_advisory_lock(lock_key, timeout_seconds: 10) do
       # For mobile app purchases, keep the provider token bound to the current
       # account and reject tokens already linked to another account in the provider.
