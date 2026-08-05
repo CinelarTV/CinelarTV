@@ -18,7 +18,8 @@ module Imageable
       &.url
   end
 
-  # Get all variants for a given image type as a nested hash
+  # Get all variants for a given image type as a nested hash.
+  # Uses preloaded image_variants when available (N+1 safe).
   #
   #   content.image_variants_for("poster")
   #   # => {
@@ -28,18 +29,24 @@ module Imageable
   #   # }
   #
   def image_variants_for(image_type, only: nil)
-    variants = image_variants
-               .where(image_type: image_type)
-               .order(:variant)
-               .group_by(&:variant)
-               .transform_values do |vars|
+    # Use preloaded association when available (avoids N+1)
+    variants = if image_variants.loaded?
+                 image_variants.select { |v| v.image_type == image_type.to_s }
+               else
+                 image_variants.where(image_type: image_type)
+               end
+
+    grouped = variants
+              .sort_by(&:variant)
+              .group_by(&:variant)
+              .transform_values do |vars|
       vars.each_with_object({}) { |v, h| h[v.format] = v.url }
     end
 
-    return variants unless only
+    return grouped unless only
 
     allowed = Array(only).map(&:to_s)
-    variants.slice(*allowed)
+    grouped.slice(*allowed)
   end
 
   # Legacy accessor: poster original URL

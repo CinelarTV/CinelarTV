@@ -32,7 +32,8 @@ class Top10ContentJob
           cover_resized: content.image_url_for("poster", variant: "medium"),
           images: {
             poster: content.image_variants_for("poster"),
-            backdrop: content.image_variants_for("backdrop")
+            backdrop: content.image_variants_for("backdrop"),
+            logo: content.image_variants_for("logo")
           }
         }
       end

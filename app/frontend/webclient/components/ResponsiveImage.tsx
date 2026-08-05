@@ -27,10 +27,14 @@ function resolveVariants(
 ): ImageVariants | null {
   if (!images) return null;
 
-  // ContentImages — poster/backdrop are ImageVariants directly
-  if ("poster" in images || "backdrop" in images) {
+  // ContentImages — poster/backdrop/logo are ImageVariants directly
+  if ("poster" in images || "backdrop" in images || "logo" in images) {
     const ci = images as ContentImages;
-    const chosen = type === "poster" ? ci.poster : ci.backdrop || ci.poster;
+    let chosen: ImageVariants | undefined;
+    if (type === "poster") chosen = ci.poster;
+    else if (type === "logo") chosen = ci.logo;
+    else if (type === "backdrop") chosen = ci.backdrop;
+    else chosen = ci.backdrop || ci.logo || ci.poster;
     if (chosen) return chosen;
   }
 
@@ -61,7 +65,7 @@ export default defineComponent({
       default: undefined,
     },
     type: {
-      type: String as PropType<"poster" | "backdrop" | "episode_thumbnail">,
+      type: String as PropType<"poster" | "backdrop" | "episode_thumbnail" | "logo">,
       default: undefined,
     },
     fallback: {

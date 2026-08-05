@@ -37,6 +37,7 @@ namespace :admin do
   delete "/content-manager/:id", to: "contents#destroy"
   post "/content-manager/:id/sync-categories", to: "contents#sync_categories_from_tmdb"
   post "/content-manager/:id/sync-cast", to: "contents#sync_cast_from_tmdb"
+  post "/content-manager/:id/sync-logo", to: "contents#sync_logo_from_tmdb"
   delete "/content-manager/:id/cast-members/:cast_member_id", to: "contents#remove_cast_member"
   post "/content-manager/:id/seasons", to: "contents#create_season"
   put "/content-manager/:id/seasons/:season_id", to: "contents#update_season"

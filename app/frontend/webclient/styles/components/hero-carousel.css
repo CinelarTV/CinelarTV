@@ -243,6 +243,20 @@
     text-shadow: 0 8px 26px rgba(0,0,0,0.42);
 }
 
+.home-carousel__logo {
+    margin-bottom: 12px;
+    max-width: 360px;
+    max-height: 80px;
+}
+
+.home-carousel__logo img,
+.home-carousel__logo picture {
+    max-height: 80px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
+}
+
 /* ── Metadata ───────────────────────────────────────────────────── */
 .home-carousel__meta {
     display: flex;

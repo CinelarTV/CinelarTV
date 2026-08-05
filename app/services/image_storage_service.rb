@@ -17,13 +17,15 @@ class ImageStorageService
     "webp" => 80
   }.freeze
 
-  # Store a single image file, returning the public URL
+  # Store a single image file, returning the public URL with cachebust
   def self.store(source_path, store_dir:, filename:)
-    if SiteSetting.storage_provider == "s3"
-      store_to_s3(source_path, store_dir, filename)
-    else
-      store_locally(source_path, store_dir, filename)
-    end
+    raw_url = if SiteSetting.storage_provider == "s3"
+                store_to_s3(source_path, store_dir, filename)
+              else
+                store_locally(source_path, store_dir, filename)
+              end
+
+    append_cachebust(raw_url)
   end
 
   # Clean up all files under a directory
@@ -110,4 +112,15 @@ class ImageStorageService
       delete: { objects: response.contents.map { |obj| { key: obj.key } } }
     )
   end
+
+  # Append _cb=<unix_timestamp> query param for CDN/browser cache busting.
+  # The timestamp changes every time a variant is regenerated, so stale
+  # caches are automatically invalidated.
+  def self.append_cachebust(url)
+    separator = url.include?("?") ? "&" : "?"
+    "#{url}#{separator}_cb=#{Time.now.to_i}"
+  rescue StandardError
+    url
+  end
+  private_class_method :append_cachebust
 end

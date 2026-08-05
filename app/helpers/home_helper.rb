@@ -30,6 +30,7 @@ module HomeHelper
 
     contents = Content.where(available: true)
                       .where.not(trailer_url: nil)
+                      .includes(:image_variants)
                       .order("RANDOM()")
                       .limit(10)
 
@@ -126,7 +127,7 @@ module HomeHelper
                            .limit(10)
                            .pluck(:id)
 
-      Content.where(id: content_ids).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+      Content.where(id: content_ids).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
     end
   end
 
@@ -146,7 +147,7 @@ module HomeHelper
                          .limit(10)
                          .pluck(:id)
 
-    Content.where(id: content_ids).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    Content.where(id: content_ids).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def liked_category_ids_for(profile)
@@ -256,7 +257,7 @@ module HomeHelper
   end
 
   def add_added_recently(liked_ids)
-    Content.added_recently.limit(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    Content.added_recently.includes(:image_variants).limit(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_recommended_based_on_liked(liked_ids)
@@ -267,21 +268,29 @@ module HomeHelper
 
     similar_content = random_liked.similar_items
                                   .reject { |c| c.id == random_liked.id || disliked_content_ids.include?(c.id) }
-                                  .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
 
-    { title: random_liked.title, content: similar_content }
+    # Batch-load image_variants for all similar content to avoid N+1
+    content_ids = similar_content.map(&:id)
+    all_variants = ImageVariant.where(imageable_type: "Content", imageable_id: content_ids).to_a
+    variants_by_content = all_variants.group_by(&:imageable_id)
+
+    similar_content.each do |c|
+      c.association(:image_variants).target = variants_by_content[c.id] || []
+    end
+
+    { title: random_liked.title, content: similar_content.map { |c| content_to_hash(c, allowed_variants: allowed_variants) } }
   end
 
   def add_most_viewed(liked_ids)
     return [] unless SiteSetting.enable_most_viewed_section
 
-    Content.most_viewed(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    Content.most_viewed(15).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_most_liked(liked_ids)
     return [] unless SiteSetting.enable_most_liked_section
 
-    Content.most_liked(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    Content.most_liked(15).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_by_genre(liked_ids)
@@ -299,6 +308,7 @@ module HomeHelper
       .limit(6)
       .map do |category|
         content = Content.by_category_id(category.id, per_page * 3)
+                         .includes(:image_variants)
                          .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
                          .shuffle
                          .reject { |c| shown_ids.include?(c[:id]) }
@@ -313,13 +323,13 @@ module HomeHelper
   end
 
   def add_new_this_week(liked_ids)
-    Content.new_this_week.map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    Content.new_this_week.includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_trending(liked_ids)
     return [] unless SiteSetting.enable_trending_section
 
-    Content.trending(15).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    Content.trending(15).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
   def add_continue_watching(liked_ids)

@@ -211,8 +211,14 @@ export default defineComponent({
                                         );
                                     })()}
 
-                                    {/* Título */}
-                                    <h1 class="content-title">{content?.title}</h1>
+                                    {/* Título / Logo */}
+                                    {content?.images?.logo && (content.images.logo.original || content.images.logo.medium || content.images.logo.small) ? (
+                                        <div class="content-logo">
+                                            <ResponsiveImage images={content.images.logo} type="logo" alt={content?.title || ''} />
+                                        </div>
+                                    ) : (
+                                        <h1 class="content-title">{content?.title}</h1>
+                                    )}
 
                                     {/* Descripción */}
                                     <p class="content-description">{content?.description}</p>

@@ -20,7 +20,7 @@ class ImageVariantGenerator
 
   FORMATS = %w[avif webp].freeze
 
-  LOGO_FORMATS = %w[png webp].freeze
+  LOGO_FORMATS = %w[webp].freeze
 
   def initialize(model:, image_type:, source_path:, store_dir:)
     @model = model

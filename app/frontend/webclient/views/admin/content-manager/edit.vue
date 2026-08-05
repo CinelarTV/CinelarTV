@@ -119,6 +119,54 @@
                     </div>
                 </div>
 
+                <!-- Logo Manager -->
+                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-white">
+                                Logo
+                            </h2>
+                            <p class="text-sm text-white/50 mt-1">
+                                Logotipo del contenido (PNG/WebP transparente). Reemplaza el título en el carrusel y detalle.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button v-if="content.images?.logo?.original?.webp" @click="deleteLogo"
+                                class="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors">
+                                Eliminar
+                            </button>
+                            <button v-if="content.tmdb_id" @click="syncLogoFromTmdb"
+                                :disabled="syncingLogo"
+                                class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span v-if="syncingLogo">Sincronizando...</span>
+                                <span v-else>Obtener de TMDB</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-white/80 mb-2">
+                                Logo del contenido
+                            </label>
+                            <c-image-upload v-model="editedData.logo"
+                                :modelValue="editedData.logo || content.images?.logo?.original?.webp"
+                                aspect-ratio="3:1" />
+                        </div>
+                        <div v-if="content.images?.logo?.original?.webp" class="flex flex-col gap-2">
+                            <label class="block text-sm font-medium text-white/80 mb-2">
+                                Preview actual
+                            </label>
+                            <div class="rounded-lg bg-black/30 p-4 flex items-center justify-center min-h-[100px]">
+                                <img :src="content.images.logo.original.webp" alt="Logo preview"
+                                    class="max-h-16 object-contain" />
+                            </div>
+                            <p class="text-[11px] text-white/40">
+                                Variantes: {{ Object.keys(content.images.logo).join(', ') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Trailer -->
                 <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
                     <div class="flex items-center justify-between">
@@ -406,6 +454,7 @@ const categories = ref([]);
 const categoriesLoading = ref(false);
 const syncingCategories = ref(false);
 const syncingCast = ref(false);
+const syncingLogo = ref(false);
 
 const fetchContent = async () => {
     try {
@@ -488,6 +537,35 @@ const removeCastMember = async (castMemberId) => {
         await fetchContent();
     } catch (error) {
         toast.error('Failed to remove cast member');
+    }
+};
+
+const syncLogoFromTmdb = async () => {
+    syncingLogo.value = true;
+    try {
+        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-logo.json`);
+        toast.success(response.data.message || 'Logo sincronizado desde TMDB');
+        await fetchContent();
+    } catch (error) {
+        toast.error(error.response?.data?.error || 'Error al sincronizar logo desde TMDB');
+    } finally {
+        syncingLogo.value = false;
+    }
+};
+
+const deleteLogo = async () => {
+    if (!confirm('Eliminar logo?')) {
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('content[logo]', '');
+        await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
+        toast.success('Logo eliminado');
+        await fetchContent();
+    } catch (error) {
+        toast.error('Error al eliminar logo');
     }
 };
 

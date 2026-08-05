@@ -14,6 +14,7 @@ interface BannerItem {
     images?: {
         poster?: ImageVariants;
         backdrop?: ImageVariants;
+        logo?: ImageVariants;
     };
     liked?: boolean;
     disliked?: boolean;
@@ -284,9 +285,15 @@ export default defineComponent({
                                         </span>
                                     </div>
 
-                                    <h2 class="home-carousel__title" title={item.title}>
-                                        {item.title}
-                                    </h2>
+                                    {item.images?.logo && (item.images.logo.original || item.images.logo.medium || item.images.logo.small) ? (
+                                        <div class="home-carousel__logo">
+                                            <ResponsiveImage images={item.images.logo} type="logo" alt={item.title} />
+                                        </div>
+                                    ) : (
+                                        <h2 class="home-carousel__title" title={item.title}>
+                                            {item.title}
+                                        </h2>
+                                    )}
 
                                     <div class="home-carousel__meta">
                                         {item.year && <span>{item.year}</span>}

@@ -19,6 +19,7 @@ export interface ImageData {
 export interface ContentImages {
   poster?: ImageVariants;
   backdrop?: ImageVariants;
+  logo?: ImageVariants;
 }
 
 export interface EpisodeImages {

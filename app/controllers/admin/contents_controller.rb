@@ -4,7 +4,7 @@ module Admin
   class ContentsController < Admin::BaseController
     before_action :set_content,
                   only: %i[show analytics update destroy reorder_seasons create_season sync_categories_from_tmdb find_seasons_from_tmdb
-                           sync_cast_from_tmdb remove_cast_member add_cast_member]
+                           sync_cast_from_tmdb remove_cast_member add_cast_member sync_logo_from_tmdb]
     before_action :set_season,
                   only: %i[create_episode episode_list find_episodes_from_tmdb reorder_episodes update_season
                            delete_season]
@@ -420,6 +420,16 @@ module Admin
       render json: { error: "Cast member not found" }, status: :not_found
     end
 
+    def sync_logo_from_tmdb
+      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
+      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+
+      TmdbLogoFetcher.new(@content).call
+      render json: { message: "Logo sync queued successfully" }, status: :ok
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     def index
       @contents = Content.includes(:seasons, :video_sources).all
       respond_to do |format|
@@ -629,7 +639,7 @@ module Admin
     end
 
     def content_params
-      params.require(:content).permit(:title, :description, :banner, :cover, :content_type, :year, :available, :premium, :tmdb_id, :trailer_url,
+      params.require(:content).permit(:title, :description, :banner, :cover, :logo, :content_type, :year, :available, :premium, :tmdb_id, :trailer_url,
                                       :scheduled_launch_at, category_ids: [])
     end
 

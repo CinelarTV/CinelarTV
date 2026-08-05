@@ -51,7 +51,7 @@ namespace :image_variants do
         content.image_variants.find_or_create_by(
           image_type: "poster", variant: "original", format: "webp"
         ) do |iv|
-          iv.url = content[:cover]
+          iv.url = append_cachebust(content[:cover])
         end
         count += 1
       end
@@ -60,7 +60,7 @@ namespace :image_variants do
         content.image_variants.find_or_create_by(
           image_type: "backdrop", variant: "original", format: "webp"
         ) do |iv|
-          iv.url = content[:banner]
+          iv.url = append_cachebust(content[:banner])
         end
         count += 1
       end
@@ -78,7 +78,7 @@ namespace :image_variants do
         episode.image_variants.find_or_create_by(
           image_type: "episode_thumbnail", variant: "original", format: "webp"
         ) do |iv|
-          iv.url = episode[:thumbnail]
+          iv.url = append_cachebust(episode[:thumbnail])
         end
         count += 1
       end
@@ -161,5 +161,12 @@ namespace :image_variants do
   rescue StandardError => e
     Rails.logger.error("Failed to download #{url}: #{e.message}")
     nil
+  end
+
+  def append_cachebust(url)
+    separator = url.include?("?") ? "&" : "?"
+    "#{url}#{separator}_cb=#{Time.now.to_i}"
+  rescue StandardError
+    url
   end
 end
