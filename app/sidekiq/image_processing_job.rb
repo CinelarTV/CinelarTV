@@ -58,6 +58,7 @@ class ImageProcessingJob
                 when "poster" then "covers"
                 when "backdrop" then "banners"
                 when "episode_thumbnail" then "episode_thumbnails"
+                when "logo" then "logos"
                 else image_type
                 end
 
@@ -69,6 +70,7 @@ class ImageProcessingJob
                 when "poster" then "covers"
                 when "backdrop" then "banners"
                 when "episode_thumbnail" then "episode_thumbnails"
+                when "logo" then "logos"
                 else image_type
                 end
 

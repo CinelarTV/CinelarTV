@@ -40,7 +40,8 @@ class ContentSerializer < ApplicationSerializer
   def images
     {
       poster: object.image_variants_for("poster"),
-      backdrop: object.image_variants_for("backdrop")
+      backdrop: object.image_variants_for("backdrop"),
+      logo: object.image_variants_for("logo")
     }
   end
 
@@ -51,6 +52,10 @@ class ContentSerializer < ApplicationSerializer
 
   def backdrop
     object.image_url_for("backdrop")
+  end
+
+  def logo
+    object.image_url_for("logo")
   end
 
   def cover
@@ -182,7 +187,8 @@ class ContentSerializer < ApplicationSerializer
       cover_resized: related.image_url_for("poster", variant: "medium"),
       images: {
         poster: related.image_variants_for("poster"),
-        backdrop: related.image_variants_for("backdrop")
+        backdrop: related.image_variants_for("backdrop"),
+        logo: related.image_variants_for("logo")
       }
     }
   end

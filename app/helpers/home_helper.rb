@@ -466,7 +466,8 @@ module HomeHelper
       disliked: disliked_content_ids.include?(content.id),
       images: {
         poster: content.image_variants_for("poster", only: allowed_variants),
-        backdrop: content.image_variants_for("backdrop", only: allowed_variants)
+        backdrop: content.image_variants_for("backdrop", only: allowed_variants),
+        logo: content.image_variants_for("logo", only: allowed_variants)
       }
     }
   end

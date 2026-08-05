@@ -80,6 +80,12 @@ module Admin
         end
 
         @content.save!
+
+        # Auto-fetch logo from TMDB if tmdb_id is set and no logo was manually uploaded
+        if @content.tmdb_id.present? && params.dig(:content, :logo).blank?
+          TmdbLogoFetcher.new(@content).call
+        end
+
         render json: { message: "Content created successfully", status: :ok }
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -480,8 +486,10 @@ module Admin
     def handle_uploaded_images
       banner_param = params[:content][:banner]
       cover_param = params[:content][:cover]
+      logo_param = params[:content][:logo]
       process_image(:backdrop) if banner_param.is_a?(ActionDispatch::Http::UploadedFile) || banner_param.to_s.start_with?("tmdb://")
       process_image(:poster) if cover_param.is_a?(ActionDispatch::Http::UploadedFile) || cover_param.to_s.start_with?("tmdb://")
+      process_image(:logo) if logo_param.is_a?(ActionDispatch::Http::UploadedFile) || logo_param.to_s.start_with?("tmdb://")
       @content.save
     end
 
@@ -559,7 +567,8 @@ module Admin
 
       content_data[:images] = {
         poster: content.image_variants_for("poster"),
-        backdrop: content.image_variants_for("backdrop")
+        backdrop: content.image_variants_for("backdrop"),
+        logo: content.image_variants_for("logo")
       }
 
       if content.content_type == "TVSHOW"

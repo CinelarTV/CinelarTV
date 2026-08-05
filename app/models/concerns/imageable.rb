@@ -52,6 +52,11 @@ module Imageable
     image_url_for("backdrop")
   end
 
+  # Legacy accessor: logo original URL
+  def logo_url
+    image_url_for("logo")
+  end
+
   # Delete all image variants for this model
   def destroy_all_images
     image_variants.destroy_all

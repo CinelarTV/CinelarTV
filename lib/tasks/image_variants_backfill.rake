@@ -45,51 +45,46 @@ namespace :image_variants do
 
   def backfill_contents
     count = 0
+    skipped = 0
     Content.find_each do |content|
-      changed = false
-
-      if content[:cover].present? && !content.image_variants.exists?(image_type: "poster", variant: "original", format: "webp")
-        content.image_variants.create!(
-          image_type: "poster",
-          variant: "original",
-          format: "webp",
-          url: content[:cover]
-        )
+      if content[:cover].present?
+        content.image_variants.find_or_create_by(
+          image_type: "poster", variant: "original", format: "webp"
+        ) do |iv|
+          iv.url = content[:cover]
+        end
         count += 1
-        changed = true
       end
 
-      if content[:banner].present? && !content.image_variants.exists?(image_type: "backdrop", variant: "original", format: "webp")
-        content.image_variants.create!(
-          image_type: "backdrop",
-          variant: "original",
-          format: "webp",
-          url: content[:banner]
-        )
+      if content[:banner].present?
+        content.image_variants.find_or_create_by(
+          image_type: "backdrop", variant: "original", format: "webp"
+        ) do |iv|
+          iv.url = content[:banner]
+        end
         count += 1
-        changed = true
       end
 
-      print "." if changed
+      skipped += 1
+      print "."
     end
-    puts " #{count} original variants created for Contents"
+    puts " #{count} original variants created/updated for Contents (#{skipped} processed)"
   end
 
   def backfill_episodes
     count = 0
     Episode.find_each do |episode|
-      if episode[:thumbnail].present? && !episode.image_variants.exists?(image_type: "episode_thumbnail", variant: "original", format: "webp")
-        episode.image_variants.create!(
-          image_type: "episode_thumbnail",
-          variant: "original",
-          format: "webp",
-          url: episode[:thumbnail]
-        )
+      if episode[:thumbnail].present?
+        episode.image_variants.find_or_create_by(
+          image_type: "episode_thumbnail", variant: "original", format: "webp"
+        ) do |iv|
+          iv.url = episode[:thumbnail]
+        end
         count += 1
-        print "."
       end
+      print "."
     end
-    puts " #{count} original variants created for Episodes"
+    puts " #{count} original variants created/updated for Episodes"
   end
 
   def process_content_images(content)
