@@ -60,7 +60,7 @@ class HomeController < ApplicationController
               end
     allowed ||= %w[original medium large]
 
-    contents_data = content.limit(50).map do |c|
+    contents_data = content.includes(:image_variants).limit(50).map do |c|
       { id: c.id, title: c.title, description: c.description,
         banner: c.image_url_for("backdrop"),
         poster: c.image_url_for("poster"),

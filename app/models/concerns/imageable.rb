@@ -7,15 +7,22 @@ module Imageable
     has_many :image_variants, as: :imageable, dependent: :destroy
   end
 
-  # Get a specific image URL
+  # Get a specific image URL.
+  # Uses preloaded image_variants when available (N+1 safe).
   #
   #   content.image_url_for("poster", variant: "thumbnail", format: "avif")
   #   content.image_url_for("backdrop")  # original webp by default
   #
   def image_url_for(image_type, variant: "original", format: "webp")
-    image_variants
-      .find_by(image_type: image_type, variant: variant, format: format)
-      &.url
+    if image_variants.loaded?
+      image_variants.find { |v|
+        v.image_type == image_type.to_s && v.variant == variant.to_s && v.format == format.to_s
+      }&.url
+    else
+      image_variants
+        .find_by(image_type: image_type, variant: variant, format: format)
+        &.url
+    end
   end
 
   # Get all variants for a given image type as a nested hash.

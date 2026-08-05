@@ -299,27 +299,44 @@ module HomeHelper
     shown_ids = Set.new
     per_page = 10
 
-    Category
+    categories = Category
       .joins(:contents)
       .where(contents: { available: true })
       .group("categories.id")
       .having("COUNT(contents.id) >= 3")
       .order(Arel.sql("COUNT(contents.id) DESC"))
       .limit(6)
-      .map do |category|
-        content = Content.by_category_id(category.id, per_page * 3)
-                         .includes(:image_variants)
-                         .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
-                         .shuffle
-                         .reject { |c| shown_ids.include?(c[:id]) }
-                         .first(per_page)
+      .to_a
 
-        next if content.blank?
+    return [] if categories.empty?
 
-        shown_ids.merge(content.map { |c| c[:id] })
-        { title: category.name, content: content }
-      end
-      .compact
+    # Single batch query: all content for all 6 categories with image_variants + categories
+    category_ids = categories.map(&:id)
+    all_content = Content.joins(:content_categories)
+                         .where(content_categories: { category_id: category_ids })
+                         .available
+                         .includes(:image_variants, :categories)
+                         .limit(per_page * 3 * category_ids.size)
+                         .to_a
+
+    # Group content by category (a content can appear in multiple)
+    content_by_cat = Hash.new { |h, k| h[k] = [] }
+    all_content.each do |c|
+      (c.category_ids & category_ids).each { |cat_id| content_by_cat[cat_id] << c }
+    end
+
+    categories.filter_map do |category|
+      contents = content_by_cat[category.id]
+                   &.map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+                   &.shuffle
+                   &.reject { |c| shown_ids.include?(c[:id]) }
+                   &.first(per_page)
+
+      next if contents.blank?
+
+      shown_ids.merge(contents.map { |c| c[:id] })
+      { title: category.name, content: contents }
+    end
   end
 
   def add_new_this_week(liked_ids)
@@ -464,20 +481,24 @@ module HomeHelper
   end
 
   def content_to_hash(content, allowed_variants: nil)
+    poster = content.image_variants_for("poster", only: allowed_variants)
+    backdrop = content.image_variants_for("backdrop", only: allowed_variants)
+    logo = content.image_variants_for("logo", only: allowed_variants)
+
     {
       id: content.id,
       title: content.title,
       description: content.description,
-      banner: content.image_url_for("backdrop"),
-      poster: content.image_url_for("poster"),
-      banner_resized: content.image_url_for("backdrop", variant: "medium"),
-      cover_resized: content.image_url_for("poster", variant: "medium"),
+      banner: backdrop.dig("original", "webp"),
+      poster: poster.dig("original", "webp"),
+      banner_resized: backdrop.dig("medium", "webp"),
+      cover_resized: poster.dig("medium", "webp"),
       liked: liked_content_ids.include?(content.id),
       disliked: disliked_content_ids.include?(content.id),
       images: {
-        poster: content.image_variants_for("poster", only: allowed_variants),
-        backdrop: content.image_variants_for("backdrop", only: allowed_variants),
-        logo: content.image_variants_for("logo", only: allowed_variants)
+        poster: poster,
+        backdrop: backdrop,
+        logo: logo
       }
     }
   end
