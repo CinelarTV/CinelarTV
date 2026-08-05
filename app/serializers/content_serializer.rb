@@ -173,7 +173,17 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def similar_items
-    object.similar_items.map { |related| similar_items_attributes(related) }
+    related = object.similar_items
+    related_ids = related.map(&:id)
+
+    all_variants = ImageVariant.where(imageable_type: "Content", imageable_id: related_ids).to_a
+    variants_by_content = all_variants.group_by(&:imageable_id)
+
+    related.each do |r|
+      r.association(:image_variants).target = variants_by_content[r.id] || []
+    end
+
+    related.map { |related| similar_items_attributes(related) }
   end
 
   def similar_items_attributes(related)

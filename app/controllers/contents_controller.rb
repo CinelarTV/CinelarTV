@@ -29,7 +29,9 @@ class ContentsController < ApplicationController
   end
 
   def show
-    @content = Content.includes(:categories, :cast_members, :trailer_video_sources, seasons: :episodes)
+    @content = Content.includes(:categories, :trailer_video_sources, :image_variants,
+                                cast_members: :person,
+                                seasons: { episodes: :image_variants })
                       .find_by(id: params[:id])
 
     raise CinelarTV::NotFound unless @content
