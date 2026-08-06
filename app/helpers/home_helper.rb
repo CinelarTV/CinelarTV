@@ -13,10 +13,7 @@ module HomeHelper
 
       sections = personalized + global
 
-      if include_trailers
-        inject_trailers_into_content(banner)
-        inject_trailers_into_sections(sections)
-      end
+      inject_trailers(banner, sections) if include_trailers
 
       {
         banner_content: banner,
@@ -99,7 +96,7 @@ module HomeHelper
   def infer_trailer_mime_type(url, _sources)
     case url.to_s
     when /\.m3u8/i then "application/x-mpegurl"
-    when /\.webm/i then "video/webwebm"
+    when /\.webm/i then "video/webm"
     else "video/mp4"
     end
   end
@@ -112,22 +109,28 @@ module HomeHelper
     end
   end
 
+  # Fixes: reuses the already-cached liked/disliked id sets instead of
+  # re-querying them, and preserves the score-based ORDER BY when the ids
+  # are re-hydrated into Content records (a plain `WHERE id IN (...)` does
+  # not guarantee row order, which was silently scrambling the banner).
   def personalized_banner_content(liked_ids, profile)
     liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
     cache_key = "homepage/banner/#{profile.id}/#{liked_hash}"
 
     CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
-      liked_category_ids = liked_category_ids_for(profile)
+      liked_category_ids = liked_category_ids_for(liked_ids)
 
       content_ids = Content.where(available: true)
                            .where.not(banner: nil)
-                           .where.not(id: profile.disliked_contents.select(:id))
+                           .where.not(id: disliked_content_ids.to_a)
                            .left_joins(:content_analytic)
                            .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
                            .limit(10)
                            .pluck(:id)
 
-      Content.where(id: content_ids).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+      contents_by_id = Content.where(id: content_ids).includes(:image_variants).index_by(&:id)
+      content_ids.filter_map { |id| contents_by_id[id] }
+                 .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
     end
   end
 
@@ -147,16 +150,17 @@ module HomeHelper
                          .limit(10)
                          .pluck(:id)
 
-    Content.where(id: content_ids).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+    contents_by_id = Content.where(id: content_ids).includes(:image_variants).index_by(&:id)
+    content_ids.filter_map { |id| contents_by_id[id] }
+               .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
-  def liked_category_ids_for(profile)
-    liked_ids = profile.liked_contents.pluck(:id)
-    return [] if liked_ids.empty?
+  # Now takes the ids directly instead of re-querying profile.liked_contents
+  # (that set is already cached in liked_content_ids).
+  def liked_category_ids_for(liked_ids)
+    return [] if liked_ids.blank?
 
-    ContentCategory.where(content_id: liked_ids)
-                   .distinct
-                   .pluck(:category_id)
+    ContentCategory.where(content_id: liked_ids.to_a).distinct.pluck(:category_id)
   end
 
   def banner_score_sql(liked_category_ids, profile_id)
@@ -238,18 +242,9 @@ module HomeHelper
       END
     SQL
 
-    scores << <<~SQL.squish
-      CASE
-        WHEN EXISTS (
-          SELECT 1
-          FROM dislikes d
-          WHERE d.content_id = contents.id
-            AND d.profile_id = #{quoted_pid}
-        )
-        THEN -5000
-        ELSE 0
-      END
-    SQL
+    # NOTE: the old "-5000 if disliked" branch was removed on purpose: this
+    # query already excludes disliked content via `.where.not(id: disliked_content_ids)`,
+    # so that scoring clause could never fire. Keeping it only added a dead subquery.
 
     scores << "RANDOM() * 2"
 
@@ -293,10 +288,21 @@ module HomeHelper
     Content.most_liked(15).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
+  # BUGFIX: the previous implementation built `all_content` with
+  # `Content.joins(:content_categories).where(content_categories: { category_id: category_ids })`.
+  # Since a single content can belong to several of the selected categories,
+  # that INNER JOIN returned one row PER matching content_category, i.e. the
+  # same Content object multiple times. Iterating that array then pushed the
+  # same content into `content_by_cat[cat_id]` more than once, producing
+  # duplicated cards inside a single genre row.
+  #
+  # Fix: fetch (category_id, content_id) pairs with `pluck` (no row
+  # duplication risk on the Ruby side), pick the ids per category first, and
+  # only then load the small number of Content records actually needed
+  # (instead of a padded, join-duplicated batch of up to 180 rows).
   def add_by_genre(liked_ids)
     return [] unless SiteSetting.enable_content_by_genre
 
-    shown_ids = Set.new
     per_page = 10
 
     categories = Category
@@ -310,32 +316,43 @@ module HomeHelper
 
     return [] if categories.empty?
 
-    # Single batch query: all content for all 6 categories with image_variants + categories
     category_ids = categories.map(&:id)
-    all_content = Content.joins(:content_categories)
-                         .where(content_categories: { category_id: category_ids })
-                         .available
-                         .includes(:image_variants, :categories)
-                         .limit(per_page * 3 * category_ids.size)
-                         .to_a
 
-    # Group content by category (a content can appear in multiple)
-    content_by_cat = Hash.new { |h, k| h[k] = [] }
-    all_content.each do |c|
-      (c.category_ids & category_ids).each { |cat_id| content_by_cat[cat_id] << c }
+    content_ids_by_category = ContentCategory
+      .where(category_id: category_ids)
+      .joins(:content)
+      .where(contents: { available: true })
+      .pluck(:category_id, :content_id)
+      .group_by(&:first)
+      .transform_values { |pairs| pairs.map(&:last) }
+
+    shown_ids = Set.new
+    selected_ids_by_category = {}
+
+    categories.each do |category|
+      ids = content_ids_by_category[category.id]
+      next if ids.blank?
+
+      selected = ids.shuffle.reject { |id| shown_ids.include?(id) }.first(per_page)
+      next if selected.blank?
+
+      shown_ids.merge(selected)
+      selected_ids_by_category[category.id] = selected
     end
 
-    categories.filter_map do |category|
-      contents = content_by_cat[category.id]
-                   &.map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
-                   &.shuffle
-                   &.reject { |c| shown_ids.include?(c[:id]) }
-                   &.first(per_page)
+    return [] if selected_ids_by_category.empty?
 
-      next if contents.blank?
+    contents_by_id = Content.where(id: shown_ids.to_a)
+                            .includes(:image_variants)
+                            .index_by(&:id)
 
-      shown_ids.merge(contents.map { |c| c[:id] })
-      { title: category.name, content: contents }
+    selected_ids_by_category.filter_map do |category_id, ids|
+      content_list = ids.filter_map { |id| contents_by_id[id] }
+                        .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+      next if content_list.blank?
+
+      category = categories.find { |c| c.id == category_id }
+      { title: category.name, content: content_list }
     end
   end
 
@@ -444,21 +461,20 @@ module HomeHelper
     sections
   end
 
-  def inject_trailers_into_content(items)
-    return if items.blank?
+  # Replaces the old inject_trailers_into_content / inject_trailers_into_sections
+  # pair: banner and section content ids overlapped, so calling them
+  # separately meant querying VideoSource twice for a lot of the same ids.
+  # This gathers every id once and does a single trailer lookup.
+  def inject_trailers(banner, sections)
+    content_ids = (banner || []).map { |c| c[:id] } +
+                  sections.flat_map { |s| s[:content].map { |c| c[:id] } }
 
-    content_ids = items.map { |c| c[:id] }
-    trailer_map = load_trailer_map(content_ids)
+    return if content_ids.empty?
 
-    items.each { |item| inject_trailer(item, trailer_map) }
-  end
+    trailer_map = load_trailer_map(content_ids.uniq)
+    return if trailer_map.empty?
 
-  def inject_trailers_into_sections(sections)
-    return if sections.blank?
-
-    content_ids = sections.flat_map { |s| s[:content].map { |c| c[:id] } }.uniq
-    trailer_map = load_trailer_map(content_ids)
-
+    (banner || []).each { |item| inject_trailer(item, trailer_map) }
     sections.each do |section|
       section[:content].each { |item| inject_trailer(item, trailer_map) }
     end
