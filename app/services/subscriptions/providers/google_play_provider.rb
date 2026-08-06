@@ -90,7 +90,7 @@ module Subscriptions
           remote:,
           metadata: {
             "last_google_play_event" => event_type,
-            "last_google_play_event_at" -> Time.zone.now.iso8601,
+            "last_google_play_event_at" => Time.zone.now.iso8601,
             "last_google_play_notification" => notification
           }
         )
