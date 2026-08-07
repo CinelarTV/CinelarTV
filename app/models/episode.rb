@@ -12,6 +12,8 @@ class Episode < ApplicationRecord
   validates :title, presence: true
   validates :tmdb_id, uniqueness: true, allow_nil: true
 
+  after_commit :touch_season, on: %i[create update destroy]
+
   before_destroy :delete_associated_continue_watching
   before_destroy :cleanup_thumbnail
 
@@ -32,5 +34,9 @@ class Episode < ApplicationRecord
 
   def cleanup_thumbnail
     destroy_all_images
+  end
+
+  def touch_season
+    season&.touch
   end
 end
