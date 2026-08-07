@@ -627,6 +627,9 @@ module Admin
       case_statement = quoted_ids.each_with_index.map { |id, index| "WHEN #{id} THEN #{index}" }.join(" ")
 
       relation.where(id: ids).update_all("position = CASE id::text #{case_statement} END")
+
+      # update_all bypasses callbacks, so touch manually to invalidate stale? cache
+      relation.first&.touch
     end
 
     def serialize_content(content)

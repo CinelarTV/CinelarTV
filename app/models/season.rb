@@ -2,8 +2,8 @@
 
 # app/models/season.rb
 class Season < ApplicationRecord
-  belongs_to :content
-  has_many :episodes
+  belongs_to :content, touch: true
+  has_many :episodes, touch: true
 
   validates :title, presence: true
   validates :tmdb_id, uniqueness: true, allow_nil: true
