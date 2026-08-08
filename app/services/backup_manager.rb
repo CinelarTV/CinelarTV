@@ -111,15 +111,21 @@ class BackupManager
       raise RestoreDisabledError, "Restoration is disabled. Enable 'allow_restore' in Site Settings."
     end
 
-    backup = Backup.find_by!(filename: filename)
-    filepath = backup.path
+    backup = Backup.find_by(filename: filename)
+    filepath = if backup
+                 backup.path
+               else
+                 # DB may be empty during a full restore — find the file on disk.
+                 candidate = File.join(Backup.base_directory, filename)
+                 File.exist?(candidate) ? candidate : nil
+               end
 
-    unless File.exist?(filepath)
+    unless filepath.present? && File.exist?(filepath)
       raise RestoreError, "Backup file not found on disk: #{filename}"
     end
 
     # Verify checksum if available
-    if backup.checksum.present?
+    if backup&.checksum.present?
       actual = Digest::SHA256.file(filepath).hexdigest
       unless actual == backup.checksum
         raise RestoreError, "Checksum mismatch! Backup file may be corrupted."
@@ -127,16 +133,17 @@ class BackupManager
     end
 
     # Decrypt if needed
-    if backup.encrypted?
+    if backup&.encrypted?
       password = SiteSetting.backup_encryption_password
       raise RestoreError, "Backup is encrypted but no password configured" if password.blank?
       backup.decrypt_file!(password)
     end
 
-    backup.append_audit("restore_started")
+    backup&.append_audit("restore_started")
 
     # Extract zip to tmp
-    tmp_dir = Rails.root.join("tmp", "restore_#{backup.id}")
+    restore_id = backup&.id || filename.gsub(/[^a-zA-Z0-9]/, "_")
+    tmp_dir = Rails.root.join("tmp", "restore_#{restore_id}")
     FileUtils.mkdir_p(tmp_dir)
 
     begin
@@ -154,12 +161,12 @@ class BackupManager
       # 2. Restore files if present in zip
       if restore_files
         restored = restore_uploaded_files(filepath)
-        backup.append_audit("files_restored", "#{restored} files")
+        backup&.append_audit("files_restored", "#{restored} files")
       else
-        backup.append_audit("files_manifest_restored", "No uploaded files in backup")
+        backup&.append_audit("files_manifest_restored", "No uploaded files in backup")
       end
 
-      backup.append_audit("restore_completed")
+      backup&.append_audit("restore_completed")
       true
     ensure
       FileUtils.rm_rf(tmp_dir) if Dir.exist?(tmp_dir)
@@ -198,7 +205,7 @@ class BackupManager
     backup.append_audit("pg_dump_completed")
   end
 
-  def self.run_pg_restore(filepath, backup)
+  def self.run_pg_restore(filepath, backup = nil)
     db_config = ActiveRecord::Base.connection_db_config.configuration_hash
     pg_restore_path = find_pg_restore
 
@@ -209,7 +216,7 @@ class BackupManager
 
     command = [pg_restore_path, "-c", "--if-exists"] + pg_connection_args(db_config) + [filepath]
 
-    backup.append_audit("pg_restore_started")
+    backup&.append_audit("pg_restore_started")
     _stdout, stderr, status = Open3.capture3(env, *command)
     stderr = stderr.encode("UTF-8", invalid: :replace, undef: :replace, replace: "?")
 
@@ -217,7 +224,7 @@ class BackupManager
       raise RestoreError, "pg_restore failed: #{stderr.strip.presence || "exit status #{status.exitstatus}"}"
     end
 
-    backup.append_audit("pg_restore_completed")
+    backup&.append_audit("pg_restore_completed")
   end
 
   # Build the connection arguments for pg_dump/pg_restore. Neon requires the
