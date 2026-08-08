@@ -78,3 +78,8 @@
       class: ExpireStalePendingSubscriptionsJob
       queue: "subscriptions"
       description: "Destroy pending subscriptions stuck without provider confirmation (>2h)"
+    prune_stream_sessions:
+      every: "1h"
+      class: PruneStreamSessionsJob
+      queue: "default"
+      description: "Remove expired members from stream:user_sessions sets"

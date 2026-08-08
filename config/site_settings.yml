@@ -255,7 +255,7 @@ player:
     min: 5
     max: 300
   stream_ping_interval_seconds:
-    client: false
+    client: true
     refresh: true
     default: 10
     type: "integer"

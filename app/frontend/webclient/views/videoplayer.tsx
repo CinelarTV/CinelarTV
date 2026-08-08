@@ -114,6 +114,15 @@ function formatTime(seconds: number): string {
     return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+// Unique id for the current watch request so a retried /watch call reuses the
+// already-reserved stream slot instead of counting twice against the limit.
+function newClientRequestId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    return `cr-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export default defineComponent({
     name: "VideoPlayer",
     setup() {
@@ -139,6 +148,7 @@ export default defineComponent({
         const sources = ref<{ src: string; type: string }[]>([]);
         const streamPingToken = ref<string | null>(null);
         let pingInterval: ReturnType<typeof setInterval> | null = null;
+        let clientRequestId = newClientRequestId();
 
         const segments = computed(() =>
             watchData.value?.episode?.segments || watchData.value?.content?.segments || []
@@ -211,8 +221,12 @@ export default defineComponent({
             const base = episodeId.value
                 ? `/watch/${contentId.value}/${episodeId.value}.json`
                 : `/watch/${contentId.value}.json`;
+            const params = new URLSearchParams();
             const token = getStoredSessionToken();
-            return token ? `${base}?deviceSessionToken=${encodeURIComponent(token)}` : base;
+            if (token) params.set('deviceSessionToken', token);
+            params.set('clientRequestId', clientRequestId);
+            const qs = params.toString();
+            return qs ? `${base}?${qs}` : base;
         };
 
         // ---------- Stream ping ----------
@@ -231,14 +245,24 @@ export default defineComponent({
             }
         };
 
+        const streamPingIntervalMs = () =>
+            (Number(siteSettings?.stream_ping_interval_seconds) || DEFAULT_STREAM_PING_INTERVAL_MS / 1000) * 1000;
+
         const startStreamPing = (sessionId: string) => {
             if (!sessionId) return;
             stopStreamPing();
-            pingInterval = setInterval(() => pingStreamSession(sessionId), DEFAULT_STREAM_PING_INTERVAL_MS);
+            pingInterval = setInterval(() => pingStreamSession(sessionId), streamPingIntervalMs());
             streamPingToken.value = sessionId;
         };
 
-        // ---------- useContinueWatching ----------
+        // Releases the account's stream slot as soon as the viewer leaves the
+        // player (SPA navigation or tab close). Fire-and-forget on purpose: a
+        // dropped request just lets the Redis TTL clean up later.
+        const sendStreamEnd = () => {
+            const sessionId = streamPingToken.value || getStoredSessionToken();
+            if (!sessionId) return;
+            ajax.post('/stream/end', { session_id: sessionId }).catch(() => {});
+        };        // ---------- useContinueWatching ----------
         let updateProgress: ReturnType<typeof useContinueWatching>['updateProgress'];
         let forceSaveProgress: ReturnType<typeof useContinueWatching>['forceSave'];
 
@@ -473,6 +497,7 @@ export default defineComponent({
         }
 
         watch([() => route.params.contentId, () => route.params.episodeId], () => {
+            clientRequestId = newClientRequestId();
             audioDefaultApplied = false;
             fetchData();
         });
@@ -542,10 +567,25 @@ export default defineComponent({
 
         onMounted(() => {
             document.addEventListener('keydown', handleKeydown);
+            window.addEventListener('pagehide', handlePageHide);
         });
 
+        // Release the stream slot when the tab/page is being closed or the user
+        // navigates away from the SPA. `onBeforeUnmount` covers in-app route
+        // changes; `pagehide` covers tab close / full page unload. Uses
+        // sendBeacon because a regular fetch is often cancelled during unload.
+        const handlePageHide = () => {
+            const sessionId = streamPingToken.value || getStoredSessionToken();
+            if (!sessionId) return;
+            const url = `${window.location.origin}/stream/end`;
+            const payload = new Blob([JSON.stringify({ session_id: sessionId })], { type: 'application/json' });
+            navigator.sendBeacon(url, payload);
+        };
+
         onBeforeUnmount(() => {
+            sendStreamEnd();
             pluginEvents.emit('player:destroy', { player: shakaPlayer });
+            window.removeEventListener('pagehide', handlePageHide);
             document.removeEventListener('keydown', handleKeydown);
             document.body.classList.remove('video-player');
             stopStreamPing();

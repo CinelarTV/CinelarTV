@@ -43,7 +43,7 @@ class StreamSessionsController < ApplicationController
   end
 
   def index
-    sessions = StreamSessionManager.list_sessions(current_user, current_profile&.id)
+    sessions = StreamSessionManager.list_sessions(current_user)
     render json: { sessions: sessions }
   end
 

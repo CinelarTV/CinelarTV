@@ -38,6 +38,7 @@ class PlayerController < ApplicationController
         device_type: stream_device_type,
         profile_id: profile&.id,
         requested_session_id: params[:deviceSessionToken].presence || params[:streamSessionToken].presence,
+        client_request_id: params[:clientRequestId].presence,
         content_title: @content&.title,
         episode_title: @episode&.title
       )
