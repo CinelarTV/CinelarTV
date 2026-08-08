@@ -214,7 +214,7 @@ class BackupManager
       "PGSSLMODE" => db_config[:sslmode].to_s
     }
 
-    command = [pg_restore_path, "-c", "--if-exists"] + pg_connection_args(db_config) + [filepath]
+    command = [pg_restore_path, "-c", "--if-exists", "--no-owner", "--no-privileges"] + pg_connection_args(db_config) + [filepath]
 
     backup&.append_audit("pg_restore_started")
     _stdout, stderr, status = Open3.capture3(env, *command)
