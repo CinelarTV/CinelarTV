@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_05_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_14_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -723,6 +723,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_05_000001) do
   add_foreign_key "watch_party_sessions", "users"
   add_foreign_key "watch_party_sessions", "users", column: "host_id"
   add_foreign_key "watch_sessions", "contents"
-  add_foreign_key "watch_sessions", "episodes"
+  add_foreign_key "watch_sessions", "episodes", on_delete: :cascade
   add_foreign_key "watch_sessions", "profiles"
 end

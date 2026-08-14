@@ -8,6 +8,7 @@ class Episode < ApplicationRecord
 
   belongs_to :season
   has_one :content, through: :season
+  has_many :watch_sessions, dependent: :destroy
 
   validates :title, presence: true
   validates :tmdb_id, uniqueness: true, allow_nil: true
