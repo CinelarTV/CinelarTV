@@ -120,7 +120,7 @@ const fetchContentData = async () => {
         contentTmdbId.value = content.tmdb_id || null
         const seasons = content.seasons || []
         const current = seasons.find(s => s.id === route.params.seasonId)
-        seasonNumber.value = current ? current.position + 1 : null
+        seasonNumber.value = current ? current.position : null
     } catch (error) {
         // Silently fail - TMDB sync is optional
     }
