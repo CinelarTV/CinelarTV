@@ -373,6 +373,7 @@ module HomeHelper
       .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner")
       .joins(:content)
       .where(profile_id: current_profile.id)
+      .where(finished: false)
       .order("content_id, last_watched_at DESC")
       .limit(20)
       .includes(content: :image_variants, episode: nil)
@@ -391,31 +392,35 @@ module HomeHelper
   def build_personalized_sections(liked_ids)
     return [] unless current_profile
 
+    sections = []
+
+    continue_watching = add_continue_watching(liked_ids)
+    if continue_watching.present?
+      sections << { title: I18n.t("js.home.continue_watching"), content: continue_watching }
+    end
+
     liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
     disliked_hash = Digest::MD5.hexdigest(disliked_content_ids.sort.join(","))
     cache_key = "homepage/personal/#{current_profile.id}/#{liked_hash}/#{disliked_hash}"
 
-    CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
-      sections = []
-
-      continue_watching = add_continue_watching(liked_ids)
-      if continue_watching.present?
-        sections << { title: I18n.t("js.home.continue_watching"), content: continue_watching }
-      end
+    recommended_sections = CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
+      result = []
 
       recommended = add_recommended_based_on_liked(liked_ids)
       if recommended[:content].present?
-        sections << { title: I18n.t("js.home.because_you_liked", title: recommended[:title]),
-                      content: recommended[:content].shuffle }
+        result << { title: I18n.t("js.home.because_you_liked", title: recommended[:title]),
+                    content: recommended[:content].shuffle }
       elsif liked_ids.empty?
         maybe_like = add_most_viewed(liked_ids)
         if maybe_like.present?
-          sections << { title: I18n.t("js.home.you_might_like"), content: maybe_like }
+          result << { title: I18n.t("js.home.you_might_like"), content: maybe_like }
         end
       end
 
-      sections
+      result
     end
+
+    sections + recommended_sections
   end
 
   def build_global_sections
