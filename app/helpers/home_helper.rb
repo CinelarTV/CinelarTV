@@ -115,7 +115,8 @@ module HomeHelper
   # not guarantee row order, which was silently scrambling the banner).
   def personalized_banner_content(liked_ids, profile)
     liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
-    cache_key = "homepage/banner/#{profile.id}/#{liked_hash}"
+    disliked_hash = Digest::MD5.hexdigest(disliked_content_ids.sort.join(","))
+    cache_key = "homepage/banner/#{profile.id}/#{liked_hash}/#{disliked_hash}"
 
     CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
       liked_category_ids = liked_category_ids_for(liked_ids)
