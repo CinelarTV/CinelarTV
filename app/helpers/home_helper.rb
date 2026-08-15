@@ -379,10 +379,15 @@ module HomeHelper
       .includes(content: :image_variants, episode: nil)
       .map do |cw|
         content = cw.content
+        episode_key = cw.episode_id.presence || "movie"
+        redis_data = CinelarTV.cache.read("progress/#{cw.profile_id}/#{cw.content_id}/#{episode_key}")
+
+        last_watched = redis_data&.dig(:last_watched_at) || cw.last_watched_at
+
         content_to_hash(content, allowed_variants: allowed_variants).merge(
-          progress: cw.progress,
-          duration: cw.duration,
-          last_watched_at: cw.last_watched_at,
+          progress: redis_data&.dig(:progress) || cw.progress,
+          duration: redis_data&.dig(:duration) || cw.duration,
+          last_watched_at: last_watched,
           episode: cw.episode&.as_json(except: %i[created_at updated_at])
         )
       end
