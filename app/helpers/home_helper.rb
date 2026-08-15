@@ -109,29 +109,42 @@ module HomeHelper
     end
   end
 
-  # Fixes: reuses the already-cached liked/disliked id sets instead of
-  # re-querying them, and preserves the score-based ORDER BY when the ids
-  # are re-hydrated into Content records (a plain `WHERE id IN (...)` does
-  # not guarantee row order, which was silently scrambling the banner).
+  # Genera el peso de cada categoría según la frecuencia en los 'likes' del perfil
+  def user_category_weights(liked_ids)
+    return {} if liked_ids.blank?
+
+    CinelarTV.cache.fetch("profile_category_weights/#{current_profile.id}", expires_in: 1.hour) do
+      ContentCategory.where(content_id: liked_ids.to_a)
+                      .group(:category_id)
+                      .count
+    end
+  end
+
   def personalized_banner_content(liked_ids, profile)
+    # Bucket de rotación (cambia la semilla del caché cada 3 horas para evitar monotonía)
+    rotation_bucket = Time.zone.now.hour / 3
     liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
     disliked_hash = Digest::MD5.hexdigest(disliked_content_ids.sort.join(","))
-    cache_key = "homepage/banner/#{profile.id}/#{liked_hash}/#{disliked_hash}"
+    cache_key = "homepage/banner_v2/#{profile.id}/#{liked_hash}/#{disliked_hash}/rot_#{rotation_bucket}"
 
-    CinelarTV.cache.fetch(cache_key, expires_in: 5.minutes) do
-      liked_category_ids = liked_category_ids_for(liked_ids)
+    CinelarTV.cache.fetch(cache_key, expires_in: 15.minutes) do
+      category_weights = user_category_weights(liked_ids)
 
-      content_ids = Content.where(available: true)
-                           .where.not(banner: nil)
-                           .where.not(id: disliked_content_ids.to_a)
-                           .left_joins(:content_analytic)
-                           .order(Arel.sql(banner_score_sql(liked_category_ids, profile.id)))
-                           .limit(10)
-                           .pluck(:id)
+      # 1. Obtenemos un pool amplio (30 items) evaluados según la nueva fórmula de puntaje
+      candidate_ids = Content.where(available: true)
+                             .where.not(banner: nil)
+                             .where.not(id: disliked_content_ids.to_a)
+                             .left_joins(:content_analytic)
+                             .order(Arel.sql(banner_score_sql(category_weights, profile.id)))
+                             .limit(30)
+                             .pluck(:id)
 
-      contents_by_id = Content.where(id: content_ids).includes(:image_variants).index_by(&:id)
-      content_ids.filter_map { |id| contents_by_id[id] }
-                 .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
+      # 2. Aplicamos diversificación por géneros sobre los candidatos seleccionados
+      selected_ids = apply_banner_diversity(candidate_ids, limit: 10)
+
+      contents_by_id = Content.where(id: selected_ids).includes(:image_variants).index_by(&:id)
+      selected_ids.filter_map { |id| contents_by_id[id] }
+                  .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
     end
   end
 
@@ -156,100 +169,106 @@ module HomeHelper
                .map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
-  # Now takes the ids directly instead of re-querying profile.liked_contents
-  # (that set is already cached in liked_content_ids).
-  def liked_category_ids_for(liked_ids)
-    return [] if liked_ids.blank?
-
-    ContentCategory.where(content_id: liked_ids.to_a).distinct.pluck(:category_id)
-  end
-
-  def banner_score_sql(liked_category_ids, profile_id)
+  def banner_score_sql(category_weights, profile_id)
     connection = ActiveRecord::Base.connection
     quoted_pid = connection.quote(profile_id)
 
     scores = []
 
+    # 1. Contenido en "Continuar viendo" (en progreso)
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
-          SELECT 1
-          FROM continue_watchings cw
+          SELECT 1 FROM continue_watchings cw
           WHERE cw.content_id = contents.id
             AND cw.profile_id = #{quoted_pid}
             AND cw.finished = FALSE
             AND cw.progress > 0
-        )
-        THEN 100
-        ELSE 0
+        ) THEN 40 ELSE 0
       END
     SQL
 
-    if liked_category_ids.any?
-      ids = liked_category_ids.map { |id| connection.quote(id) }.join(",")
+    # 2. Ponderación dinámica de géneros/categorías favoritas
+    if category_weights.any?
+      weight_cases = category_weights.map do |cat_id, count|
+        "WHEN cc.category_id = #{connection.quote(cat_id)} THEN #{[count * 10, 50].min}"
+      end.join(" ")
 
       scores << <<~SQL.squish
-        (
-          SELECT COUNT(*)
+        COALESCE((
+          SELECT SUM(CASE #{weight_cases} ELSE 0 END)
           FROM content_categories cc
           WHERE cc.content_id = contents.id
-            AND cc.category_id IN (#{ids})
-        ) * 15
+        ), 0)
       SQL
     end
 
+    # 3. Coincidencia de elenco / cast preferido
     scores << <<~SQL.squish
-      LEAST(
-        50,
-        (
-          SELECT COUNT(*)
-          FROM cast_members cm
-          WHERE cm.content_id = contents.id
-            AND cm.person_id IN (
-              SELECT DISTINCT cm2.person_id
-              FROM likes l
-              JOIN cast_members cm2 ON cm2.content_id = l.content_id
-              WHERE l.profile_id = #{quoted_pid}
-            )
-        ) * 10
-      )
+      LEAST(40, (
+        SELECT COUNT(*) * 8
+        FROM cast_members cm
+        WHERE cm.content_id = contents.id
+          AND cm.person_id IN (
+            SELECT DISTINCT cm2.person_id
+            FROM likes l
+            JOIN cast_members cm2 ON cm2.content_id = l.content_id
+            WHERE l.profile_id = #{quoted_pid}
+          )
+      ))
     SQL
 
+    # 4. Frescura del contenido (bonus si se agregó recientemente)
     scores << <<~SQL.squish
-      GREATEST(
-        0,
-        50 - (
-          EXTRACT(EPOCH FROM (NOW() - contents.created_at))
-          / 86400.0
-        )
-      )
+      GREATEST(0, 30 - (EXTRACT(EPOCH FROM (NOW() - contents.created_at)) / 86400.0))
     SQL
 
-    scores << <<~SQL.squish
-      LN(GREATEST(COALESCE(content_analytics.total_views, 1), 1)) * 6
-    SQL
+    # 5. Popularidad general logarítmica
+    scores << "LN(GREATEST(COALESCE(content_analytics.total_views, 1), 1)) * 4"
 
+    # 6. Penalización fuerte a lo ya visto del todo (evita repetición innecesaria)
     scores << <<~SQL.squish
       CASE
         WHEN EXISTS (
-          SELECT 1
-          FROM continue_watchings cw
+          SELECT 1 FROM continue_watchings cw
           WHERE cw.content_id = contents.id
             AND cw.profile_id = #{quoted_pid}
             AND cw.finished = TRUE
-        )
-        THEN -1000
-        ELSE 0
+        ) THEN -200 ELSE 0
       END
     SQL
 
-    # NOTE: the old "-5000 if disliked" branch was removed on purpose: this
-    # query already excludes disliked content via `.where.not(id: disliked_content_ids)`,
-    # so that scoring clause could never fire. Keeping it only added a dead subquery.
-
-    scores << "RANDOM() * 2"
+    # 7. Factor estocástico para rotación (variación de puntaje)
+    scores << "RANDOM() * 25"
 
     scores.join(" + ")
+  end
+
+  def apply_banner_diversity(candidate_ids, limit: 10)
+    return candidate_ids.first(limit) if candidate_ids.blank?
+
+    categories_by_content = ContentCategory.where(content_id: candidate_ids)
+                                           .pluck(:content_id, :category_id)
+                                           .to_h
+
+    category_counts = Hash.new(0)
+    selected = []
+
+    candidate_ids.each do |id|
+      cat_id = categories_by_content[id] || 0
+      if category_counts[cat_id] < 3 || selected.size < 5
+        selected << id
+        category_counts[cat_id] += 1
+      end
+      break if selected.size == limit
+    end
+
+    if selected.size < limit
+      remaining = candidate_ids - selected
+      selected.concat(remaining.first(limit - selected.size))
+    end
+
+    selected
   end
 
   def add_added_recently(liked_ids)
@@ -265,7 +284,6 @@ module HomeHelper
     similar_content = random_liked.similar_items
                                   .reject { |c| c.id == random_liked.id || disliked_content_ids.include?(c.id) }
 
-    # Batch-load image_variants for all similar content to avoid N+1
     content_ids = similar_content.map(&:id)
     all_variants = ImageVariant.where(imageable_type: "Content", imageable_id: content_ids).to_a
     variants_by_content = all_variants.group_by(&:imageable_id)
@@ -289,18 +307,6 @@ module HomeHelper
     Content.most_liked(15).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
-  # BUGFIX: the previous implementation built `all_content` with
-  # `Content.joins(:content_categories).where(content_categories: { category_id: category_ids })`.
-  # Since a single content can belong to several of the selected categories,
-  # that INNER JOIN returned one row PER matching content_category, i.e. the
-  # same Content object multiple times. Iterating that array then pushed the
-  # same content into `content_by_cat[cat_id]` more than once, producing
-  # duplicated cards inside a single genre row.
-  #
-  # Fix: fetch (category_id, content_id) pairs with `pluck` (no row
-  # duplication risk on the Ruby side), pick the ids per category first, and
-  # only then load the small number of Content records actually needed
-  # (instead of a padded, join-duplicated batch of up to 180 rows).
   def add_by_genre(liked_ids)
     return [] unless SiteSetting.enable_content_by_genre
 
@@ -472,10 +478,6 @@ module HomeHelper
     sections
   end
 
-  # Replaces the old inject_trailers_into_content / inject_trailers_into_sections
-  # pair: banner and section content ids overlapped, so calling them
-  # separately meant querying VideoSource twice for a lot of the same ids.
-  # This gathers every id once and does a single trailer lookup.
   def inject_trailers(banner, sections)
     content_ids = (banner || []).map { |c| c[:id] } +
                   sections.flat_map { |s| s[:content].map { |c| c[:id] } }
