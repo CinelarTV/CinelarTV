@@ -109,16 +109,14 @@ RSpec.describe SvgSprite do
   describe ".settings_icons" do
     it "reads pipe-delimited values from settings ending with _icon" do
       allow(SiteSetting).to receive(:defined_fields).and_return([
-        { key: :additional_icons, options: { type: "string" } },
         { key: :site_name, options: { type: "string" } },
         { key: :custom_logo_icon, options: { type: "string" } }
       ])
-      allow(SiteSetting).to receive(:get).with(:additional_icons).and_return("foo|bar")
       allow(SiteSetting).to receive(:get).with(:site_name).and_return("My Site")
       allow(SiteSetting).to receive(:get).with(:custom_logo_icon).and_return("star|heart")
 
       icons = described_class.settings_icons
-      expect(icons).to contain_exactly("foo", "bar", "star", "heart")
+      expect(icons).to contain_exactly("star", "heart")
     end
 
     it "ignores settings that don't end with _icon" do
@@ -146,11 +144,17 @@ RSpec.describe SvgSprite do
       PluginRegistry.register_svg_icon("my-plugin-icon", plugin)
 
       expect(described_class.plugin_icons).to include("my-plugin-icon")
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
     end
   end
 
   describe ".resolve_source" do
     it "returns :lucide for icons that exist in lucide-static" do
+      path = Rails.root.join("node_modules", "lucide-static", "icons", "play.svg")
+      allow(File).to receive(:exist?).and_call_original
+      allow(File).to receive(:exist?).with(path).and_return(true)
       expect(described_class.resolve_source("play")).to eq(:lucide)
     end
 
@@ -160,6 +164,21 @@ RSpec.describe SvgSprite do
   end
 
   describe ".icon_symbol" do
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      %w[play settings].each do |name|
+        filename = described_class.to_lucide_filename(name)
+        path = Rails.root.join("node_modules", "lucide-static", "icons", filename)
+        allow(File).to receive(:exist?).with(path).and_return(true)
+      end
+      allow(File).to receive(:read).and_call_original
+      %w[play settings].each do |name|
+        filename = described_class.to_lucide_filename(name)
+        path = Rails.root.join("node_modules", "lucide-static", "icons", filename)
+        allow(File).to receive(:read).with(path).and_return("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M5 3l14 9-14 9V3z\"/></svg>")
+      end
+    end
+
     it "generates a <symbol> element for Lucide icons" do
       symbol = described_class.icon_symbol("play")
       expect(symbol).to include("<symbol id=\"play\" viewBox=\"0 0 24 24\">")

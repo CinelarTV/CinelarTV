@@ -78,7 +78,7 @@ ActiveModel::Serializer.class_eval do
     extensions = Plugin::SerializerExtensionRegistry.extensions_for(self.class)
     return result unless extensions.any?
 
-    opts = options || instance_options || {}
+    opts = options || (respond_to?(:instance_options) ? instance_options : {}) || {}
     scope = opts[:scope] || (respond_to?(:scope) ? self.scope : nil)
     result = result.dup if result.is_a?(Hash)
 

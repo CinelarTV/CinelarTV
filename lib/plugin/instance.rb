@@ -80,8 +80,16 @@ module Plugin
     end
 
     def enabled_site_setting(setting = nil)
-      @enabled_site_setting = setting if setting
-      @enabled_site_setting
+      if setting.nil?
+        @enabled_site_setting
+      else
+        @enabled_site_setting = setting
+        @enabled_site_setting
+      end
+    end
+
+    def enabled_site_setting=(setting)
+      @enabled_site_setting = setting
     end
 
     def register_svg_icon(icon)

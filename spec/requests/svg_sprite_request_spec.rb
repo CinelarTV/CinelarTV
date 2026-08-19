@@ -6,6 +6,7 @@ RSpec.describe "SvgSprite", type: :request do
   before do
     Rails.cache.clear
     SvgSprite.instance_variable_set(:@plugin_svg_files, nil)
+    allow(SiteSetting).to receive(:waiting_on_first_user).and_return(false)
   end
 
   describe "GET /svg-sprite.svg" do
@@ -58,9 +59,10 @@ RSpec.describe "SvgSprite", type: :request do
   end
 
   describe "GET /admin/icon-picker/search" do
-    let(:admin_user) { create(:user, admin: true) }
+    let(:admin_user) { create(:user) }
 
     before do
+      admin_user.add_role(:admin)
       sign_in admin_user
       allow(SiteSetting).to receive(:experimental_icon_engine).and_return(true)
     end

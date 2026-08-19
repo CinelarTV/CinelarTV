@@ -4,7 +4,7 @@ require "json"
 
 module Plugin
   class Manifest
-    attr_reader :path, :data, :legacy_metadata
+    attr_reader :path, :data, :legacy_metadata, :parse_error
 
     def self.from_directory(directory)
       json_path = File.join(directory, "plugin.json")
@@ -18,6 +18,7 @@ module Plugin
       @path = path
       @data = data || {}
       @legacy_metadata = legacy_metadata
+      @parse_error = data["parse_error"]
     end
 
     def id = data["id"].presence || data["name"].presence || legacy_metadata&.name
@@ -37,6 +38,7 @@ module Plugin
     def frontend_api_requirement = data.dig("core", "frontendApi").presence
 
     def valid?
+      return false if @parse_error
       id.present? && id.match?(/\A[a-z0-9][a-z0-9\-]*\z/) && version.present?
     end
 

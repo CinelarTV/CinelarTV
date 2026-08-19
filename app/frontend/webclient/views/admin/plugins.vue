@@ -54,7 +54,16 @@
                         <span class="admin-plugin__badge" :class="`admin-plugin__badge--${plugin.status}`">
                             {{ plugin.status }}
                         </span>
+                        <button v-if="plugin.enabled_site_setting && plugin.compatible" class="admin-plugin__toggle"
+                            :class="{ 'admin-plugin__toggle--on': plugin.enabled }"
+                            :disabled="toggling[plugin.id]" @click="togglePlugin(plugin)">
+                            <span class="admin-plugin__toggle-track">
+                                <span class="admin-plugin__toggle-thumb" />
+                            </span>
+                        </button>
                     </div>
+
+                    <p v-if="plugin.description" class="admin-plugin__description">{{ plugin.description }}</p>
 
                     <div class="admin-plugin__reason" v-if="plugin.status !== 'enabled' && plugin.reason">
                         <CIcon icon="alert-triangle" :size="16" />
@@ -92,6 +101,7 @@ onMounted(() => {
 
 const plugins = ref(null)
 const loading = ref(false)
+const toggling = ref({})
 
 const fetchPlugins = async () => {
     loading.value = true
@@ -102,6 +112,18 @@ const fetchPlugins = async () => {
         console.error('Failed to fetch plugins:', error)
     } finally {
         loading.value = false
+    }
+}
+
+const togglePlugin = async (plugin) => {
+    toggling.value[plugin.id] = true
+    try {
+        const response = await ajax.post(`/admin/plugins/${plugin.id}/toggle`)
+        plugin.enabled = response.data.enabled
+    } catch (error) {
+        console.error('Failed to toggle plugin:', error)
+    } finally {
+        toggling.value[plugin.id] = false
     }
 }
 
@@ -349,6 +371,57 @@ const summaries = computed(() => {
     gap: 6px;
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.45);
+}
+
+.admin-plugin__description {
+    margin: 8px 0 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.5;
+}
+
+/* ── Toggle ──────────────────────────────────────────────────────────── */
+.admin-plugin__toggle {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    outline: none;
+}
+
+.admin-plugin__toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-plugin__toggle-track {
+    display: flex;
+    align-items: center;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.admin-plugin__toggle--on .admin-plugin__toggle-track {
+    background: var(--c-tertiary-400, #0095d9);
+}
+
+.admin-plugin__toggle-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    position: absolute;
+    left: 2px;
+    transition: transform 0.2s ease;
+}
+
+.admin-plugin__toggle--on .admin-plugin__toggle-thumb {
+    transform: translateX(16px);
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────── */

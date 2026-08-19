@@ -12,6 +12,7 @@ namespace :admin do
   get "site_settings/:category" => "site_settings#index"
   post "site_settings/test_connection" => "site_settings#test_storage_connection"
   get "plugins" => "plugins#index"
+  post "plugins/:id/toggle" => "plugins#toggle"
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
   post "restart" => "updates#restart_server"

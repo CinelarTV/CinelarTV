@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Plugin::DependencyResolver do
-  def build_record(id, version: "1.0.0", dependencies: {}, status: :compatible)
+  def build_record(id, version: "1.0.0", dependencies: {}, status: :compatible, reason: nil)
     manifest = instance_double(
       Plugin::Manifest,
       id: id,
@@ -16,7 +16,8 @@ RSpec.describe Plugin::DependencyResolver do
       version: version,
       manifest: manifest,
       status: status,
-      compatible?: %i[compatible enabled].include?(status)
+      compatible?: %i[compatible enabled].include?(status),
+      reason: reason
     )
   end
 
@@ -116,7 +117,8 @@ RSpec.describe Plugin::DependencyResolver do
     end
 
     it "handles npm caret range for 0.x" do
-      expect(described_class.satisfies?("0.5.0", "^0.1.0")).to be true
+      expect(described_class.satisfies?("0.1.5", "^0.1.0")).to be true
+      expect(described_class.satisfies?("0.5.0", "^0.1.0")).to be false
       expect(described_class.satisfies?("0.10.0", "^0.1.0")).to be false
     end
 
