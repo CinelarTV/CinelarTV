@@ -40,7 +40,7 @@
         <%= render partial: "partials/stylesheet" %>
       </cinelar-assets-stylesheets>
       <cinelar-assets-icons>
-        <%= tag.div(id: "cinelar-icon-sheet") %>
+        <%= tag.div(id: "cinelar-icon-sheet") { raw inline_svg_sprite } %>
       </cinelar-assets-icons>
       <cinelar-essentials-preload>
         <%= tag.div(id: "data-preloaded", "data-preloaded": preloaded_json) %>
@@ -62,10 +62,12 @@
       </div>
     </noscript>
     <%= render_external_scripts %>
+    <%= render_plugin_importmap %>
+    <%= plugin_bootstrap_script %>
     <%= vite_client_tag %>
 
     <%= vite_typescript_tag 'boot-cinelartv' %>
-    <%= render_third_party_plugins_js %>
+    <%# PluginHost loads third-party module entries from plugin_bootstrap_script. %>
 
 
    

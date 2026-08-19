@@ -113,6 +113,15 @@ main {
   transform-box: fill-box;
 }
 
+svg.icon {
+  fill: none;
+  stroke: currentColor;
+}
+
+cinelar-assets-icons {
+  display: none !important;
+}
+
 
 
 

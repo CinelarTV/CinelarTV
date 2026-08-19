@@ -223,9 +223,9 @@ class ContentSerializer < ApplicationSerializer
 
   def continue_watching_attributes(continue_watching)
     attributes_to_include = if object.content_type == Content.content_types["TVSHOW"]
-                              %i[episode_id progress duration]
+                              %i[episode_id progress duration finished]
                             elsif object.content_type == Content.content_types["MOVIE"]
-                              %i[progress duration]
+                              %i[progress duration finished]
                             else
                               []
                             end

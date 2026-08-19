@@ -8,6 +8,7 @@ import CButton from '../components/forms/c-button';
 import CSpinner from '../components/c-spinner';
 import EpisodesList from "@/components/content/EpisodesList";
 import ResponsiveImage from '../components/ResponsiveImage';
+import PluginOutlet from '../components/PluginOutlet';
 
 export default defineComponent({
     name: 'ContentView',
@@ -232,9 +233,13 @@ export default defineComponent({
                                                     class={['content-actions__btn--primary', (contentData.value?.premium && !(currentUser as any)?.is_subscribed) ? 'premium-btn' : '']}
                                                     onClick={playContent}
                                                 >
-                                                    {content?.continueWatching ? 'Continuar viendo' : 'Reproducir'}
+                                                    {content?.continueWatching?.finished ? 'Ver de nuevo' : content?.continueWatching ? 'Continuar viendo' : 'Reproducir'}
                                                 </CButton>
 
+                                                <PluginOutlet
+                                                    name="content:actions"
+                                                    context={{ content: contentData.value, currentUser }}
+                                                />
                                             </>
                                         ) : (
                                             <p class="content-actions__unavailable">

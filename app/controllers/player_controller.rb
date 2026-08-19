@@ -152,11 +152,17 @@ class PlayerController < ApplicationController
   def create_or_find_continue_watching(profile)
     return unless profile && @content
 
-    ContinueWatching.find_or_create_by(
+    cw = ContinueWatching.find_or_create_by(
       profile_id: profile.id,
       content_id: @content.id,
       episode_id: @episode&.id
     )
+
+    if cw.finished?
+      cw.update!(progress: 0, finished: false)
+    end
+
+    cw
   end
 
   def render_json_response(continue_watching)

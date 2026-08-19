@@ -1,4 +1,4 @@
-import { defineComponent, computed, ref, onMounted } from 'vue';
+import { defineComponent, computed, ref, onMounted, Transition } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { useSiteSettings } from '../../services/site-settings';
@@ -118,7 +118,7 @@ export default defineComponent({
             </MenuButton>
 
             {/* Dropdown */}
-            <transition
+            <Transition
               enterActiveClass="transition duration-150 ease-out"
               enterFromClass="opacity-0 scale-95 -translate-y-1"
               enterToClass="opacity-100 scale-100 translate-y-0"
@@ -250,7 +250,7 @@ export default defineComponent({
 
                 </div>
               </MenuItems>
-            </transition>
+            </Transition>
           </Menu>
         ) : (
           <div class="flex items-center gap-2">

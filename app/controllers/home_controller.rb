@@ -12,11 +12,17 @@ class HomeController < ApplicationController
     respond_to do |format|
       format.html
       format.json do
-        # ETag compuesto: cambia cuando el catálogo o el perfil del usuario cambian.
-        # private: la respuesta incluye datos personalizados (continue_watching, liked).
+        # ETag compuesto: cambia cuando el catálogo, el perfil o el progreso de
+        # visualización del usuario cambian.
         latest_updated = Content.maximum(:updated_at) || Time.current
         profile_version = current_profile&.updated_at.to_i
-        composite_etag = Digest::MD5.hexdigest("#{latest_updated.to_i}-#{profile_version}")
+        cw_version = if current_profile
+                       ContinueWatching.where(profile_id: current_profile.id)
+                                       .maximum(:updated_at).to_i
+                     else
+                       0
+                     end
+        composite_etag = Digest::MD5.hexdigest("#{latest_updated.to_i}-#{profile_version}-#{cw_version}")
 
         if stale?(last_modified: latest_updated, etag: composite_etag, public: false)
           render json: homepage_data

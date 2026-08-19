@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import CinelarTV from '../application';
+
+let appInstance: any = null;
 
 const getCsrfToken = (): string => {
   return document?.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -16,12 +17,12 @@ export const ajax = axios.create({
 
 ajax.interceptors.request.use(
   (config) => {
-    CinelarTV.config.globalProperties.$progress.start();
+    appInstance?.config.globalProperties.$progress?.start();
     document.body.classList.add('ajax-loading');
     return config;
   },
   (error) => {
-    CinelarTV.config.globalProperties.$progress.finish();
+    appInstance?.config.globalProperties.$progress?.finish();
     document.body.classList.remove('ajax-loading');
     return Promise.reject(error);
   }
@@ -29,7 +30,7 @@ ajax.interceptors.request.use(
 
 ajax.interceptors.response.use(
   (response) => {
-    CinelarTV.config.globalProperties.$progress.finish();
+    appInstance?.config.globalProperties.$progress?.finish();
     document.body.classList.remove('ajax-loading');
     // Allow any successful 2xx response (201 created, 204 no content, etc.)
     if ((response.status >= 200 && response.status < 300) || response.status === 422) {
@@ -37,7 +38,7 @@ ajax.interceptors.response.use(
     }
   },
   (error: AxiosError) => {
-    CinelarTV.config.globalProperties.$progress.finish();
+    appInstance?.config.globalProperties.$progress?.finish();
     document.body.classList.remove('ajax-loading');
     if (error.response?.status === 404) {
       // AppRouter.replace('/not-found');
@@ -76,6 +77,7 @@ renewCsrfToken();
 
 export default {
   install: (app: any) => {
+    appInstance = app;
     app.config.globalProperties.$http = ajax;
   },
 };

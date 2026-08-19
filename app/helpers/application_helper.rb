@@ -26,6 +26,24 @@ module ApplicationHelper
     preloaded.to_json.html_safe
   end
 
+  def inline_svg_sprite
+    return unless SiteSetting.experimental_icon_engine
+
+    begin
+      SvgSprite.cached_bundle
+    rescue => e
+      Rails.logger.warn("[SvgSprite] Failed to generate sprite: #{e.message}")
+      nil
+    end
+  end
+
+  def plugin_bootstrap_script
+    payload = {
+      plugins: Plugin::ThirdPartyLoader.frontend_entries
+    }
+    content_tag(:script, "window.__CINELARTV_PLUGIN_BOOTSTRAP__=#{payload.to_json};".html_safe, nonce: true)
+  end
+
   def include_splash?
     SiteSetting.enable_splash_screen
   end

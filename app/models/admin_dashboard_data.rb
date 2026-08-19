@@ -40,7 +40,7 @@ class AdminDashboardData
 
   def problem_syms
     # Define aquí los problemas verificados por símbolos
-    %i[check_updates check_ram check_sidekiq check_ffmpeg_present check_media_integrity]
+    %i[check_updates check_ram check_sidekiq check_ffmpeg_present check_media_integrity check_plugins]
   end
 
   def check_ram
@@ -94,6 +94,22 @@ class AdminDashboardData
       type: "warning",
       icon: "file-warning",
     )
+  end
+
+  def check_plugins
+    registry = Rails.configuration.x.plugin_registry
+    return unless registry
+
+    invalid = registry.records.select { |record| record.status == :blocked || record.status == :failed }
+    return if invalid.empty?
+
+    invalid.each do |record|
+      add_problem(
+        content: I18n.t("dashboard.plugin_warning", id: record.id, reason: record.reason || record.status),
+        type: "warning",
+        icon: "plug",
+      )
+    end
   end
 
   private
