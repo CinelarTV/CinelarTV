@@ -1,0 +1,22 @@
+{
+  "id": "cinelar-live",
+  "version": "0.1.0",
+  "core": { "version": ">=0.1.0.a", "frontendApi": "^1.0.0" },
+  "dependencies": {
+    "@cinelartv/core": "^1.0.0",
+    "@cinelartv/plugin-api": "^1.0.0",
+    "@cinelartv/ui": "^1.0.0",
+    "cinelar-watchparty": "*"
+  },
+  "frontend": {
+    "entry": "app/index.ts",
+    "styles": ["app/assets/styles/live.css"],
+    "externals": ["vue"]
+  },
+  "backend": {
+    "entry": "plugin.rb",
+    "engine": "Live::Engine",
+    "routes": "config/routes.rb",
+    "migrations": "db/migrate"
+  }
+}

@@ -1,0 +1,32 @@
+plugins:
+  cinelar_live_enabled:
+    client: true
+    refresh: true
+    default: true
+    type: 'boolean'
+    description: "Enable CinelarTV Live community cinema events"
+
+  cinelar_live_sync_interval:
+    default: 30
+    type: integer
+    description: "Seconds between playback sync broadcasts"
+
+  cinelar_live_drift_threshold:
+    default: 3
+    type: integer
+    description: "Seconds of drift before correcting player position"
+
+  cinelar_live_activity_timeout:
+    default: 600
+    type: integer
+    description: "Seconds of inactivity before ending a live session"
+
+  cinelar_live_event_scheduling:
+    client: true
+    refresh: true
+    default: everyone
+    type: "enum"
+    allowed_values:
+      - everyone
+      - admins_only
+    description: "Who can schedule community cinema events"
