@@ -28,10 +28,12 @@
     <%= csp_meta_tag %>
     <%= render partial: "partials/opengraph" %>
     <%= render partial: "partials/schema_web_site" %>
-    <%= render_third_party_plugins_css %>
-  </head>
-  <body class="app-body<% if device == "mobile" %> is-mobile<% end %>">
+    </head>
+    <body class="app-body<% if device == "mobile" %> is-mobile<% end %>">
     <cinelar-assets>
+      <cinelar-plugins-assets>
+        <%= render_third_party_plugins_css %>
+      </cinelar-plugins-assets>
       <cinelar-assets-stylesheets>
         <%= render partial: "partials/stylesheet" %>
       </cinelar-assets-stylesheets>
