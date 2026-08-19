@@ -74,6 +74,11 @@ const adminLinks = [
     to: '/admin/backups'
   },
   {
+    title: $t("js.admin.nav.plugins") || 'Plugins',
+    icon: 'plug',
+    to: '/admin/plugins'
+  },
+  {
     title: $t("js.admin.nav.updater"),
     icon: 'package-open',
     to: '/admin/updates',

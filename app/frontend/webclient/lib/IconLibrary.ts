@@ -1,4 +1,3 @@
-import * as icons from "lucide-static";
 import { useSiteSettings } from "../app/services/site-settings";
 import { useIconsStore } from "../store/icons";
 import { PiniaStore } from "../app/lib/Pinia";
@@ -19,7 +18,6 @@ const BASE_ICONS = new Set([
     "rocket", "trash2", "pencil", "layoutGrid", "bookmark", "volume1", "volume2",
     "volumeX", "home", "packageOpen", "webhook", "cast", "shrink", "messageCircleMore",
     "messageCircleOff", "mail", "shield-check", "shuffle", "languages",
-    // Email template editor icons
     "eye", "save", "send", "bold", "italic", "strikethrough",
     "heading-1", "heading-2", "heading-3",
     "list", "list-ordered", "quote", "code", "minus", "link",
@@ -27,16 +25,49 @@ const BASE_ICONS = new Set([
     "mail-check", "key-round", "unlock"
 ]);
 
-const toKebabCase = (str: string): string =>
-    str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+export const BASE_ICONS_LIST = Array.from(BASE_ICONS);
 
 const toPascalCase = (str: string): string =>
     str.replace(/(^|_|-|\s)([a-z])/g, (_, __, l) => l.toUpperCase()).replace(/[-_\s]/g, "");
 
-// Cache por icono individual
+const toKebabCase = (str: string): string =>
+    str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+
+let iconsModule: Record<string, string> | null = null;
+
+const loadIconsModule = async (): Promise<Record<string, string>> => {
+    if (!iconsModule) {
+        const mod = await import("lucide-static");
+        iconsModule = mod as unknown as Record<string, string>;
+    }
+    return iconsModule;
+};
+
+// ─── Server-side sprite detection (inline) ──────────────────────────────────
+
+let serverSpriteDetected = false;
+
+const detectInlineSprite = (): boolean => {
+    if (serverSpriteDetected) return true;
+
+    const iconSheet = document.getElementById("cinelar-icon-sheet");
+    if (!iconSheet) return false;
+
+    const symbols = iconSheet.querySelectorAll("symbol");
+    if (symbols.length > 0) {
+        serverSpriteDetected = true;
+        console.log(`[IconLibrary] Inline server sprite detected (${symbols.length} symbols)`);
+        return true;
+    }
+
+    return false;
+};
+
+// ─── Client-side sprite generation (fallback) ───────────────────────────────
+
 const symbolCache = new Map<string, string[]>();
 
-const createIconSymbol = (iconName: string): string[] => {
+const createIconSymbol = (iconName: string, icons: Record<string, string>): string[] => {
     if (symbolCache.has(iconName)) return symbolCache.get(iconName)!;
 
     const pascalName = toPascalCase(iconName);
@@ -59,26 +90,10 @@ const createIconSymbol = (iconName: string): string[] => {
     return result;
 };
 
-// Instancia única del store
-let iconsStore: ReturnType<typeof useIconsStore> | null = null;
-
-const getAllIcons = (): Set<string> => {
-    const iconSet = new Set(BASE_ICONS);
-
-    siteSettings.additional_icons
-        ?.split("|")
-        .forEach((icon: string) => icon.trim() && iconSet.add(icon.trim()));
-
-    iconsStore ??= useIconsStore();
-    iconsStore.icons.forEach((icon: string) => iconSet.add(icon));
-
-    return iconSet;
-};
-
 let cachedSpriteKey: string | null = null;
 let cachedSpriteContent: string | null = null;
 
-export const generateSpriteSheet = (): boolean => {
+const generateClientSpriteSheet = async (): Promise<boolean> => {
     try {
         const iconSheet = document.getElementById("cinelar-icon-sheet");
         if (!iconSheet) {
@@ -86,6 +101,7 @@ export const generateSpriteSheet = (): boolean => {
             return false;
         }
 
+        const icons = await loadIconsModule();
         const allIcons = getAllIcons();
         const spriteKey = [...allIcons].join(",");
 
@@ -96,7 +112,7 @@ export const generateSpriteSheet = (): boolean => {
 
         const svgSymbols: string[] = [];
         for (const iconName of allIcons) {
-            svgSymbols.push(...createIconSymbol(iconName));
+            svgSymbols.push(...createIconSymbol(iconName, icons));
         }
 
         cachedSpriteContent = `<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">${svgSymbols.join("")}</svg>`;
@@ -112,22 +128,48 @@ export const generateSpriteSheet = (): boolean => {
     }
 };
 
+// ─── Public API ─────────────────────────────────────────────────────────────
+
+let iconsStore: ReturnType<typeof useIconsStore> | null = null;
+
+const getAllIcons = (): Set<string> => {
+    const iconSet = new Set(BASE_ICONS);
+
+    siteSettings.additional_icons
+        ?.split("|")
+        .forEach((icon: string) => icon.trim() && iconSet.add(icon.trim()));
+
+    iconsStore ??= useIconsStore();
+    iconsStore.icons.forEach((icon: string) => iconSet.add(icon));
+
+    return iconSet;
+};
+
+export const generateSpriteSheet = async (): Promise<boolean> => {
+    if (detectInlineSprite()) return true;
+    return generateClientSpriteSheet();
+};
+
 export const clearIconCache = (): void => {
     cachedSpriteContent = null;
     cachedSpriteKey = null;
     symbolCache.clear();
 };
 
-export const isIconAvailable = (iconName: string): boolean =>
-    toPascalCase(iconName) in icons;
+export const isIconAvailable = (iconName: string): boolean => {
+    if (detectInlineSprite()) {
+        const iconSheet = document.getElementById("cinelar-icon-sheet");
+        return !!iconSheet?.querySelector(`symbol[id="${iconName}"]`);
+    }
+    return getAllIcons().has(iconName);
+};
 
 const iconLibrary = {
     install: (app: any) => {
         if ((window as any)._cinelarIconSheetInitialized) return;
         (window as any)._cinelarIconSheetInitialized = true;
 
-        const raf = window.requestAnimationFrame ?? setTimeout;
-        raf(() => generateSpriteSheet());
+        detectInlineSprite();
 
         app.config.globalProperties.$iconLibrary = {
             generateSpriteSheet,
