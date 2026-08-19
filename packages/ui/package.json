@@ -1,0 +1,15 @@
+{
+  "name": "@cinelartv/ui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    }
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}

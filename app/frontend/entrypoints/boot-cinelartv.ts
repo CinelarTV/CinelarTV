@@ -1,68 +1,48 @@
-
 import loadScript from '../webclient/lib/load-script.js';
-//import { SafeMode } from '../cinelartv-legacy/pre-initializers/safe-mode.js';
 import { useSiteSettings } from "../webclient/app/services/site-settings.js";
-import { PiniaStore } from "../webclient/app/lib/Pinia.js";
 import { showPreloaderError } from "@/pre-initializers/essentials-preload.js";
-//import { showPreloaderError } from "../ pre-initializers/essentials-preload.js";
+import { createPluginHost } from "../webclient/plugins/PluginHost";
 
-
-
-import(/* webpackChunkName: "cinelartv" */ '../webclient/application.js').then(async module => {
+import('../webclient/application.js').then(async module => {
     const CinelarTV = module.default;
     const { loadPlugins } = module;
 
-    // Iniciar carga de plugins en paralelo ANTES de montar la app
-    const pluginsPromise = loadPlugins().catch(e => {
-        console.error('❌ Error cargando plugins:', e);
-        return []; // Continuar aunque fallen plugins
+    // Discovery may happen early, but PluginHost initialization deliberately
+    // waits until the app and the legacy API are both available.
+    const pluginsPromise = loadPlugins().catch((error: unknown) => {
+        console.error('[CinelarTV] plugin discovery failed', error);
+        return [];
     });
+    const pluginApiPromise = import('../webclient/lib/PluginAPI.js').catch(() => ({ default: null }));
 
-    const pluginApiPromise = import('../webclient/lib/PluginAPI.js').catch(e => {
-        console.error('❌ Error cargando PluginAPI:', e);
-        return { default: null };
-    });
-
-    // Mount app inmediatamente mientras los plugins cargan en background
-    console.log('🚀 Mounting CinelarTV app...');
     CinelarTV.mount('#cinelartv');
-    document.querySelector("noscript")?.remove();
-    window.CinelarTV = CinelarTV;
+    document.querySelector('noscript')?.remove();
+    (window as any).CinelarTV = CinelarTV;
 
     try {
         const { siteSettings } = useSiteSettings();
+        const [plugins, pluginApiModule] = await Promise.all([pluginsPromise, pluginApiPromise]);
+        if (pluginApiModule?.default) (window as any).PluginAPI = new pluginApiModule.default('1.0.0', CinelarTV);
 
-        // Esperar a que terminen las cargas paralelas
-        const [plugins, pluginApiModule] = await Promise.all([
-            pluginsPromise,
-            pluginApiPromise
-        ]);
-
-        // Inicializar PluginAPI si se cargó correctamente
-        if (pluginApiModule?.default) {
-            window.PluginAPI = new pluginApiModule.default('1.0.0', CinelarTV);
-            console.log('✅ PluginAPI initialized');
-        } else {
-            console.warn('⚠️ PluginAPI no está disponible');
+        const host = createPluginHost((window as any).__CINELARTV_PLUGIN_BOOTSTRAP__?.plugins || []);
+        (window as any).CinelarTVPluginHost = host;
+        for (const { path, plugin } of plugins as any[]) {
+            const id = plugin.id || plugin.name || path.match(/@plugins\/([^/]+)/)?.[1];
+            if (!id) continue;
+            try {
+                await host.initializeDefinition(id, plugin);
+            } catch (error) {
+                console.error(`[CinelarTV] failed to initialize plugin ${id}`, error);
+            }
         }
+        await host.initialize();
 
-        console.log(`📦 Plugins loaded: ${plugins.length}`);
-
-        // Custom JS (no bloquea, pero después de PluginAPI listo)
-        if (siteSettings.custom_js && siteSettings.custom_js.length > 0) {
-            console.log('🔧 Loading custom JavaScript');
-            loadScript(null, siteSettings.custom_js).catch(error => {
-                console.error('❌ Error loading custom JS:', error);
-            });
-        }
-
-        console.log('🎉 CinelarTV boot completed successfully');
+        if (siteSettings.custom_js?.length) loadScript(null, siteSettings.custom_js).catch(console.error);
     } catch (error) {
-        console.error('❌ Error en boot flow:', error);
+        console.error('[CinelarTV] boot failed', error);
     }
-
 }).catch(error => {
     console.error(error);
     showPreloaderError(error);
-    throw `CinelarTV failed to load: ${error}`;
+    throw new Error(`CinelarTV failed to load: ${error}`);
 });

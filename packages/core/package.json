@@ -1,5 +1,5 @@
 {
-  "name": "@cinelartv/plugin-api",
+  "name": "@cinelartv/core",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,5 @@
     "vue": "^3.5.0",
     "pinia": "^3.0.0",
     "vue-router": "^4.5.0"
-  },
-  "dependencies": {
-    "@cinelartv/core": "workspace:*",
-    "@cinelartv/services": "workspace:*"
   }
 }

@@ -181,7 +181,22 @@ class PluginAPI {
         symbol.innerHTML = svgIcon;
     }
 
+    /**
+     * @deprecated Use register_svg_icon in plugin.rb instead for standard icons.
+     * Custom SVG injection still works but should be avoided when possible.
+     * This method will be removed in CinelarTV 2.0.0.
+     */
     addIcon(iconName: string, svgIcon: SvgIcon = null): void {
+        deprecated(
+            "addIcon is deprecated. Register icons server-side via register_svg_icon in plugin.rb. " +
+            "Custom SVG injection via addIcon(name, svgContent) still works but should be avoided.",
+            {
+                deprecatedFunction: "addIcon",
+                since: "1.5.0",
+                dropFrom: "2.0.0",
+            }
+        );
+
         if (!svgIcon) {
             this._getIconsStore().addIcon(iconName);
             return;
