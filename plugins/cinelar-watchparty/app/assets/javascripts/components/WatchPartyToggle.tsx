@@ -1,4 +1,4 @@
-import { defineComponent, ref, computed, getCurrentInstance, inject, onMounted } from "vue";
+import { defineComponent, ref, computed, getCurrentInstance, inject, onMounted, unref } from "vue";
 import { useWatchParty } from "../services/watchparty-service";
 
 export default defineComponent({
@@ -15,11 +15,11 @@ export default defineComponent({
 
         // Content ID: prefer from player context, fallback to route
         const contentId = computed(() => {
-            return playerContentId;
+            return unref(playerContentId);
         });
 
         const episodeId = computed(() => {
-            return playerEpisodeId;
+            return unref(playerEpisodeId);
         });
 
         // Auto-join from URL on mount

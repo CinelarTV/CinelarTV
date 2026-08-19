@@ -1,0 +1,21 @@
+{
+  "id": "cinelar-watchparty",
+  "version": "1.0.0",
+  "core": { "version": ">=0.1.0.a", "frontendApi": "^1.0.0" },
+  "dependencies": {
+    "@cinelartv/core": "^1.0.0",
+    "@cinelartv/plugin-api": "^1.0.0",
+    "@cinelartv/ui": "^1.0.0"
+  },
+  "frontend": {
+    "entry": "app/index.ts",
+    "styles": ["app/assets/styles/watchparty.css"],
+    "externals": ["vue"]
+  },
+  "backend": {
+    "entry": "plugin.rb",
+    "engine": "WatchParty::Engine",
+    "routes": "config/routes.rb",
+    "migrations": "db/migrate"
+  }
+}

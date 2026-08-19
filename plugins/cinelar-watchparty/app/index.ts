@@ -1,37 +1,21 @@
-import { useSiteSettings, usePluginOutlets } from "@cinelartv/services";
-import { registerPluginOutlet } from "@cinelartv/plugin-api";
-import { defineAsyncComponent, defineComponent, h, ref, provide } from "vue";
+import { useSiteSettings } from "@cinelartv/core";
+import { definePlugin } from "@cinelartv/plugin-api";
+import { defineAsyncComponent } from "vue";
 import WatchPartyChat from "./assets/javascripts/components/WatchPartyChat";
 import { useWatchParty } from "./assets/javascripts/services/watchparty-service";
+import "./assets/styles/watchparty.css";
 
-export default {
-    name: 'CinelarWatchPartyPlugin',
-    version: '1.0.0',
-    description: 'Plugin para integrar la funcionalidad de Watch Party en CinelarTV',
-    init() {
-        const { siteSettings } = useSiteSettings();
+export default definePlugin({
+  id: "cinelar-watchparty",
+  setup(api) {
+    const { siteSettings } = useSiteSettings();
+    if (!siteSettings.cinelar_watchparty_enabled) return;
 
-        if (!siteSettings.cinelar_watchparty_enabled) {
-            console.warn('Cinelar Watch Party plugin is disabled in site settings.');
-            return;
-        }
-
-        // Create shared WatchParty service instance
-        const watchpartyService = useWatchParty();
-        provide('watchparty', watchpartyService);
-
-        // Register toggle button in player top controls
-        registerPluginOutlet(
-            'player:top-controls:right',
-            defineAsyncComponent(() => import('./assets/javascripts/components/WatchPartyToggle'))
-        );
-
-        // Register chat panel after media player
-        registerPluginOutlet(
-            'player:after-media-player',
-            WatchPartyChat
-        );
-
-        console.log('Cinelar Watch Party plugin initialized successfully');
-    }
-};
+    useWatchParty();
+    api.outlets.register("player.topControls.right", {
+      id: "toggle",
+      component: defineAsyncComponent(() => import("./assets/javascripts/components/WatchPartyToggle")),
+    });
+    api.outlets.register("player.afterMedia", { id: "chat", component: WatchPartyChat });
+  },
+});
