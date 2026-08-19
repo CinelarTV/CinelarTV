@@ -242,14 +242,13 @@ RSpec.describe SvgSprite do
     end
 
     it "changes when icons change" do
-      v1 = described_class.version
+      v1 = described_class.sources_fingerprint
       allow(SiteSetting).to receive(:defined_fields).and_return([
-        { key: :dynamic_icon_field, options: { type: "string" } }
+        { key: :custom_logo_icon, options: { type: "string" } }
       ])
-      allow(SiteSetting).to receive(:get).with(:dynamic_icon_field).and_return("dynamic-icon")
+      allow(SiteSetting).to receive(:get).with(:custom_logo_icon).and_return("star|heart")
       allow(SiteSetting).to receive(:additional_icons).and_return("extra-icon")
-      Rails.cache.clear
-      v2 = described_class.version
+      v2 = described_class.sources_fingerprint
       expect(v1).not_to eq(v2)
     end
   end

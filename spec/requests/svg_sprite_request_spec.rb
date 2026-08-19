@@ -85,14 +85,16 @@ RSpec.describe "SvgSprite", type: :request do
       get "/admin/icon-picker/search", headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:success)
       json = JSON.parse(response.body)
-      expect(json).to be_an(Array)
-      expect(json.first).to have_key("id")
+      icons = json.is_a?(Hash) && json["icon_picker"] ? json["icon_picker"] : json
+      expect(icons).to be_an(Array)
+      expect(icons.first).to have_key("id")
     end
 
     it "filters by keyword" do
       get "/admin/icon-picker/search", params: { filter: "play" }, headers: { "Accept" => "application/json" }
       json = JSON.parse(response.body)
-      ids = json.map { |i| i["id"] }
+      icons = json.is_a?(Hash) && json["icon_picker"] ? json["icon_picker"] : json
+      ids = icons.map { |i| i["id"] }
       expect(ids).to all(include("play"))
     end
   end
