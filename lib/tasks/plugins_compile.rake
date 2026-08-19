@@ -3,6 +3,7 @@
 require "open3"
 require "json"
 require "yaml"
+require_relative "../plugin/public_packages"
 
 namespace :plugins do
   desc "Compile third-party plugins not included in prebuilt assets"
@@ -30,8 +31,10 @@ namespace :plugins do
     third_party = plugin_jsons.filter_map do |pj|
       data = JSON.parse(File.read(pj))
       plugin_dir = File.dirname(pj)
-      next if first_party.include?(data["name"])
-      { dir: plugin_dir, name: data["name"], json: data }
+      plugin_id = data["id"] || data["name"]
+      next if plugin_id.blank?
+      next if first_party.include?(plugin_id)
+      { dir: plugin_dir, name: plugin_id, json: data }
     end
 
     if third_party.empty?
@@ -54,6 +57,7 @@ namespace :plugins do
           "RAILS_ENV" => Rails.env,
           "SECRET_KEY_BASE" => ENV.fetch("SECRET_KEY_BASE", "build-only"),
           "PLUGIN_DIR" => plugin[:dir],
+          "CINELARTV_PUBLIC_PACKAGES" => Plugin::PublicPackages.names.join(","),
           "NODE_OPTIONS" => "--max-old-space-size=2048",
         },
         "pnpm", "exec", "vite", "build", "--mode", "production", "--config", vite_config.to_s
@@ -69,7 +73,11 @@ namespace :plugins do
       plugin_out_dir = output_base.join(plugin[:name])
       entry = {
         name: plugin[:name],
+        id: plugin[:name],
         version: plugin[:json]["version"],
+        core: plugin[:json]["core"] || { "version" => plugin[:json]["cinelartv_version"] },
+        dependencies: plugin[:json]["dependencies"] || {},
+        frontend: plugin[:json]["frontend"] || { "entry" => plugin[:json]["entry"] || "app/index.ts" },
         js: [],
         css: [],
       }

@@ -88,6 +88,9 @@ Rails.application.routes.draw do
     mount Sidekiq::Web => "/sidekiq"
   end
 
+  # SVG Sprite endpoint (must be before catch-all)
+  get "svg-sprite" => "svg_sprite#show"
+
   # Wizard
 
   get "wizard" => "wizard#index"
@@ -141,7 +144,7 @@ Rails.application.routes.draw do
   end
 
   # =====================================================
-  # Plugin Routes - Auto-discovered from plugins/
+  # Plugin Routes - Loaded via registry for enabled plugins only
   # =====================================================
   # Register plugin autoload paths so controllers can be resolved
   # Must happen before routes are drawn
@@ -152,10 +155,9 @@ Rails.application.routes.draw do
     Rails.autoloaders.main.push_dir(plugin_models_dir)
   end
 
-  # Load plugin routes
-  #Dir.glob(Rails.root.join("plugins", "*", "config", "routes.rb")).each do |plugin_routes_file|
-  #  instance_eval(File.read(plugin_routes_file))
-  #end
+  # Load plugin routes only for enabled, compatible plugins
+  # self inside draw block is the Mapper (has namespace, post, get, etc.)
+  Plugin::RouteLoader.load(context: self)
 
   # Explicit 404 routes so the catch-all does not swallow them
   get "/404", to: "exceptions#not_found"

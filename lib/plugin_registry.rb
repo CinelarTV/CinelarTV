@@ -42,10 +42,15 @@ module PluginRegistry
 
     def clear_all
       instance_variables.each do |var|
-        if var.to_s.start_with?('@_raw_')
+        var_name = var.to_s.delete("@").to_sym
+        if var.to_s.start_with?("@_raw_")
           instance_variable_set(var, [])
-        elsif (type = REGISTER_TYPES[var.to_s.delete("@").to_sym])
+        elsif (type = REGISTER_TYPES[var_name])
           instance_variable_set(var, type.dup)
+        elsif !var_name.to_s.start_with?("_") && instance_variable_get(var).is_a?(Array)
+          instance_variable_set(var, [])
+        elsif instance_variable_get(var).is_a?(Hash)
+          instance_variable_set(var, {})
         end
       end
     end
@@ -74,6 +79,7 @@ module PluginRegistry
       define_filtered_register :content_metadata_fields
       define_filtered_register :player_controls
       define_filtered_register :search_filters
+      define_filtered_register :svg_icons
     end
   end
 

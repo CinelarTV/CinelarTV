@@ -9,7 +9,13 @@ Bundler.require(*Rails.groups)
 
 # Load plugin system before application configuration
 require_relative "../lib/plugin/metadata"
+require_relative "../lib/plugin/public_packages"
+require_relative "../lib/plugin/manifest"
+require_relative "../lib/plugin/dependency_resolver"
+require_relative "../lib/plugin/registry"
 require_relative "../lib/plugin/instance"
+require_relative "../lib/plugin/serializer_extensions"
+require_relative "../lib/plugin/route_loader"
 require_relative "../lib/plugin_registry"
 require_relative "../lib/app_event"
 
@@ -22,7 +28,7 @@ module CinelarTV
     config.eager_load_paths << "#{root}/app/services"
 
     # Plugin paths
-    %w[controllers models].each do |layer|
+    %w[controllers models services sidekiq].each do |layer|
       Dir.glob(Rails.root.join("plugins", "*", "app", layer)).each do |dir|
         config.autoload_paths << dir
       end
@@ -34,13 +40,14 @@ module CinelarTV
 
     # Activar plugins ANTES del boot completo (registra assets, migraciones, etc.)
     config.before_initialize do
-      Plugin::Instance
-        .find_all(Rails.root.join("plugins").to_s)
-        .each do |plugin|
-          plugin.activate!
-          CinelarTV.plugins << plugin
-          CinelarTV.plugins_by_name[plugin.name] = plugin
-        end
+      registry = Plugin::Registry.build
+      registry.activate!
+      config.x.plugin_registry = registry
+      registry.records.select(&:enabled?).each do |record|
+        plugin = record.instance
+        CinelarTV.plugins << plugin
+        CinelarTV.plugins_by_name[plugin.name] = plugin
+      end
     end
 
     require "cinelar_tv"

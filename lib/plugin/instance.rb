@@ -2,7 +2,7 @@
 
 module Plugin
   class Instance
-    attr_accessor :path, :metadata, :enabled_site_setting
+    attr_accessor :path, :metadata
     attr_reader :initializers
 
     def self.find_all(parent_path)
@@ -82,6 +82,21 @@ module Plugin
     def enabled_site_setting(setting = nil)
       @enabled_site_setting = setting if setting
       @enabled_site_setting
+    end
+
+    def register_svg_icon(icon)
+      PluginRegistry.register_svg_icon(icon.strip, self)
+    end
+
+    def register_serializer_extension(serializer_class, attribute_name, if: nil, &block)
+      plugin_name = self.name
+      Plugin::SerializerExtensionRegistry.register(
+        serializer_class,
+        attribute_name,
+        plugin_name: plugin_name,
+        condition: binding.local_variable_get(:if),
+        &block
+      )
     end
 
     def reloadable_patch(plugin = self)

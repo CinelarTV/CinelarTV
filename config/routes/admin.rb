@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 namespace :admin do
+  # Icon picker for admin UI
+  get "icon-picker/search" => "icon_picker#search"
+
   get "dashboard" => "dashboard#index"
   get "dashboard/statistics" => "dashboard#reports"
 
@@ -8,6 +11,7 @@ namespace :admin do
   put "site_settings" => "site_settings#update"
   get "site_settings/:category" => "site_settings#index"
   post "site_settings/test_connection" => "site_settings#test_storage_connection"
+  get "plugins" => "plugins#index"
   get "updates" => "updates#index"
   post "upgrade" => "updates#run_update"
   post "restart" => "updates#restart_server"

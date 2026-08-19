@@ -3,12 +3,16 @@
   "title": "CinelarTV Plugin Manifest",
   "description": "Schema for plugin.json files in third-party CinelarTV plugins",
   "type": "object",
-  "required": ["name", "version"],
+  "required": ["id", "version"],
   "properties": {
-    "name": {
+    "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9\\-]*$",
       "description": "Unique plugin identifier (lowercase, alphanumeric, hyphens)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Legacy alias for id; retained during the migration"
     },
     "version": {
       "type": "string",
@@ -19,20 +23,56 @@
       "type": "string",
       "description": "Short description of the plugin"
     },
+    "core": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "frontendApi": { "type": "string" }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "optionalDependencies": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "frontend": {
+      "type": "object",
+      "properties": {
+        "entry": { "type": "string", "default": "app/index.ts" },
+        "styles": { "type": "array", "items": { "type": "string" } },
+        "externals": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Public core/runtime packages required as browser ESM externals"
+        },
+        "extensions": { "type": "object" }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "properties": {
+        "entry": { "type": "string", "default": "plugin.rb" },
+        "engine": { "type": "string" },
+        "routes": { "type": "string" },
+        "migrations": { "type": "string" }
+      }
+    },
+    "assets": { "type": "object" },
     "cinelartv_version": {
       "type": "string",
-      "description": "Required CinelarTV version (semver range, e.g. >=1.0.0)"
+      "description": "Legacy alias for core.version"
     },
     "entry": {
       "type": "string",
-      "default": "app/index.ts",
-      "description": "Relative path to the plugin entry point"
+      "description": "Legacy alias for frontend.entry"
     },
     "externals": {
       "type": "array",
       "items": { "type": "string" },
-      "default": ["vue", "vue-router", "pinia"],
-      "description": "Dependencies provided by the host app (not bundled)"
+      "description": "Legacy alias for frontend.externals"
     }
   }
 }

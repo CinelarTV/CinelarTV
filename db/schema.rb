@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_14_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_18_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -203,6 +203,52 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_14_000001) do
     t.index ["created_at"], name: "index_likes_on_created_at"
     t.index ["profile_id"], name: "index_likes_on_profile_id"
     t.index ["updated_at"], name: "index_likes_on_updated_at"
+  end
+
+  create_table "live_chat_messages", force: :cascade do |t|
+    t.bigint "live_event_id", null: false
+    t.uuid "profile_id", null: false
+    t.string "message_type", default: "user", null: false
+    t.text "body"
+    t.boolean "deleted", default: false, null: false
+    t.datetime "deleted_at"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["live_event_id", "created_at"], name: "index_live_chat_messages_on_live_event_id_and_created_at"
+    t.index ["live_event_id"], name: "index_live_chat_messages_on_live_event_id"
+    t.index ["message_type"], name: "index_live_chat_messages_on_message_type"
+    t.index ["profile_id"], name: "index_live_chat_messages_on_profile_id"
+  end
+
+  create_table "live_event_attendees", force: :cascade do |t|
+    t.bigint "live_event_id", null: false
+    t.uuid "profile_id", null: false
+    t.datetime "notified_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["live_event_id", "profile_id"], name: "index_live_event_attendees_on_live_event_id_and_profile_id", unique: true
+    t.index ["live_event_id"], name: "index_live_event_attendees_on_live_event_id"
+    t.index ["profile_id"], name: "index_live_event_attendees_on_profile_id"
+  end
+
+  create_table "live_events", force: :cascade do |t|
+    t.uuid "content_id", null: false
+    t.uuid "organizer_id", null: false
+    t.string "title"
+    t.text "description"
+    t.datetime "starts_at", null: false
+    t.datetime "estimated_end_at"
+    t.integer "status", default: 0, null: false
+    t.integer "max_participants"
+    t.boolean "is_public", default: true, null: false
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_id"], name: "index_live_events_on_content_id"
+    t.index ["organizer_id"], name: "index_live_events_on_organizer_id"
+    t.index ["status", "starts_at"], name: "index_live_events_on_status_and_starts_at"
+    t.index ["status"], name: "index_live_events_on_status"
   end
 
   create_table "live_tv_channels", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -638,8 +684,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_14_000001) do
     t.datetime "last_sync_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "live_event_id"
+    t.boolean "is_public", default: false, null: false
+    t.float "playback_position", default: 0.0
+    t.datetime "last_playback_update_at"
+    t.datetime "last_activity_at"
     t.index ["content_id"], name: "index_watch_party_sessions_on_content_id"
     t.index ["host_id"], name: "index_watch_party_sessions_on_host_id"
+    t.index ["is_public", "ended_at"], name: "index_watch_party_sessions_on_is_public_and_ended_at"
+    t.index ["live_event_id"], name: "index_watch_party_sessions_on_live_event_id"
     t.index ["user_id"], name: "index_watch_party_sessions_on_user_id"
   end
 
@@ -701,6 +754,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_14_000001) do
   add_foreign_key "episodes", "seasons"
   add_foreign_key "likes", "contents"
   add_foreign_key "likes", "profiles"
+  add_foreign_key "live_chat_messages", "live_events"
+  add_foreign_key "live_chat_messages", "profiles"
+  add_foreign_key "live_event_attendees", "live_events"
+  add_foreign_key "live_event_attendees", "profiles"
+  add_foreign_key "live_events", "contents"
+  add_foreign_key "live_events", "users", column: "organizer_id"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_device_grants", "oauth_applications", column: "application_id"
@@ -720,6 +779,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_14_000001) do
   add_foreign_key "tv_programs", "live_tv_channels"
   add_foreign_key "watch_party_session_users", "users"
   add_foreign_key "watch_party_session_users", "watch_party_sessions"
+  add_foreign_key "watch_party_sessions", "live_events"
   add_foreign_key "watch_party_sessions", "users"
   add_foreign_key "watch_party_sessions", "users", column: "host_id"
   add_foreign_key "watch_sessions", "contents"
