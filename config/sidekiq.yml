@@ -5,6 +5,7 @@
   - [ xmltv, 2 ]
 
 :scheduler:
+  :dynamic: true
   :schedule:
     # Run every 15 minutes
     verify_instance_license:

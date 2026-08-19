@@ -662,6 +662,10 @@ customization:
     refresh: true
     default: ""
     type: "list"
+  experimental_icon_engine:
+    client: true
+    default: true
+    type: "boolean"
   email_custom_template:
     default: ""
     hidden: true

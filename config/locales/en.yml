@@ -82,6 +82,7 @@ en:
     broken_media_warning:
       one: "There is 1 video source that failed integrity checks. <a href='/admin/content-manager/media-integrity'>View details</a>"
       other: "There are %{count} video sources that failed integrity checks. <a href='/admin/content-manager/media-integrity'>View details</a>"
+    plugin_warning: "Plugin <code>%{id}</code> is not active: %{reason}. <a href='/admin/plugins'>Manage plugins</a>."
   devise:
     failure:
       account_suspended: "Your account has been suspended. Please contact support for
@@ -131,6 +132,7 @@ en:
         email_style: "Email Style"
         email_templates: "Email Templates"
         live_tv: "Live TV"
+        plugins: "Plugins"
         settings: "Settings"
         subscriptions: "Subscriptions"
         updater: "Upgrader"
@@ -150,6 +152,9 @@ en:
         additional_icons:
           description: "Allows to add additional icons to the application"
           title: "Additional icons"
+        experimental_icon_engine:
+          description: "Use server-side SVG sprite generation instead of loading all Lucide icons on the client"
+          title: "Experimental Icon Engine"
         additonal_player_settings:
           description: "Provides a way to add additional settings to the player. This can
             be useful if you want to extend the functionality of the player. API

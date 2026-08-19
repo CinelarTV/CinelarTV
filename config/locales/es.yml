@@ -84,6 +84,7 @@ es:
     broken_media_warning:
       one: "Hay 1 fuente de video que falló en las pruebas de integridad. <a href='/admin/content-manager/media-integrity'>Ver detalles</a>"
       other: "Hay %{count} fuentes de video que fallaron en las pruebas de integridad. <a href='/admin/content-manager/media-integrity'>Ver detalles</a>"
+    plugin_warning: "El plugin <code>%{id}</code> no está activo: %{reason}. <a href='/admin/plugins'>Gestionar plugins</a>."
   devise:
     failure:
       account_suspended: "Tu cuenta ha sido suspendida. Ponte en contacto con el
@@ -132,6 +133,7 @@ es:
         email_style: "Estilo de email"
         email_templates: "Plantillas de email"
         live_tv: "Televisión en vivo"
+        plugins: "Plugins"
         settings: "Configuración"
         subscriptions: "Suscripciones"
         updater: "Actualizador"
@@ -151,6 +153,9 @@ es:
         additional_icons:
           description: "Permite añadir iconos adicionales a la aplicación"
           title: "Iconos adicionales"
+        experimental_icon_engine:
+          description: "Usa generación de sprites SVG del lado del servidor en lugar de cargar todos los iconos de Lucide en el cliente"
+          title: "Motor de iconos experimental"
         additonal_player_settings:
           description: "Proporciona una forma de añadir ajustes adicionales al
             reproductor. Esto puede resultar útil si desea ampliar la

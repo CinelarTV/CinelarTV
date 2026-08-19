@@ -12,7 +12,17 @@ if (!pluginDir) {
 }
 
 const pluginJsonPath = resolve(pluginDir, "plugin.json");
-let pluginJson: { name: string; version: string; entry?: string };
+type PluginManifest = {
+  id?: string;
+  name?: string;
+  version: string;
+  entry?: string;
+  externals?: string[];
+  dependencies?: Record<string, string>;
+  frontend?: { entry?: string; externals?: string[] };
+};
+
+let pluginJson: PluginManifest;
 
 try {
   pluginJson = JSON.parse(readFileSync(pluginJsonPath, "utf-8"));
@@ -21,9 +31,32 @@ try {
   process.exit(1);
 }
 
-const pluginName = pluginJson.name;
-const entryFile = pluginJson.entry || "app/index.ts";
+const pluginName = pluginJson.id || pluginJson.name;
+if (!pluginName) {
+  console.error("plugin.json requires id (or legacy name)");
+  process.exit(1);
+}
+const entryFile = pluginJson.frontend?.entry || pluginJson.entry || "app/index.ts";
 const entryPath = resolve(pluginDir, entryFile);
+
+// Plugins declare exactly which public core modules they need. `externals` is
+// now real build input; legacy top-level externals remains supported. Runtime
+// singleton specifiers are allowed only when explicitly requested.
+const declaredExternals = new Set([
+  ...Object.keys(pluginJson.dependencies || {}).filter((name) => name.startsWith("@cinelartv/")),
+  ...(pluginJson.frontend?.externals || pluginJson.externals || []),
+]);
+const allowedExternals = new Set(
+  (process.env.CINELARTV_PUBLIC_PACKAGES || "@cinelartv/ui,@cinelartv/core,@cinelartv/plugin-api,vue,pinia,vue-router")
+    .split(",")
+    .filter(Boolean),
+);
+const externals = [...declaredExternals].filter((name) => allowedExternals.has(name));
+const unsupportedExternals = [...declaredExternals].filter((name) => !allowedExternals.has(name));
+if (unsupportedExternals.length > 0) {
+  console.error(`Plugin declares non-public externals: ${unsupportedExternals.join(", ")}`);
+  process.exit(1);
+}
 
 export default defineConfig({
   mode: "production",
@@ -41,17 +74,11 @@ export default defineConfig({
     outDir: resolve("public", "plugins", pluginName),
     emptyOutDir: true,
     rollupOptions: {
-      external: ["vue", "pinia", "vue-router", "axios"],
+      external: externals,
       output: {
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith(".css")) return "style.[hash].css";
           return "assets/[name].[hash][extname]";
-        },
-        globals: {
-          vue: "Vue",
-          pinia: "Pinia",
-          "vue-router": "VueRouter",
-          axios: "axios",
         },
       },
     },
