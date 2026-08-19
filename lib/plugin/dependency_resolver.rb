@@ -42,6 +42,7 @@ module Plugin
 
     def visit(record)
       return if @visited[record.id] || @blocked.key?(record.id)
+      return unless record.compatible?
       if @visiting.include?(record.id)
         cycle = (@visiting.drop(@visiting.index(record.id)) + [record.id]).join(" -> ")
         @visiting.each { |id| block(@records[id], "cyclic plugin dependency: #{cycle}") }

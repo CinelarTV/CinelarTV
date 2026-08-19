@@ -50,7 +50,7 @@ class SitemapController < ApplicationController
   private
 
   def ensure_sitemap_enabled
-   raise CinelarTV::NotFound unless SiteSetting.enable_sitemap
+   head :not_found and return false unless SiteSetting.enable_sitemap
   end
 
   def canonical_base

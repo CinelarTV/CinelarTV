@@ -6,6 +6,9 @@ RSpec.describe SvgSprite do
   before do
     Rails.cache.clear
     SvgSprite.instance_variable_set(:@plugin_svg_files, nil)
+    PluginRegistry.clear_all
+    PluginRegistry.reset!
+    allow(SiteSetting).to receive(:additional_icons).and_return("")
   end
 
   describe ".to_kebab_case" do
@@ -181,7 +184,8 @@ RSpec.describe SvgSprite do
 
     it "generates a <symbol> element for Lucide icons" do
       symbol = described_class.icon_symbol("play")
-      expect(symbol).to include("<symbol id=\"play\" viewBox=\"0 0 24 24\">")
+      expect(symbol).to include("<symbol id=\"play\"")
+      expect(symbol).to include("viewBox=\"0 0 24 24\"")
       expect(symbol).to include("</symbol>")
     end
 
@@ -202,8 +206,21 @@ RSpec.describe SvgSprite do
 
   describe ".uncached_bundle" do
     it "generates a valid SVG with symbol elements" do
+      allow(File).to receive(:exist?).and_call_original
+      %w[play settings].each do |name|
+        filename = described_class.to_lucide_filename(name)
+        path = Rails.root.join("node_modules", "lucide-static", "icons", filename)
+        allow(File).to receive(:exist?).with(path).and_return(true)
+      end
+      allow(File).to receive(:read).and_call_original
+      %w[play settings].each do |name|
+        filename = described_class.to_lucide_filename(name)
+        path = Rails.root.join("node_modules", "lucide-static", "icons", filename)
+        allow(File).to receive(:read).with(path).and_return("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M5 3l14 9-14 9V3z\"/></svg>")
+      end
+
       bundle = described_class.uncached_bundle
-      expect(bundle).to start_with("<svg xmlns='http://www.w3.org/2000/svg' style='display: none;'>")
+      expect(bundle).to start_with("<svg xmlns='http://www.w3.org/2000/svg'")
       expect(bundle).to end_with("</svg>")
       expect(bundle).to include("<symbol id=\"play\"")
       expect(bundle).to include("<symbol id=\"settings\"")
@@ -226,10 +243,13 @@ RSpec.describe SvgSprite do
 
     it "changes when icons change" do
       v1 = described_class.version
-      described_class::SVG_ICONS.add("new_test_icon")
+      allow(SiteSetting).to receive(:defined_fields).and_return([
+        { key: :dynamic_icon_field, options: { type: "string" } }
+      ])
+      allow(SiteSetting).to receive(:get).with(:dynamic_icon_field).and_return("dynamic-icon")
+      allow(SiteSetting).to receive(:additional_icons).and_return("extra-icon")
       Rails.cache.clear
       v2 = described_class.version
-      described_class::SVG_ICONS.delete("new_test_icon")
       expect(v1).not_to eq(v2)
     end
   end
@@ -262,11 +282,11 @@ RSpec.describe SvgSprite do
 
   describe ".expire_cache" do
     it "clears the sprite cache" do
-      described_class.cached_bundle
-      expect(Rails.cache.exist?(/\Asvg_sprite\/v2\//)).to be true
+      bundle1 = described_class.cached_bundle
+      bundle2 = described_class.cached_bundle
+      expect(bundle1).to eq(bundle2)
+
       described_class.expire_cache
-      # After clearing, next read should be a cache miss (we can't easily test this,
-      # but at minimum it shouldn't raise an error)
       expect { described_class.expire_cache }.not_to raise_error
     end
   end

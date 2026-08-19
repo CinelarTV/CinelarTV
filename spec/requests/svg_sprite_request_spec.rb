@@ -7,6 +7,20 @@ RSpec.describe "SvgSprite", type: :request do
     Rails.cache.clear
     SvgSprite.instance_variable_set(:@plugin_svg_files, nil)
     allow(SiteSetting).to receive(:waiting_on_first_user).and_return(false)
+    allow(SiteSetting).to receive(:additional_icons).and_return("")
+    allow(SiteSetting).to receive(:defined_fields).and_return([])
+    stub_lucide_icons
+  end
+
+  def stub_lucide_icons
+    allow(File).to receive(:exist?).and_call_original
+    allow(File).to receive(:read).and_call_original
+    %w[play pause settings volume2 volumeX maximize minimize check search star].each do |name|
+      filename = SvgSprite.to_lucide_filename(name)
+      path = Rails.root.join("node_modules", "lucide-static", "icons", filename)
+      allow(File).to receive(:exist?).with(path).and_return(true)
+      allow(File).to receive(:read).with(path).and_return("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M5 3l14 9-14 9V3z\"/></svg>")
+    end
   end
 
   describe "GET /svg-sprite.svg" do
@@ -68,7 +82,7 @@ RSpec.describe "SvgSprite", type: :request do
     end
 
     it "returns icon list" do
-      get "/admin/icon-picker/search"
+      get "/admin/icon-picker/search", headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:success)
       json = JSON.parse(response.body)
       expect(json).to be_an(Array)
@@ -76,7 +90,7 @@ RSpec.describe "SvgSprite", type: :request do
     end
 
     it "filters by keyword" do
-      get "/admin/icon-picker/search", params: { filter: "play" }
+      get "/admin/icon-picker/search", params: { filter: "play" }, headers: { "Accept" => "application/json" }
       json = JSON.parse(response.body)
       ids = json.map { |i| i["id"] }
       expect(ids).to all(include("play"))
