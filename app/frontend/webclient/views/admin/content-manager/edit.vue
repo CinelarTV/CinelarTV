@@ -676,9 +676,17 @@ const saveContent = async (e) => {
             if (['id', 'created_at', 'updated_at', 'seasons'].includes(key)) {
                 return;
             }
-            // Only skip undefined/null — allow false/empty strings/0 to be sent
-            if (value === undefined || value === null) {
+            // Only skip undefined — allow null for fields like scheduled_launch_at
+            // so the backend can explicitly clear them
+            if (value === undefined) {
                 return;
+            }
+            // Allow null values for specific fields that need explicit clearing
+            if (value === null) {
+                const nullableFields = ['scheduled_launch_at'];
+                if (!nullableFields.includes(key)) {
+                    return;
+                }
             }
             // Handle category_ids array
             if (key === 'category_ids' && Array.isArray(value)) {

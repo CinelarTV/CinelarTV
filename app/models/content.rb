@@ -46,7 +46,7 @@ class Content < ApplicationRecord
   validates :title, presence: true
   validates :content_type, presence: true
   validates :year, numericality: { only_integer: true }, allow_nil: true
-  validates :scheduled_launch_at, presence: true, if: -> { scheduled_launch_at_before_last_save.present? }
+  validates :scheduled_launch_at, presence: true, if: -> { scheduled_launch_at.present? }
   validate :trailer_url_must_be_video, if: :trailer_url?
   validate :scheduled_launch_at_must_be_future, on: :update
 
