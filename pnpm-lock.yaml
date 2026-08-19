@@ -265,6 +265,15 @@ importers:
         specifier: ^3.5.0
         version: 3.5.18(typescript@5.6.3)
 
+  plugins/cinelar-live:
+    dependencies:
+      '@cinelartv/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      '@cinelartv/services':
+        specifier: workspace:*
+        version: link:../../packages/services
+
   plugins/cinelar-watchparty:
     dependencies:
       '@cinelartv/plugin-api':
