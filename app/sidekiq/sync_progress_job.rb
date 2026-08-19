@@ -19,5 +19,13 @@ class SyncProgressJob
         last_watched_at: Time.current
       )
     end
+
+    invalidate_homepage_cache(profile_id)
+  end
+
+  private
+
+  def invalidate_homepage_cache(profile_id)
+    CinelarTV.cache.delete_matched("homepage/personal/#{profile_id}/*")
   end
 end
