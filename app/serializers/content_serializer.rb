@@ -166,7 +166,15 @@ class ContentSerializer < ApplicationSerializer
     }
 
     if continue_watching_data
-      attributes[:continue_watching] = continue_watching_data.as_json(only: %i[progress duration])
+      cw_data = continue_watching_data.as_json(only: %i[progress duration])
+
+      redis_data = CinelarTV.cache.read("progress/#{continue_watching_data.profile_id}/#{continue_watching_data.content_id}/#{episode.id}")
+      if redis_data
+        cw_data["progress"] = redis_data[:progress] if redis_data[:progress]
+        cw_data["duration"] = redis_data[:duration] if redis_data[:duration]
+      end
+
+      attributes[:continue_watching] = cw_data
     end
 
     attributes
@@ -232,6 +240,16 @@ class ContentSerializer < ApplicationSerializer
 
     return unless attributes_to_include.any?
 
-    continue_watching.as_json(only: attributes_to_include)
+    data = continue_watching.as_json(only: attributes_to_include)
+
+    episode_key = continue_watching.episode_id.presence || "movie"
+    redis_data = CinelarTV.cache.read("progress/#{continue_watching.profile_id}/#{continue_watching.content_id}/#{episode_key}")
+
+    if redis_data
+      data["progress"] = redis_data[:progress] if redis_data[:progress]
+      data["duration"] = redis_data[:duration] if redis_data[:duration]
+    end
+
+    data
   end
 end
