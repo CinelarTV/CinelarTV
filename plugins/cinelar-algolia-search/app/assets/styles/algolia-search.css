@@ -1,0 +1,50 @@
+.algolia-search-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.algolia-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid var(--color-border, #333);
+  border-radius: 8px;
+  background: var(--color-surface, #1a1a2e);
+  color: var(--color-text, #fff);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.algolia-search-input:focus {
+  border-color: var(--color-primary, #6366f1);
+}
+
+.algolia-search-results {
+  margin-top: 24px;
+}
+
+.algolia-search-section {
+  margin-bottom: 32px;
+}
+
+.algolia-search-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #999);
+  margin-bottom: 12px;
+}
+
+.algolia-search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.algolia-search-empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--color-text-muted, #999);
+}

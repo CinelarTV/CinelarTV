@@ -1,0 +1,28 @@
+plugins:
+  cinelar_algolia_enabled:
+    client: true
+    refresh: true
+    default: false
+    type: boolean
+    description: "Enable Algolia-powered search"
+
+  cinelar_algolia_app_id:
+    default: ""
+    type: string
+    description: "Algolia Application ID"
+
+  cinelar_algolia_admin_api_key:
+    default: ""
+    type: string
+    secret: true
+    description: "Algolia Admin API Key (never expose to frontend)"
+
+  cinelar_algolia_search_api_key:
+    default: ""
+    type: string
+    description: "Algolia Search-Only API Key (safe for frontend)"
+
+  cinelar_algolia_index_prefix:
+    default: "cinelartv_"
+    type: string
+    description: "Prefix for Algolia index names"

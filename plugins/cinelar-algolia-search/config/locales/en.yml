@@ -1,0 +1,7 @@
+en:
+  algolia_search:
+    enabled: "Enable Algolia Search"
+    app_id: "Algolia Application ID"
+    admin_api_key: "Admin API Key"
+    search_api_key: "Search API Key"
+    index_prefix: "Index Prefix"

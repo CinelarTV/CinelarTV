@@ -1,0 +1,9 @@
+{
+  "name": "cinelar-algolia-search",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@cinelartv/plugin-api": "workspace:*",
+    "@cinelartv/services": "workspace:*"
+  }
+}
