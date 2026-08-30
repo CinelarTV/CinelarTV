@@ -2,6 +2,9 @@
 
 class MediaScannerJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
+  daily at: 0.hours
 
   def perform
     return unless SiteSetting.enable_media_checker

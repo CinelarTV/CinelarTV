@@ -2,8 +2,11 @@
 
 class EndStaleWatchSessionsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :default, retry: 3
+
+  every 30.minutes
 
   def perform
     Rails.logger.info "Closing stale watch sessions..."

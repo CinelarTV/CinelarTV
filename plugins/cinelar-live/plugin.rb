@@ -8,8 +8,4 @@
 
 enabled_site_setting :cinelar_live_enabled
 
-after_initialize do
-  Live::SidekiqScheduler.register if defined?(Sidekiq)
-end
-
 require_relative "lib/live/engine"

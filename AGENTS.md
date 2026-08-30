@@ -5,7 +5,7 @@
 - **Frontend**: Vue 3 (Composition API) + Vite 5, TypeScript/TSX, Tailwind CSS 4, Pinia
 - **Database**: PostgreSQL (all environments — the sqlite3 default in database.yml is unused)
 - **Package manager**: pnpm 9.9.0 with workspaces for `plugins/*`
-- **Background jobs**: Sidekiq + sidekiq-scheduler (Redis)
+- **Background jobs**: Sidekiq + mini_scheduler (Redis)
 - **Auth**: Devise (web sessions) + Doorkeeper OAuth 2.0 (mobile/native clients)
 - **Video**: FFmpeg transcoding, HLS, Vidstack player
 

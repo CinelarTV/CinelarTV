@@ -2,8 +2,11 @@
 
 class BackupJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :default, retry: 1
+
+  daily at: 3.hours
 
   def perform(notes: nil, backup_type: "scheduled", include_files: true, encrypt: false)
     Rails.logger.info "Starting scheduled backup job"

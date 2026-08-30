@@ -1,44 +1,35 @@
 # frozen_string_literal: true
 
-# MiniScheduler.configure do |config|
-# An instance of Redis. See https://github.com/redis/redis-rb
+Sidekiq.configure_server do |config|
+  config.redis = { url: ENV["REDIS_URL"] }
+end
 
-# config.redis = $redis
+Sidekiq.configure_client do |config|
+  config.redis = { url: ENV["REDIS_URL"] }
+end
 
-# Define a custom exception handler when an exception is raised
-# by a scheduled job. By default, SidekiqExceptionHandler is used.
+if Sidekiq.server?
+  Rails.application.config.after_initialize do
+    # Clear stale mini_scheduler locks
+    redis = Redis.new(url: ENV["REDIS_URL"])
+    redis.keys("_scheduler_lock_*").each { |k| redis.del(k) }
 
-# config.job_exception_handler do |ex, context|
-#   ...
-# end
+    # Load plugin engines first (defines Live, WatchParty, etc. namespaces)
+    Dir.glob(Rails.root.join("plugins", "*", "lib", "*", "engine.rb")).each { |f| require f }
 
-# Add code to be called after a scheduled job runs. An argument
-# with stats about the execution is passed, including these fields:
-# name, hostname, pid, started_at, duration_ms, live_slots_start,
-# live_slots_finish, success, error
+    # Now load ALL job classes (core + plugins) so ObjectSpace can find them
+    Dir.glob(Rails.root.join("app", "sidekiq", "*_job.rb")).each { |f| require f }
+    Dir.glob(Rails.root.join("plugins", "*", "app", "sidekiq", "**", "*_job.rb")).each { |f| require f }
 
-# config.job_ran do |stats|
-#   ...
-# end
+    MiniScheduler.configure do |config|
+      config.redis = redis
+    end
 
-# Before each tick, the configured block is run to check if the next job
-# should be scheduled. The block should return a boolean where a return value
-# of `True` skip scheduling.
-
-# config.skip_schedule do
-#   ...
-# end
-
-# Add code that runs before processing requests to the
-# scheduler pages of the Sidekiq web UI.
-
-# config.before_sidekiq_web_request do
-#   ...
-# end
-# end
-
-# if Sidekiq.server? && defined?(Rails)
-#  Rails.application.config.after_initialize do
-#    MiniScheduler.start(workers: 5)
-#  end
-# end
+    begin
+      MiniScheduler.start(workers: 5)
+    rescue MiniScheduler::DistributedMutex::Timeout
+      sleep 5
+      retry
+    end
+  end
+end

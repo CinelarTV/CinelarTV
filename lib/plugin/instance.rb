@@ -53,7 +53,7 @@ module Plugin
       begin
         instance_eval(File.read(path), path)
       rescue StandardError => e
-        Rails.logger.error("[Plugin:#{name}] Failed to load: #{e.message}")
+        Rails.logger.error("[Plugin:#{name}] Failed to load: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
         return
       end
 
@@ -77,6 +77,10 @@ module Plugin
 
     def notify_after_initialize
       @initializers&.each { |cb| cb.call(self) }
+    end
+
+    def gem(name, version, opts = {})
+      PluginGem.load(path, name, version, opts)
     end
 
     def enabled_site_setting(setting = nil)
@@ -198,8 +202,9 @@ module Plugin
     def add_rake_task_paths
       plugin_dir = File.dirname(path)
       tasks_dir = File.join(plugin_dir, "lib", "tasks")
-      
-      if Dir.exist?(tasks_dir)
+      return unless Dir.exist?(tasks_dir)
+
+      if defined?(::Rake) && Rake.respond_to?(:add_rakelib)
         Rake.add_rakelib(tasks_dir)
       end
     end

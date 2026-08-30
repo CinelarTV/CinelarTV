@@ -2,9 +2,11 @@
 
 class SendConfirmationReminderJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
+  daily at: 0.hours
 
   # Send reminder emails to unconfirmed users whose deadline is within 3 days.
-  # Runs daily via sidekiq-scheduler.
   def perform
     deadline_window = User::CONFIRMATION_PERIOD
     reminder_window = 3.days

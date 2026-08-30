@@ -136,8 +136,7 @@ gem "httparty"
 gem "wdm", ">= 0.1.0", platforms: %i[mingw mswin x64_mingw jruby]
 
 gem "sidekiq" # To run background jobs
-# gem 'mini_scheduler' # To schedule background jobs
-gem "sidekiq-scheduler"
+gem "mini_scheduler", ">= 0.20.0" # To schedule background jobs
 
 gem "with_advisory_lock"
 

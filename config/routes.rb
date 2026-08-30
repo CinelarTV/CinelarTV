@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "sidekiq/web"
-require "sidekiq-scheduler/web"
+require "mini_scheduler/web"
 
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

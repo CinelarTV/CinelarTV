@@ -4,8 +4,11 @@
 # the fast path; this job only re-reads the provider's canonical resource.
 class ReconcileSubscriptionsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :subscriptions, retry: 3
+
+  every 15.minutes
 
   def perform
     Subscription.where(status: %w[pending active past_due cancelled])

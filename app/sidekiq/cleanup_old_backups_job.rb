@@ -2,8 +2,11 @@
 
 class CleanupOldBackupsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :default, retry: 2
+
+  daily at: 4.hours
 
   def perform
     cleaned = Backup.cleanup_expired!

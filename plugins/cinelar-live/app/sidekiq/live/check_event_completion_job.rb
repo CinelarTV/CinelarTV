@@ -2,7 +2,11 @@
 
 class Live::CheckEventCompletionJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
   sidekiq_options queue: :default, retry: 3
+
+  every 2.minutes
 
   COMPLETION_TOLERANCE = 5.seconds
   ACTIVITY_TIMEOUT = 10.minutes

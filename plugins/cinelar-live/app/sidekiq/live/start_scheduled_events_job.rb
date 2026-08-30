@@ -2,7 +2,11 @@
 
 class Live::StartScheduledEventsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
   sidekiq_options queue: :default, retry: 3
+
+  every 1.minute
 
   def perform
     Live::Event.where(status: :scheduled)

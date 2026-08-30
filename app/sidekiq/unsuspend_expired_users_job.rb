@@ -2,6 +2,9 @@
 
 class UnsuspendExpiredUsersJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
+  daily at: 0.hours
 
   def perform
     User.where(suspended: true).where.not(suspended_until: nil).where('suspended_until <= ?', Time.current).find_each do |user|

@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require "sidekiq-scheduler"
-
 class LicenseValidationJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
+  every 15.minutes
 
   def perform
     validate_license(SiteSetting.license_key)

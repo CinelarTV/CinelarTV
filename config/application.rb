@@ -14,6 +14,7 @@ require_relative "../lib/plugin/manifest"
 require_relative "../lib/plugin/dependency_resolver"
 require_relative "../lib/plugin/registry"
 require_relative "../lib/plugin/instance"
+require_relative "../lib/plugin_gem"
 require_relative "../lib/plugin/serializer_extensions"
 require_relative "../lib/plugin/route_loader"
 require_relative "../lib/plugin_registry"
@@ -25,12 +26,15 @@ module CinelarTV
 
     config.autoload_paths << "#{root}/lib"
     config.autoload_paths << "#{root}/app/services"
+    config.autoload_paths << "#{root}/app/sidekiq"
     config.eager_load_paths << "#{root}/app/services"
+    config.eager_load_paths << "#{root}/app/sidekiq"
 
     # Plugin paths
     %w[controllers models services sidekiq].each do |layer|
       Dir.glob(Rails.root.join("plugins", "*", "app", layer)).each do |dir|
         config.autoload_paths << dir
+        config.eager_load_paths << dir
       end
     end
 

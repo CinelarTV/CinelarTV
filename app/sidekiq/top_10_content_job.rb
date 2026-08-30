@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-require "sidekiq-scheduler"
-
 class Top10ContentJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
+  every 1.hour
 
   def perform
     country_codes = Reproduction.distinct.pluck(:country_code)

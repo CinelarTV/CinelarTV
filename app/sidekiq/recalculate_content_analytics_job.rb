@@ -2,8 +2,11 @@
 
 class RecalculateContentAnalyticsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :default
+
+  daily at: 0.hours
 
   def perform
     Rails.logger.info "Recalculating content analytics..."

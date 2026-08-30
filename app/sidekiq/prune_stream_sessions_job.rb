@@ -2,8 +2,11 @@
 
 class PruneStreamSessionsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :default, retry: 3
+
+  every 1.hour
 
   def perform
     Rails.logger.info "Pruning stale stream session set members..."

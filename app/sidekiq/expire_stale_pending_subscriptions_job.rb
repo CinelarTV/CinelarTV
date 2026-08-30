@@ -2,8 +2,11 @@
 
 class ExpireStalePendingSubscriptionsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :subscriptions, retry: 2
+
+  every 1.hour
 
   # Pending subscriptions without a provider_subscription_id that are older
   # than this threshold are considered abandoned and destroyed.

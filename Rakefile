@@ -5,6 +5,9 @@
 
 require_relative "config/application"
 
+# Load plugin rake tasks
+Dir[Rails.root.join("plugins", "*", "lib", "tasks")].each { |dir| Rake.add_rakelib(dir) }
+
 Rails.application.load_tasks
 # Update js-routes file before javascript build
 task "assets:precompile" => "js:routes"

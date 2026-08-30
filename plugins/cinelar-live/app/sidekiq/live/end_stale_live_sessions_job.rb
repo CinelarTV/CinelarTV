@@ -2,7 +2,11 @@
 
 class Live::EndStaleLiveSessionsJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
+
   sidekiq_options queue: :default, retry: 3
+
+  every 5.minutes
 
   def perform
     timeout = defined?(SiteSetting) ? SiteSetting.cinelar_live_activity_timeout : 600

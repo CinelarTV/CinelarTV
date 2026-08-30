@@ -178,8 +178,6 @@ GEM
     erb-formatter (0.4.3)
       syntax_tree (~> 6.0)
     erubi (1.13.1)
-    et-orbi (1.4.0)
-      tzinfo
     factory_bot (6.5.4)
       activesupport (>= 6.1.0)
     factory_bot_rails (6.5.0)
@@ -191,9 +189,6 @@ GEM
     ffi (1.17.2-x64-mingw-ucrt)
     ffi (1.17.2-x86_64-linux-gnu)
     fiddle (1.1.8)
-    fugit (1.12.1)
-      et-orbi (~> 1.4)
-      raabro (~> 1.4)
     globalid (1.2.1)
       activesupport (>= 6.1)
     http-accept (1.7.0)
@@ -259,6 +254,8 @@ GEM
       benchmark
       logger
     mini_mime (1.1.5)
+    mini_scheduler (0.20.0)
+      sidekiq (>= 6.5, < 9.0)
     minitest (6.0.4)
       drb (~> 2.0)
       prism (~> 1.5)
@@ -305,7 +302,6 @@ GEM
     public_suffix (6.0.2)
     puma (6.6.0)
       nio4r (~> 2.0)
-    raabro (1.4.0)
     racc (1.8.1)
     rack (3.1.21)
     rack-cors (3.0.0)
@@ -433,8 +429,6 @@ GEM
       ffi (~> 1.12)
       logger
     rubyzip (2.4.1)
-    rufus-scheduler (3.9.2)
-      fugit (~> 1.1, >= 1.11.1)
     securerandom (0.4.1)
     selenium-webdriver (4.10.0)
       rexml (~> 3.2, >= 3.2.5)
@@ -447,9 +441,6 @@ GEM
       logger (>= 1.6.2)
       rack (>= 3.1.0)
       redis-client (>= 0.23.2)
-    sidekiq-scheduler (6.0.1)
-      rufus-scheduler (~> 3.2)
-      sidekiq (>= 7.3, < 9)
     sorbet-runtime (0.5.12381)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
@@ -556,6 +547,7 @@ DEPENDENCIES
   logster
   maxminddb
   message_bus
+  mini_scheduler (>= 0.20.0)
   ostruct
   pg (~> 1.2)
   pry (~> 0.14.2)
@@ -577,7 +569,6 @@ DEPENDENCIES
   rubyzip (~> 2.3)
   selenium-webdriver
   sidekiq
-  sidekiq-scheduler
   sprockets-rails
   themoviedb-api (~> 1.4)
   tzinfo-data

@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-require "sidekiq-scheduler"
-
 class UpdateCheckJob
   include Sidekiq::Job
+  extend MiniScheduler::Schedule
 
   sidekiq_options queue: :default, retry: 1
+
+  every 15.minutes
 
   def perform
     return unless SiteSetting.enable_web_updater
