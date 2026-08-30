@@ -115,17 +115,9 @@ class Content < ApplicationRecord
       .limit(limit)
   }
 
-  scope :search_by_title_and_description, lambda { |query|
-    normalized = ActiveRecord::Base.sanitize_sql_like(query.to_s.downcase)
-    available.where(
-      "(immutable_unaccent(lower(title)) LIKE immutable_unaccent(?) OR " \
-      "immutable_unaccent(lower(description)) LIKE immutable_unaccent(?))",
-      "%#{normalized}%", "%#{normalized}%"
-    )
-  }
-
   before_destroy :cleanup_images
   after_commit :clear_global_sections_cache, if: -> { saved_change_to_available? || saved_change_to_created_at? }
+  after_save :update_search_data, if: -> { saved_change_to_title? || saved_change_to_description? }
 
   # Legacy accessors (backward compat, read from image_variants)
   def banner
@@ -178,5 +170,14 @@ class Content < ApplicationRecord
 
   def clear_global_sections_cache
     CinelarTV.cache.delete("homepage/global_sections")
+  end
+
+  def update_search_data
+    update_column(:search_data,
+      Arel.sql(<<~SQL.squish)
+        setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, ''))), 'A') ||
+        setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, ''))), 'B')
+      SQL
+    )
   end
 end

@@ -5,14 +5,16 @@ module AlgoliaSearchPlugin
     extend ActiveSupport::Concern
 
     included do
-      include ::AlgoliaSearch
+      include ::AlgoliaSearch if defined?(::AlgoliaSearch)
 
-      algoliasearch(
-        index_name: "#{SiteSetting.cinelar_algolia_index_prefix}#{model_name.plural}_#{Rails.env}",
-        enqueue: :algolia_enqueue_job,
-        check_settings: false
-      ) do
-        # Subclasses override via algoliasearch block when concern is included
+      if respond_to?(:algoliasearch)
+        algoliasearch(
+          index_name: "#{SiteSetting.cinelar_algolia_index_prefix}#{model_name.plural}_#{Rails.env}",
+          enqueue: :algolia_enqueue_job,
+          check_settings: false
+        ) do
+          # Subclasses override via algoliasearch block when concern is included
+        end
       end
 
       after_commit :algolia_enqueue_sync, if: :algolia_searchable?

@@ -53,12 +53,21 @@ after_initialize do
         format.json { render json: { data: results } }
       end
     else
-      @contents = Content.search_by_title_and_description(query).limit(30)
+      result = ContentSearchService.new(
+        term: query,
+        profile: current_profile,
+        page: params[:page],
+        per_page: params[:per_page]
+      ).execute
+
       respond_to do |format|
         format.html
         format.json {
           render json: {
-            data: @contents.as_json(only: %i[id title description banner content_type], methods: [:available])
+            data: result[:contents].as_json(only: %i[id title description banner content_type year], methods: [:available]),
+            people: result[:people].as_json(only: %i[id name profile_path]),
+            categories: result[:categories].as_json(only: %i[id name]),
+            meta: result[:meta]
           }
         }
       end
