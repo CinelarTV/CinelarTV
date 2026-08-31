@@ -30,7 +30,7 @@ module CinelarTV
     config.eager_load_paths << "#{root}/app/services"
     config.eager_load_paths << "#{root}/app/sidekiq"
 
-    # Plugin paths
+    # Plugin paths (excluding concerns - plugins handle their own requires via plugin.rb)
     %w[controllers models services sidekiq].each do |layer|
       Dir.glob(Rails.root.join("plugins", "*", "app", layer)).each do |dir|
         config.autoload_paths << dir
@@ -68,6 +68,6 @@ module CinelarTV
       AppEvent.trigger(:after_plugin_activation)
     end
 
-   
+    
   end
 end

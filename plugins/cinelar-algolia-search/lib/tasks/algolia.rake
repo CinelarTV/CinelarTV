@@ -3,7 +3,7 @@
 namespace :algolia do
   task :setup_algolia_models => :environment do
     require "algoliasearch-rails"
-    require_relative "../../app/models/concerns/algolia_searchable"
+    require_relative "../../app/models/algolia_searchable"
     [Content, Person, Category].each do |klass|
       klass.include AlgoliaSearchPlugin::AlgoliaSearchable unless klass.include?(AlgoliaSearchPlugin::AlgoliaSearchable)
     end

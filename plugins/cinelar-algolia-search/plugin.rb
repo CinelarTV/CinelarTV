@@ -20,7 +20,7 @@ after_initialize do
   register_js("app/assets/javascripts/index.ts")
   register_css("app/assets/styles/algolia-search.css")
 
-  require_relative "app/models/concerns/algolia_searchable"
+  require_relative "app/models/algolia_searchable"
   require_relative "app/services/algolia_search_plugin/search_service"
   require_relative "app/jobs/algolia_search_plugin/index_worker"
 
