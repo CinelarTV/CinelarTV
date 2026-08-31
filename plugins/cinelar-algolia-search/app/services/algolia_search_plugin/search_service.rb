@@ -5,8 +5,7 @@ module AlgoliaSearchPlugin
     INDICES = %w[contents people categories].freeze
 
     def initialize
-      reconfigure! if needs_reconfiguration?
-      @client = ::AlgoliaSearch.client
+      @client = AlgoliaSearchPlugin.build_client
     end
 
     def search(query:, hitsPerPage: 30, page: 0)
@@ -32,30 +31,6 @@ module AlgoliaSearchPlugin
     end
 
     private
-
-    def reconfigure!
-      app_id = SiteSetting.cinelar_algolia_app_id
-      api_key = SiteSetting.cinelar_algolia_admin_api_key
-
-      if app_id.present? && api_key.present?
-        ::AlgoliaSearch.configuration = {
-          application_id: app_id,
-          api_key: api_key
-        }
-        ::AlgoliaSearch.send(:setup_client)
-      end
-    end
-
-    def needs_reconfiguration?
-      current = defined?(::AlgoliaSearch) && ::AlgoliaSearch.respond_to?(:configuration) rescue false
-      return true unless current
-
-      cfg = ::AlgoliaSearch.configuration
-      cfg[:application_id] != SiteSetting.cinelar_algolia_app_id ||
-        cfg[:api_key] != SiteSetting.cinelar_algolia_admin_api_key
-    rescue
-      true
-    end
 
     def format_hit(hit, index_name)
       case index_name

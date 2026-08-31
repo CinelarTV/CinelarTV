@@ -6,7 +6,6 @@
 # url: https://github.com/cinelartv/cinelar-algolia-search
 # required_version: 0.0.1
 
-gem "algoliasearch-rails", "3.0.2"
 gem "algolia", "3.5.2"
 gem "faraday", "2.14.3"
 gem "faraday-net_http", "3.4.4", require_name: "faraday/net_http"
@@ -15,12 +14,14 @@ gem "net-http-persistent", "4.0.8", require_name: "net/http/persistent"
 gem "base64", "0.3.0"
 
 after_initialize do
-  require "algoliasearch-rails"
+  require "algolia"
 
   register_js("app/assets/javascripts/index.ts")
   register_css("app/assets/styles/algolia-search.css")
 
-  require_relative "app/models/algolia_searchable"
+  require_relative "lib/algolia_search_plugin"
+  require_relative "app/models/algolia_search_plugin"
+  require_relative "app/models/algolia_search_plugin/algolia_searchable"
   require_relative "app/services/algolia_search_plugin/search_service"
   require_relative "app/jobs/algolia_search_plugin/index_worker"
 
@@ -74,5 +75,3 @@ after_initialize do
     end
   end
 end
-
-

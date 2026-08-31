@@ -69,3 +69,4 @@ app/frontend/webclient/i18n/translations.js
 
 # Ignore Redis dump file
 dump.rdb
+*.rdb
