@@ -213,8 +213,8 @@ class Content < ApplicationRecord
 
   def update_search_data
     Content.where(id: id).update_all(<<~SQL.squish)
-      search_data = setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, ''))), 'A') ||
-                    setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, ''))), 'B')
+      search_data = setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, '')::text)), 'A') ||
+                    setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, '')::text)), 'B')
     SQL
   end
 end
