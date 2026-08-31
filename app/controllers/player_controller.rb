@@ -109,8 +109,8 @@ class PlayerController < ApplicationController
   private
 
   def find_content
-    @content = Content.includes(:video_sources, :segments, :categories,
-                                seasons: { episodes: %i[video_sources segments] })
+    @content = Content.includes(:video_sources, :segments, :categories, :content_rating, :content_descriptors,
+                                seasons: { episodes: %i[video_sources segments content_rating content_descriptors] })
                       .find_by(id: params[:id])
   end
 
@@ -144,8 +144,19 @@ class PlayerController < ApplicationController
       @episode = Episode.find_by(id: params[:episode_id])
       @season = @content.seasons.find_by(id: @episode&.season_id)
     else
-      @season = @content.seasons.first
-      @episode = @season.episodes.first if @season
+      last_cw = ContinueWatching
+                   .where(profile_id: current_profile.id, content_id: @content.id)
+                   .where.not(episode_id: nil)
+                   .order(last_watched_at: :desc)
+                   .first
+
+      if last_cw&.episode
+        @episode = last_cw.episode
+        @season = @episode.season
+      else
+        @season = @content.seasons.first
+        @episode = @season.episodes.first if @season
+      end
     end
   end
 
@@ -168,6 +179,18 @@ class PlayerController < ApplicationController
   def render_json_response(continue_watching)
     return render_content_not_found unless @content
 
+    locale = I18n.locale
+    cw_data = continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id id])
+    if cw_data && continue_watching
+      episode_key = continue_watching.episode_id.presence || "movie"
+      redis_data = CinelarTV.cache.read("progress/#{continue_watching.profile_id}/#{continue_watching.content_id}/#{episode_key}")
+      if redis_data
+        cw_data["progress"] = redis_data[:progress] if redis_data[:progress]
+        cw_data["duration"] = redis_data[:duration] if redis_data[:duration]
+        cw_data["last_watched_at"] = redis_data[:last_watched_at] if redis_data[:last_watched_at]
+      end
+    end
+
     data = {
       content: {
         id: @content.id,
@@ -175,9 +198,11 @@ class PlayerController < ApplicationController
         description: @content.description,
         content_type: @content.content_type,
         banner: @content.banner,
+        content_rating: @content.content_rating&.as_json_with_locale(locale: locale),
+        content_descriptors: @content.effective_descriptors(locale: locale).map { |d| d.as_json_with_locale(locale: locale) },
+        advisory_text: @content.advisory_text(locale: locale),
       },
-      continue_watching: continue_watching&.as_json(except: %i[created_at updated_at profile_id episode_id content_id
-                                                               id]),
+      continue_watching: cw_data,
     }
 
     if @content.content_type == "MOVIE"
@@ -189,6 +214,9 @@ class PlayerController < ApplicationController
       data[:sources] = sources_data[:sources]
       data[:episode] = @episode.as_json(except: %i[created_at updated_at])
       data[:episode][:segments] = sources_data[:segments]
+      data[:episode][:content_rating] = @episode.effective_content_rating&.as_json_with_locale(locale: locale)
+      data[:episode][:content_descriptors] = @episode.effective_descriptors(locale: locale).map { |d| d.as_json_with_locale(locale: locale) }
+      data[:episode][:advisory_text] = @episode.advisory_text(locale: locale)
     end
     # Temporada actual con episodios (ya preloadados — solo ordenar en memoria)
     if @season
