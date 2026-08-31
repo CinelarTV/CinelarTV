@@ -21,8 +21,8 @@ after_initialize do
   register_css("app/assets/styles/algolia-search.css")
 
   require_relative "app/models/concerns/algolia_searchable"
-  require_relative "app/services/algolia_search/search_service"
-  require_relative "app/jobs/algolia/index_worker"
+  require_relative "app/services/algolia_search_plugin/search_service"
+  require_relative "app/jobs/algolia_search_plugin/index_worker"
 
   reloadable_patch do
     [Content, Person, Category].each do |klass|
@@ -75,4 +75,4 @@ after_initialize do
   end
 end
 
-require_relative "lib/algolia_search/engine"
+

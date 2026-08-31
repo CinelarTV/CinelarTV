@@ -15,7 +15,6 @@
   },
   "backend": {
     "entry": "plugin.rb",
-    "engine": "Live::Engine",
     "routes": "config/routes.rb",
     "migrations": "db/migrate"
   }

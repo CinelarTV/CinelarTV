@@ -8,4 +8,4 @@
 
 enabled_site_setting :cinelar_live_enabled
 
-require_relative "lib/live/engine"
+

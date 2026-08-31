@@ -73,5 +73,3 @@ after_initialize do
   }, self)
 end
 
-# Cargar el Rails Engine del plugin
-require_relative "lib/watch_party/engine"

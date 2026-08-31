@@ -14,7 +14,6 @@
   },
   "backend": {
     "entry": "plugin.rb",
-    "engine": "WatchParty::Engine",
     "routes": "config/routes.rb",
     "migrations": "db/migrate"
   }
