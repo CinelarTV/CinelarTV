@@ -6,8 +6,8 @@ class AddSearchDataToContents < ActiveRecord::Migration[7.2]
 
     execute <<~SQL
       UPDATE contents SET search_data =
-        setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, '')::text)), 'A') ||
-        setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, '')::text)), 'B')
+        setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, ''))), 'A') ||
+        setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, ''))), 'B')
     SQL
 
     add_index :contents, :search_data, using: :gin, name: :index_contents_on_search_data
