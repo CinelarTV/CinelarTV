@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_30_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_30_234756) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -91,6 +91,41 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_000001) do
     t.index ["content_id"], name: "index_content_categories_on_content_id"
   end
 
+  create_table "content_content_descriptors", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "content_id", null: false
+    t.uuid "content_descriptor_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_descriptor_id"], name: "index_content_content_descriptors_on_content_descriptor_id"
+    t.index ["content_id", "content_descriptor_id"], name: "idx_ccd_on_content_and_descriptor", unique: true
+    t.index ["content_id"], name: "index_content_content_descriptors_on_content_id"
+  end
+
+  create_table "content_descriptors", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "key", null: false
+    t.jsonb "name_translations", default: {}
+    t.jsonb "description_translations", default: {}
+    t.string "category", null: false
+    t.integer "severity_level", default: 1
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_content_descriptors_on_key", unique: true
+  end
+
+  create_table "content_ratings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "code", null: false
+    t.string "system", null: false
+    t.jsonb "name_translations", default: {}
+    t.jsonb "description_translations", default: {}
+    t.integer "min_age"
+    t.string "color", default: "#ffffff"
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_content_ratings_on_code", unique: true
+  end
+
   create_table "contents", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title"
     t.string "description"
@@ -108,7 +143,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_000001) do
     t.string "cover_resized"
     t.datetime "scheduled_launch_at"
     t.tsvector "search_data"
+    t.uuid "content_rating_id"
+    t.string "content_rating_code"
     t.index ["available"], name: "index_contents_on_available_true", where: "(available = true)"
+    t.index ["content_rating_id"], name: "index_contents_on_content_rating_id"
     t.index ["content_type"], name: "index_contents_on_content_type"
     t.index ["created_at"], name: "index_contents_on_available_and_created_at", order: :desc, where: "(available = true)"
     t.index ["scheduled_launch_at"], name: "index_contents_on_scheduled_launch_pending", where: "((scheduled_launch_at IS NOT NULL) AND (available = false))"
@@ -166,6 +204,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_000001) do
     t.index ["locale"], name: "index_email_templates_on_locale"
   end
 
+  create_table "episode_content_descriptors", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "episode_id", null: false
+    t.uuid "content_descriptor_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_descriptor_id"], name: "index_episode_content_descriptors_on_content_descriptor_id"
+    t.index ["episode_id", "content_descriptor_id"], name: "idx_ecd_on_episode_and_descriptor", unique: true
+    t.index ["episode_id"], name: "index_episode_content_descriptors_on_episode_id"
+  end
+
   create_table "episodes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title"
     t.string "description"
@@ -177,6 +225,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_000001) do
     t.string "thumbnail_resized"
     t.uuid "season_id", null: false
     t.integer "tmdb_id"
+    t.uuid "content_rating_id"
+    t.string "content_rating_code"
+    t.index ["content_rating_id"], name: "index_episodes_on_content_rating_id"
     t.index ["season_id", "position"], name: "index_episodes_on_season_id_and_position"
     t.index ["season_id"], name: "index_episodes_on_season_id"
     t.index ["tmdb_id"], name: "index_episodes_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
@@ -748,11 +799,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_000001) do
   add_foreign_key "content_analytics", "contents"
   add_foreign_key "content_categories", "categories", on_delete: :cascade
   add_foreign_key "content_categories", "contents", on_delete: :cascade
+  add_foreign_key "content_content_descriptors", "content_descriptors"
+  add_foreign_key "content_content_descriptors", "contents"
+  add_foreign_key "contents", "content_ratings"
   add_foreign_key "continue_watchings", "contents"
   add_foreign_key "continue_watchings", "episodes"
   add_foreign_key "continue_watchings", "profiles"
   add_foreign_key "dislikes", "contents"
   add_foreign_key "dislikes", "profiles"
+  add_foreign_key "episode_content_descriptors", "content_descriptors"
+  add_foreign_key "episode_content_descriptors", "episodes"
+  add_foreign_key "episodes", "content_ratings"
   add_foreign_key "episodes", "seasons"
   add_foreign_key "likes", "contents"
   add_foreign_key "likes", "profiles"

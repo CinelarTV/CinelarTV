@@ -653,6 +653,14 @@ export const adminCategoryPath = /*#__PURE__*/ __jsr.r({"id":{"r":true},"format"
 
 /**
  * Generates rails route to
+ * /admin/content-descriptors(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminContentDescriptorsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"content-descriptors"],[1,[2,[8,"."],[3,"format"]]]]]]]);
+
+/**
+ * Generates rails route to
  * /admin/content-manager/all(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -674,6 +682,14 @@ export const adminContentManagerCategoriesPath = /*#__PURE__*/ __jsr.r({"format"
  * @returns {string} route path
  */
 export const adminContentManagerMediaIntegrityPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"content-manager"],[2,[7,"/"],[2,[6,"media-integrity"],[1,[2,[8,"."],[3,"format"]]]]]]]]]);
+
+/**
+ * Generates rails route to
+ * /admin/content-ratings(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminContentRatingsPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"admin"],[2,[7,"/"],[2,[6,"content-ratings"],[1,[2,[8,"."],[3,"format"]]]]]]]);
 
 /**
  * Generates rails route to
@@ -900,14 +916,6 @@ export const adminXmltvSourcesPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,
  * @returns {string} route path
  */
 export const algoliaConfigPath = /*#__PURE__*/ __jsr.r({"format":{}}, [2,[7,"/"],[2,[6,"algolia"],[2,[7,"/"],[2,[6,"config"],[1,[2,[8,"."],[3,"format"]]]]]]]);
-
-/**
- * Generates rails route to
- * /cinelar-algolia-search
- * @param {object | undefined} options
- * @returns {string} route path
- */
-export const algoliaSearchPluginPath = /*#__PURE__*/ __jsr.r({}, [2,[7,"/"],[6,"cinelar-algolia-search"]]);
 
 /**
  * Generates rails route to

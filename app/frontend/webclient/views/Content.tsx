@@ -9,6 +9,7 @@ import CSpinner from '../components/c-spinner';
 import EpisodesList from "@/components/content/EpisodesList";
 import ResponsiveImage from '../components/ResponsiveImage';
 import PluginOutlet from '../components/PluginOutlet';
+import ContentRatingBadge from '../components/ContentRatingBadge';
 
 export default defineComponent({
     name: 'ContentView',
@@ -183,6 +184,15 @@ export default defineComponent({
                                             );
                                         }
 
+                                        if (content?.content_rating) {
+                                            metaItems.push(
+                                                <span class="content-meta__badge content-meta__badge--rating"
+                                                      style={{ borderColor: content.content_rating.color || '#fff' }}>
+                                                    {content.content_rating.name}
+                                                </span>
+                                            );
+                                        }
+
                                         if (content?.rating) {
                                             metaItems.push(
                                                 <span class="content-meta__rating">
@@ -223,6 +233,17 @@ export default defineComponent({
 
                                     {/* Descripción */}
                                     <p class="content-description">{content?.description}</p>
+
+                                    {/* Content Descriptors */}
+                                    {content?.content_descriptors && content.content_descriptors.length > 0 && (
+                                        <div class="content-descriptors">
+                                            {content.content_descriptors.map((d: any) => (
+                                                <span key={d.key} class="content-descriptor-chip">
+                                                    {d.name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* Acciones — se mantienen CButton con su icon prop */}
                                     <div class="content-actions">

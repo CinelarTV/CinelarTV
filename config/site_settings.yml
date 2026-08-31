@@ -122,6 +122,11 @@ content:
     default: ""
     type: "string"
     secret: true
+  content_rating_region:
+    client: true
+    refresh: true
+    default: "ES"
+    type: "string"
   enable_category_auto_assignment:
     client: true
     refresh: true

@@ -15,6 +15,10 @@ class Content < ApplicationRecord
   has_many :watch_sessions, dependent: :destroy
   has_one :content_analytic, dependent: :destroy
 
+  belongs_to :content_rating, optional: true
+  has_many :content_content_descriptors, dependent: :destroy
+  has_many :content_descriptors, through: :content_content_descriptors
+
   def as_json(options = {})
     super(options.merge(only: %i[id title description banner cover content_type year available premium trailer_url
                                  tmdb_id scheduled_launch_at]))
@@ -119,6 +123,31 @@ class Content < ApplicationRecord
   after_commit :clear_global_sections_cache, if: -> { saved_change_to_available? || saved_change_to_created_at? }
   after_save :update_search_data, if: -> { saved_change_to_title? || saved_change_to_description? }
 
+  def effective_content_rating
+    content_rating || rating_from_first_episode
+  end
+
+  def effective_descriptors(locale: I18n.locale)
+    own = content_descriptors.to_a
+    if own.empty? && content_type == "TVSHOW"
+      episode_ids = Episode.joins(:season).where(seasons: { content_id: id }).pluck(:id)
+      own = ContentDescriptor.joins(:episode_content_descriptors)
+                             .where(episode_content_descriptors: { episode_id: episode_ids })
+                             .distinct.to_a
+    end
+    own
+  end
+
+  def advisory_text(locale: I18n.locale)
+    rc = effective_content_rating
+    return nil unless rc
+
+    descriptor_names = effective_descriptors(locale: locale).map { |d| d.name_for(locale) }.first(3)
+    text = rc.name_for(locale)
+    text += " \u00b7 #{descriptor_names.join(', ')}" if descriptor_names.any?
+    text
+  end
+
   # Legacy accessors (backward compat, read from image_variants)
   def banner
     backdrop_url
@@ -151,6 +180,16 @@ class Content < ApplicationRecord
 
   private
 
+  def rating_from_first_episode
+    return unless content_type == "TVSHOW"
+
+    Episode.joins(:season)
+           .where(seasons: { content_id: id })
+           .includes(:content_rating)
+           .order(:position)
+           .first&.content_rating
+  end
+
   def scheduled_launch_at_must_be_future
     return if scheduled_launch_at.blank?
 
@@ -173,11 +212,9 @@ class Content < ApplicationRecord
   end
 
   def update_search_data
-    update_column(:search_data,
-      Arel.sql(<<~SQL.squish)
-        setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, ''))), 'A') ||
-        setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, ''))), 'B')
-      SQL
-    )
+    Content.where(id: id).update_all(<<~SQL.squish)
+      search_data = setweight(to_tsvector('simple', immutable_unaccent(coalesce(title, ''))), 'A') ||
+                    setweight(to_tsvector('simple', immutable_unaccent(coalesce(description, ''))), 'B')
+    SQL
   end
 end

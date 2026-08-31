@@ -505,3 +505,109 @@
   }
 }
 
+/* ── Content Rating Badge ── */
+.content-rating-badge {
+  position: absolute;
+  z-index: 100;
+}
+
+.content-rating-badge--compact {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: opacity 0.5s ease;
+}
+
+.content-rating-badge--compact .content-rating-badge__code {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.content-rating-badge--faded {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.content-rating-badge--full {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.content-rating-badge--full .content-rating-badge__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.content-rating-badge--full .content-rating-badge__code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.content-rating-badge--full .content-rating-badge__desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.content-rating-badge--full .content-rating-badge__descriptors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.content-rating-badge--full .content-rating-badge__descriptor {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Content Rating Badge in metadata bar ── */
+.content-meta__badge--rating {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── Content Descriptors chips ── */
+.content-descriptors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.content-descriptor-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+}
+

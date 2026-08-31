@@ -17,6 +17,11 @@ class ContentSerializer < ApplicationSerializer
              :tmdb_id,
              :scheduled_launch_at
 
+  # Content rating and descriptors
+  attribute :content_rating
+  attribute :content_descriptors
+  attribute :advisory_text
+
   # New structured images
   attribute :images
 
@@ -72,6 +77,21 @@ class ContentSerializer < ApplicationSerializer
 
   def cover_resized
     object.image_url_for("poster", variant: "medium")
+  end
+
+  def content_rating
+    locale = @options[:locale] || I18n.locale
+    object.content_rating&.as_json_with_locale(locale: locale)
+  end
+
+  def content_descriptors
+    locale = @options[:locale] || I18n.locale
+    object.effective_descriptors(locale: locale).map { |d| d.as_json_with_locale(locale: locale) }
+  end
+
+  def advisory_text
+    locale = @options[:locale] || I18n.locale
+    object.advisory_text(locale: locale)
   end
 
   def include_seasons?
@@ -154,6 +174,7 @@ class ContentSerializer < ApplicationSerializer
   end
 
   def episode_attributes(episode, continue_watching_data = nil)
+    locale = @options[:locale] || I18n.locale
     thumbnail_url = episode.image_url_for("episode_thumbnail") || object.image_url_for("backdrop")
     thumbnail_medium = episode.image_url_for("episode_thumbnail", variant: "medium") ||
                        object.image_url_for("backdrop", variant: "medium")
@@ -161,6 +182,9 @@ class ContentSerializer < ApplicationSerializer
     attributes = episode.as_json(only: %i[id title description position premium])
     attributes[:thumbnail] = thumbnail_url
     attributes[:thumbnail_resized] = thumbnail_medium
+    attributes[:content_rating] = episode.effective_content_rating&.as_json_with_locale(locale: locale)
+    attributes[:content_descriptors] = episode.effective_descriptors(locale: locale).map { |d| d.as_json_with_locale(locale: locale) }
+    attributes[:advisory_text] = episode.advisory_text(locale: locale)
     attributes[:images] = {
       episode_thumbnail: episode.image_variants_for("episode_thumbnail")
     }

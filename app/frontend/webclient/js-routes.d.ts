@@ -222,6 +222,16 @@ export const adminCategoryPath: ((
 
 /**
  * Generates rails route to
+ * /admin/content-descriptors(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminContentDescriptorsPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
  * /admin/content-manager/all(.:format)
  * @param {object | undefined} options
  * @returns {string} route path
@@ -247,6 +257,16 @@ export const adminContentManagerCategoriesPath: ((
  * @returns {string} route path
  */
 export const adminContentManagerMediaIntegrityPath: ((
+  options?: {format?: OptionalRouteParameter} & RouteOptions
+) => string) & RouteHelperExtras;
+
+/**
+ * Generates rails route to
+ * /admin/content-ratings(.:format)
+ * @param {object | undefined} options
+ * @returns {string} route path
+ */
+export const adminContentRatingsPath: ((
   options?: {format?: OptionalRouteParameter} & RouteOptions
 ) => string) & RouteHelperExtras;
 
@@ -532,16 +552,6 @@ export const adminXmltvSourcesPath: ((
  */
 export const algoliaConfigPath: ((
   options?: {format?: OptionalRouteParameter} & RouteOptions
-) => string) & RouteHelperExtras;
-
-/**
- * Generates rails route to
- * /cinelar-algolia-search
- * @param {object | undefined} options
- * @returns {string} route path
- */
-export const algoliaSearchPluginPath: ((
-  options?: RouteOptions
 ) => string) & RouteHelperExtras;
 
 /**

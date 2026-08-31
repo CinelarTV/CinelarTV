@@ -31,6 +31,7 @@ import pluginEvents from "@/lib/plugin-events";
 import PlayerSkipButton from "@/components/videoplayer/PlayerSkipButton";
 import PlayerNextEpisode from "@/components/videoplayer/PlayerNextEpisode";
 import PlayerSegmentAdmin from "@/components/videoplayer/PlayerSegmentAdmin";
+import ContentRatingBadge from "@/components/ContentRatingBadge";
 
 const DEFAULT_STREAM_PING_INTERVAL_MS = 10_000;
 const STREAM_LIMIT_ERROR_MESSAGE = 'Has alcanzado el número máximo de transmisiones simultáneas.';
@@ -152,6 +153,14 @@ export default defineComponent({
 
         const segments = computed(() =>
             watchData.value?.episode?.segments || watchData.value?.content?.segments || []
+        );
+
+        const contentRating = computed(() =>
+            watchData.value?.episode?.content_rating || watchData.value?.content?.content_rating || null
+        );
+
+        const contentDescriptors = computed(() =>
+            watchData.value?.episode?.content_descriptors || watchData.value?.content?.content_descriptors || []
         );
 
         const nextEpisode = computed(() => {
@@ -838,6 +847,18 @@ export default defineComponent({
                     />
 
                     <PluginOutlet name="player:after-media-player" />
+
+                    {/* Content Rating Advisory Badge — outside controls overlay */}
+                    {contentRating.value && (
+                        <ContentRatingBadge
+                            rating={contentRating.value}
+                            descriptors={contentDescriptors.value}
+                            compact={true}
+                            position="top-left"
+                            autoHide={true}
+                            hideDelay={5000}
+                        />
+                    )}
                 </div>
             );
         };

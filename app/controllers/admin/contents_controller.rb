@@ -4,7 +4,7 @@ module Admin
   class ContentsController < Admin::BaseController
     before_action :set_content,
                   only: %i[show analytics update destroy reorder_seasons create_season sync_categories_from_tmdb find_seasons_from_tmdb
-                           sync_cast_from_tmdb remove_cast_member add_cast_member sync_logo_from_tmdb]
+                           sync_cast_from_tmdb remove_cast_member add_cast_member sync_logo_from_tmdb sync_rating_from_tmdb]
     before_action :set_season,
                   only: %i[create_episode episode_list find_episodes_from_tmdb reorder_episodes update_season
                            delete_season]
@@ -62,12 +62,24 @@ module Admin
     end
 
     def create
-      @content = Content.new(content_params)
+      rating_code = content_params[:content_rating_id]
+      create_params = content_params.except(:content_descriptor_keys, :content_rating_id)
+      # Resolve rating code to actual ContentRating ID
+      if rating_code.present?
+        rating = ContentRating.find_by(code: rating_code)
+        create_params[:content_rating_id] = rating&.id
+        create_params[:content_rating_code] = rating&.code
+      end
+      @content = Content.new(create_params)
       @content.available = false
       @content.save!
 
       ActiveRecord::Base.transaction do
         handle_uploaded_images
+
+        # Assign descriptors from keys if provided
+        descriptor_keys = content_params[:content_descriptor_keys]
+        assign_descriptors_from_keys(@content, descriptor_keys) if descriptor_keys
 
         # Auto-assign categories from TMDB if enabled and category_ids not provided manually
         if SiteSetting.enable_category_auto_assignment && params[:tmdb_genre_ids].present? && content_params[:category_ids].blank?
@@ -84,6 +96,11 @@ module Admin
         # Auto-fetch logo from TMDB if tmdb_id is set and no logo was manually uploaded
         if @content.tmdb_id.present? && params.dig(:content, :logo).blank?
           TmdbLogoFetcher.new(@content).call
+        end
+
+        # Auto-fetch content rating from TMDB if tmdb_id is set and no rating was manually assigned
+        if @content.tmdb_id.present? && @content.content_rating_id.blank?
+          fetch_and_assign_content_rating(@content)
         end
 
         render json: { message: "Content created successfully", status: :ok }
@@ -295,7 +312,20 @@ module Admin
     def update
       ActiveRecord::Base.transaction do
         handle_uploaded_images
-        @content.update!(content_params.except(:banner, :cover, :logo))
+        descriptor_keys = content_params.delete(:content_descriptor_keys)
+        rating_code = content_params.delete(:content_rating_id)
+        update_params = content_params.except(:banner, :cover, :logo)
+        # Resolve rating code to actual ContentRating ID
+        if rating_code.present?
+          rating = ContentRating.find_by(code: rating_code)
+          update_params[:content_rating_id] = rating&.id
+          update_params[:content_rating_code] = rating&.code
+        else
+          update_params[:content_rating_id] = nil
+          update_params[:content_rating_code] = nil
+        end
+        @content.update!(update_params)
+        assign_descriptors_from_keys(@content, descriptor_keys) if descriptor_keys
         render json: { message: "Content updated successfully", status: :ok }
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -430,6 +460,25 @@ module Admin
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
+    def sync_rating_from_tmdb
+      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
+      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+
+      fetch_and_assign_content_rating(@content)
+
+      if @content.content_rating
+        locale = I18n.locale
+        render json: {
+          message: "Rating synced from TMDB",
+          content_rating: @content.content_rating.as_json_with_locale(locale: locale)
+        }, status: :ok
+      else
+        render json: { error: "No rating found in TMDB for this region" }, status: :unprocessable_entity
+      end
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     def index
       contents = Content.all
 
@@ -520,6 +569,59 @@ module Admin
       Tmdb::Api.key(api_key)
       Tmdb::Api.language(SiteSetting.default_locale)
       Rails.logger.info("Using TMDB API Key: #{api_key}")
+    end
+
+    def fetch_and_assign_content_rating(content)
+      api_key = SiteSetting.tmdb_api_key.strip
+      language = SiteSetting.default_locale
+      region = SiteSetting.content_rating_region.to_s.upcase.presence || "US"
+
+      url = if content.content_type == "MOVIE"
+              "https://api.themoviedb.org/3/movie/#{content.tmdb_id}?api_key=#{api_key}&language=#{language}&append_to_response=release_dates"
+            else
+              "https://api.themoviedb.org/3/tv/#{content.tmdb_id}?api_key=#{api_key}&language=#{language}&append_to_response=content_ratings"
+            end
+
+      cache_key = ["tmdb", "rating", content.content_type, content.tmdb_id, region].join(":")
+      data = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+        response = HTTParty.get(url)
+        response.parsed_response
+      end
+
+      certification = extract_certification(data, content.content_type, region)
+      return unless certification
+
+      rating = ContentRating.find_by(code: certification[:code]) ||
+               ContentRating.find_by(code: certification[:code], system: certification[:system])
+      return unless rating
+
+      content.update!(
+        content_rating: rating,
+        content_rating_code: rating.code
+      )
+    end
+
+    def extract_certification(data, content_type, region)
+      if content_type == "MOVIE"
+        release_dates = data.dig("release_dates", "results") || []
+        country_dates = release_dates.find { |r| r["iso_3166_1"] == region }
+        cert = country_dates&.dig("release_dates")&.find { |rd| rd["certification"].present? }
+        return unless cert
+        { code: cert["certification"], system: region }
+      else
+        ratings = data.dig("content_ratings", "results") || []
+        country_rating = ratings.find { |r| r["iso_3166_1"] == region }
+        cert_code = country_rating&.dig("rating")
+        return if cert_code.blank?
+        { code: cert_code, system: region }
+      end
+    end
+
+    def assign_descriptors_from_keys(content, keys)
+      return if keys.nil?
+
+      descriptors = ContentDescriptor.where(key: keys)
+      content.content_descriptors = descriptors
     end
 
     def fetch_tmdb_data(title)
@@ -633,10 +735,17 @@ module Admin
     end
 
     def serialize_content(content)
+      locale = I18n.locale
       content_data = content.as_json
 
       content_data[:categories] = content.categories.map { |c| { id: c.id, name: c.name } }
       content_data[:category_ids] = content.category_ids
+
+      content_data[:content_rating] = content.content_rating&.as_json_with_locale(locale: locale)
+      content_data[:content_rating_id] = content.content_rating_id
+      content_data[:content_descriptors] = content.content_descriptors.map { |d| d.as_json_with_locale(locale: locale) }
+      content_data[:content_descriptor_ids] = content.content_descriptor_ids
+      content_data[:advisory_text] = content.advisory_text(locale: locale)
 
       content_data[:images] = {
         poster: content.image_variants_for("poster"),
@@ -674,6 +783,7 @@ module Admin
     end
 
     def serialize_episodes(episodes)
+      locale = I18n.locale
       episodes.map do |e|
         {
           id: e.id,
@@ -681,6 +791,11 @@ module Admin
           description: e.description,
           thumbnail: e.thumbnail || @content.banner,
           position: e.position,
+          content_rating: e.effective_content_rating&.as_json_with_locale(locale: locale),
+          content_rating_id: e.content_rating_id,
+          content_descriptors: e.content_descriptors.map { |d| d.as_json_with_locale(locale: locale) },
+          content_descriptor_ids: e.content_descriptor_ids,
+          advisory_text: e.advisory_text(locale: locale),
           images: {
             episode_thumbnail: e.image_variants_for("episode_thumbnail")
           }
@@ -703,7 +818,7 @@ module Admin
 
     def content_params
       params.require(:content).permit(:title, :description, :banner, :cover, :logo, :content_type, :year, :available, :premium, :tmdb_id, :trailer_url,
-                                      :scheduled_launch_at, category_ids: [])
+                                      :scheduled_launch_at, :content_rating_id, category_ids: [], content_descriptor_ids: [], content_descriptor_keys: [])
     end
 
     def season_params
@@ -711,7 +826,8 @@ module Admin
     end
 
     def episode_params
-      params.require(:episode).permit(:title, :description, :thumbnail, :duration, :position, :premium, :tmdb_id)
+      params.require(:episode).permit(:title, :description, :thumbnail, :duration, :position, :premium, :tmdb_id,
+                                      :content_rating_id, content_descriptor_ids: [])
     end
   end
 end

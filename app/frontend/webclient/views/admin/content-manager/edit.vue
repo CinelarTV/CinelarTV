@@ -93,6 +93,80 @@
                                 </a>
                             </p>
                         </div>
+
+                        <!-- Content Rating -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-white/80">
+                                    Clasificación por edad
+                                </label>
+                                <button v-if="content.tmdb_id" @click="syncRatingFromTmdb"
+                                    :disabled="syncingRating"
+                                    class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span v-if="syncingRating">Sincronizando...</span>
+                                    <span v-else>Obtener de TMDB</span>
+                                </button>
+                            </div>
+                            <div v-if="ratingsLoading" class="text-white/60 text-sm">
+                                Cargando clasificaciones...
+                            </div>
+                            <div v-else class="space-y-3">
+                                <c-select
+                                    :options="ratingOptions"
+                                    v-model="editedData.content_rating_id"
+                                    label="Rating"
+                                    placeholder="Seleccionar clasificación..."
+                                />
+                                <div v-if="editedData.content_rating_id" class="flex items-center gap-2">
+                                    <span class="text-xs text-white/40">Actual:</span>
+                                    <span class="text-xs px-2 py-0.5 rounded bg-white/10 text-white/80">
+                                        {{ currentRatingLabel }}
+                                    </span>
+                                    <button v-if="editedData.content_rating_id"
+                                        @click="editedData.content_rating_id = null"
+                                        class="text-xs text-red-400 hover:text-red-300">
+                                        Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content Descriptors -->
+                        <div>
+                            <label class="block text-sm font-medium text-white/80 mb-2">
+                                Descriptores de contenido
+                            </label>
+                            <div v-if="descriptorsLoading" class="text-white/60 text-sm">
+                                Cargando descriptores...
+                            </div>
+                            <div v-else class="space-y-2 max-h-64 overflow-y-auto">
+                                <label v-for="descriptor in descriptors" :key="descriptor.key"
+                                    class="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                                    <input type="checkbox" :value="descriptor.key" v-model="editedData.descriptor_keys"
+                                        class="w-4 h-4 rounded border-white/30 bg-white/10 text-[#00A8E1] focus:ring-[#00A8E1] focus:ring-offset-0" />
+                                    <div class="flex-1 min-w-0">
+                                        <span class="text-white/80 text-sm">{{ descriptor.name }}</span>
+                                        <span class="text-[10px] text-white/40 ml-1">({{ descriptor.category }})</span>
+                                    </div>
+                                    <span :class="{
+                                        'bg-green-500/20 text-green-400': descriptor.severity_level === 1,
+                                        'bg-yellow-500/20 text-yellow-400': descriptor.severity_level === 2,
+                                        'bg-red-500/20 text-red-400': descriptor.severity_level === 3
+                                    }" class="text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                                        {{ descriptor.severity_level === 1 ? 'Bajo' : descriptor.severity_level === 2 ? 'Medio' : 'Alto' }}
+                                    </span>
+                                </label>
+                            </div>
+                            <p v-if="descriptors.length === 0 && !descriptorsLoading" class="text-white/40 text-sm mt-2">
+                                No hay descriptores disponibles.
+                            </p>
+                            <div v-if="editedData.descriptor_keys?.length > 0" class="mt-2 flex flex-wrap gap-1">
+                                <span v-for="key in editedData.descriptor_keys" :key="key"
+                                    class="text-[10px] px-2 py-0.5 rounded-full bg-[#00A8E1]/20 text-[#00A8E1]">
+                                    {{ getDescriptorName(key) }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -455,6 +529,11 @@ const categoriesLoading = ref(false);
 const syncingCategories = ref(false);
 const syncingCast = ref(false);
 const syncingLogo = ref(false);
+const syncingRating = ref(false);
+const contentRatings = ref([]);
+const ratingsLoading = ref(false);
+const descriptors = ref([]);
+const descriptorsLoading = ref(false);
 
 const fetchContent = async () => {
     try {
@@ -463,6 +542,10 @@ const fetchContent = async () => {
         editedData.value = Object.fromEntries(Object.entries(content.value).filter(([key, value]) => !['banner', 'cover'].includes(key)));
         // Initialize category_ids from content
         editedData.value.category_ids = content.value.categories?.map(c => c.id) || [];
+        // Initialize content_rating_id from content
+        editedData.value.content_rating_id = content.value.content_rating?.code || content.value.content_rating_id || null;
+        // Initialize descriptor_keys from content
+        editedData.value.descriptor_keys = content.value.content_descriptors?.map(d => d.key) || [];
 
         // Initialize schedule fields from existing data
         if (content.value.scheduled_launch_at) {
@@ -487,6 +570,65 @@ const fetchCategories = async () => {
         console.error('Failed to fetch categories:', error);
     } finally {
         categoriesLoading.value = false;
+    }
+};
+
+const fetchContentRatings = async () => {
+    ratingsLoading.value = true;
+    try {
+        const response = await ajax.get('/admin/content-ratings.json');
+        contentRatings.value = response.data.data || [];
+    } catch (error) {
+        console.error('Failed to fetch content ratings:', error);
+    } finally {
+        ratingsLoading.value = false;
+    }
+};
+
+const fetchContentDescriptors = async () => {
+    descriptorsLoading.value = true;
+    try {
+        const response = await ajax.get('/admin/content-descriptors.json');
+        descriptors.value = response.data.data || [];
+    } catch (error) {
+        console.error('Failed to fetch content descriptors:', error);
+    } finally {
+        descriptorsLoading.value = false;
+    }
+};
+
+const ratingOptions = computed(() => {
+    return contentRatings.value.map(r => ({
+        value: r.code,
+        label: `${r.name} — ${r.description || ''}`
+    }));
+});
+
+const currentRatingLabel = computed(() => {
+    if (!editedData.value.content_rating_id) return '';
+    const rating = contentRatings.value.find(r => r.code === editedData.value.content_rating_id);
+    return rating ? `${rating.name} — ${rating.description || ''}` : '';
+});
+
+const getDescriptorName = (key) => {
+    const descriptor = descriptors.value.find(d => d.key === key);
+    return descriptor ? descriptor.name : key;
+};
+
+const syncRatingFromTmdb = async () => {
+    if (!confirm('Obtener clasificación de TMDB? Esto reemplazará la clasificación actual.')) {
+        return;
+    }
+
+    syncingRating.value = true;
+    try {
+        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-rating.json`);
+        toast.success(response.data.message || 'Clasificación sincronizada desde TMDB');
+        await fetchContent();
+    } catch (error) {
+        toast.error(error.response?.data?.error || 'Error al sincronizar clasificación desde TMDB');
+    } finally {
+        syncingRating.value = false;
     }
 };
 
@@ -693,6 +835,13 @@ const saveContent = async (e) => {
                 value.forEach(id => {
                     formData.append(`content[category_ids][]`, id);
                 });
+            } else if (key === 'descriptor_keys' && Array.isArray(value)) {
+                value.forEach(key => {
+                    formData.append(`content[content_descriptor_keys][]`, key);
+                });
+            } else if (key === 'content_rating_id') {
+                // Send content_rating_id — null clears it
+                formData.append(`content[content_rating_id]`, value || '');
             } else {
                 formData.append(`content[${key}]`, value);
             }
@@ -764,5 +913,7 @@ const deleteSeason = async (season) => {
 onMounted(() => {
     fetchContent();
     fetchCategories();
+    fetchContentRatings();
+    fetchContentDescriptors();
 });
 </script>

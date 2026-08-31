@@ -61,6 +61,11 @@ let StyleguideRoute = {
             component: () => import('../components/sections/molecules/FormsSection.tsx')
         },
         {
+            path: 'molecules/content-rating-badge',
+            name: 'styleguide.molecules.content-rating-badge',
+            component: () => import('../components/sections/molecules/ContentRatingBadgeSection.tsx')
+        },
+        {
             path: 'organisms/header',
             name: 'styleguide.organisms.header',
             component: () => import('../components/sections/organisms/HeaderSection.tsx')

@@ -29,6 +29,7 @@ const categories: SidebarCategory[] = [
         sections: [
             { label: 'ContentCard', routeName: 'styleguide.molecules.content-card' },
             { label: 'ContentRow', routeName: 'styleguide.molecules.content-row' },
+            { label: 'ContentRatingBadge', routeName: 'styleguide.molecules.content-rating-badge' },
             { label: 'Forms', routeName: 'styleguide.molecules.forms' }
         ]
     },

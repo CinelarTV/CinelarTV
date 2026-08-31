@@ -29,6 +29,10 @@ namespace :admin do
   post "subscriptions/:id/grant" => "subscriptions#grant"
   post "subscriptions/create_grant" => "subscriptions#create_grant"
 
+  # Content Ratings & Descriptors
+  get "/content-ratings", to: "content_ratings#index"
+  get "/content-descriptors", to: "content_descriptors#index"
+
   # Content Management related routes
   get "/content-manager/all", to: "contents#index"
   get "/content-manager/media-integrity", to: "dashboard#index" # Redirigir al dashboard#index para que Vue maneje la ruta
@@ -43,6 +47,7 @@ namespace :admin do
   post "/content-manager/:id/sync-categories", to: "contents#sync_categories_from_tmdb"
   post "/content-manager/:id/sync-cast", to: "contents#sync_cast_from_tmdb"
   post "/content-manager/:id/sync-logo", to: "contents#sync_logo_from_tmdb"
+  post "/content-manager/:id/sync-rating", to: "contents#sync_rating_from_tmdb"
   delete "/content-manager/:id/cast-members/:cast_member_id", to: "contents#remove_cast_member"
   post "/content-manager/:id/seasons", to: "contents#create_season"
   put "/content-manager/:id/seasons/:season_id", to: "contents#update_season"
