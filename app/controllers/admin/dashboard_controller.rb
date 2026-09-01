@@ -103,13 +103,28 @@ module Admin
     end
 
     def webhook_logs
-      @webhook_logs = WebhookLog.order(created_at: :desc).limit(100)
-      respond_to do |format|
-        format.html
-        format.json do
-          render json: { data: @webhook_logs.as_json }
-        end
+      page = (params[:page] || 1).to_i
+      per_page = [(params[:per_page] || 25).to_i, 100].min
+      offset = (page - 1) * per_page
+
+      scope = ProviderEvent.order(received_at: :desc)
+      total = scope.count
+      events = scope.offset(offset).limit(per_page).map do |event|
+        event.as_json.merge(
+          "event_name" => "#{event.provider_key}:#{event.event_type}",
+          "status" => event.processing_error.present? ? 500 : (event.processed_at.present? ? 200 : 202)
+        )
       end
+
+      render json: {
+        data: events,
+        meta: {
+          total: total,
+          page: page,
+          per_page: per_page,
+          total_pages: (total.to_f / per_page).ceil
+        }
+      }
     end
 
     private
