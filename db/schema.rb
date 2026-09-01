@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_30_234756) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_31_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -76,7 +76,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_234756) do
     t.datetime "last_watched_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["content_id"], name: "index_content_analytics_on_content_id"
+    t.index ["content_id"], name: "index_content_analytics_on_content_id", unique: true
     t.index ["last_watched_at"], name: "index_content_analytics_on_last_watched_at"
     t.index ["total_views"], name: "index_content_analytics_on_total_views"
   end
