@@ -16,6 +16,40 @@ module Billing
         remote_updated_at: parse_time(remote["updated_at"] || remote["last_modified"]),
         metadata: { "remote_status" => remote["status"], "last_remote_sync" => Time.current.iso8601 }.merge(metadata)
       )
+
+      record_last_payment(subscription:, remote:) if status == "active"
+    end
+
+    def self.record_last_payment(subscription:, remote:)
+      last_payment = remote["last_payment"]
+      return if last_payment.blank?
+
+      amount = last_payment["amount"]
+      currency = last_payment["currency"]
+      paid_at = parse_time(last_payment["date"])
+      return if amount.blank? || paid_at.blank?
+
+      amount_cents = (BigDecimal(amount.to_s) * 100).round.to_i rescue nil
+      return if amount_cents.nil?
+
+      payment_exists = Payment.exists?(subscription_id: subscription.id, paid_at: paid_at.beginning_of_hour..paid_at.end_of_hour)
+      return if payment_exists
+
+      Payment.create!(
+        subscription: subscription,
+        user: subscription.user,
+        provider_key: subscription.provider_key,
+        provider_payment_id: "#{subscription.provider_subscription_id}_#{paid_at.to_i}",
+        kind: "initial",
+        status: "succeeded",
+        amount_cents: amount_cents,
+        currency: currency || subscription.currency,
+        paid_at: paid_at,
+        attempted_at: paid_at,
+        provider_metadata: { "source" => "remote_snapshot_sync" }
+      )
+    rescue StandardError => e
+      Rails.logger.warn("Failed to record payment from snapshot: #{e.message}")
     end
 
     def self.normalize_status(value)

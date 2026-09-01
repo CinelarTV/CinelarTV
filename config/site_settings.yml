@@ -468,6 +468,11 @@ monetization:
     refresh: true
     default: ""
     type: "string"
+  paypal_sandbox_mode:
+    client: false
+    refresh: true
+    default: false
+    type: "boolean"
 
   google_play_package_name:
     client: false

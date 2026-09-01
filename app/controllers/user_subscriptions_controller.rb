@@ -97,7 +97,8 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def sync
-    subscription = current_user.subscriptions.open.order(updated_at: :desc).first
+    subscription = current_user.subscriptions.where(status: "pending").order(created_at: :desc).first ||
+                   current_user.subscriptions.open.order(updated_at: :desc).first
     return render json: { error: "No subscription found" }, status: :not_found if subscription.blank?
 
     provider = ::Subscriptions::Providers::Registry.build(subscription.provider_key)
@@ -135,6 +136,12 @@ class UserSubscriptionsController < ApplicationController
   end
 
   def subscription_payload(subscription)
+    metadata = subscription.provider_metadata || {}
+    if subscription.provider_key == "paypal" && metadata["management_url"].blank?
+      management_url = SiteSetting.paypal_sandbox_mode ? "https://www.sandbox.paypal.com/myaccount/autopay/" : "https://www.paypal.com/myaccount/autopay/"
+      metadata = metadata.merge("management_url" => management_url)
+    end
+
     subscription.as_json.merge(
       "provider" => subscription.provider_key,
       "status_formatted" => subscription.status.humanize,
@@ -142,7 +149,8 @@ class UserSubscriptionsController < ApplicationController
       "renews_at" => subscription.current_period_ends_at,
       "ends_at" => subscription.access_until,
       "cancelled" => subscription.status == "cancelled",
-      "user_email" => current_user.email
+      "user_email" => current_user.email,
+      "metadata" => metadata
     )
   end
 
@@ -157,6 +165,6 @@ class UserSubscriptionsController < ApplicationController
 
   def recommend_provider(country_code)
     return "mercado_pago" if country_code.present? && MERCADOPAGO_COUNTRIES.include?(country_code)
-    "lemon_squeezy"
+    "paypal"
   end
 end

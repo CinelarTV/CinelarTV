@@ -48,7 +48,8 @@ module Billing
     def find_subscription_from_payment(remote_payment)
       # Try preapproval/subscription reference first
       sub_id = remote_payment["preapproval_id"].to_s.presence ||
-               remote_payment["subscription_id"].to_s.presence
+               remote_payment["subscription_id"].to_s.presence ||
+               remote_payment["billing_agreement_id"].to_s.presence
       return Subscription.find_by(provider_key: @event.provider_key, provider_subscription_id: sub_id) if sub_id.present?
 
       # Try external_reference (may be the Subscription UUID)
@@ -59,28 +60,28 @@ module Billing
     end
 
     def record_payment(subscription, remote_payment)
-      status = case remote_payment["status"].to_s
-               when "approved" then "succeeded"
-               when "refunded", "charged_back" then "refunded"
-               when "rejected", "cancelled" then "failed"
+      status = case remote_payment["status"].to_s.downcase
+               when "approved", "completed", "succeeded" then "succeeded"
+               when "refunded", "charged_back", "partially_refunded" then "refunded"
+               when "rejected", "cancelled", "failed", "denied" then "failed"
                else "pending"
                end
 
       payment = Payment.find_or_initialize_by(
         provider_key: @event.provider_key,
         provider_payment_id: remote_payment["id"].to_s
-        )
+      )
       payment.assign_attributes(
         subscription:,
         user: subscription.user,
         kind: payment.persisted? ? payment.kind : "renewal",
         status:,
         amount_cents: (BigDecimal(remote_payment["transaction_amount"].to_s) * 100).round.to_i,
-        currency: remote_payment["currency_id"].presence || subscription.currency,
-        attempted_at: parse_time(remote_payment["date_created"]),
-        paid_at: parse_time(remote_payment["date_approved"]),
-        failure_code: remote_payment["status_detail"],
-        provider_metadata: remote_payment.slice("operation_type", "payment_method_id", "status_detail")
+        currency: remote_payment["currency_id"].presence || remote_payment["currency"].presence || subscription.currency,
+        attempted_at: parse_time(remote_payment["date_created"] || remote_payment["create_time"]),
+        paid_at: parse_time(remote_payment["date_approved"] || remote_payment["update_time"] || remote_payment["create_time"]),
+        failure_code: remote_payment["status_detail"] || remote_payment["reason_code"],
+        provider_metadata: remote_payment.slice("operation_type", "payment_method_id", "status_detail", "state", "payment_mode")
       )
       payment.save!
     end
@@ -103,7 +104,9 @@ module Billing
 
     def by_correlation_id
       correlation_id = @event.payload.dig("meta", "custom_data", "subscription_id") ||
-        @event.payload["external_reference"]
+                       @event.payload["external_reference"] ||
+                       @event.payload.dig("resource", "custom_id") ||
+                       @event.payload.dig("resource", "custom")
       return if correlation_id.blank?
 
       subscription = Subscription.find_by(id: correlation_id)
