@@ -262,6 +262,7 @@
   background: color-mix(in srgb, var(--c-background-color, #181818) 90%, #fff 10%);
   padding: clamp(12px, 1.8vw, 16px);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .content-related__head {
@@ -287,12 +288,9 @@
 
 .content-related__scroll {
   margin-top: 12px;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: clamp(164px, 18vw, 220px);
+  display: flex;
   gap: 10px;
   overflow-x: auto;
-  max-width: 100%;
   padding: 4px 2px 8px;
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
@@ -305,6 +303,7 @@
 .content-related__card {
   position: relative;
   display: block;
+  flex: 0 0 clamp(164px, 18vw, 220px);
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--c-body-text-color, #fff) 12%, transparent 88%);
@@ -499,9 +498,9 @@
     -webkit-line-clamp: 4;
   }
 
-  .content-related__scroll {
-    grid-auto-columns: minmax(158px, 52vw);
-    max-width: 100%;
+  .content-related__card {
+    flex: 0 0 auto;
+    width: max(158px, min(220px, 52vw));
   }
 }
 
