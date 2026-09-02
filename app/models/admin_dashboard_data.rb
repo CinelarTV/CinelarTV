@@ -16,15 +16,6 @@ class AdminDashboardData
       send(sym)
     end
 
-    # Agrega problemas adicionales basados en condiciones
-    unless CinelarTV.valid_license? && SiteSetting.enable_subscription
-      add_problem(
-        content: "Your CinelarTV instance is not activated. Please enter a valid license key to continue using commercial features.",
-        type: "critical",
-        icon: "frown",
-      )
-    end
-
     unless SiteSetting.wizard_completed
       add_problem(
         content: "Looks like you haven't completed the setup wizard yet. You can complete it by going to the <a href='/wizard'>setup wizard</a>.",

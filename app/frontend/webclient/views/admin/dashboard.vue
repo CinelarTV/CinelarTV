@@ -30,17 +30,21 @@
 
 
       </section>
-      <section id="problems" class="admin-dashboard-problems flex flex-col py-2 w-full"
-        v-if="dashboardData.problems.length > 0">
-        <template v-for="problem in dashboardData.problems" :key="problem.content">
-          <div class="problem-container" :class="getClassByType(problem.type)">
-            <div class="flex-shrink-0">
-              <c-icon :icon="problem.icon" :size="24" />
+      <section id="problems" class="admin-dashboard-problems" v-if="dashboardData.problems.length > 0">
+        <div class="admin-dashboard-problems__header">
+          <c-icon icon="alert-triangle" :size="16" />
+          <span>Problemas detectados</span>
+        </div>
+        <div class="admin-dashboard-problems__list">
+          <template v-for="problem in dashboardData.problems" :key="problem.content">
+            <div class="problem-container" :class="`problem-container--${problem.type}`">
+              <div class="problem-container__icon">
+                <c-icon :icon="problem.icon" :size="18" />
+              </div>
+              <span class="problem-container__text" v-html="problem.content"></span>
             </div>
-            <span class="text-base px-4" v-html="problem.content">
-            </span>
-          </div>
-        </template>
+          </template>
+        </div>
       </section>
 
       <section class="version-checks dashboard-card">
@@ -244,19 +248,6 @@ const completionRateChartOptions = {
         callback: (value) => `${value}%`
       }
     }
-  }
-}
-
-const getClassByType = (type) => {
-  switch (type) {
-    case 'critical':
-      return 'bg-red-700'
-    case 'warning':
-      return 'bg-yellow-500'
-    case 'info':
-      return 'bg-[var(--c-primary-500)]'
-    default:
-      return 'bg-gray-500'
   }
 }
 

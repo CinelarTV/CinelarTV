@@ -2,9 +2,8 @@
 
 class LicenseValidationJob
   include Sidekiq::Job
-  extend MiniScheduler::Schedule
-
-  every 15.minutes
+  # extend MiniScheduler::Schedule
+  # every 15.minutes
 
   def perform
     validate_license(SiteSetting.license_key)
@@ -24,7 +23,7 @@ class LicenseValidationJob
                                body: { license_key: }.to_json,
                                headers: { "Content-Type" => "application/json", "Accept" => "application/json" }
                              })
-                             
+
     # Beautiful print (formatted) of JSON response
     begin
       parsed_response = JSON.parse(response.body)

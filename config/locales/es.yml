@@ -81,6 +81,9 @@ es:
       target='_blank'>Obtén más información sobre Sidekiq aquí. </a>"
     updates_available: "Parece que hay actualizaciones disponibles para CinelarTV.
       <a href='/admin/updates'>Haga clic aquí para actualizar. </a>"
+    ffmpeg_warning: "FFmpeg no está instalado o no se encuentra en el sistema. CinelarTV
+      requiere FFmpeg para la transcodificación de video. Por favor, instale FFmpeg
+      y asegúrese de que sea accesible desde la línea de comandos."
     broken_media_warning:
       one: "Hay 1 fuente de video que falló en las pruebas de integridad. <a href='/admin/content-manager/media-integrity'>Ver detalles</a>"
       other: "Hay %{count} fuentes de video que fallaron en las pruebas de integridad. <a href='/admin/content-manager/media-integrity'>Ver detalles</a>"
