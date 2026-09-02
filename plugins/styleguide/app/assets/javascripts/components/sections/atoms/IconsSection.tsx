@@ -1,21 +1,12 @@
 import { defineComponent } from 'vue';
 import CIcon from '@/components/c-icon.vue';
-
-const iconList = [
-    'search', 'settings', 'home', 'user', 'bookmark', 'heart',
-    'star', 'bell', 'mail', 'calendar', 'clock', 'lock',
-    'unlock', 'eye', 'eye-off', 'edit', 'trash', 'plus',
-    'minus', 'check', 'x', 'chevron-down', 'chevron-right',
-    'chevron-left', 'chevron-up', 'arrow-left', 'arrow-right',
-    'refresh', 'download', 'upload', 'share', 'link', 'copy',
-    'film', 'tv', 'play', 'pause', 'skip-forward', 'skip-back',
-    'volume-2', 'volume-x', 'maximize', 'minimize', 'loader',
-    'telescope', 'clapperboard', 'popcorn'
-];
+import { getAllIcons } from '@/lib/IconLibrary';
 
 export default defineComponent({
     name: 'IconsSection',
     setup() {
+        const icons = Array.from(getAllIcons()).sort();
+
         return () => (
             <div class="styleguide-section">
                 <h1 class="styleguide-section__title">Icons</h1>
@@ -48,7 +39,7 @@ export default defineComponent({
                 <div class="styleguide-subsection">
                     <h2 class="styleguide-subsection__title">Icon Catalog</h2>
                     <div class="styleguide-icon-grid">
-                        {iconList.map(icon => (
+                        {icons.map(icon => (
                             <div class="styleguide-icon-item" key={icon}>
                                 <CIcon icon={icon} size={24} />
                                 <span class="styleguide-icon-item__label">{icon}</span>

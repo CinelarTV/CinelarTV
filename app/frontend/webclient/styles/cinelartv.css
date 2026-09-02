@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @plugin "@midudev/tailwind-animations";
 @import "./admin.css";
+@import "./components/core.css";
 @import "./components/header.css";
 @import "./wizard.css";
 @import "./errors.css";
@@ -238,6 +239,57 @@ img.emoji {
 
   .icon {
     @apply m-0;
+  }
+}
+
+/* Button variants */
+
+.c-button--primary {
+  @apply text-white border-transparent;
+  background: var(--c-primary-600, #6366f1);
+
+  &:hover {
+    background: var(--c-primary-700, #4f46e5);
+  }
+
+  &:focus-visible {
+    @apply ring-2 ring-offset-2 ring-offset-[var(--c-body-bg,#0f0f0f)];
+    --tw-ring-color: var(--c-primary-500, #818cf8);
+  }
+}
+
+.c-button--danger {
+  @apply text-white border-transparent;
+  background: var(--c-danger, #ff9494);
+
+  &:hover {
+    background: var(--c-danger, #ff9494);
+    filter: brightness(0.9);
+  }
+
+  &:focus-visible {
+    @apply ring-2 ring-offset-2 ring-offset-[var(--c-body-bg,#0f0f0f)];
+    --tw-ring-color: var(--c-danger, #ff9494);
+  }
+}
+
+.c-button--ghost {
+  @apply bg-transparent border-transparent shadow-none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &:focus-visible {
+    @apply ring-1 ring-white/20;
+  }
+}
+
+.c-button--link {
+  @apply bg-transparent border-transparent shadow-none text-[var(--c-primary-400,#a5b4fc)] px-0;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 

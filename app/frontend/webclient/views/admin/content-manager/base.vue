@@ -1,16 +1,19 @@
 <template>
     <div class="panel content-manager">
         <div class="panel-body">
-            <div class="admin-main-nav content-manager-nav">
-                <ul class="nav nav-pills overflow-x-auto">
-                    <li v-for="item in navItems" :key="item.to">
-                        <router-link class="nav-item min-w-0 whitespace-nowrap" :to="item.to"
-                            active-class="admin-nav-active">
-                            <component :is="item.icon" :size="18" class="icon"></component>
-                            {{ item.title }}
-                        </router-link>
-                    </li>
-                </ul>
+            <div class="admin-nav content-manager-nav">
+                <div class="admin-nav__scroll">
+                    <router-link
+                        v-for="item in navItems"
+                        :key="item.to"
+                        class="admin-nav__item"
+                        :to="item.to"
+                        active-class="admin-nav__item--active"
+                    >
+                        <component :is="item.icon" :size="16" class="admin-nav__icon" />
+                        <span class="admin-nav__label">{{ item.title }}</span>
+                    </router-link>
+                </div>
             </div>
             <router-view />
         </div>
@@ -18,13 +21,10 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
-import { useRoute } from 'vue-router'
+import { inject, getCurrentInstance } from 'vue'
 import { useHead } from 'unhead'
-import { getCurrentInstance } from 'vue'
 import { ClapperboardIcon, TvIcon, ShapesIcon, ActivityIcon } from 'lucide-vue-next'
 
-const SiteSettings = inject('SiteSettings')
 const { $t } = getCurrentInstance().appContext.config.globalProperties
 
 const navItems = [
@@ -58,17 +58,5 @@ useHead({
 <style scoped>
 .content-manager-nav {
     margin-bottom: 16px;
-}
-
-.content-manager-nav .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    font-size: 0.85rem;
-}
-
-.content-manager-nav .nav-item .icon {
-    flex-shrink: 0;
 }
 </style>

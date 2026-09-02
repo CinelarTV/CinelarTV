@@ -22,7 +22,7 @@ const BASE_ICONS = new Set([
     "heading-1", "heading-2", "heading-3",
     "list", "list-ordered", "quote", "code", "minus", "link",
     "undo", "redo", "braces", "monitor", "smartphone",
-    "mail-check", "key-round", "unlock"
+    "mail-check", "key-round", "unlock", "users"
 ]);
 
 export const BASE_ICONS_LIST = Array.from(BASE_ICONS);
@@ -61,6 +61,16 @@ const detectInlineSprite = (): boolean => {
     }
 
     return false;
+};
+
+const getSpriteIconNames = (): string[] => {
+    const iconSheet = document.getElementById("cinelar-icon-sheet");
+    if (!iconSheet) return [];
+
+    const symbols = iconSheet.querySelectorAll("symbol[id]");
+    return Array.from(symbols)
+        .map((s) => s.getAttribute("id")!)
+        .filter((id) => id && !id.startsWith("vjs-icon-"));
 };
 
 // ─── Client-side sprite generation (fallback) ───────────────────────────────
@@ -132,7 +142,11 @@ const generateClientSpriteSheet = async (): Promise<boolean> => {
 
 let iconsStore: ReturnType<typeof useIconsStore> | null = null;
 
-const getAllIcons = (): Set<string> => {
+export const getAllIcons = (): Set<string> => {
+    if (serverSpriteDetected) {
+        return new Set(getSpriteIconNames());
+    }
+
     const iconSet = new Set(BASE_ICONS);
 
     siteSettings.additional_icons

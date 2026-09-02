@@ -1,15 +1,18 @@
 <template>
     <div class="user-dashboard wrap">
-        <div class="admin-main-nav">
-            <ul class="nav nav-pills overflow-x-auto">
-                <li v-for="link in userLinks" :key="link.to">
-                    <router-link class="nav-item items-center min-w-0 whitespace-nowrap" :to="link.to"
-                        active-class="admin-nav-active" :v-if="link.enabled === true">
-                        <c-icon v-if="link.icon" :icon="link.icon" :size="20" class="icon"></c-icon>
-                        {{ link.title }}
-                    </router-link>
-                </li>
-            </ul>
+        <div class="admin-nav">
+            <div class="admin-nav__scroll">
+                <router-link
+                    v-for="link in userLinks"
+                    :key="link.to"
+                    class="admin-nav__item"
+                    :to="link.to"
+                    active-class="admin-nav__item--active"
+                >
+                    <CIcon v-if="link.icon" :icon="link.icon" :size="16" class="admin-nav__icon" />
+                    <span class="admin-nav__label">{{ link.title }}</span>
+                </router-link>
+            </div>
         </div>
         <div class="user-dashboard-content mt-6">
             <RouterView />
@@ -18,12 +21,12 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
-import { useHead } from 'unhead';
+import CIcon from "@/components/c-icon.vue"
+import { inject } from 'vue'
+import { useHead } from 'unhead'
 
-const SiteSettings = inject('SiteSettings');
-const i18n = inject('I18n');
-const currentUser = inject('currentUser');
+const SiteSettings = inject('SiteSettings')
+const i18n = inject('I18n')
 
 const userLinks = [
     {
@@ -35,14 +38,14 @@ const userLinks = [
         icon: 'credit-card',
         title: i18n.t('js.user.nav.subscriptions'),
         to: '/account/billing',
-        enabled: SiteSettings.enable_subscription || false, // Subscriptions tab is enabled only if subscriptions are enabled
+        enabled: SiteSettings.enable_subscription || false,
     },
     {
         icon: 'settings',
         title: i18n.t('js.user.nav.settings'),
         to: '/account/settings',
     },
-].filter((link) => link.enabled !== false);
+].filter((link) => link.enabled !== false)
 
 useHead({
     title: 'Account',
@@ -52,8 +55,5 @@ useHead({
             content: 'Account',
         },
     ],
-});
-
-
-
+})
 </script>

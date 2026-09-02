@@ -1,6 +1,5 @@
-import { defineComponent, defineExpose, ref, computed, watch, toRef } from "vue"
-import CInput from "./c-input.vue";
-
+import { defineComponent, ref, computed, watch } from "vue"
+import CIcon from "../c-icon.vue"
 
 export default defineComponent({
     name: "CSplitList",
@@ -8,114 +7,84 @@ export default defineComponent({
         splitter: {
             type: String,
             default: ",",
-            validator: (value: string) => {
-                // Ensure the splitter is a single character
-                return value.length === 1;
-            }
+            validator: (value: string) => value.length === 1
         },
         items: {
             type: String,
-            required: true,
-            validator: (value: string) => {
-                return value.trim().length > 0;
-            }
+            default: ""
         }
     },
     emits: ["update:items"],
     setup(props, { emit }) {
-        const inputValue = ref("");
-        const list = computed(() => props.items.split(props.splitter).map(i => i.trim()).filter(Boolean));
-        const editIndex = ref<number | null>(null);
-        const editValue = ref("");
+        const list = computed(() =>
+            props.items ? props.items.split(props.splitter).map(i => i.trim()).filter(Boolean) : []
+        )
 
-        // Nueva lógica: edición directa, inputs dinámicos, sin modo toggable
-        const values = ref<string[]>(list.value.length ? [...list.value] : [""]);
+        const values = ref<string[]>(list.value.length ? [...list.value] : [""])
 
-        // Permite v-model:items
-        defineExpose({});
-        // Soporte para v-model:items
-        const model = toRef(props, 'items');
         watch(values, (val) => {
-            // Cuando cambian los inputs, actualiza el modelo
-            emit('update:items', val.filter(v => v.trim() !== '').join(props.splitter));
-        }, { deep: true });
+            emit("update:items", val.filter(v => v.trim() !== "").join(props.splitter))
+        }, { deep: true })
 
-
-        // Inicializa los valores solo una vez al montar
-        values.value = list.value.length ? [...list.value] : [""];
-        // Elimina cualquier watcher que sincronice con props.items después del montaje
-
-        // Actualiza el array y emite el string unido
-        const updateAndEmit = () => {
-            // Elimina vacíos intermedios, pero NO añade ninguno extra
-            let arr = values.value.filter((v) => v.trim() !== '');
-            values.value = arr;
-            emit("update:items", arr.join(props.splitter));
-        };
-
-        // Maneja cambios en cada input
         const onInput = (val: string, idx: number) => {
-            // Si se escribe el splitter, separa automáticamente
             if (val.includes(props.splitter)) {
-                const parts = val.split(props.splitter).map(s => s.trim());
-                values.value.splice(idx, 1, ...parts);
+                const parts = val.split(props.splitter).map(s => s.trim())
+                values.value.splice(idx, 1, ...parts)
             } else {
-                values.value[idx] = val;
+                values.value[idx] = val
             }
-            updateAndEmit();
-        };
+            emit("update:items", values.value.filter(v => v.trim() !== "").join(props.splitter))
+        }
 
-        // Elimina un campo
         const removeAt = (idx: number) => {
-            values.value.splice(idx, 1);
-            if (values.value.length === 0) values.value = [""];
-            updateAndEmit();
-        };
+            values.value.splice(idx, 1)
+            if (values.value.length === 0) values.value = [""]
+            emit("update:items", values.value.filter(v => v.trim() !== "").join(props.splitter))
+        }
 
-
+        const addItem = () => {
+            values.value.push("")
+        }
 
         return () => (
-            <div class="c-split-list flex flex-col gap-2">
-                <ul class="flex flex-col gap-4 mt-2">
+            <div class="c-split-list">
+                <ul class="c-split-list__items">
                     {values.value.map((val, idx) => (
-                        <li key={idx} class="flex">
+                        <li key={idx} class="c-split-list__item">
                             <input
                                 type="text"
                                 value={val}
                                 onInput={e => onInput((e.target as HTMLInputElement).value, idx)}
                                 onKeyup={e => {
-                                    if ((e as KeyboardEvent).key === 'Backspace' && val === '' && values.value.length > 1) removeAt(idx);
+                                    if ((e as KeyboardEvent).key === "Backspace" && val === "" && values.value.length > 1) {
+                                        removeAt(idx)
+                                    }
                                 }}
-                                class="c-input text-white px-2 py-1 w-24"
-                                placeholder="Nuevo elemento..."
-                                autofocus={idx === values.value.length - 1}
+                                class="c-input c-split-list__input"
+                                placeholder="Elemento..."
                             />
                             {values.value.length > 1 && (
                                 <button
-                                    class="ml-1 text-red-400 hover:text-red-600 focus:outline-none"
-                                    onClick={() => removeAt(idx)}
-                                    aria-label={`Quitar elemento`}
                                     type="button"
+                                    class="c-split-list__remove"
+                                    onClick={() => removeAt(idx)}
+                                    aria-label="Quitar elemento"
                                 >
-                                    ×
+                                    <CIcon icon="x" size={14} />
                                 </button>
                             )}
                         </li>
                     ))}
-                    {/* Botón para añadir manualmente un nuevo campo */}
-                    <li>
-                        <button
-                            class="px-3 py-1 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
-                            onClick={() => { values.value.push(""); }}
-                            type="button"
-                        >
-                            + Añadir
-                        </button>
-                    </li>
                 </ul>
-                {values.value.join(props.splitter)}
+                <button
+                    type="button"
+                    class="c-split-list__add"
+                    onClick={addItem}
+                >
+                    <CIcon icon="plus" size={14} />
+                    <span>Añadir</span>
+                </button>
             </div>
         )
     }
 })
-

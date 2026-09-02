@@ -42,4 +42,37 @@ module PluginAssetsHelper
 
     safe_join(tags)
   end
+
+  def render_source_plugins_css
+    manifest_path = Rails.root.join("public", "vite", ".vite", "manifest.json")
+    if File.exist?(manifest_path)
+      manifest = begin
+        JSON.parse(File.read(manifest_path))
+      rescue JSON::ParserError
+        {}
+      end
+
+      css_files = []
+      manifest.each do |key, value|
+        if key.include?("plugins/") && value["css"]
+          css_files.concat(value["css"])
+        end
+      end
+
+      tags = css_files.uniq.map do |css_file|
+        tag.link(rel: "stylesheet", href: "/vite/#{css_file}")
+      end
+      return safe_join(tags)
+    end
+
+    # Fallback for development mode if static CSS files are registered via Plugin::Instance
+    tags = Plugin::Instance.registered_css.filter_map do |entry|
+      relative = entry[:path].sub(Rails.root.to_s + "/", "")
+      next unless File.exist?(entry[:path])
+
+      tag.link(rel: "stylesheet", href: "/#{relative}", media: entry[:media])
+    end
+
+    safe_join(tags)
+  end
 end

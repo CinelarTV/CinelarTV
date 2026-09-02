@@ -42,6 +42,42 @@ const Components = [
     {
         name: 'c-form-row',
         component: () => import('../components/forms/CFormRow.tsx')
+    },
+    {
+        name: 'c-table',
+        component: () => import('../components/CTable.tsx')
+    },
+    {
+        name: 'c-tabs',
+        component: () => import('../components/CTabs.tsx')
+    },
+    {
+        name: 'c-alert',
+        component: () => import('../components/CAlert.tsx')
+    },
+    {
+        name: 'c-badge',
+        component: () => import('../components/CBadge.tsx')
+    },
+    {
+        name: 'c-pagination',
+        component: () => import('../components/CPagination.tsx')
+    },
+    {
+        name: 'c-skeleton',
+        component: () => import('../components/CSkeleton.tsx')
+    },
+    {
+        name: 'c-tooltip',
+        component: () => import('../components/CTooltip.tsx')
+    },
+    {
+        name: 'c-dropdown',
+        component: () => import('../components/CDropdown.tsx')
+    },
+    {
+        name: 'c-stat-card',
+        component: () => import('../components/CStatCard.tsx')
     }
 ]
 

@@ -5,6 +5,18 @@ module Plugin
     attr_accessor :path, :metadata
     attr_reader :initializers
 
+    @registered_css = []
+    @registered_js = []
+
+    class << self
+      attr_reader :registered_css, :registered_js
+
+      def clear_assets!
+        @registered_css = []
+        @registered_js = []
+      end
+    end
+
     def self.find_all(parent_path)
       Dir["#{parent_path}/*/plugin.rb"].sort.map { |path| parse_from_source(path) }
     end
@@ -148,11 +160,19 @@ module Plugin
     end
 
     def register_js(path)
-      Rails.logger.debug "[Plugin::Instance] register_js ignored (Vite handles JS): #{path} from #{name}"
+      plugin_dir = File.dirname(self.path)
+      absolute = File.join(plugin_dir, path)
+      return unless File.exist?(absolute)
+
+      self.class.registered_js << { plugin: name, path: absolute }
     end
 
     def register_css(path, media = "all")
-      Rails.logger.debug "[Plugin::Instance] register_css ignored (Vite handles CSS): #{path} from #{name}"
+      plugin_dir = File.dirname(self.path)
+      absolute = File.join(plugin_dir, path)
+      return unless File.exist?(absolute)
+
+      self.class.registered_css << { plugin: name, path: absolute, media: media }
     end
 
     def register_asset(file, opts = nil)
@@ -177,7 +197,7 @@ module Plugin
         Rails.logger.warn "[Plugin::Instance] JS directory not found: #{js_dir}"
       end
 
-      # Register Stylesheets
+      # Register Stylesheets from assets/stylesheets/
       css_dir = File.join(plugin_dir, "assets", "stylesheets")
       if Dir.exist?(css_dir)
         Dir.glob(File.join(css_dir, "**", "*.css")).each do |css_file|
@@ -185,8 +205,16 @@ module Plugin
           Rails.logger.info "[Plugin::Instance] Found CSS file: #{css_file} -> #{relative_path}"
           register_css(relative_path)
         end
-      else
-        Rails.logger.warn "[Plugin::Instance] CSS directory not found: #{css_dir}"
+      end
+
+      # Register Stylesheets from app/assets/styles/ (source plugin convention)
+      app_css_dir = File.join(plugin_dir, "app", "assets", "styles")
+      if Dir.exist?(app_css_dir)
+        Dir.glob(File.join(app_css_dir, "**", "*.css")).each do |css_file|
+          relative_path = css_file.sub(plugin_dir + "/", "")
+          Rails.logger.info "[Plugin::Instance] Found CSS file (app): #{css_file} -> #{relative_path}"
+          register_css(relative_path)
+        end
       end
     end
 

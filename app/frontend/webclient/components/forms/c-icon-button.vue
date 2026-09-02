@@ -1,29 +1,39 @@
 <template>
-    <button class="c-button btn-icon" :class="{
-        'c-button--danger': type === 'danger',
-        'c-button--loading': loading,
-    }" :disabled="loading" v-bind="$attrs" @click="onClick">
-        <span v-if="loading">
-            <LoaderIcon :size="18" class="icon loading-request" />
+    <button
+        class="c-button btn-icon"
+        :class="[
+            variantClass,
+            loading && 'c-button--loading',
+        ]"
+        :disabled="loading"
+        v-bind="$attrs"
+        @click="onClick"
+    >
+        <span v-if="loading" class="c-button__spinner-overlay" aria-hidden="true">
+            <CIcon icon="loader" :size="18" class="icon animate-spin" />
         </span>
-        <svg class="icon" size="18" v-if="icon && !loading">
-            <use :xlink:href="`#${icon}`" />
-        </svg>
+        <CIcon v-else-if="icon" :icon="icon" :size="18" class="icon" />
     </button>
 </template>
-  
+
 <script setup>
-import { LoaderIcon } from 'lucide-vue-next';
-import { defineProps, defineEmits } from 'vue';
+import { computed } from 'vue';
+import CIcon from '../c-icon.vue';
 
 const props = defineProps({
-    onClick: Function,
-    type: String, // 'danger' or null
-    loading: Boolean, // true or false,
-    icon: null,
+    icon: { type: String, default: '' },
+    variant: { type: String, default: null },
+    type: { type: String, default: null },
+    loading: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['click']);
+
+const variantClass = computed(() => {
+    const v = props.variant || (props.type === 'danger' ? 'danger' : null);
+    return v ? `c-button--${v}` : null;
+});
+
 const onClick = (e) => {
     if (!props.loading) {
         emit('click', e);

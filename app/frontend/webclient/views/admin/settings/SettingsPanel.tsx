@@ -350,7 +350,7 @@ export default defineComponent({
                                         {/* List */}
                                         {setting.type === 'list' && (
                                             <CSplitList
-                                                items={settings.value[setting.key] || []}
+                                                items={settings.value[setting.key] || ''}
                                                 onUpdate:items={(items: any) => updateValue(setting.key, items)}
                                                 splitter="|"
                                             />

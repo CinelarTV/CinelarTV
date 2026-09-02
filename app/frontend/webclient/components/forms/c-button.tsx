@@ -63,7 +63,7 @@ export default defineComponent({
                     </span>
 
                     {props.loading && (
-                        <span class="c-button__spinner" aria-hidden="true">
+                        <span class="c-button__spinner-overlay" aria-hidden="true">
                             <CIcon
                                 icon="loader"
                                 size={18}

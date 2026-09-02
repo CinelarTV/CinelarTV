@@ -4,19 +4,31 @@
 module Admin
   class UsersController < Admin::BaseController
     def index
-      users = User.all
+      users = User.includes(:profiles, :roles)
       if params[:query].present?
         q = params[:query].downcase
         users = users.where('LOWER(email) LIKE ? OR LOWER(username) LIKE ?', "%#{q}%", "%#{q}%")
       end
+      if params[:status].present? && params[:status] != 'all'
+        case params[:status]
+        when 'active'
+          users = users.where(suspended: [false, nil]).where(deactivated_at: nil)
+        when 'suspended'
+          users = users.where(suspended: true)
+        when 'deactivated'
+          users = users.where.not(deactivated_at: nil)
+        end
+      end
       page = params[:page].to_i > 0 ? params[:page].to_i : 1
       per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 30
-      users = users.order(created_at: :desc).offset((page - 1) * per_page).limit(per_page)
+      sort_field = %w[created_at username email].include?(params[:sort]) ? params[:sort] : 'created_at'
+      sort_dir = params[:dir] == 'asc' ? :asc : :desc
+      users = users.order(sort_field => sort_dir).offset((page - 1) * per_page).limit(per_page)
       respond_to do |format|
         format.html
         format.json do
           render json: {
-            data: users.as_json(only: %i[id email username created_at updated_at suspended suspended_until deactivated_at]),
+            data: users.map { |u| user_json(u) },
           }
         end
       end
@@ -49,7 +61,7 @@ module Admin
       @user = User.new(user_params)
       if @user.save
         render json: {
-          data: @user.as_json(only: %i[id email username created_at updated_at]),
+          data: user_json(@user),
         }
       else
         render json: {
@@ -62,11 +74,11 @@ module Admin
       user = User.find_by(id: params[:id])
       return render(json: { error: 'Not found' }, status: :not_found) unless user
 
-      user_json = user.as_json(only: %i[id email username created_at updated_at suspended suspended_until suspended_reason deactivated_at deactivated_reason suspended_by_id deactivated_by_id])
-      user_json[:suspended_by] = user.suspended_by&.slice(:id, :email, :username)
-      user_json[:deactivated_by] = user.deactivated_by&.slice(:id, :email, :username)
+      json = user_json(user)
+      json[:suspended_by] = user.suspended_by&.slice(:id, :email, :username)
+      json[:deactivated_by] = user.deactivated_by&.slice(:id, :email, :username)
 
-      render json: { data: user_json }
+      render json: { data: json }
     end
 
     # Admin actions: suspend, unsuspend, deactivate, activate
@@ -106,6 +118,26 @@ module Admin
     end
 
     private
+
+    def user_json(user)
+      profile = user.profiles&.first
+      {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        admin: user.has_role?(:admin),
+        moderator: user.has_role?(:moderator),
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        suspended: user.suspended?,
+        suspended_until: user.suspended_until,
+        suspended_reason: user.suspended_reason,
+        deactivated_at: user.deactivated_at,
+        deactivated_reason: user.deactivated_reason,
+        avatar_id: profile&.avatar_id,
+        profile_name: profile&.name
+      }
+    end
 
     def user_params
       params.require(:user).permit(:email, :username, :password)

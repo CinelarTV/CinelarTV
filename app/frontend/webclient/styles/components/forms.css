@@ -97,3 +97,66 @@
     color: rgba(255, 255, 255, 0.4);
     margin: 0;
 }
+
+/* ── CSplitList ────────────────────────────────────────────── */
+
+.c-split-list__items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+}
+
+.c-split-list__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.c-split-list__input {
+    flex: 1;
+    min-width: 0;
+}
+
+.c-split-list__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--c-text-muted, rgba(255, 255, 255, 0.45));
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+        background: rgba(255, 80, 80, 0.15);
+        color: var(--c-danger, #ff9494);
+    }
+}
+
+.c-split-list__add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    background: transparent;
+    color: var(--c-text-muted, rgba(255, 255, 255, 0.45));
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+    &:hover {
+        border-color: var(--c-tertiary-500, #8b5cf6);
+        color: var(--c-tertiary-300, #a78bfa);
+        background: rgba(139, 92, 246, 0.08);
+    }
+}

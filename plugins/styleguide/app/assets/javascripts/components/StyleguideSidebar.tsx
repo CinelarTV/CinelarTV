@@ -21,7 +21,12 @@ const categories: SidebarCategory[] = [
             { label: 'Spinners', routeName: 'styleguide.atoms.spinners' },
             { label: 'Colors', routeName: 'styleguide.atoms.colors' },
             { label: 'Typography', routeName: 'styleguide.atoms.typography' },
-            { label: 'Uploaders', routeName: 'styleguide.atoms.uploaders' }
+            { label: 'Uploaders', routeName: 'styleguide.atoms.uploaders' },
+            { label: 'Alerts', routeName: 'styleguide.atoms.alerts' },
+            { label: 'Badges', routeName: 'styleguide.atoms.badges' },
+            { label: 'Pagination', routeName: 'styleguide.atoms.pagination' },
+            { label: 'Skeletons', routeName: 'styleguide.atoms.skeletons' },
+            { label: 'Tooltips', routeName: 'styleguide.atoms.tooltips' }
         ]
     },
     {
@@ -30,7 +35,11 @@ const categories: SidebarCategory[] = [
             { label: 'ContentCard', routeName: 'styleguide.molecules.content-card' },
             { label: 'ContentRow', routeName: 'styleguide.molecules.content-row' },
             { label: 'ContentRatingBadge', routeName: 'styleguide.molecules.content-rating-badge' },
-            { label: 'Forms', routeName: 'styleguide.molecules.forms' }
+            { label: 'Forms', routeName: 'styleguide.molecules.forms' },
+            { label: 'Tables', routeName: 'styleguide.molecules.tables' },
+            { label: 'Tabs', routeName: 'styleguide.molecules.tabs' },
+            { label: 'Stats', routeName: 'styleguide.molecules.stats' },
+            { label: 'Dropdowns', routeName: 'styleguide.molecules.dropdowns' }
         ]
     },
     {
