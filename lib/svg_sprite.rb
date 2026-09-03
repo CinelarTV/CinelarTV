@@ -20,6 +20,7 @@ module SvgSprite
     list list-ordered quote code minus link
     undo redo braces monitor smartphone
     mail-check key-round unlock users closed-caption
+    chart-pie toy-brick
   ]).freeze
 
   # Player icons need duplicate vjs-icon-* symbols for Video.js compatibility.

@@ -83,7 +83,7 @@ class AdminDashboardData
     add_problem(
       content: I18n.t("dashboard.broken_media_warning", count: broken_count),
       type: "warning",
-      icon: "file-warning",
+      icon: "image-off",
     )
   end
 
@@ -98,7 +98,7 @@ class AdminDashboardData
       add_problem(
         content: I18n.t("dashboard.plugin_warning", id: record.id, reason: record.reason || record.status),
         type: "warning",
-        icon: "plug",
+        icon: "toy-brick",
       )
     end
   end
