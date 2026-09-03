@@ -208,30 +208,6 @@ export default defineComponent({
 
         return () => (
             <div class="settings-panel">
-                <div class="settings-panel__header">
-                    <h2 class="settings-panel__title">
-                        {$t(`js.admin.settings.categories.${category.value}`) || category.value}
-                    </h2>
-                    <div class="settings-panel__header-actions">
-                        {category.value === 'storage' && (
-                            <button
-                                type="button"
-                                onClick={testStorageConnection}
-                                class="settings-panel__test-btn"
-                                title={$t('js.admin.settings.test_connection') || 'Test Connection'}
-                            >
-                                <RefreshCw size={16} />
-                                <span>{$t('js.admin.settings.test_connection') || 'Test Connection'}</span>
-                            </button>
-                        )}
-                        {modifiedKeys.value.size > 0 && (
-                            <span class="settings-panel__badge">
-                                {modifiedKeys.value.size} cambio{modifiedKeys.value.size > 1 ? 's' : ''}
-                            </span>
-                        )}
-                    </div>
-                </div>
-
                 <form onSubmit={updateSettings} class="settings-panel__form">
                     {settingsModel.value.map((setting) => {
                         const isModified = modifiedKeys.value.has(setting.key);

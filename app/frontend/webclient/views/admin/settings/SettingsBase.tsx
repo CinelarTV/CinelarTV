@@ -112,6 +112,9 @@ export default defineComponent({
 
                 {/* Sidebar */}
                 <aside class={`settings__sidebar ${sidebarOpened.value ? 'settings__sidebar--open' : ''}`}>
+                    <div class="settings__sidebar-header">
+                        <p class="settings__sidebar-title">{$t('js.admin.nav.settings') || 'Settings'}</p>
+                    </div>
                     <nav class="settings__sidebar-nav">
                         {categories.value.map((cat) => (
                             <button
@@ -119,7 +122,7 @@ export default defineComponent({
                                 class={`settings__sidebar-item ${currentCategory.value === cat.name ? 'settings__sidebar-item--active' : ''}`}
                                 onClick={() => onCategoryChange(cat.name)}
                             >
-                                <CIcon icon={getCategoryIconName(cat.name)} size={18} />
+                                <CIcon icon={getCategoryIconName(cat.name)} size={16} />
                                 <span class="settings__sidebar-label">
                                     {$t(`js.admin.settings.categories.${cat.name}`) || cat.name}
                                 </span>
@@ -136,6 +139,17 @@ export default defineComponent({
 
                 {/* Main content */}
                 <main class="settings__main">
+                    {currentCategory.value && (
+                        <div class="settings-panel__hero">
+                            <p class="settings-panel__eyebrow">{$t('js.admin.nav.settings') || 'Settings'}</p>
+                            <h1 class="settings-panel__hero-title">
+                                {$t(`js.admin.settings.categories.${currentCategory.value}`) || currentCategory.value}
+                            </h1>
+                            <p class="settings-panel__hero-subtitle">
+                                {$t(`js.admin.settings.categories.${currentCategory.value}.description`) || ''}
+                            </p>
+                        </div>
+                    )}
                     {currentCategory.value && filteredSettings.value.length > 0 && (
                         <SettingsPanel settingsData={filteredSettings.value} category={currentCategory.value} />
                     )}
