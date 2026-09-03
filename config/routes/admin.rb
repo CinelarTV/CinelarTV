@@ -19,7 +19,8 @@ namespace :admin do
 
   get "webhooks/logs" => "dashboard#webhook_logs"
 
-  get "subscriptions" => "subscriptions#index"
+  get "subscriptions", to: "dashboard#index", constraints: ->(req) { req.format.html? }
+  get "subscriptions", to: "subscriptions#index", defaults: { format: 'json' }
   get "subscriptions/stats" => "subscriptions#stats"
   get "subscriptions/logs" => "subscriptions#logs"
   post "subscriptions/webhooks/test" => "subscriptions#test_webhook"

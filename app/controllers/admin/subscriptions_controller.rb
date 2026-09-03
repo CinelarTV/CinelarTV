@@ -88,11 +88,6 @@ module Admin
       render json: { message: "Reconciliation successful", data: subscription_payload(subscription.reload), remote_data: remote }
     end
 
-    def plans
-      offering = Billing::Offering.current
-      render json: { data: [{ id: offering.key, reason: "CinelarTV", auto_recurring: { transaction_amount: offering.amount, currency_id: offering.currency, frequency: offering.interval_count, frequency_type: offering.interval_unit } }], meta: { provider: current_provider.provider_key } }
-    end
-
     private
 
     def metadata(scope, page, per_page)
