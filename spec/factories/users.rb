@@ -9,6 +9,6 @@ FactoryBot.define do
     email { Faker::Internet.email }
     password { "password" }
     password_confirmation { "password" }
-    username { Faker::Internet.username }
+    username { Faker::Internet.username(specifier: 5..18) }
   end
 end
