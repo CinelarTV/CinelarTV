@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ContentSearchService
- attr_reader :meta
+  attr_reader :meta
 
   def initialize(term:, profile: nil, page: 1, per_page: 30)
     @term = term.to_s.strip
@@ -64,17 +64,49 @@ class ContentSearchService
   end
 
   def search_contents
-    scope = if @term.present?
-              Content.where("search_data @@ plainto_tsquery('simple', :term)", term: @term)
-            else
-              Content.where.not(search_data: nil)
-            end
+    scope = Content.where(available: true)
+
+    if @term.present?
+      clean_search_term = @term.gsub(/["']/, "").strip
+      tsq = tsquery_term(clean_search_term)
+      like_term = "%#{clean_search_term}%"
+      starts_with_term = "#{clean_search_term}%"
+
+      if tsq.present?
+        scope = scope.where(
+          "search_data @@ to_tsquery('simple', immutable_unaccent(:tsq)) OR lower(immutable_unaccent(title)) LIKE immutable_unaccent(:like)",
+          tsq: tsq,
+          like: like_term
+        )
+
+        scope = scope.order(Arel.sql(ActiveRecord::Base.sanitize_sql_array([
+          <<~SQL.squish,
+            CASE
+              WHEN lower(immutable_unaccent(title)) = immutable_unaccent(?) THEN 1
+              WHEN lower(immutable_unaccent(title)) LIKE immutable_unaccent(?) THEN 2
+              WHEN lower(immutable_unaccent(title)) LIKE immutable_unaccent(?) THEN 3
+              ELSE 4
+            END ASC,
+            ts_rank_cd(search_data, to_tsquery('simple', immutable_unaccent(?))) DESC,
+            created_at DESC
+          SQL
+          clean_search_term,
+          starts_with_term,
+          like_term,
+          tsq
+        ])))
+      else
+        scope = scope.where("lower(immutable_unaccent(title)) LIKE immutable_unaccent(?)", like_term)
+        scope = scope.order(created_at: :desc)
+      end
+    else
+      scope = scope.where.not(search_data: nil).order(created_at: :desc)
+    end
 
     scope = scope.where(content_type: @filters[:content_type]) if @filters[:content_type]
     scope = scope.where(year: @filters[:year]) if @filters[:year]
-    if @filters.key?(:premium)
-      scope = scope.where(premium: @filters[:premium])
-    end
+    scope = scope.where(premium: @filters[:premium]) if @filters.key?(:premium)
+
     if @filters[:category]
       scope = scope.joins(:categories).where(
         "unaccent(lower(categories.name)) LIKE unaccent(?)",
@@ -82,31 +114,42 @@ class ContentSearchService
       )
     end
 
-    scope = scope.where(available: true)
-
-    if @term.present?
-      scope = scope.order(Arel.sql(<<~SQL.squish))
-        ts_rank_cd(search_data, plainto_tsquery('simple', #{ActiveRecord::Base.connection.quote(@term)})) DESC
-      SQL
-    else
-      scope = scope.order(created_at: :desc)
-    end
-
     scope.includes(:image_variants, :categories).limit(@per_page).offset((@page - 1) * @per_page)
+  end
+
+  def tsquery_term(term)
+    tokens = term.to_s.scan(/[\p{L}\p{N}]+/)
+    return nil if tokens.empty?
+
+    tokens.map { |t| "#{t}:*" }.join(" & ")
   end
 
   def search_people
     return Person.none if @term.blank?
 
-    Person.where("unaccent(lower(name)) LIKE unaccent(?)", "%#{@term}%")
+    search_term = @term.gsub(/["']/, "").strip
+    return Person.none if search_term.blank?
+
+    Person.where("unaccent(lower(name)) LIKE unaccent(?)", "%#{search_term}%")
+          .order(Arel.sql(ActiveRecord::Base.sanitize_sql_array([
+            "CASE WHEN unaccent(lower(name)) LIKE unaccent(?) THEN 1 ELSE 2 END ASC, name ASC",
+            "#{search_term}%"
+          ])))
           .limit(5)
   end
 
   def search_categories
     return Category.none if @term.blank?
 
-    Category.where("unaccent(lower(name)) LIKE unaccent(?)", "%#{@term}%")
-            .limit(5)
+    search_term = @term.gsub(/["']/, "").strip
+    return Category.none if search_term.blank?
+
+    Category.where("unaccent(lower(name)) LIKE unaccent(?)", "%#{search_term}%")
+          .order(Arel.sql(ActiveRecord::Base.sanitize_sql_array([
+            "CASE WHEN unaccent(lower(name)) LIKE unaccent(?) THEN 1 ELSE 2 END ASC, name ASC",
+            "#{search_term}%"
+          ])))
+          .limit(5)
   end
 
   def empty_result
