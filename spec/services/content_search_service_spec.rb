@@ -26,8 +26,8 @@ RSpec.describe ContentSearchService do
 
     before do
       # Ensure search_data is populated for both records
-      movie.update_search_data
-      other_movie.update_search_data
+      movie.send(:update_search_data)
+      other_movie.send(:update_search_data)
     end
 
     it "returns empty result when query is shorter than 2 characters" do
