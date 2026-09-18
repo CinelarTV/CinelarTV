@@ -255,9 +255,9 @@ class ContentSerializer < ApplicationSerializer
 
   def continue_watching_attributes(continue_watching)
     attributes_to_include = if object.content_type == Content.content_types["TVSHOW"]
-                              %i[episode_id progress duration finished]
+                              %i[episode_id progress duration finished last_watched_at]
                             elsif object.content_type == Content.content_types["MOVIE"]
-                              %i[progress duration finished]
+                              %i[progress duration finished last_watched_at]
                             else
                               []
                             end
@@ -272,6 +272,7 @@ class ContentSerializer < ApplicationSerializer
     if redis_data
       data["progress"] = redis_data[:progress] if redis_data[:progress]
       data["duration"] = redis_data[:duration] if redis_data[:duration]
+      data["last_watched_at"] = redis_data[:last_watched_at] if redis_data[:last_watched_at]
     end
 
     data

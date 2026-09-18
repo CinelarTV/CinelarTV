@@ -16,6 +16,7 @@ module HomeHelper
       inject_trailers(banner, sections) if include_trailers
 
       {
+        section_kind: SectionKind::BANNER,
         banner_content: banner,
         content: sections
       }
@@ -359,7 +360,7 @@ module HomeHelper
       next if content_list.blank?
 
       category = categories.find { |c| c.id == category_id }
-      { title: category.name, content: content_list }
+      { title: category.name, section_kind: SectionKind::BY_GENRE, content: content_list }
     end
   end
 
@@ -408,7 +409,7 @@ module HomeHelper
 
     continue_watching = add_continue_watching(liked_ids)
     if continue_watching.present?
-      sections << { title: I18n.t("js.home.continue_watching"), content: continue_watching }
+      sections << { title: I18n.t("js.home.continue_watching"), section_kind: SectionKind::CONTINUE_WATCHING, content: continue_watching }
     end
 
     liked_hash = Digest::MD5.hexdigest(liked_ids.sort.join(","))
@@ -421,11 +422,11 @@ module HomeHelper
       recommended = add_recommended_based_on_liked(liked_ids)
       if recommended[:content].present?
         result << { title: I18n.t("js.home.because_you_liked", title: recommended[:title]),
-                    content: recommended[:content].shuffle }
+                    section_kind: SectionKind::RECOMMENDED_FOR_YOU, content: recommended[:content].shuffle }
       elsif liked_ids.empty?
         maybe_like = add_most_viewed(liked_ids)
         if maybe_like.present?
-          result << { title: I18n.t("js.home.you_might_like"), content: maybe_like }
+          result << { title: I18n.t("js.home.you_might_like"), section_kind: SectionKind::YOU_MIGHT_LIKE, content: maybe_like }
         end
       end
 
@@ -441,27 +442,27 @@ module HomeHelper
 
       new_this_week = add_new_this_week(Set.new)
       if new_this_week.present?
-        result << { title: I18n.t("js.home.new_this_week"), content: new_this_week }
+        result << { title: I18n.t("js.home.new_this_week"), section_kind: SectionKind::NEW_THIS_WEEK, content: new_this_week }
       end
 
       trending = add_trending(Set.new)
       if trending.present?
-        result << { title: I18n.t("js.home.trending"), content: trending }
+        result << { title: I18n.t("js.home.trending"), section_kind: SectionKind::TRENDING, content: trending }
       end
 
       added_recently = add_added_recently(Set.new)
       if added_recently.present?
-        result << { title: I18n.t("js.home.added_recently"), content: added_recently }
+        result << { title: I18n.t("js.home.added_recently"), section_kind: SectionKind::ADDED_RECENTLY, content: added_recently }
       end
 
       most_viewed = add_most_viewed(Set.new)
       if most_viewed.present?
-        result << { title: I18n.t("js.home.most_viewed"), content: most_viewed }
+        result << { title: I18n.t("js.home.most_viewed"), section_kind: SectionKind::MOST_VIEWED, content: most_viewed }
       end
 
       most_liked = add_most_liked(Set.new)
       if most_liked.present?
-        result << { title: I18n.t("js.home.most_liked"), content: most_liked }
+        result << { title: I18n.t("js.home.most_liked"), section_kind: SectionKind::MOST_LIKED, content: most_liked }
       end
 
       by_genre = add_by_genre(Set.new)
@@ -472,7 +473,7 @@ module HomeHelper
 
     if (top_10 = top_10_content_by_country)&.present?
       sections << { title: I18n.t("js.home.top_10_content_by_country", country: top_10[:country]),
-                    content: top_10[:content] }
+                    section_kind: SectionKind::TOP_10_BY_COUNTRY, content: top_10[:content] }
     end
 
     sections

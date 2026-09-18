@@ -53,6 +53,10 @@ export default defineComponent({
             type: Boolean,
             default: true,
         },
+        sectionKind: {
+            type: String,
+            default: null,
+        },
     },
     emits: ['see-all'],
     setup(props, { emit }) {
@@ -128,6 +132,7 @@ export default defineComponent({
             progressPercent,
             emit,
             expandable: props.expandable,
+            sectionKind: props.sectionKind,
             expandedItemId,
             handleCardExpand,
             handleCardClose,

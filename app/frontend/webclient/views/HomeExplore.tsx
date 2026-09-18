@@ -248,21 +248,17 @@ export default defineComponent({
                                 if (!item.content?.length) return null;
 
                                 return (
-                                    <div key={item.title}>
-                                        {item.title === 'Continuar viendo' ? (
+                                    <>
+                                        <div key={item.title}>
                                             <ContentRow
                                                 title={item.title}
                                                 items={item.content}
                                                 itemType="landscape"
+                                                sectionKind={item.section_kind}
                                             />
-                                        ) : (
-                                            <ContentRow
-                                                title={item.title}
-                                                items={item.content}
-                                                itemType="landscape"
-                                            />
-                                        )}
-                                    </div>
+                                        </div>
+                                        <PluginOutlet name="home:between-rows" />
+                                    </>
                                 );
                             })}
                         </section>
