@@ -40,15 +40,15 @@ class Reproduction < ApplicationRecord
         COUNT(DISTINCT r.id) AS reproduction_count,
         COUNT(DISTINCT r.profile_id) AS unique_viewers,
         COUNT(DISTINCT l.id) AS likes_count,
-        COALESCE(content_analytic.completion_rate, 0) AS completion_rate,
-        COALESCE(content_analytic.unique_profiles, 0) AS global_unique_profiles,
+        COALESCE(content_analytics.completion_rate, 0) AS completion_rate,
+        COALESCE(content_analytics.unique_profiles, 0) AS global_unique_profiles,
         MAX(r.played_at) AS last_played_at
       SQL
       .order(Arel.sql(<<~SQL.squish))
         (COUNT(DISTINCT r.profile_id) * 3.0
          + COUNT(DISTINCT r.id) * 1.0
          + COUNT(DISTINCT l.id) * 2.0
-         + COALESCE(content_analytic.completion_rate, 0) * 0.05)
+         + COALESCE(content_analytics.completion_rate, 0) * 0.05)
          * (1.0 / (1.0 + GREATEST(EXTRACT(EPOCH FROM (NOW() - MAX(r.played_at))) / 604800.0, 0)))
          DESC
       SQL
