@@ -16,7 +16,6 @@ module HomeHelper
       inject_trailers(banner, sections) if include_trailers
 
       {
-        section_kind: SectionKind::BANNER,
         banner_content: banner,
         content: sections
       }
