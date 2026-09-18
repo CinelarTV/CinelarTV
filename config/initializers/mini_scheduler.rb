@@ -15,8 +15,8 @@ end
 
 if Sidekiq.server?
   Rails.application.config.after_initialize do
-    # Clear stale mini_scheduler locks
-    mini_scheduler_redis.keys("_scheduler_lock_*").each { |k| mini_scheduler_redis.del(k) }
+    # Clear stale mini_scheduler keys (locks, queues, and schedule entries)
+    mini_scheduler_redis.keys("_scheduler_*").each { |k| mini_scheduler_redis.del(k) }
 
     # Load plugin engines first (defines Live, WatchParty, etc. namespaces)
     Dir.glob(Rails.root.join("plugins", "*", "lib", "*", "engine.rb")).each { |f| require f }
