@@ -471,8 +471,10 @@ module HomeHelper
     end
 
     if (top_10 = top_10_content_by_country)&.present?
-      sections << { title: I18n.t("js.home.top_10_content_by_country", country: top_10[:country]),
-                    section_kind: SectionKind::TOP_10_BY_COUNTRY, content: top_10[:content] }
+      trending_index = sections.index { |s| s[:section_kind] == SectionKind::TRENDING }
+      insert_index = trending_index ? trending_index + 1 : 2
+      sections.insert(insert_index, { title: I18n.t("js.home.top_10_content_by_country", country: top_10[:country]),
+                    section_kind: SectionKind::TOP_10_BY_COUNTRY, content: top_10[:content] })
     end
 
     sections

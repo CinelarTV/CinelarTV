@@ -37,6 +37,7 @@ bundle exec vite dev                   # Vite dev server on :3036
 | Plugin migrations | `bundle exec rails plugin:migrate` |
 | Plugin migrate status | `bundle exec rails plugin:status` |
 | Plugin rollback | `bundle exec rails plugin:rollback[plugin-name]` |
+| Plugin upgrade (existing) | `bundle exec rails plugin:upgrade` |
 
 ## Architecture
 
