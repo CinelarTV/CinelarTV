@@ -12,7 +12,7 @@
                     leave="duration-200 ease-in" leave-from="opacity-100 scale-100 translate-y-0"
                     leave-to="opacity-0 scale-95 translate-y-2">
                     <DialogPanel
-                        class="w-full max-w-lg overflow-hidden rounded-2xl bg-[var(--c-primary-600)] shadow-2xl ring-1 ring-[var(--c-primary-400)]">
+                        class="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-[var(--c-primary-600)] shadow-2xl ring-1 ring-[var(--c-primary-400)]">
                         <div
                             class="border-b border-[var(--c-primary-200)] bg-[var(--c-primary-color)] px-8 pb-10 pt-8 text-center">
                             <img v-if="SiteSettings?.site_logo" :src="SiteSettings.site_logo"
@@ -45,10 +45,10 @@
                                             Avatar
                                         </label>
 
-                                        <div class="create-profile-modal__avatar-list">
+                                        <div class="create-profile-modal__avatar-list max-h-64 overflow-y-auto pr-1">
                                             <button v-for="avatar in avatarList" :key="avatar.id" type="button"
                                                 class="create-profile-modal__avatar"
-                                                :class="{ 'selected': selectedAvatar === avatar.id }"
+                                                :class="{ 'create-profile-modal__avatar--selected': selectedAvatar === avatar.id }"
                                                 @click="selectedAvatar = avatar.id"
                                                 :aria-label="`Seleccionar avatar ${avatar.name}`">
                                                 <img :src="avatar.path" :alt="avatar.name" />

@@ -141,6 +141,8 @@ namespace :admin do
   get "/customize/email-style" => "email_styles#show", defaults: { format: 'json' }
   put "/customize/email-style" => "email_styles#update", defaults: { format: 'json' }
 
+  post "scheduler/:name/trigger" => "scheduler#trigger"
+
   # Backup Management routes
   get "/backups" => "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/backups" => "backups#index", defaults: { format: 'json' }

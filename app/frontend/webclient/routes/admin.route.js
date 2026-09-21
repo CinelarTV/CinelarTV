@@ -6,6 +6,7 @@ import Updater from "../views/admin/updater.vue";
 
 
 const AdminRoutes = {
+    name: 'admin',
     path: '/admin',
     redirect: '/admin/dashboard',
     component: AdminBase,

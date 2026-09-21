@@ -120,7 +120,7 @@ svg.icon {
 }
 
 cinelar-assets-icons {
-  display: none !important;
+  display: none;
 }
 
 
@@ -139,11 +139,11 @@ img.emoji {
 
 
 .dialog {
-  background-color: var(--dialog-background-color);
+  background-color: var(--c-surface-elevated);
 }
 
 .dialog-backdrop {
-  @apply fixed inset-0 bg-black/25
+  @apply fixed inset-0 bg-black/25;
 }
 
 .modal-site-logo {
@@ -158,20 +158,27 @@ img.emoji {
 
 .button,
 .c-button {
-  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium  bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-white cursor-pointer;
+  @apply inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium cursor-pointer;
   position: relative;
   user-select: none;
+  border-radius: var(--c-radius-full);
+  background: var(--c-surface-2);
+  color: var(--c-text-primary);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 
-  .dark & {
-    @apply bg-black/5 hover:bg-black/10;
+  &:hover {
+    background: var(--c-surface-3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--c-tertiary-color);
+    outline-offset: 2px;
   }
 
   &:disabled {
-    @apply opacity-50 cursor-not-allowed;
+    @apply opacity-40 cursor-not-allowed;
   }
 }
-
-
 
 .button .icon {
   @apply mr-2;
@@ -179,20 +186,6 @@ img.emoji {
 
 .c-button .icon {
   @apply mr-0;
-}
-
-.button.forced,
-.c-button.forced {
-  @apply !inline-flex !items-center !justify-center !px-4 !py-2 !border !border-transparent !rounded-md !shadow-sm !text-sm !font-medium !text-white !bg-white/5 !cursor-pointer hover:!bg-white/10 focus:!outline-none focus:!ring-1 focus:!ring-offset-1 focus:!ring-white;
-  user-select: none;
-
-  .dark & {
-    @apply !bg-black/5 hover:!bg-black/10;
-  }
-
-  .icon {
-    @apply !mr-2;
-  }
 }
 
 .c-button svg.icon {
@@ -213,7 +206,7 @@ img.emoji {
 
 .c-button .c-button__icon.icon,
 .c-button__spinner-overlay .icon {
-  margin-right: 0 !important;
+  margin-right: 0;
   flex-shrink: 0;
 }
 
@@ -222,7 +215,7 @@ img.emoji {
 }
 
 .c-button--loading .c-button__content {
-  visibility: hidden; 
+  visibility: hidden;
 }
 
 .c-button__spinner-overlay {
@@ -235,7 +228,10 @@ img.emoji {
 }
 
 .c-button.btn-icon {
-  @apply rounded-full h-8 w-8 p-2;
+  @apply p-2;
+  border-radius: var(--c-radius-full);
+  min-width: 36px;
+  min-height: 36px;
 
   .icon {
     @apply m-0;
@@ -246,47 +242,52 @@ img.emoji {
 
 .c-button--primary {
   @apply text-white border-transparent;
-  background: var(--c-primary-600, #6366f1);
+  background: var(--c-tertiary-color);
 
   &:hover {
-    background: var(--c-primary-700, #4f46e5);
+    filter: brightness(1.12);
   }
 
   &:focus-visible {
-    @apply ring-2 ring-offset-2 ring-offset-[var(--c-body-bg,#0f0f0f)];
-    --tw-ring-color: var(--c-primary-500, #818cf8);
+    outline: 2px solid var(--c-tertiary-color);
+    outline-offset: 2px;
   }
 }
 
 .c-button--danger {
   @apply text-white border-transparent;
-  background: var(--c-danger, #ff9494);
+  background: var(--c-danger);
 
   &:hover {
-    background: var(--c-danger, #ff9494);
     filter: brightness(0.9);
   }
 
   &:focus-visible {
-    @apply ring-2 ring-offset-2 ring-offset-[var(--c-body-bg,#0f0f0f)];
-    --tw-ring-color: var(--c-danger, #ff9494);
+    outline: 2px solid var(--c-danger);
+    outline-offset: 2px;
   }
 }
 
 .c-button--ghost {
   @apply bg-transparent border-transparent shadow-none;
+  color: var(--c-text-secondary);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--c-surface-2);
+    color: var(--c-text-primary);
   }
 
   &:focus-visible {
-    @apply ring-1 ring-white/20;
+    outline: 2px solid var(--c-tertiary-color);
+    outline-offset: 2px;
   }
 }
 
 .c-button--link {
-  @apply bg-transparent border-transparent shadow-none text-[var(--c-primary-400,#a5b4fc)] px-0;
+  @apply bg-transparent border-transparent shadow-none;
+  color: var(--c-tertiary-color);
+  padding-left: 0;
+  padding-right: 0;
 
   &:hover {
     text-decoration: underline;
@@ -301,15 +302,19 @@ img.emoji {
 }
 
 .spinner {
-  @apply mx-auto my-5 relative border-4 border-solid border-[var(--c-secondary-100)] border-l-transparent rounded-full animate-spin;
+  @apply mx-auto my-5 relative rounded-full animate-spin;
   height: 2rem;
   width: 2rem;
+  border: 4px solid var(--c-surface-3);
+  border-left-color: var(--c-tertiary-color);
 }
 
 .spinner.small {
-  @apply mx-auto my-5 relative border-2 border-solid border-[var(--c-secondary-100)] border-l-transparent rounded-full animate-spin;
+  @apply mx-auto my-5 relative rounded-full animate-spin;
   height: 1rem;
   width: 1rem;
+  border: 2px solid var(--c-surface-3);
+  border-left-color: var(--c-tertiary-color);
 }
 
 @keyframes rotate-forever {

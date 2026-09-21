@@ -1,29 +1,29 @@
 .c-input {
     @apply block w-full;
-    
+
     padding: 10px 14px;
     font-size: 0.9rem;
     line-height: 1.5;
-    color: var(--c-body-text-color, #fff);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
+    color: var(--c-text-primary);
+    background: var(--c-surface-1);
+    border: 1px solid var(--c-border-default);
+    border-radius: var(--c-radius-md);
     outline: none;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 
     &::placeholder {
-        color: rgba(255, 255, 255, 0.35);
+        color: var(--c-text-faint);
     }
 
     &:hover {
-        border-color: rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--c-border-strong);
+        background: var(--c-surface-2);
     }
 
     &:focus {
-        border-color: var(--c-primary-300);
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 0 0 3px rgba(var(--c-primary-300-rgb), 0.15);
+        border-color: var(--c-tertiary-color);
+        background: var(--c-surface-2);
+        box-shadow: 0 0 0 3px rgba(var(--c-tertiary-color-rgb), 0.12);
     }
 }
 
@@ -32,14 +32,14 @@
 
     padding: 10px 14px;
     font-size: 0.9rem;
-    color: var(--c-body-text-color, #fff);
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
+    color: var(--c-text-primary);
+    background: var(--c-surface-1);
+    border-radius: var(--c-radius-sm);
     cursor: pointer;
     transition: background 0.15s;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--c-surface-2);
     }
 }
 
@@ -53,8 +53,8 @@
         left: 12px;
         width: 18px;
         height: 18px;
-        border-radius: 4px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--c-radius-sm);
+        border: 1px solid var(--c-border-default);
         flex-shrink: 0;
         pointer-events: none;
         z-index: 1;
@@ -78,28 +78,27 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--c-primary-100, rgba(255, 255, 255, 0.7));
+    color: var(--c-text-secondary);
 }
 
 .c-form-row__required {
-    color: var(--c-danger, #ef4444);
+    color: var(--c-danger);
     margin-left: 2px;
 }
 
 .c-form-row__error {
     font-size: 0.75rem;
-    color: var(--c-danger, #ef4444);
+    color: var(--c-danger);
     margin: 0;
 }
 
 .c-form-row__hint {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--c-text-muted);
     margin: 0;
 }
 
-/* ── CSplitList ────────────────────────────────────────────── */
-
+/* CSplitList */
 .c-split-list__items {
     display: flex;
     flex-direction: column;
@@ -126,17 +125,17 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border-radius: 6px;
+    border-radius: var(--c-radius-sm);
     border: none;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--c-text-muted, rgba(255, 255, 255, 0.45));
+    background: var(--c-surface-1);
+    color: var(--c-text-muted);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     flex-shrink: 0;
 
     &:hover {
-        background: rgba(255, 80, 80, 0.15);
-        color: var(--c-danger, #ff9494);
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--c-danger);
     }
 }
 
@@ -145,18 +144,18 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: var(--c-radius-sm);
+    border: 1px dashed var(--c-border-strong);
     background: transparent;
-    color: var(--c-text-muted, rgba(255, 255, 255, 0.45));
+    color: var(--c-text-muted);
     font-size: 0.8125rem;
     font-weight: 500;
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
 
     &:hover {
-        border-color: var(--c-tertiary-500, #8b5cf6);
-        color: var(--c-tertiary-300, #a78bfa);
-        background: rgba(139, 92, 246, 0.08);
+        border-color: var(--c-tertiary-color);
+        color: var(--c-tertiary-color);
+        background: rgba(var(--c-tertiary-color-rgb), 0.06);
     }
 }

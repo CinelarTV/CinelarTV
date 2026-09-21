@@ -5,6 +5,7 @@ import { ajax } from '../lib/Ajax';
 import { useSiteSettings } from '../app/services/site-settings';
 import { PiniaStore } from '../app/lib/Pinia';
 import ResponsiveImage from '../components/ResponsiveImage';
+import PluginOutlet from '../components/PluginOutlet';
 import type { ContentImages, ImageVariants } from '../app/types/image';
 
 interface ContentItem {
@@ -126,6 +127,8 @@ export default defineComponent({
     render() {
         return (
             <div class="min-h-screen explore-browse">
+                <PluginOutlet name="explore:top" />
+
                 {/* Header */}
                 <div class="px-4 sm:px-6 md:px-8 lg:px-12 pt-6 pb-4">
                     <h1 class="text-2xl sm:text-3xl font-semibold text-white mb-6">

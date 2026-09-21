@@ -1,7 +1,6 @@
 body.app-body.is-mobile,
 body.with-mobile-bottom-nav {
-  /* Espacio para evitar que el contenido quede oculto por la barra inferior en móviles */
-  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 
@@ -123,7 +122,7 @@ body.with-mobile-bottom-nav {
 } */
 
 .with-mobile-bottom-nav {
-  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
 }
 
@@ -137,7 +136,7 @@ body.with-mobile-bottom-nav {
   body.app-body.is-mobile,
   body.with-mobile-bottom-nav,
   .with-mobile-bottom-nav {
-    padding-bottom: 0 !important;
+    padding-bottom: 0;
   }
 }
 

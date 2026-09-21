@@ -151,6 +151,11 @@ gem "doorkeeper", "~> 5.5", ">= 5.5.1"
 gem "doorkeeper-device_authorization_grant"
 gem "doorkeeper-jwt"
 
+# OmniAuth for social login (Google, etc.)
+gem "omniauth"
+gem "omniauth-google-oauth2"
+gem "omniauth-rails_csrf_protection"
+
 #### Migration to Vite Rails ####
 gem "vite_rails"
 

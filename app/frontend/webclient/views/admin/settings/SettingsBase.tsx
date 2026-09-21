@@ -44,6 +44,7 @@ export default defineComponent({
             const iconMap: Record<string, string> = {
                 general: 'box',
                 security: 'shield-check',
+                authentication: 'key',
                 content: 'clapperboard',
                 maintenance: 'wrench',
                 cinelar_intelligence: 'sparkles',

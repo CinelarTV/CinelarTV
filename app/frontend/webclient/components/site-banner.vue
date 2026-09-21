@@ -168,12 +168,10 @@ onMounted(() => {
 <style scoped>
 @reference "../styles/cinelartv.css";
 
-/* Wrapper — hidden on specific routes via global CSS */
 .global-alerts-wrapper {
     @apply w-full;
 }
 
-/* Standard notice */
 .global-notice {
     display: flex;
     align-items: flex-start;
@@ -182,47 +180,46 @@ onMounted(() => {
     margin: 0 auto;
     padding: 12px 16px;
     border-left: 3px solid transparent;
-    border-radius: 0;
+    border-radius: var(--c-radius-sm);
     font-size: 13px;
     line-height: 1.55;
     animation: banner-in 0.25s ease-out both;
 }
 
-/* Semantic variants */
 .global-notice--info {
-    background-color: #E6F1FB;
-    border-color: #185FA5;
-    color: #0C447C;
+    background: var(--c-surface-2);
+    border-color: var(--c-tertiary-color);
+    color: var(--c-tertiary-300);
 }
 
 .global-notice--warning {
-    background-color: #FAEEDA;
-    border-color: #854F0B;
-    color: #633806;
+    background: var(--c-surface-2);
+    border-color: var(--c-warning);
+    color: var(--c-warning);
 }
 
 .global-notice--danger {
-    background-color: #FCEBEB;
-    border-color: #A32D2D;
-    color: #791F1F;
+    background: var(--c-surface-2);
+    border-color: var(--c-danger);
+    color: var(--c-danger);
 }
 
 .global-notice--success {
-    background-color: #EAF3DE;
-    border-color: #3B6D11;
-    color: #27500A;
+    background: var(--c-surface-2);
+    border-color: var(--c-success);
+    color: var(--c-success);
 }
 
 .global-notice--default {
-    background-color: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    background: var(--c-surface-2);
+    border-color: var(--c-border-strong);
+    color: var(--c-text-primary);
 }
 
-/* Inner parts */
 .global-notice__icon {
     flex-shrink: 0;
     margin-top: 1px;
+    opacity: 0.9;
 }
 
 .global-notice__body {
@@ -233,7 +230,7 @@ onMounted(() => {
 .global-notice__body :deep(a) {
     text-decoration: underline;
     color: inherit;
-    opacity: 0.8;
+    opacity: 0.85;
     transition: opacity 0.15s;
 }
 
@@ -241,24 +238,24 @@ onMounted(() => {
     opacity: 1;
 }
 
-/* Dismiss button */
 .global-notice__dismiss {
     flex-shrink: 0;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0;
+    padding: 2px;
+    border-radius: var(--c-radius-sm);
     color: inherit;
-    opacity: 0.45;
+    opacity: 0.4;
     line-height: 1;
-    transition: opacity 0.15s;
+    transition: opacity 0.15s, background 0.15s;
 }
 
 .global-notice__dismiss:hover {
     opacity: 1;
+    background: var(--c-surface-3);
 }
 
-/* TransitionGroup */
 .banner-enter-active {
     animation: banner-in 0.25s ease-out;
 }
@@ -272,7 +269,6 @@ onMounted(() => {
         opacity: 0;
         transform: translateY(-6px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -284,7 +280,6 @@ onMounted(() => {
         opacity: 1;
         max-height: 80px;
     }
-
     to {
         opacity: 0;
         max-height: 0;

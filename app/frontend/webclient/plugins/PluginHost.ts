@@ -1,6 +1,7 @@
 import { pluginEvents } from "@/lib/plugin-events";
 import { registerPluginOutlet, type PluginOutletRegistration } from "@/components/PluginOutlet";
 import { useSiteSettings } from "@/app/services/site-settings";
+import { registerAdminTab, type AdminTab } from "./AdminNavStore";
 
 export const PLUGIN_API_VERSION = "1.0.0";
 
@@ -21,12 +22,12 @@ export type PluginRegistryEntry = {
 export type PluginApi = {
   readonly pluginId: string;
   outlets: { register: (name: string, registration: Omit<PluginOutletRegistration, "pluginId">) => () => void };
-  routes: { add: (route: any) => () => void };
+  routes: { add: (route: any & { parent?: string }) => () => void };
   events: typeof pluginEvents;
   settings: { get: (key: string) => unknown };
   http: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   lifecycle: { onDispose: (callback: () => void | Promise<void>) => void };
-  navigation: { add: (item: unknown) => () => void };
+  admin: { addTab: (tab: Omit<AdminTab, "pluginId">) => () => void };
 };
 
 export function definePlugin(plugin: PluginDefinition): PluginDefinition {
@@ -38,7 +39,6 @@ export function definePlugin(plugin: PluginDefinition): PluginDefinition {
 
 export class PluginHost {
   private readonly disposers = new Map<string, Array<() => void | Promise<void>>>();
-  private readonly navigationItems = new Map<string, unknown[]>();
   private readonly initializedIds = new Set<string>();
 
   constructor(private readonly registry: PluginRegistryEntry[]) {}
@@ -107,7 +107,11 @@ export class PluginHost {
         add: (route) => {
           const router = (window as any).AppRouter;
           if (!router) throw new Error("Router is not available yet");
-          const dispose = router.addRoute({ ...route, meta: { ...route.meta, plugin: pluginId } });
+          const { parent, ...routeDef } = route;
+          const finalRoute = { ...routeDef, meta: { ...routeDef.meta, plugin: pluginId } };
+          const dispose = parent
+            ? router.addRoute(parent, finalRoute)
+            : router.addRoute(finalRoute);
           this.onDispose(pluginId, dispose);
           return dispose;
         },
@@ -121,12 +125,11 @@ export class PluginHost {
         return fetch(input, { credentials: "same-origin", ...init, headers });
       },
       lifecycle: { onDispose: (callback) => this.onDispose(pluginId, callback) },
-      navigation: {
-        add: (item) => {
-          const items = this.navigationItems.get(pluginId) || [];
-          items.push(item);
-          this.navigationItems.set(pluginId, items);
-          return () => this.navigationItems.set(pluginId, (this.navigationItems.get(pluginId) || []).filter((candidate) => candidate !== item));
+      admin: {
+        addTab: (tab) => {
+          const dispose = registerAdminTab({ ...tab, pluginId });
+          this.onDispose(pluginId, dispose);
+          return dispose;
         },
       },
     };

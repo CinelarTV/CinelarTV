@@ -11,6 +11,7 @@ import { useCurrentUser } from "../app/services/current-user";
 import { Banner, useBanners } from "../app/services/banner-store";
 import { registerPluginOutlet } from "@/components/PluginOutlet";
 import pluginEvents from "./plugin-events";
+import { registerAdminTab, type AdminTab } from "@/plugins/AdminNavStore";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -112,6 +113,12 @@ class PluginAPI {
 
     addOutletComponent(outlet: string, component: any): void {
         registerPluginOutlet(outlet, component);
+    }
+
+    // ── Admin Navigation ─────────────────────────────────────────────────────
+
+    addAdminTab(tab: Omit<AdminTab, "pluginId">): () => void {
+        return registerAdminTab({ ...tab, pluginId: "legacy-plugin-api" });
     }
 
     // ── Banners / Notices ─────────────────────────────────────────────────────

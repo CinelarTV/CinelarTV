@@ -59,12 +59,21 @@ ajax.interceptors.response.use(
   }
 );
 
+export const fetchCsrfToken = async (): Promise<string> => {
+  const response = await axios.get('/session/csrf');
+  const newCsrfToken: string = response.data.csrf;
+  const metaTag = document.querySelector('meta[name="csrf-token"]');
+  if (metaTag) {
+    metaTag.setAttribute('content', newCsrfToken);
+  }
+  ajax.defaults.headers.common['X-CSRF-TOKEN'] = newCsrfToken;
+  return newCsrfToken;
+};
+
 const renewCsrfToken = (): void => {
   const interval = setInterval(async () => {
     try {
-      const response = await axios.get('/session/csrf');
-      const newCsrfToken = response.data.csrf;
-      ajax.defaults.headers.common['X-CSRF-TOKEN'] = newCsrfToken;
+      await fetchCsrfToken();
     } catch (error) {
       console.error('[Ajax] Error on renewing CSRF token', error);
     }

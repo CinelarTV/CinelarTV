@@ -6,8 +6,15 @@ require "mini_scheduler/web"
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  root to: "application#index", as: "app"
+  root to: "application#index"
 
+  # NOTE: omniauth_callbacks is intentionally NOT listed here.  Adding it via
+  # devise_for :users causes Devise to activate :omniauthable, which inserts its
+  # own empty OmniAuth::Builder middleware into the Rack stack.  That middleware
+  # intercepts every /auth/* request before Middleware::OmniauthBypassMiddleware
+  # can reach it, finds no matching strategy, and falls through to the Rails
+  # router — producing "No route matches [POST] /auth/google_oauth2".
+  # The callback routes are declared explicitly with devise_scope below.
   devise_for :users, { controllers: { registrations: "users/registrations", sessions: "users/sessions", confirmations: "users/confirmations", passwords: "users/passwords" } }
   devise_scope :user do
     get "/login" => "users/sessions#new"
@@ -16,7 +23,9 @@ Rails.application.routes.draw do
     post "/login" => "users/sessions#create"
     delete "/logout" => "users/sessions#destroy"
     post "/confirmation" => "users/confirmations#create"
-    get "/confirmation" => "users/confirmations#show"
+    get  "/confirmation" => "users/confirmations#show"
+    get "/auth/:provider/callback", to: "users/omniauth_callbacks#callback"
+    get "/auth/failure", to: "users/omniauth_callbacks#failure"
   end
 
   use_doorkeeper
@@ -83,9 +92,14 @@ Rails.application.routes.draw do
 
   draw :admin
 
-  authenticated :user, ->(u) { u.has_role?(:admin) } do
+  if Rails.env.development?
     mount Logster::Web => "/logs"
     mount Sidekiq::Web => "/sidekiq"
+  else
+    authenticated :user, ->(u) { u.has_role?(:admin) } do
+      mount Logster::Web => "/logs"
+      mount Sidekiq::Web => "/sidekiq"
+    end
   end
 
   # SVG Sprite endpoint (must be before catch-all)
@@ -143,6 +157,11 @@ Rails.application.routes.draw do
     end
   end
 
+  # OmniAuth - Mobile token exchange (generic, no /api/v1 prefix)
+  post "/auth/:provider/token" => "users/omniauth_callbacks#token_exchange",
+        defaults: { format: :json },
+        constraints: { format: :json }
+
   # =====================================================
   # Plugin Routes - Loaded via registry for enabled plugins only
   # =====================================================
@@ -165,5 +184,5 @@ Rails.application.routes.draw do
 
   # This is the catch-all route for custom pages, but also for the Single Page Application (For now)
   # TODO: Create a route for each route in the SPA to avoid this catch-all
-  get "*path", to: "custom_pages#show", as: :custom_page_catch_all, constraints: ->(req) { req.format.html? }
+  get "*path", to: "custom_pages#show", as: :custom_page_catch_all, constraints: ->(req) { req.format.html? && !req.path.start_with?("/auth") }
 end

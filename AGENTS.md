@@ -13,7 +13,7 @@
 ```bash
 bundle install
 pnpm install
-bundle exec rails db:create db:migrate plugin:migrate db:seed
+bundle exec rails db:create db:migrate db:seed
 bundle exec rails server -b 0.0.0.0   # Puma on :3000
 bundle exec vite dev                   # Vite dev server on :3036
 ```
@@ -33,8 +33,7 @@ bundle exec vite dev                   # Vite dev server on :3036
 | Sync translations | `pnpm run i18n:sync` (localazy download + export) |
 | Sidekiq (general) | `bundle exec sidekiq -C config/sidekiq.yml` |
 | Sidekiq (video) | `bundle exec sidekiq -C config/sidekiq_video.yml` |
-| Migrate DB | `bundle exec rails db:migrate` |
-| Plugin migrations | `bundle exec rails plugin:migrate` |
+| Migrate DB | `bundle exec rails db:migrate` (includes plugins automatically) |
 | Plugin migrate status | `bundle exec rails plugin:status` |
 | Plugin rollback | `bundle exec rails plugin:rollback[plugin-name]` |
 | Plugin upgrade (existing) | `bundle exec rails plugin:upgrade` |

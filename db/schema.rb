@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_31_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_20_185504) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "intarray"
   enable_extension "pg_trgm"
@@ -64,6 +64,62 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_31_120000) do
     t.datetime "updated_at", null: false
     t.integer "tmdb_id"
     t.index ["tmdb_id"], name: "index_categories_on_tmdb_id", unique: true, where: "(tmdb_id IS NOT NULL)"
+  end
+
+  create_table "cinelar_ads_ad_impressions", force: :cascade do |t|
+    t.string "ad_type", null: false
+    t.string "placement", null: false
+    t.bigint "house_ad_id"
+    t.uuid "user_id"
+    t.string "ip_address"
+    t.datetime "clicked_at"
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_type", "placement"], name: "index_cinelar_ads_ad_impressions_on_ad_type_and_placement"
+    t.index ["ad_type"], name: "index_cinelar_ads_ad_impressions_on_ad_type"
+    t.index ["created_at"], name: "index_cinelar_ads_ad_impressions_on_created_at"
+    t.index ["house_ad_id"], name: "index_cinelar_ads_ad_impressions_on_house_ad_id"
+    t.index ["placement"], name: "index_cinelar_ads_ad_impressions_on_placement"
+    t.index ["user_id"], name: "index_cinelar_ads_ad_impressions_on_user_id"
+  end
+
+  create_table "cinelar_ads_house_ad_categories", force: :cascade do |t|
+    t.bigint "house_ad_id", null: false
+    t.bigint "category_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_cinelar_ads_house_ad_categories_on_category_id"
+    t.index ["house_ad_id", "category_id"], name: "idx_cinelar_ads_ha_cat_unique", unique: true
+    t.index ["house_ad_id"], name: "index_cinelar_ads_house_ad_categories_on_house_ad_id"
+  end
+
+  create_table "cinelar_ads_house_ad_content_types", force: :cascade do |t|
+    t.bigint "house_ad_id", null: false
+    t.string "content_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["house_ad_id", "content_type"], name: "idx_cinelar_ads_ha_ct_unique", unique: true
+    t.index ["house_ad_id"], name: "index_cinelar_ads_house_ad_content_types_on_house_ad_id"
+  end
+
+  create_table "cinelar_ads_house_ad_settings", force: :cascade do |t|
+    t.string "slot", null: false
+    t.text "ad_names", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slot"], name: "index_cinelar_ads_house_ad_settings_on_slot", unique: true
+  end
+
+  create_table "cinelar_ads_house_ads", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "html", null: false
+    t.boolean "visible_to_anons", default: true, null: false
+    t.boolean "visible_to_logged_in_users", default: true, null: false
+    t.jsonb "metadata", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_cinelar_ads_house_ads_on_name", unique: true
   end
 
   create_table "content_analytics", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -376,6 +432,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_31_120000) do
     t.index ["device_code"], name: "index_oauth_device_grants_on_device_code", unique: true
     t.index ["resource_owner_id"], name: "index_oauth_device_grants_on_resource_owner_id"
     t.index ["user_code"], name: "index_oauth_device_grants_on_user_code", unique: true
+  end
+
+  create_table "oauth_identities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "provider", null: false
+    t.string "uid", null: false
+    t.string "access_token"
+    t.string "refresh_token"
+    t.jsonb "extra_data", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider", "uid"], name: "index_oauth_identities_on_provider_and_uid", unique: true
+    t.index ["user_id"], name: "index_oauth_identities_on_user_id"
   end
 
   create_table "payments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -796,6 +865,11 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_31_120000) do
 
   add_foreign_key "cast_members", "contents"
   add_foreign_key "cast_members", "people"
+  add_foreign_key "cinelar_ads_ad_impressions", "cinelar_ads_house_ads", column: "house_ad_id"
+  add_foreign_key "cinelar_ads_ad_impressions", "users"
+  add_foreign_key "cinelar_ads_house_ad_categories", "categories"
+  add_foreign_key "cinelar_ads_house_ad_categories", "cinelar_ads_house_ads", column: "house_ad_id"
+  add_foreign_key "cinelar_ads_house_ad_content_types", "cinelar_ads_house_ads", column: "house_ad_id"
   add_foreign_key "content_analytics", "contents"
   add_foreign_key "content_categories", "categories", on_delete: :cascade
   add_foreign_key "content_categories", "contents", on_delete: :cascade
@@ -823,6 +897,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_31_120000) do
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_device_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_device_grants", "users", column: "resource_owner_id"
+  add_foreign_key "oauth_identities", "users"
   add_foreign_key "payments", "subscriptions"
   add_foreign_key "payments", "users"
   add_foreign_key "preferences", "profiles"

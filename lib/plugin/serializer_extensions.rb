@@ -85,6 +85,9 @@ ActiveModel::Serializer.class_eval do
     extensions.each do |ext|
       next unless ext.enabled?(object, scope, opts)
       value = ext.block.call(object, scope, opts)
+      # If the block returns nil (e.g. plugin disabled, guarded with `next`),
+      # skip the attribute entirely rather than serialising it as null.
+      next if value.nil?
       result[ext.attribute_name] = value
     end
 

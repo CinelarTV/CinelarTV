@@ -12,17 +12,18 @@
         --c-quaternary-color: <%= SiteSetting.quaternary_color %>;
         --c-player-accent-color: <%= SiteSetting.player_accent_color %>;
         
-        <%= generate_color_variants(SiteSetting.player_accent_color, "player-accent") %>
-        <%= generate_color_variants(SiteSetting.primary_color, "primary") %>
-        <%= generate_color_variants(SiteSetting.secondary_color, "secondary") %>
-        <%= generate_color_variants(SiteSetting.tertiary_color, "tertiary") %>
-        <%= generate_color_variants(SiteSetting.quaternary_color, "quaternary") %>
+        <%= generate_color_variants_with_rgb(SiteSetting.primary_color, "primary") %>
+        <%= generate_color_variants_with_rgb(SiteSetting.secondary_color, "secondary") %>
+        <%= generate_color_variants_with_rgb(SiteSetting.tertiary_color, "tertiary") %>
+        <%= generate_color_variants_with_rgb(SiteSetting.quaternary_color, "quaternary") %>
+        <%= generate_color_variants_with_rgb(SiteSetting.player_accent_color, "player-accent") %>
 
         /* Semantic surface tokens (dark theme) */
         --c-surface-0: rgba(255, 255, 255, 0.02);
         --c-surface-1: rgba(255, 255, 255, 0.03);
         --c-surface-2: rgba(255, 255, 255, 0.05);
         --c-surface-3: rgba(255, 255, 255, 0.08);
+        --c-surface-elevated: rgba(255, 255, 255, 0.06);
         --c-border-subtle: rgba(255, 255, 255, 0.06);
         --c-border-default: rgba(255, 255, 255, 0.08);
         --c-border-strong: rgba(255, 255, 255, 0.12);
@@ -34,8 +35,17 @@
         --c-success: #1ec08a;
         --c-warning: #f09a5a;
 
-      
+        /* Radius tokens */
+        --c-radius-sm: 6px;
+        --c-radius-md: 10px;
+        --c-radius-lg: 14px;
+        --c-radius-xl: 20px;
+        --c-radius-full: 9999px;
 
+        /* Shadow tokens */
+        --c-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+        --c-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+        --c-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
 </style>
 <% if !SiteSetting.custom_css.blank? %>

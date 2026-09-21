@@ -154,7 +154,7 @@ export default defineComponent({
                             {profiles.value.map((profile: Profile) => (
                                 <div class="profile-card-wrapper" key={profile.id}>
                                     <div
-                                        class={`profile-card ${editMode.value ? ' editing' : ''}`}
+                                        class={`profile-card ${editMode.value ? 'profile-card--editing' : ''}`}
                                         tabindex={0}
                                         role="button"
                                         aria-label={`Seleccionar perfil ${profile.name}`}
@@ -164,19 +164,19 @@ export default defineComponent({
                                         {/* Avatar */}
                                         <img
                                             src={getProfileAvatar(profile.avatar_id)}
-                                            class="profile-avatar"
+                                            class="profile-card__avatar"
                                             alt={`Avatar de perfil ${profile.name}`}
                                         />
 
                                         {/* Profile name */}
-                                        <h2 class="profile-name">{profile.name}</h2>
+                                        <h2 class="profile-card__name">{profile.name}</h2>
                                     </div>
 
                                     {/* Edit mode actions */}
                                     {editMode.value && (
-                                        <div class="profile-edit-actions">
+                                        <div class="profile-card__edit-actions">
                                             <button
-                                                class="profile-edit-btn edit"
+                                                class="profile-card__edit-btn profile-card__edit-btn--edit"
                                                 onClick={(e) => { e.stopPropagation(); openEditModal(profile); }}
                                             >
                                                 <CIcon icon="pencil" size={16} />
@@ -185,7 +185,7 @@ export default defineComponent({
 
                                             {profile.profile_type !== 'OWNER' && (
                                                 <button
-                                                    class="profile-edit-btn delete"
+                                                    class="profile-card__edit-btn profile-card__edit-btn--delete"
                                                     onClick={(e) => { e.stopPropagation(); deleteProfile(profile); }}
                                                 >
                                                     <CIcon icon="trash2" size={16} />
@@ -202,12 +202,14 @@ export default defineComponent({
                                 <div class="profile-card-wrapper">
                                     <button
                                         type="button"
-                                        class="profile-card create-profile"
+                                        class="profile-card profile-card--create"
                                         aria-label="Crear perfil"
                                         onClick={createProfile}
                                     >
-                                        <CIcon icon="plus" size={32} class="create-profile-icon" />
-                                        <h2 class="profile-name">Crear perfil</h2>
+                                        <div class="profile-card__avatar-ring">
+                                            <CIcon icon="plus" size={32} class="profile-card__create-icon" />
+                                        </div>
+                                        <h2 class="profile-card__name">Crear perfil</h2>
                                     </button>
                                 </div>
                             )}
@@ -229,10 +231,10 @@ export default defineComponent({
 
                         {/* Footer actions */}
                         <div class="profile-selector__footer">
-                            <button class="profile-footer-btn" onClick={userLogout}>
+                            <button class="profile-selector__footer-btn" onClick={userLogout}>
                                 Cerrar sesión
                             </button>
-                            <button class={['profile-footer-btn', 'edit', editMode.value && 'is-active']} onClick={toggleEditMode}>
+                            <button class={`profile-selector__footer-btn profile-selector__footer-btn--edit ${editMode.value ? 'is-active' : ''}`} onClick={toggleEditMode}>
                                 <CIcon icon="pencil" size={16} />
                                 {editMode.value ? 'Guardar cambios' : 'Modificar perfiles'}
                             </button>
@@ -242,15 +244,15 @@ export default defineComponent({
 
                 {/* Loading overlay */}
                 {loadingProfile.value && profileSelected.value && (
-                    <div class="loading-overlay">
-                        <div class="overlay-content">
+                    <div class="profile-selector__loading-overlay">
+                        <div class="profile-selector__loading-content">
                             <img
                                 src={getProfileAvatar(profileSelected.value.avatar_id)}
-                                class="profile-avatar-lg"
+                                class="profile-card__avatar profile-card__avatar--lg"
                                 alt={`Avatar de perfil ${profileSelected.value.name}`}
                             />
-                            <h2 class="profile-name-lg">{profileSelected.value.name}</h2>
-                            <p class="profile-loading-text">Cargando perfil...</p>
+                            <h2 class="profile-card__name profile-card__name--lg">{profileSelected.value.name}</h2>
+                            <p class="profile-selector__loading-text">Cargando perfil...</p>
                             <CSpinner />
                         </div>
                     </div>

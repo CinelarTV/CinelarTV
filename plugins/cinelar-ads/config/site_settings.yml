@@ -1,0 +1,158 @@
+plugins:
+  cinelar_ads_enabled:
+    client: true
+    refresh: true
+    default: true
+    type: boolean
+    description: "Enable the CinelarTV Ads plugin for monetization"
+
+  cinelar_ads_tracking_enabled:
+    client: true
+    default: true
+    type: boolean
+    description: "Enable impression and click tracking for ads"
+
+  # House Ads
+  cinelar_ads_house_frequency:
+    client: true
+    default: 100
+    type: integer
+    min: 0
+    max: 100
+    description: "Percentage of times house ads win over external networks (0-100)"
+
+  cinelar_ads_house_anonymous:
+    client: true
+    default: true
+    type: boolean
+    description: "Show house ads to anonymous users"
+
+  cinelar_ads_house_logged_in:
+    client: true
+    default: true
+    type: boolean
+    description: "Show house ads to logged-in users"
+
+  # Google AdSense
+  cinelar_ads_adsense_enabled:
+    client: true
+    default: false
+    type: boolean
+    description: "Enable Google AdSense ads"
+
+  cinelar_ads_adsense_publisher_id:
+    default: ""
+    type: string
+    secret: true
+    description: "Google AdSense publisher/client ID"
+
+  cinelar_ads_adsense_home_before_carousel:
+    client: true
+    default: ""
+    type: string
+    description: "AdSense ad unit code for homepage before carousel"
+
+  cinelar_ads_adsense_home_after_carousel:
+    client: true
+    default: ""
+    type: string
+    description: "AdSense ad unit code for homepage after carousel"
+
+  cinelar_ads_adsense_home_between_rows:
+    client: true
+    default: ""
+    type: string
+    description: "AdSense ad unit code for homepage between content rows"
+
+  cinelar_ads_adsense_content_below_actions:
+    client: true
+    default: ""
+    type: string
+    description: "AdSense ad unit code for content detail below actions"
+
+  cinelar_ads_adsense_content_below_related:
+    client: true
+    default: ""
+    type: string
+    description: "AdSense ad unit code for content detail below related"
+
+  cinelar_ads_adsense_explore_top:
+    client: true
+    default: ""
+    type: string
+    description: "AdSense ad unit code for explore page top"
+
+  # Google Ad Manager (DFP)
+  cinelar_ads_admanager_enabled:
+    client: true
+    default: false
+    type: boolean
+    description: "Enable Google Ad Manager (DFP) ads"
+
+  cinelar_ads_admanager_network_code:
+    default: ""
+    type: string
+    secret: true
+    description: "Google Ad Manager network code"
+
+  cinelar_ads_admanager_home_before_carousel:
+    client: true
+    default: ""
+    type: string
+    description: "Ad Manager slot for homepage before carousel"
+
+  cinelar_ads_admanager_home_after_carousel:
+    client: true
+    default: ""
+    type: string
+    description: "Ad Manager slot for homepage after carousel"
+
+  cinelar_ads_admanager_home_between_rows:
+    client: true
+    default: ""
+    type: string
+    description: "Ad Manager slot for homepage between content rows"
+
+  cinelar_ads_admanager_content_below_actions:
+    client: true
+    default: ""
+    type: string
+    description: "Ad Manager slot for content detail below actions"
+
+  cinelar_ads_admanager_content_below_related:
+    client: true
+    default: ""
+    type: string
+    description: "Ad Manager slot for content detail below related"
+
+  cinelar_ads_admanager_explore_top:
+    client: true
+    default: ""
+    type: string
+    description: "Ad Manager slot for explore page top"
+
+  # AdTerra
+  cinelar_ads_adterra_enabled:
+    client: true
+    default: false
+    type: boolean
+    description: "Enable AdTerra ads"
+
+  cinelar_ads_adterra_zone_ids:
+    client: true
+    default: ""
+    type: string
+    description: "JSON map of placement to AdTerra zone ID, e.g. {\"home_before_carousel\": \"12345\"}"
+
+  # Filters
+  cinelar_ads_exclude_categories:
+    client: true
+    default: ""
+    type: list
+    description: "Category IDs where ads should not be shown"
+
+  cinelar_ads_exclude_content_types:
+    client: true
+    default: ""
+    type: list
+    description: "Content types (MOVIE, TVSHOW) where ads should not be shown"

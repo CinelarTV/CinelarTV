@@ -16,6 +16,7 @@ require_relative "../lib/plugin/registry"
 require_relative "../lib/plugin/instance"
 require_relative "../lib/plugin_gem"
 require_relative "../lib/plugin/serializer_extensions"
+require_relative "../lib/plugin/site_payload_extensions"
 require_relative "../lib/plugin/route_loader"
 require_relative "../lib/plugin_registry"
 require_relative "../lib/app_event"
@@ -38,11 +39,13 @@ module CinelarTV
       end
     end
 
-    Dir.glob(Rails.root.join("plugins", "*", "db", "migrate")).each do |dir|
-      config.paths["db/migrate"] << dir.to_s
-    end
+    # NOTE: Plugin migrations are NOT added to config.paths["db/migrate"].
+    # They are managed separately by Plugin::Migrator and tracked in the
+    # plugin_schema_versions table. Run `bin/rails plugin:migrate` to apply them.
+    # This keeps plugin tables out of schema.rb, so db:schema:load works
+    # cleanly on installs without all plugins present.
 
-    # Activar plugins ANTES del boot completo (registra assets, migraciones, etc.)
+    # Activar plugins ANTES del boot completo (registra assets, etc.)
     config.before_initialize do
       registry = Plugin::Registry.build
       registry.activate!

@@ -25,7 +25,7 @@ class ApplicationController < ActionController::Base
 
   def refresh_settings
     SiteSetting.reload_settings
-    redirect_to app_path
+    redirect_to root_path, notice: "Configuración recargada"
   end
 
   def capybara_spin

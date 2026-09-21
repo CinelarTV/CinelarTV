@@ -12,6 +12,7 @@ export {
     PLUGIN_API_VERSION,
 } from "../../app/frontend/webclient/plugins/PluginHost";
 export type { PluginApi, PluginDefinition, PluginRegistryEntry } from "../../app/frontend/webclient/plugins/PluginHost";
+export type { AdminTab } from "../../app/frontend/webclient/plugins/AdminNavStore";
 
 // Exportamos también la factoría propuesta
 export const createPluginAPI = (app: any) => {

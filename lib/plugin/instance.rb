@@ -72,8 +72,9 @@ module Plugin
       # Register assets
       register_assets
       
-      # Add migration paths
-      add_migration_paths
+      # NOTE: Plugin migrations are managed by Plugin::Migrator, not by
+      # adding paths to Rails' db/migrate. This keeps plugin tables out
+      # of schema.rb.
       
       # Add rake task paths
       add_rake_task_paths
@@ -121,6 +122,22 @@ module Plugin
         condition: binding.local_variable_get(:if),
         &block
       )
+    end
+
+    # Register a key/value pair to be merged into the /site.json payload.
+    # Prefer this over register_serializer_extension for site-level data since
+    # SiteController builds a plain Hash, not an ActiveRecord-backed object.
+    #
+    # The block receives the controller instance (may be nil in some contexts)
+    # and should return the value for the key, or nil to skip it.
+    #
+    # Example:
+    #   register_site_payload(:house_creatives) do
+    #     next unless SiteSetting.cinelar_ads_enabled
+    #     CinelarAds::HouseAdSetting.settings_and_ads
+    #   end
+    def register_site_payload(key, &block)
+      Plugin::SitePayloadExtensions.register(key, plugin_name: self.name, &block)
     end
 
     def reloadable_patch(plugin = self)
@@ -215,15 +232,6 @@ module Plugin
           Rails.logger.info "[Plugin::Instance] Found CSS file (app): #{css_file} -> #{relative_path}"
           register_css(relative_path)
         end
-      end
-    end
-
-    def add_migration_paths
-      plugin_dir = File.dirname(path)
-      migrate_dir = File.join(plugin_dir, "db", "migrate")
-      
-      if Dir.exist?(migrate_dir)
-        ActiveRecord::Tasks::DatabaseTasks.migrations_paths << migrate_dir
       end
     end
 

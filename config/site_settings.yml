@@ -110,6 +110,45 @@ security:
     type: "list"
     hidden: false
 
+authentication:
+  enable_google_login:
+    client: true
+    refresh: false
+    default: false
+    type: "boolean"
+  google_oauth2_client_id:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
+    secret: true
+  google_oauth2_client_secret:
+    client: false
+    refresh: true
+    default: ""
+    type: "string"
+    secret: true
+  google_oauth2_scope:
+    client: false
+    refresh: true
+    default: "email profile"
+    type: "string"
+  omniauth_auto_confirm_email:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
+  omniauth_allow_account_linking:
+    client: true
+    refresh: true
+    default: true
+    type: "boolean"
+  omniauth_allowed_providers:
+    client: true
+    refresh: true
+    default: "google_oauth2"
+    type: "list"
+
 content:
   enable_metadata_recommendation:
     client: true

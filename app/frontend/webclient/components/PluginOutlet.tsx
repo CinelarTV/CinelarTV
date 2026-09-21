@@ -1,5 +1,5 @@
 // PluginOutlet.tsx
-import { defineComponent, computed, h, type PropType } from 'vue';
+import { defineComponent, computed, h, markRaw, type PropType } from 'vue';
 import { usePluginOutlets } from '@/stores/pluginOutlets';
 
 export type PluginOutletRegistration = {
@@ -37,7 +37,7 @@ export default defineComponent({
             return (
                 <div class={`plugin-outlet plugin-outlet-${outletName.replace(/\./g, '-')}`}>
                     {components.value.filter((entry: PluginOutletRegistration) => !entry.when || entry.when(props.context))
-                        .map((entry: PluginOutletRegistration) => h(entry.component, { key: entry.id, ...props.context }))}
+                        .map((entry: PluginOutletRegistration) => h(markRaw(entry.component), { key: entry.id, ...props.context }))}
                 </div>
             );
         };

@@ -1,10 +1,10 @@
-import { defineComponent, computed, ref, onMounted, Transition } from 'vue';
+import { defineComponent, computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { useSiteSettings } from '../../services/site-settings';
 import { useCurrentUser } from '../../services/current-user';
 import { ajax } from '../../../lib/Ajax';
-import { LogOut, Pencil, Info, Plus, ArrowRightLeft } from 'lucide-vue-next';
+import { LogOut, Pencil, Info, Plus } from 'lucide-vue-next';
 import LoginModal from '../../../components/modals/login.modal.tsx';
 import SignupModal from '../../../components/modals/signup.modal.tsx';
 import CIcon from "@/components/c-icon.vue";
@@ -105,160 +105,151 @@ export default defineComponent({
           <Menu as="div" class="relative">
 
             {/* Trigger */}
-            <MenuButton
-              id="current-user"
-              class="group flex items-center gap-2.5 rounded-full p-0.5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--c-tertiary-color)]"
-            >
+            <MenuButton class="site-header__user-trigger">
               <img
                 src={profileAvatar.value}
                 alt={`Avatar de ${displayName.value}`}
                 title={displayName.value}
-                class="h-9 w-9 rounded-full object-cover ring-2 ring-[var(--c-primary-400)] transition-all group-hover:ring-[var(--c-tertiary-color)]"
+                class="site-header__user-avatar"
               />
             </MenuButton>
 
             {/* Dropdown */}
-            <Transition
-              enterActiveClass="transition duration-150 ease-out"
-              enterFromClass="opacity-0 scale-95 -translate-y-1"
-              enterToClass="opacity-100 scale-100 translate-y-0"
-              leaveActiveClass="transition duration-100 ease-in"
-              leaveFromClass="opacity-100 scale-100 translate-y-0"
-              leaveToClass="opacity-0 scale-95 -translate-y-1"
-            >
-              <MenuItems class="absolute right-0 mt-2 w-[min(92vw,520px)] origin-top-right rounded-2xl bg-[var(--c-primary-500)] ring-1 ring-[var(--c-primary-300)] shadow-2xl backdrop-blur-xl focus:outline-none overflow-hidden z-50">
+            <MenuItems class="site-header__dropdown">
 
-                {/* User header strip */}
-                <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--c-primary-400)]">
-                  <img
-                    src={profileAvatar.value}
-                    class="h-10 w-10 rounded-full object-cover ring-2 ring-[var(--c-primary-400)]"
-                  />
-                  <div class="min-w-0">
-                    <p class="truncate text-sm font-semibold text-[var(--c-body-text-color)]">
-                      {displayName.value}
-                    </p>
-                    <p class="truncate text-xs text-[var(--c-primary-200)]">
-                      {currentUser.email}
-                    </p>
-                  </div>
+              {/* User header strip */}
+              <div class="site-header__dropdown-user">
+                <img
+                  src={profileAvatar.value}
+                  class="site-header__dropdown-avatar"
+                />
+                <div class="site-header__dropdown-user-info">
+                  <p class="site-header__dropdown-user-name">
+                    {displayName.value}
+                  </p>
+                  <p class="site-header__dropdown-user-email">
+                    {currentUser.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Two-column body */}
+              <div class="site-header__dropdown-body">
+
+                {/* Column: Mi cuenta */}
+                <div class="site-header__dropdown-column">
+                  <p class="site-header__dropdown-label">
+                    Mi cuenta
+                  </p>
+                  <ul class="site-header__dropdown-list">
+                    {visibleMenuItems.value.map(item => (
+                      <li key={item.text}>
+                        {item.href ? (
+                          <router-link
+                            to={item.href}
+                            class="site-header__dropdown-item"
+                          >
+                            <CIcon icon={item.icon} size={16} class="icon" />
+                            {item.text}
+                          </router-link>
+                        ) : (
+                          <button
+                            onClick={item.onClick}
+                            class="site-header__dropdown-item"
+                          >
+                            <CIcon icon={item.icon} size={16} class="icon" />
+                            {item.text}
+                          </button>
+                        )}
+                      </li>
+                    ))}
+
+                    {/* Divider + Logout */}
+                    <li>
+                      <div class="site-header__dropdown-divider" />
+                    </li>
+                    <li>
+                      <button
+                        onClick={handleLogout}
+                        class="site-header__dropdown-item site-header__dropdown-item--danger"
+                      >
+                        <LogOut size={16} class="icon" />
+                        Cerrar sesión
+                      </button>
+                    </li>
+                  </ul>
                 </div>
 
-                {/* Two-column body */}
-                <div class="flex flex-col sm:flex-row">
-
-                  {/* Column: Mi cuenta */}
-                  <div class="flex-1 px-3 py-3 sm:border-r border-[var(--c-primary-400)]">
-                    <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--c-body-text-color)]">
-                      Mi cuenta
-                    </p>
-                    <ul class="flex flex-col gap-0.5">
-                      {visibleMenuItems.value.map(item => (
-                        <li key={item.text}>
-                          {item.href ? (
-                            <router-link
-                              to={item.href}
-                              class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
-                            >
-                              <c-icon icon={item.icon} size={16} class="shrink-0 opacity-60" />
-                              {item.text}
-                            </router-link>
-                          ) : (
-                            <button
-                              onClick={item.onClick}
-                              class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
-                            >
-                              <c-icon icon={item.icon} size={16} class="shrink-0 opacity-60" />
-                              {item.text}
-                            </button>
-                          )}
-                        </li>
-                      ))}
-
-                      {/* Divider + Logout */}
-                      <li class="mt-1 pt-1 border-t border-[var(--c-primary-400)]">
+                {/* Column: Perfiles */}
+                <div class="site-header__dropdown-column">
+                  <p class="site-header__dropdown-label">
+                    Perfiles
+                  </p>
+                  <ul class="site-header__dropdown-list">
+                    {currentUser.profiles?.map((profile: any) => (
+                      <li key={profile.id}>
                         <button
-                          onClick={handleLogout}
-                          class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-rose-400 transition-colors hover:bg-rose-500/10"
+                          onClick={() => handleProfileSelect(profile)}
+                          aria-label={`Seleccionar perfil ${profile.name}`}
+                          class="site-header__dropdown-item"
                         >
-                          <LogOut size={16} class="shrink-0" />
-                          Cerrar sesión
+                          <img
+                            src={avatarUrl(profile.avatar_id)}
+                            class="site-header__dropdown-profile-avatar"
+                          />
+                          <span class="truncate font-medium">{profile.name}</span>
                         </button>
                       </li>
-                    </ul>
-                  </div>
+                    ))}
 
-                  {/* Column: Perfiles */}
-                  <div class="flex-1 px-3 py-3 border-t sm:border-t-0 border-[var(--c-primary-200)]">
-                    <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--c-body-text-color)]">
-                      Perfiles
-                    </p>
-                    <ul class="flex flex-col gap-0.5">
-                      {currentUser.profiles?.map((profile: any) => (
-                        <li key={profile.id}>
-                          <button
-                            onClick={() => handleProfileSelect(profile)}
-                            aria-label={`Seleccionar perfil ${profile.name}`}
-                            class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
-                          >
-                            <img
-                              src={avatarUrl(profile.avatar_id)}
-                              class="h-6 w-6 rounded-full object-cover ring-1 ring-[var(--c-primary-300)]"
-                            />
-                            <span class="truncate font-medium">{profile.name}</span>
-                          </button>
-                        </li>
-                      ))}
-
-                      {currentUser.profiles?.length < 5 && (
-                        <li>
-                          <button
-                            onClick={handleProfileSwitch}
-                            class="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
-                          >
-                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--c-primary-300)]">
-                              <Plus size={13} />
-                            </span>
-                            Añadir perfil
-                          </button>
-                        </li>
-                      )}
-                    </ul>
-
-                    {/* Secondary links */}
-                    <ul class="mt-1 pt-1 border-t border-[var(--c-primary-400)] flex flex-col gap-0.5">
+                    {currentUser.profiles?.length < 5 && (
                       <li>
-                        <router-link
-                          to="/profiles/edit"
-                          class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
+                        <button
+                          onClick={handleProfileSwitch}
+                          class="site-header__dropdown-item"
                         >
-                          <Pencil size={16} class="shrink-0 opacity-60" />
-                          Editar perfiles
-                        </router-link>
+                          <span class="site-header__dropdown-add-badge">
+                            <Plus size={13} />
+                          </span>
+                          Añadir perfil
+                        </button>
                       </li>
-                      <li>
-                        <router-link
-                          to="/info"
-                          class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
-                        >
-                          <Info size={16} class="shrink-0 opacity-60" />
-                          Más información
-                        </router-link>
-                      </li>
-                    </ul>
-                  </div>
+                    )}
+                  </ul>
 
+                  {/* Secondary links */}
+                  <ul class="site-header__dropdown-list" style="margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--c-border-subtle);">
+                    <li>
+                      <router-link
+                        to="/profiles/edit"
+                        class="site-header__dropdown-item"
+                      >
+                        <Pencil size={16} class="icon" />
+                        Editar perfiles
+                      </router-link>
+                    </li>
+                    <li>
+                      <router-link
+                        to="/info"
+                        class="site-header__dropdown-item"
+                      >
+                        <Info size={16} class="icon" />
+                        Más información
+                      </router-link>
+                    </li>
+                  </ul>
                 </div>
-              </MenuItems>
-            </Transition>
+
+              </div>
+            </MenuItems>
           </Menu>
         ) : (
-          <div class="flex items-center gap-2">
+          <div class="site-header__auth">
             {siteSettings.allow_registration && (
               <button
                 onClick={openSignupModal}
                 aria-label="Registrarse"
-                class="rounded-lg border border-[var(--c-primary-400)] bg-transparent px-4 py-1.5 text-sm font-medium text-[var(--c-body-text-color)] transition-colors hover:bg-[var(--c-primary-400)] hover:text-[var(--c-tertiary-color)]"
+                class="site-header__auth-signup"
               >
                 Sign up
               </button>
@@ -266,7 +257,7 @@ export default defineComponent({
             <button
               onClick={openLoginModal}
               aria-label="Iniciar sesión"
-              class="flex items-center gap-2 rounded-lg bg-[var(--c-tertiary-color)] px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--c-tertiary-200)]"
+              class="site-header__auth-login"
             >
               <CIcon icon="user" size={16} class="shrink-0" />
               Login

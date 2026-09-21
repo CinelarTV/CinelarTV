@@ -269,6 +269,11 @@ export default defineComponent({
                                         )}
                                     </div>
 
+                                    <PluginOutlet
+                                        name="content:below-actions"
+                                        context={{ content: contentData.value, currentUser }}
+                                    />
+
                                     {/* Episodios */}
                                     {content?.isTVShow && (
                                         seasons.length > 0 ? (
@@ -359,6 +364,11 @@ export default defineComponent({
                                             </div>
                                         </section>
                                     )}
+
+                                    <PluginOutlet
+                                        name="content:below-related"
+                                        context={{ content: contentData.value, currentUser }}
+                                    />
                                 </div>
 
                                 <RequireSignupModal

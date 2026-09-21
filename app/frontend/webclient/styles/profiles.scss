@@ -1,155 +1,157 @@
+/* SCSS partial — kept in sync with profiles.css BEM naming.
+   This file is NOT imported directly; profiles.css is the source of truth. */
+
 .profile-card {
     @apply flex flex-col items-center justify-center;
-    @apply transition-all duration-200 ease-out;
+    @apply transition-all duration-[250ms] ease-[cubic-bezier(0.22,1,0.36,1)];
     @apply cursor-pointer;
     @apply text-center;
+    @apply bg-transparent border-none;
 
-    &:hover {
-        @apply scale-105;
-
-        .profile-avatar {
-            @apply border-2 border-[var(--c-tertiary-color)];
-        }
-
-        .profile-name {
-            @apply text-[var(--c-tertiary-color)];
-        }
-    }
-
+    &:hover,
     &:focus {
-        @apply outline-none scale-105;
+        @apply scale-[1.06] outline-none;
+    }
 
-        .profile-avatar {
-            @apply border-2 border-[var(--c-tertiary-color)];
+    &--editing {
+        @apply opacity-50 hover:opacity-80;
+        &:hover { @apply transform-none; }
+    }
+
+    &--create {
+        @apply opacity-65 hover:opacity-100;
+    }
+
+    &__create-icon {
+        @apply text-white/55 transition-colors duration-200;
+
+        .profile-card--create:hover & {
+            @apply text-white/90;
         }
     }
 
-    &.editing {
-        @apply opacity-60 hover:opacity-100;
+    &__avatar-ring {
+        @apply rounded-full w-28 h-28;
+        @apply border-[3px] border-dashed border-white/20;
+        @apply flex items-center justify-center;
+        @apply transition-colors duration-[280ms];
 
-        &:hover {
-            @apply scale-100;
+        .profile-card--create:hover & {
+            @apply border-white/45;
         }
     }
 
-    &.create-profile {
-        @apply opacity-70 hover:opacity-100;
+    &__avatar {
+        @apply rounded-full w-28 h-28;
+        @apply object-cover;
+        @apply border-[3px] border-transparent;
+        @apply transition-all duration-[280ms];
 
-        .create-profile-icon {
-            @apply text-white transition-colors duration-200;
+        &--lg {
+            @apply w-40 h-40;
+            @apply border-4 border-white/20;
+            @apply shadow-[0_20px_50px_-10px_rgba(0,0,0,0.4)];
+        }
+    }
 
-            &:hover {
-                @apply text-[var(--c-tertiary-color)];
-            }
+    &__name {
+        @apply text-[0.92rem] font-medium;
+        @apply mt-3;
+        @apply text-white/85;
+        @apply transition-colors duration-200;
+
+        &--lg {
+            @apply text-2xl font-semibold mt-[18px];
+            @apply text-white;
+        }
+    }
+
+    &__edit-actions {
+        @apply flex flex-col gap-1.5 w-full mt-2.5 px-1;
+    }
+
+    &__edit-btn {
+        @apply flex items-center justify-center gap-[7px];
+        @apply px-3 py-[7px] rounded-lg;
+        @apply text-[0.78rem] font-semibold;
+        @apply cursor-pointer w-full;
+        @apply transition-all duration-200;
+
+        &--edit {
+            @apply bg-white/8 text-white/75;
+            hover: @apply bg-white/14;
+        }
+
+        &--delete {
+            @apply bg-red-500/10 text-red-400;
+            hover: @apply bg-red-500/20;
         }
     }
 }
 
 .profile-card-wrapper {
-    @apply flex flex-col items-center;
-}
-
-.profile-avatar {
-    @apply rounded-xl w-24 h-24;
-    @apply object-cover;
-    @apply border-2 border-white/50;
-    @apply transition-all duration-200;
-}
-
-.profile-avatar-lg {
-    @apply rounded-2xl w-32 h-32;
-    @apply object-cover;
-    @apply border-3 border-white/30;
-    @apply shadow-2xl;
-}
-
-.profile-name {
-    @apply text-base font-medium;
-    @apply mt-3;
-    @apply text-white;
-    @apply transition-colors duration-200;
-}
-
-.profile-name-lg {
-    @apply text-xl md:text-2xl font-semibold mt-4;
-    @apply text-white;
-}
-
-.profile-edit-btn {
-    @apply flex items-center justify-center gap-2;
-    @apply px-4 py-2 rounded-lg;
-    @apply text-sm font-medium;
-    @apply transition-all duration-200;
-    @apply cursor-pointer;
-    @apply w-full;
-    @apply mt-3;
-
-    &.delete {
-        @apply bg-red-500/10 text-red-400 hover:bg-red-500/20;
-        @apply border border-red-500/30 hover:border-red-500/50;
-    }
-}
-
-.profile-footer-btn {
-    @apply px-6 py-2.5 rounded-xl;
-    @apply text-sm font-medium;
-    @apply bg-white/10 text-white/80 border border-white/20;
-    @apply hover:bg-white/20 hover:text-white;
-    @apply transition-all duration-200;
-    @apply cursor-pointer;
-
-    &.edit {
-        @apply bg-[var(--c-tertiary-color)]/20 text-[var(--c-tertiary-color)];
-        @apply border-[var(--c-tertiary-color)]/30 hover:border-[var(--c-tertiary-color)]/50;
-        @apply hover:bg-[var(--c-tertiary-color)]/30;
-    }
+    @apply flex flex-col items-center w-full max-w-[160px];
 }
 
 #profile-selector {
     @apply relative overflow-hidden;
 }
 
-.loading-overlay {
-    @apply fixed inset-0 z-50 flex items-center justify-center;
-    @apply bg-black/80 backdrop-blur-sm;
+.profile-selector__footer-btn {
+    @apply min-h-[42px] inline-flex items-center justify-center gap-2;
+    @apply px-[22px] py-2 rounded-full;
+    @apply text-[0.88rem] font-medium;
+    @apply bg-white/7 text-white/60 border-none;
+    @apply hover:bg-white/14 hover:text-white;
+    @apply transition-all duration-200;
+    @apply cursor-pointer;
+
+    &--edit {
+        @apply bg-[var(--c-tertiary-color)]/15 text-[var(--c-tertiary-color)];
+        hover: @apply bg-[var(--c-tertiary-color)]/25;
+    }
 }
 
-.overlay-content {
+.profile-selector__loading-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    @apply bg-black/88 backdrop-blur-[10px];
+}
+
+.profile-selector__loading-content {
     @apply flex flex-col items-center justify-center;
     @apply text-white;
+    @apply animate-[profile-fade-in_0.4s_ease-out];
+}
 
-    .profile-avatar-lg {
-        @apply mb-2;
-    }
-
-    .profile-name-lg {
-        @apply mb-6;
-    }
+.profile-selector__loading-text {
+    @apply mt-[18px] mb-3.5 text-white/60;
+    @apply text-[0.88rem] font-normal;
 }
 
 .avatar-list {
-    @apply grid grid-cols-4 gap-4 justify-items-center mt-4;
+    @apply grid grid-cols-4 gap-3 justify-items-center mt-4;
 
-    .avatar {
-        @apply rounded-lg w-16 h-16;
-        @apply border-2 border-white/50;
+    &__item {
+        @apply rounded-full w-16 h-16;
+        @apply border-[3px] border-transparent;
         @apply cursor-pointer;
         @apply transition-all duration-200;
 
         img {
-            @apply rounded-md w-full h-full object-cover;
+            @apply rounded-full w-full h-full object-cover;
         }
 
         &:hover {
-            @apply border-2 border-[var(--c-tertiary-color)] scale-105;
+            @apply border-[var(--c-tertiary-color)] scale-110;
         }
 
         &:focus {
-            @apply outline-none border-2 border-[var(--c-tertiary-color)];
+            @apply outline-none border-[var(--c-tertiary-color)];
         }
 
-        &.selected {
-            @apply border-2 border-[var(--c-tertiary-color)];
+        &--selected {
+            @apply border-[var(--c-tertiary-color)];
+            box-shadow: 0 0 0 2px rgba(var(--c-tertiary-color-rgb), 0.3);
         }
     }
 }

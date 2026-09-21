@@ -10,6 +10,15 @@ declare interface Banner {
     icon: string;
   }
 
+  declare interface AdminTab {
+    label: string;
+    icon?: string;
+    route?: string;
+    path?: string;
+    pluginId: string;
+    priority?: number;
+  }
+
   declare interface PluginAPI {
     version: string;
     currentInstance(): any;
@@ -22,4 +31,5 @@ declare interface Banner {
     addIcon(iconName: string, svgIcon?: string | null): void;
     getCustomData(): any;
     loadScript(url: string): Promise<void>;
+    addAdminTab(tab: Omit<AdminTab, "pluginId">): () => void;
   }

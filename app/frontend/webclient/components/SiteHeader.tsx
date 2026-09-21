@@ -1,4 +1,4 @@
-import { defineComponent } from 'vue';
+import { defineComponent, ref, onMounted, onUnmounted } from 'vue';
 import { useSiteSettings } from '../app/services/site-settings';
 import LoginModal from './modals/login.modal.tsx';
 import UserMenu from '../app/components/header/UserMenu';
@@ -17,24 +17,42 @@ export default defineComponent({
     setup() {
         const { siteSettings } = useSiteSettings();
         const filteredHeaderItems = headerItems.filter(item => item.showItem);
+        const scrolled = ref(false);
+
+        const onScroll = () => {
+            scrolled.value = window.scrollY > 40;
+        };
+
+        onMounted(() => {
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        });
+
+        onUnmounted(() => {
+            window.removeEventListener('scroll', onScroll);
+        });
 
         return () => (
-            <header id="site-header">
-                <div class="site-header-wrap">
-                    <div class="title">
-                        <RouterLink to="/">
-                            <img id="site-logo" src={siteSettings.site_logo} alt={`${siteSettings.site_name} logo`} />
-                        </RouterLink>
-                    </div>
-                    <div class="site-navigation--nav hidden-sm-and-down" role="navigation">
+            <header class={`site-header ${scrolled.value ? 'site-header--scrolled' : ''}`}>
+                <div class="site-header__wrap">
+                    <RouterLink to="/" class="site-header__logo">
+                        <img class="site-header__logo-img" src={siteSettings.site_logo} alt={`${siteSettings.site_name} logo`} />
+                    </RouterLink>
+
+                    <nav class="site-header__nav hidden-sm-and-down" role="navigation">
                         {filteredHeaderItems.map(item => (
-                            <RouterLink to={item.to} class="flex site-nav--btn" key={item.to}>
-                                <CIcon icon={item.icon} size={20} class="icon" />
+                            <RouterLink
+                                to={item.to}
+                                class="site-header__nav-item"
+                                key={item.to}
+                            >
+                                <CIcon icon={item.icon} size={18} class="icon" />
                                 {item.title}
                             </RouterLink>
                         ))}
-                    </div>
-                    <div class="header-user-panel--nav">
+                    </nav>
+
+                    <div class="site-header__right">
                         <UserMenu />
                         <LoginModal />
                     </div>

@@ -11,6 +11,16 @@ module Plugin
 
     attr_reader :records
 
+    @@global = nil
+
+    def self.global
+      @@global
+    end
+
+    def self.enabled
+      @@global&.ordered&.select(&:enabled?)&.filter_map(&:instance) || []
+    end
+
     def self.build(root: Rails.root.join("plugins"), core_version: (CinelarTV::Application::Version::FULL rescue "0.0.1"), frontend_api_version: "1.0.0")
       manifests = Dir.children(root).filter_map do |entry|
         directory = File.join(root, entry)
@@ -28,6 +38,7 @@ module Plugin
       @frontend_api_version = frontend_api_version
       @records = manifests.map { |manifest| Record.new(manifest:, status: :discovered) }
       validate!
+      @@global = self
     end
 
     def activate!

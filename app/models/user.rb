@@ -7,6 +7,12 @@ class User < ApplicationRecord
   rolify
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable, :trackable and :omniauthable
+  # NOTE: :omniauthable is intentionally excluded — OmniAuth strategies are
+  # managed dynamically by Middleware::OmniauthBypassMiddleware, which builds
+  # the provider stack at request time from Auth::Registry.  Leaving
+  # :omniauthable here causes Devise to insert its own (empty) OmniAuth::Builder
+  # into the Rack stack, which intercepts /auth/* before our middleware can and
+  # then falls through to the Rails router, producing a RoutingError.
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :trackable, :confirmable
@@ -14,6 +20,7 @@ class User < ApplicationRecord
   validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 20 }
 
   has_many :profiles, dependent: :destroy # Si se elimina un usuario, se eliminan sus perfiles
+  has_many :oauth_identities, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :subscription_access_grants, dependent: :destroy
