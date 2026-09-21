@@ -72,10 +72,17 @@ module Plugin
       # Register assets
       register_assets
       
-      # NOTE: Plugin migrations are managed by Plugin::Migrator, not by
-      # adding paths to Rails' db/migrate. This keeps plugin tables out
-      # of schema.rb.
-      
+      # Register plugin migrations with Rails' standard migration pipeline.
+      # This mirrors Discourse's approach: by pushing the plugin's db/migrate
+      # directory into ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
+      # `rails db:migrate` handles plugin migrations automatically alongside
+      # core migrations. They are tracked in schema_migrations (not a separate
+      # table) and reflected in structure.sql. No plugin:migrate task needed.
+      plugin_migrate_dir = File.join(File.dirname(path), "db", "migrate")
+      if Dir.exist?(plugin_migrate_dir)
+        ActiveRecord::Tasks::DatabaseTasks.migrations_paths << plugin_migrate_dir
+      end
+
       # Add rake task paths
       add_rake_task_paths
       

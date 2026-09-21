@@ -25,6 +25,13 @@ module CinelarTV
   class Application < Rails::Application
     config.load_defaults 7.0
 
+    # Use structure.sql instead of schema.rb.  This mirrors Discourse's approach:
+    # plugin migrations are registered into ActiveRecord::Tasks::DatabaseTasks
+    # .migrations_paths in Plugin::Instance#activate!, so they run with
+    # db:migrate and are reflected in structure.sql just like core migrations.
+    # No separate plugin:migrate task or plugin_schema_versions table needed.
+    config.active_record.schema_format = :sql
+
     config.autoload_paths << "#{root}/lib"
     config.autoload_paths << "#{root}/app/services"
     config.autoload_paths << "#{root}/app/sidekiq"
@@ -39,13 +46,10 @@ module CinelarTV
       end
     end
 
-    # NOTE: Plugin migrations are NOT added to config.paths["db/migrate"].
-    # They are managed separately by Plugin::Migrator and tracked in the
-    # plugin_schema_versions table. Run `bin/rails plugin:migrate` to apply them.
-    # This keeps plugin tables out of schema.rb, so db:schema:load works
-    # cleanly on installs without all plugins present.
-
     # Activar plugins ANTES del boot completo (registra assets, etc.)
+    # Plugin#activate! also pushes each plugin's db/migrate directory into
+    # ActiveRecord::Tasks::DatabaseTasks.migrations_paths so that db:migrate
+    # picks them up automatically.
     config.before_initialize do
       registry = Plugin::Registry.build
       registry.activate!

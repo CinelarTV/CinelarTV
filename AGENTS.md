@@ -34,9 +34,6 @@ bundle exec vite dev                   # Vite dev server on :3036
 | Sidekiq (general) | `bundle exec sidekiq -C config/sidekiq.yml` |
 | Sidekiq (video) | `bundle exec sidekiq -C config/sidekiq_video.yml` |
 | Migrate DB | `bundle exec rails db:migrate` (includes plugins automatically) |
-| Plugin migrate status | `bundle exec rails plugin:status` |
-| Plugin rollback | `bundle exec rails plugin:rollback[plugin-name]` |
-| Plugin upgrade (existing) | `bundle exec rails plugin:upgrade` |
 
 ## Architecture
 
@@ -69,7 +66,7 @@ Separate `sidekiq_video.yml` for dedicated transcoding workers (concurrency: 5, 
 - **Frontend outlets**: Components auto-register via `registerPluginOutlet(name, component)` or by placing files in `assets/javascripts/connectors/{outlet-name}/` (convention-based, like Discourse connectors)
 - **Event bus**: Frontend event system (`lib/plugin-events.ts`) with `on`, `off`, `emit`, `clear`. PluginAPI exposes `onAppEvent()` / `offAppEvent()` for plugins. Router emits `navigation`; videoplayer emits `playback:play` / `playback:pause`.
 - **Auto-registered**: routes, assets (JS/CSS), rake tasks, models, controllers, dashboard widgets, settings
-- **Migrations**: Managed by `Plugin::Migrator` (tracked in `plugin_schema_versions` table). Plugin tables are NOT in `schema.rb`. Run `bin/rails plugin:migrate` after core migrations.
+- **Migrations**: Plugin migrations live in `plugins/*/db/migrate/`. `Plugin::Instance#activate!` registers each plugin's `db/migrate` directory into `ActiveRecord::Tasks::DatabaseTasks.migrations_paths`, so `rails db:migrate` runs them automatically alongside core migrations. They are tracked in `schema_migrations` and reflected in `db/structure.sql`.
 - **Settings**: Plugins provide `config/settings.yml` (Discourse-style). Legacy `config/site_settings.yml` also supported via `SiteSetting.load_settings`.
 - **Compatibility**: Plugins can add `.cinelar-compatibility` file with version constraints (Discourse-style format).
 - **Testing**: `spec/support/plugin_spec_helper.rb` provides `with_plugin`, `with_site_setting`, `mock_plugin` helpers.
@@ -94,4 +91,4 @@ Separate `sidekiq_video.yml` for dedicated transcoding workers (concurrency: 5, 
 - `assets:precompile` is hooked to `js:routes` (Rakefile)
 - Devise `stretches = 1` in test (fast), `12` otherwise
 - `config/master.key` and `config/credentials.yml.enc` are gitignored
-- Plugin migrations use `Plugin::Migrator` with a separate `plugin_schema_versions` table. `schema.rb` only contains core tables.
+- Plugin migrations run via `rails db:migrate` alongside core migrations. `db/structure.sql` is the schema source of truth (not `schema.rb`).
