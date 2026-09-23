@@ -91,3 +91,6 @@ Metrics/BlockLength:
   Description: >-
                  Avoid blocks longer than 15 lines.
   Enabled: false
+
+Layout/EndOfLine:
+  Enabled: false
