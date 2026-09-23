@@ -99,8 +99,8 @@ importers:
         specifier: ^0.10.15
         version: 0.10.19(vanilla-jsoneditor@0.18.13)(vue@3.5.18(typescript@5.6.3))
       lucide-static:
-        specifier: ^0.536.0
-        version: 0.536.0
+        specifier: ^1.47.0
+        version: 1.47.0
       lucide-vue-next:
         specifier: ^0.268.0
         version: 0.268.0(vue@3.5.18(typescript@5.6.3))
@@ -2764,11 +2764,12 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-static@0.536.0:
-    resolution: {integrity: sha512-sP/CE7WIORRnPcutL0tSm1SiLEQ2g8FYbUUkYNNscCGSmUA3LDHfOXdghEFSzFQuo+6yxaTJ+/xNDUGHKPPD5g==}
+  lucide-static@1.47.0:
+    resolution: {integrity: sha512-yWIrkdXc688Feq5VjOktsKmV5Ikc7y5Nu3rrdtbr8nWjkJWk8QlnZfVtIak22Af+fNhZ7k4cTJpZo1zmj7X5sA==}
 
   lucide-vue-next@0.268.0:
     resolution: {integrity: sha512-tw5Ah8RZcgoIySeyuK36KlEPJK+1IPQ+gzPfRg8wugQt4kbbX4rrvREtWyuhRXtnTjb1ztk78rTtAWJgqRySRA==}
+    deprecated: Package deprecated. Please use @lucide/vue instead.
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -3240,6 +3241,7 @@ packages:
 
   shaka-player@5.1.12:
     resolution: {integrity: sha512-luGIzJ/H201aY0Hobs5853vY1eRJXPHH+u3oSWiTAYoufq5s/yIbRZS1QwCsj3f3Fyxc2C3HfptfI0brjE+RIQ==}
+    engines: {node: '>=18'}
 
   shallow-equal@3.1.0:
     resolution: {integrity: sha512-pfVOw8QZIXpMbhBWvzBISicvToTiM5WBF1EeAUZDDSb5Dt29yl4AYbyywbJFSEsRUMr7gJaxqCdr4L3tQf9wVg==}
@@ -3303,6 +3305,7 @@ packages:
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   terser@5.36.0:
     resolution: {integrity: sha512-IYV9eNMuFAV4THUspIRXkLakHnV6XO7FEdtKjf/mDyrnqUg9LnlOn6/RwRvM9SZjR4GUq8Nk8zj67FzVARr74w==}
@@ -6113,7 +6116,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-static@0.536.0: {}
+  lucide-static@1.47.0: {}
 
   lucide-vue-next@0.268.0(vue@3.5.18(typescript@5.6.3)):
     dependencies:

@@ -15,6 +15,7 @@ module Admin
     def update
       updater = EmailStyleUpdater.new(current_user)
       if updater.update(params.require(:email_style).permit(:html, :css))
+        StaffActionLogger.new(current_user).log_change_email_style
         render json: {
           id: "email-style",
           html: EmailStyle.new.html,

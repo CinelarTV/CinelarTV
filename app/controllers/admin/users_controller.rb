@@ -7,22 +7,22 @@ module Admin
       users = User.includes(:profiles, :roles)
       if params[:query].present?
         q = params[:query].downcase
-        users = users.where('LOWER(email) LIKE ? OR LOWER(username) LIKE ?', "%#{q}%", "%#{q}%")
+        users = users.where("LOWER(email) LIKE ? OR LOWER(username) LIKE ?", "%#{q}%", "%#{q}%")
       end
-      if params[:status].present? && params[:status] != 'all'
+      if params[:status].present? && params[:status] != "all"
         case params[:status]
-        when 'active'
+        when "active"
           users = users.where(suspended: [false, nil]).where(deactivated_at: nil)
-        when 'suspended'
+        when "suspended"
           users = users.where(suspended: true)
-        when 'deactivated'
+        when "deactivated"
           users = users.where.not(deactivated_at: nil)
         end
       end
       page = params[:page].to_i > 0 ? params[:page].to_i : 1
       per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 30
-      sort_field = %w[created_at username email].include?(params[:sort]) ? params[:sort] : 'created_at'
-      sort_dir = params[:dir] == 'asc' ? :asc : :desc
+      sort_field = %w[created_at username email].include?(params[:sort]) ? params[:sort] : "created_at"
+      sort_dir = params[:dir] == "asc" ? :asc : :desc
       users = users.order(sort_field => sort_dir).offset((page - 1) * per_page).limit(per_page)
       respond_to do |format|
         format.html
@@ -37,7 +37,7 @@ module Admin
     def destroy
       user = User.find_by(id: params[:id])
       unless user
-        render json: { error: 'Not found' }, status: :not_found
+        render json: { error: "Not found" }, status: :not_found
         return
       end
 
@@ -46,10 +46,11 @@ module Admin
         return
       end
 
+      audit_logger.log_user_deletion(user)
       if user.destroy
         render json: { success: true }
       else
-        render json: { error: 'Could not delete user' }, status: :unprocessable_entity
+        render json: { error: "Could not delete user" }, status: :unprocessable_entity
       end
     end
 
@@ -60,6 +61,7 @@ module Admin
 
       @user = User.new(user_params)
       if @user.save
+        audit_logger.log_user_creation(@user)
         render json: {
           data: user_json(@user),
         }
@@ -72,7 +74,7 @@ module Admin
 
     def show
       user = User.find_by(id: params[:id])
-      return render(json: { error: 'Not found' }, status: :not_found) unless user
+      return render(json: { error: "Not found" }, status: :not_found) unless user
 
       json = user_json(user)
       json[:suspended_by] = user.suspended_by&.slice(:id, :email, :username)
@@ -84,40 +86,56 @@ module Admin
     # Admin actions: suspend, unsuspend, deactivate, activate
     def suspend
       user = User.find_by(id: params[:id])
-      return render(json: { error: 'Not found' }, status: :not_found) unless user
+      return render(json: { error: "Not found" }, status: :not_found) unless user
       return render(json: { error: "Can't suspend current user" }, status: :forbidden) if user == current_user
 
-      until_time = params[:until].present? ? (Time.zone.parse(params[:until]) rescue nil) : nil
+      until_time = if params[:until].present?
+                     begin
+                       Time.zone.parse(params[:until])
+                     rescue StandardError
+                       nil
+                     end
+                   end
       reason = params[:reason]
       user.suspend!(until_time, reason, current_user)
+      audit_logger.log_user_suspend(user, reason: reason, until_time: until_time)
       render json: { success: true }
     end
 
     def unsuspend
       user = User.find_by(id: params[:id])
-      return render(json: { error: 'Not found' }, status: :not_found) unless user
+      return render(json: { error: "Not found" }, status: :not_found) unless user
+
       user.unsuspend!
+      audit_logger.log_user_unsuspend(user)
       render json: { success: true }
     end
 
     def deactivate
       user = User.find_by(id: params[:id])
-      return render(json: { error: 'Not found' }, status: :not_found) unless user
+      return render(json: { error: "Not found" }, status: :not_found) unless user
       return render(json: { error: "Can't deactivate current user" }, status: :forbidden) if user == current_user
 
       reason = params[:reason]
       user.deactivate!(current_user, reason)
+      audit_logger.log_user_deactivate(user, reason: reason)
       render json: { success: true }
     end
 
     def activate
       user = User.find_by(id: params[:id])
-      return render(json: { error: 'Not found' }, status: :not_found) unless user
+      return render(json: { error: "Not found" }, status: :not_found) unless user
+
       user.activate!
+      audit_logger.log_user_activate(user)
       render json: { success: true }
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def user_json(user)
       profile = user.profiles&.first

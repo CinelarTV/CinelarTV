@@ -1,4 +1,4 @@
-\restrict vIQlTtIGrCcv911mqmY0XYKFYxFIXVZ1wpQB7rMuObl2RvAKy1VUuvXvXndjvVy
+\restrict fpmnxB5dxOQYHdjcOF6JEcgRgUSpauwxzPvM0K586zgCYwmutfNcTFK8ykCSm4M
 
 -- Dumped from database version 15.18
 -- Dumped by pg_dump version 15.18
@@ -95,6 +95,50 @@ CREATE TABLE public.ar_internal_metadata (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
+
+
+--
+-- Name: audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audit_logs (
+    id bigint NOT NULL,
+    user_id uuid,
+    action integer NOT NULL,
+    custom_type character varying(100),
+    auditable_type character varying,
+    auditable_id bigint,
+    target_user_id uuid,
+    subject character varying(255),
+    previous_value text,
+    new_value text,
+    details text,
+    ip_address character varying(45),
+    request_id character varying(36),
+    context character varying(500),
+    source character varying(100) DEFAULT 'core'::character varying NOT NULL,
+    result character varying(20) DEFAULT 'success'::character varying,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.audit_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.audit_logs_id_seq OWNED BY public.audit_logs.id;
 
 
 --
@@ -1638,6 +1682,13 @@ CREATE TABLE public.xmltv_sources (
 
 
 --
+-- Name: audit_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs ALTER COLUMN id SET DEFAULT nextval('public.audit_logs_id_seq'::regclass);
+
+
+--
 -- Name: backups id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1839,6 +1890,14 @@ ALTER TABLE ONLY public.webhook_logs ALTER COLUMN id SET DEFAULT nextval('public
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -2335,6 +2394,62 @@ CREATE UNIQUE INDEX idx_user_subscriptions_provider_external_id ON public.user_s
 --
 
 CREATE INDEX index_access_grants_active_lookup ON public.subscription_access_grants USING btree (user_id, starts_at, ends_at);
+
+
+--
+-- Name: index_audit_logs_on_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_action ON public.audit_logs USING btree (action);
+
+
+--
+-- Name: index_audit_logs_on_action_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_action_and_created_at ON public.audit_logs USING btree (action, created_at);
+
+
+--
+-- Name: index_audit_logs_on_auditable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_auditable ON public.audit_logs USING btree (auditable_type, auditable_id);
+
+
+--
+-- Name: index_audit_logs_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_created_at ON public.audit_logs USING btree (created_at);
+
+
+--
+-- Name: index_audit_logs_on_custom_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_custom_type ON public.audit_logs USING btree (custom_type);
+
+
+--
+-- Name: index_audit_logs_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_source ON public.audit_logs USING btree (source);
+
+
+--
+-- Name: index_audit_logs_on_target_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_target_user_id ON public.audit_logs USING btree (target_user_id);
+
+
+--
+-- Name: index_audit_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_audit_logs_on_user_id ON public.audit_logs USING btree (user_id);
 
 
 --
@@ -3003,6 +3118,13 @@ CREATE INDEX index_preferences_on_profile_id ON public.preferences USING btree (
 
 
 --
+-- Name: index_preferences_on_profile_id_and_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_preferences_on_profile_id_and_key ON public.preferences USING btree (profile_id, key);
+
+
+--
 -- Name: index_profiles_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3586,6 +3708,14 @@ ALTER TABLE ONLY public.likes
 
 
 --
+-- Name: audit_logs fk_rails_1f26bc34ae; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT fk_rails_1f26bc34ae FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: reproductions fk_rails_231e9f469a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3663,6 +3793,14 @@ ALTER TABLE ONLY public.episode_content_descriptors
 
 ALTER TABLE ONLY public.watch_party_session_users
     ADD CONSTRAINT fk_rails_344f2a1c86 FOREIGN KEY (watch_party_session_id) REFERENCES public.watch_party_sessions(id);
+
+
+--
+-- Name: audit_logs fk_rails_38f95330b4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT fk_rails_38f95330b4 FOREIGN KEY (target_user_id) REFERENCES public.users(id);
 
 
 --
@@ -3965,11 +4103,13 @@ ALTER TABLE ONLY public.payments
 -- PostgreSQL database dump complete
 --
 
-\unrestrict vIQlTtIGrCcv911mqmY0XYKFYxFIXVZ1wpQB7rMuObl2RvAKy1VUuvXvXndjvVy
+\unrestrict fpmnxB5dxOQYHdjcOF6JEcgRgUSpauwxzPvM0K586zgCYwmutfNcTFK8ykCSm4M
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260922160710'),
+('20260921120000'),
 ('20260920185504'),
 ('20260903153038'),
 ('20260903153037'),

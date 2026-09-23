@@ -143,6 +143,10 @@ namespace :admin do
 
   post "scheduler/:name/trigger" => "scheduler#trigger"
 
+  # Audit Logs
+  get "/audit-logs", to: "audit_logs#index"
+  get "/audit-logs/actions", to: "audit_logs#actions"
+
   # Backup Management routes
   get "/backups" => "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/backups" => "backups#index", defaults: { format: 'json' }

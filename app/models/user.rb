@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  SYSTEM_USER_UUID = "00000000-0000-0000-0000-000000000000"
+
   before_create :developer_email?
-  after_create :create_main_profile
+  after_create :create_main_profile, unless: :system_user?
   after_commit :clear_user_cache
   rolify
   # Include default devise modules. Others available are:
@@ -17,7 +19,32 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable,
          :trackable, :confirmable
 
-  validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 20 }
+  validates :username, presence: true, uniqueness: true, length: { minimum: 3, maximum: 20 }, unless: :system_user?
+  validate :validate_username_format, unless: :system_user?
+
+  # --- System User ---
+  def self.system_user
+    find_by(id: SYSTEM_USER_UUID)
+  end
+
+  def self.ensure_system_user!
+    find_or_create_by!(id: SYSTEM_USER_UUID) do |u|
+      u.email = "system@cinelartv.local"
+      u.username = "system"
+      u.password = SecureRandom.hex(32)
+      u.confirmed_at = Time.current
+    end.tap do |u|
+      u.add_role(:admin) unless u.has_role?(:admin)
+    end
+  end
+
+  def system_user?
+    id == SYSTEM_USER_UUID
+  end
+
+  def validate_username_format
+    UsernameValidator.perform_validation(self, :username)
+  end
 
   has_many :profiles, dependent: :destroy # Si se elimina un usuario, se eliminan sus perfiles
   has_many :oauth_identities, dependent: :destroy
@@ -41,13 +68,14 @@ class User < ApplicationRecord
            class_name: "Doorkeeper::DeviceAuthorizationGrant::DeviceGrant",
            foreign_key: :resource_owner_id,
            dependent: :delete_all # or :destroy if you need callbacks
- 
+
   belongs_to :suspended_by, class_name: "User", optional: true, foreign_key: "suspended_by_id"
   belongs_to :deactivated_by, class_name: "User", optional: true, foreign_key: "deactivated_by_id"
 
   # Account suspension/deactivation helpers
   def suspended?
     return false unless suspended
+
     suspended_until.nil? || suspended_until > Time.current
   end
 
@@ -68,12 +96,12 @@ class User < ApplicationRecord
     revoke_oauth_tokens!
 
     # Schedule automatic unsuspend if a temporary until_time is provided and Sidekiq is available
-    if until_time.present?
-      begin
-        UnsuspendUserJob.perform_at(until_time, id) if defined?(UnsuspendUserJob)
-      rescue StandardError => e
-        Rails.logger.error("Failed to schedule UnsuspendUserJob for user #{id}: #{e.message}")
-      end
+    return unless until_time.present?
+
+    begin
+      UnsuspendUserJob.perform_at(until_time, id) if defined?(UnsuspendUserJob)
+    rescue StandardError => e
+      Rails.logger.error("Failed to schedule UnsuspendUserJob for user #{id}: #{e.message}")
     end
   end
 
@@ -92,6 +120,7 @@ class User < ApplicationRecord
 
   def revoke_oauth_tokens!
     return unless respond_to?(:access_tokens) && access_tokens.any?
+
     access_tokens.update_all(revoked_at: Time.current)
   end
 
@@ -103,6 +132,7 @@ class User < ApplicationRecord
   def inactive_message
     return :account_deactivated if deactivated?
     return :account_suspended if suspended?
+
     super
   end
 
@@ -112,25 +142,31 @@ class User < ApplicationRecord
   def confirmation_deadline
     return nil if confirmed?
     return nil unless confirmation_sent_at
+
     confirmation_sent_at + CONFIRMATION_PERIOD
   end
 
   def days_until_confirmation_deadline
     return nil if confirmed?
+
     deadline = confirmation_deadline
     return nil unless deadline
+
     [(deadline.to_date - Date.current).to_i, 0].max
   end
 
   def confirmation_expired?
     return false if confirmed?
+
     deadline = confirmation_deadline
     return false unless deadline
+
     deadline < Time.current
   end
 
   def is_subscribed?
     return true if is_admin?
+
     CinelarTV.cache.fetch("user_subscribed/#{id}", expires_in: 1.hour) do
       Billing::AccessPolicy.active?(self)
     end

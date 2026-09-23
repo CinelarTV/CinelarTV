@@ -26,9 +26,8 @@
         <div class="content-manager-filters">
             <div class="content-manager-filters__search">
                 <SearchIcon :size="16" class="content-manager-filters__search-icon" />
-                <input v-model="searchQuery" type="text"
-                    :placeholder="$t('js.admin.content_manager.search') || 'Search categories...'"
-                    class="content-manager-filters__input" />
+                <c-input v-model="searchQuery" type="text"
+                    :placeholder="$t('js.admin.content_manager.search') || 'Search categories...'" />
             </div>
         </div>
 
@@ -86,6 +85,7 @@ import { ref, computed, onMounted } from 'vue';
 import { PlusIcon, SearchIcon, Edit3Icon, Trash2Icon, ShapesIcon, RefreshCwIcon } from 'lucide-vue-next';
 import { ajax } from '../../../lib/Ajax';
 import CategoryModal from '../../../components/modals/category-modal.vue';
+import CInput from '@/components/forms/c-input.vue';
 import { inject } from 'vue';
 
 const SiteSettings = inject('SiteSettings');

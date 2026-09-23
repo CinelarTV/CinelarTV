@@ -5,6 +5,8 @@ import { ajax } from "@/lib/Ajax";
 import CVideoableManager from "@/components/CVideoableManager";
 import CSegmentManager from "@/components/CSegmentManager";
 import CFormRow from "@/components/forms/CFormRow.tsx";
+import CInput from '@/components/forms/c-input.vue';
+import CTextarea from '@/components/forms/c-textarea.vue';
 
 type EpisodeData = {
     title: string;
@@ -212,10 +214,8 @@ export default defineComponent({
                                     </h2>
                                     <div class="space-y-4">
                                         <CFormRow label="Titulo del episodio" for="ep-title">
-                                            <input
-                                                id="ep-title"
-                                                class="c-input"
-                                                value={episodeData.value.title}
+                                            <CInput
+                                                modelValue={episodeData.value.title}
                                                 onInput={(e: InputEvent) => {
                                                     episodeData.value.title = (e.target as HTMLInputElement).value;
                                                 }}
@@ -224,15 +224,14 @@ export default defineComponent({
                                         </CFormRow>
 
                                         <CFormRow label="Descripcion" for="ep-desc">
-                                            <textarea
-                                                id="ep-desc"
-                                                class="c-input min-h-[100px] resize-y"
-                                                value={episodeData.value.description}
+                                            <CTextarea
+                                                modelValue={episodeData.value.description}
                                                 onInput={(e: InputEvent) => {
                                                     episodeData.value.description = (e.target as HTMLTextAreaElement).value;
                                                 }}
                                                 placeholder="Descripcion del episodio"
                                                 rows={4}
+                                                class="min-h-[100px] resize-y"
                                             />
                                             <p class="text-xs text-white/40 mt-1">
                                                 {(episodeData.value.description || "").length} caracteres

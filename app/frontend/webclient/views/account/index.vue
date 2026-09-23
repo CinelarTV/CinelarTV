@@ -43,7 +43,7 @@ const userLinks = [
     {
         icon: 'settings',
         title: i18n.t('js.user.nav.settings'),
-        to: '/account/settings',
+        to: '/account/preferences',
     },
 ].filter((link) => link.enabled !== false)
 

@@ -20,22 +20,13 @@
         <div class="content-manager-filters">
             <div class="content-manager-filters__search">
                 <SearchIcon :size="16" class="content-manager-filters__search-icon" />
-                <input v-model="searchQuery" type="text"
+                <c-input v-model="searchQuery" type="text"
                     :placeholder="$t('js.admin.content_manager.search') || 'Search content...'"
                     class="content-manager-filters__input" />
             </div>
             <div class="content-manager-filters__group">
-                <select v-model="typeFilter" class="content-manager-filters__select">
-                    <option value="">{{ $t("js.admin.content_manager.all_types") || "All types" }}</option>
-                    <option value="MOVIE">{{ $t("js.admin.content_manager.content_types.MOVIE") || "Movies" }}</option>
-                    <option value="TVSHOW">{{ $t("js.admin.content_manager.content_types.TVSHOW") || "Series" }}
-                    </option>
-                </select>
-                <select v-model="sortBy" class="content-manager-filters__select">
-                    <option value="newest">{{ $t("js.admin.content_manager.sort.newest") || "Newest first" }}</option>
-                    <option value="oldest">{{ $t("js.admin.content_manager.sort.oldest") || "Oldest first" }}</option>
-                    <option value="title">{{ $t("js.admin.content_manager.sort.title") || "Title A-Z" }}</option>
-                </select>
+                <c-select v-model="typeFilter" :options="typeOptions" />
+                <c-select v-model="sortBy" :options="sortOptions" />
             </div>
         </div>
 
@@ -106,6 +97,8 @@ import { PlusIcon, SearchIcon, Edit3Icon, ClapperboardIcon } from 'lucide-vue-ne
 import { ajax } from '../../../lib/Ajax';
 import CreateContentModal from '../../../components/modals/create-content.modal.vue';
 import ResponsiveImage from '../../../components/ResponsiveImage';
+import CInput from '@/components/forms/c-input.vue';
+import CSelect from '@/components/forms/c-select.vue';
 
 const router = useRouter();
 const loading = ref(false);
@@ -115,6 +108,18 @@ const typeFilter = ref('');
 const sortBy = ref('newest');
 const createContentModalRef = ref(null);
 const scrollSentinel = ref(null);
+
+const typeOptions = [
+    { label: "All types", value: "" },
+    { label: "Movies", value: "MOVIE" },
+    { label: "Series", value: "TVSHOW" },
+];
+
+const sortOptions = [
+    { label: "Newest first", value: "newest" },
+    { label: "Oldest first", value: "oldest" },
+    { label: "Title A-Z", value: "title" },
+];
 
 const meta = reactive({
     total: 0,

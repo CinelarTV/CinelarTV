@@ -103,6 +103,7 @@ module Admin
           fetch_and_assign_content_rating(@content)
         end
 
+        audit_logger.log_content_create(@content)
         render json: { message: "Content created successfully", status: :ok }
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -326,6 +327,7 @@ module Admin
         end
         @content.update!(update_params)
         assign_descriptors_from_keys(@content, descriptor_keys) if descriptor_keys
+        audit_logger.log_content_update(@content)
         render json: { message: "Content updated successfully", status: :ok }
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -333,6 +335,7 @@ module Admin
     end
 
     def destroy
+      audit_logger.log_content_delete(@content)
       @content.destroy
       render json: { message: "Content deleted successfully", status: :ok }
     end
@@ -451,8 +454,14 @@ module Admin
     end
 
     def sync_logo_from_tmdb
-      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
-      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+      if SiteSetting.tmdb_api_key.blank?
+        return render json: { error: "TMDB API Key is not set" },
+                      status: :unprocessable_entity
+      end
+      if @content.tmdb_id.blank?
+        return render json: { error: "Content does not have a TMDB ID" },
+                      status: :unprocessable_entity
+      end
 
       TmdbLogoFetcher.new(@content).call
       render json: { message: "Logo sync queued successfully" }, status: :ok
@@ -461,8 +470,14 @@ module Admin
     end
 
     def sync_rating_from_tmdb
-      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
-      return render json: { error: "Content does not have a TMDB ID" }, status: :unprocessable_entity if @content.tmdb_id.blank?
+      if SiteSetting.tmdb_api_key.blank?
+        return render json: { error: "TMDB API Key is not set" },
+                      status: :unprocessable_entity
+      end
+      if @content.tmdb_id.blank?
+        return render json: { error: "Content does not have a TMDB ID" },
+                      status: :unprocessable_entity
+      end
 
       fetch_and_assign_content_rating(@content)
 
@@ -494,14 +509,14 @@ module Admin
       end
 
       # Server-side sort
-      case params[:sort]
-      when "oldest"
-        contents = contents.order(created_at: :asc)
-      when "title"
-        contents = contents.order(title: :asc)
-      else
-        contents = contents.order(created_at: :desc)
-      end
+      contents = case params[:sort]
+                 when "oldest"
+                   contents.order(created_at: :asc)
+                 when "title"
+                   contents.order(title: :asc)
+                 else
+                   contents.order(created_at: :desc)
+                 end
 
       # Pagination
       page = (params[:page] || 1).to_i
@@ -533,7 +548,7 @@ module Admin
 
       respond_to do |format|
         format.html
-        format.json {
+        format.json do
           render json: {
             data: items,
             meta: {
@@ -543,11 +558,15 @@ module Admin
               total_pages: (total.to_f / per_page).ceil
             }
           }
-        }
+        end
       end
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def set_content
       @content = Content.includes(:seasons, :video_sources).find(params[:id])
@@ -607,12 +626,14 @@ module Admin
         country_dates = release_dates.find { |r| r["iso_3166_1"] == region }
         cert = country_dates&.dig("release_dates")&.find { |rd| rd["certification"].present? }
         return unless cert
+
         { code: cert["certification"], system: region }
       else
         ratings = data.dig("content_ratings", "results") || []
         country_rating = ratings.find { |r| r["iso_3166_1"] == region }
         cert_code = country_rating&.dig("rating")
         return if cert_code.blank?
+
         { code: cert_code, system: region }
       end
     end

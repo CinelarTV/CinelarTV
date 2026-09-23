@@ -6,6 +6,9 @@ import { toast } from 'vue-sonner';
 import CColorPicker from '@/components/forms/c-color-picker.vue';
 import CSplitList from '@/components/forms/CSplitList.tsx';
 import CIcon from '@/components/c-icon.vue';
+import CInput from '@/components/forms/c-input.vue';
+import CSelect from '@/components/forms/c-select.vue';
+import CTextarea from '@/components/forms/c-textarea.vue';
 import MonacoTools from '@/app/lib/MonacoTools';
 
 
@@ -234,28 +237,24 @@ export default defineComponent({
                                     <div class="settings-panel__card-control">
                                         {/* String input */}
                                         {setting.type === 'string' && (
-                                            <>
-                                                <input
-                                                    type="text"
-                                                    value={settings.value[setting.key] || ''}
-                                                    onInput={(e: any) => updateValue(setting.key, e.target.value)}
-                                                    maxlength={setting.options?.maxlength || 255}
-                                                    class="settings-panel__input"
-                                                    placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
-                                                />
-                                            </>
+                                            <CInput
+                                                type="text"
+                                                modelValue={settings.value[setting.key] || ''}
+                                                onInput={(e: any) => updateValue(setting.key, e.target.value)}
+                                                maxlength={setting.options?.maxlength || 255}
+                                                placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
+                                            />
                                         )}
 
                                         {/* Integer/number input */}
                                         {(setting.type === 'integer' || setting.type === 'number') && (
-                                            <input
+                                            <CInput
                                                 type="number"
-                                                value={settings.value[setting.key] ?? ''}
+                                                modelValue={settings.value[setting.key] ?? ''}
                                                 onInput={(e: any) => updateValue(setting.key, e.target.value)}
                                                 min={setting.options?.min}
                                                 max={setting.options?.max}
                                                 step={setting.type === 'integer' ? '1' : 'any'}
-                                                class="settings-panel__input"
                                                 placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
                                             />
                                         )}
@@ -334,28 +333,24 @@ export default defineComponent({
 
                                         {/* Enum select */}
                                         {setting.type === 'enum' && (
-                                            <select
-                                                value={settings.value[setting.key] || setting.value || ''}
-                                                onChange={(e: any) => updateValue(setting.key, e.target.value)}
-                                                class="settings-panel__select"
-                                            >
-                                                <option value="" disabled>
-                                                    Select option...
-                                                </option>
-                                                {setting.options?.allowed_values?.map((option: string) => (
-                                                    <option key={option} value={option}>
-                                                        {$t(`js.admin.settings.${setting.key}.values.${option}`) || option}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <CSelect
+                                                options={[
+                                                    { label: 'Select option...', value: '' },
+                                                    ...(setting.options?.allowed_values?.map((option: string) => ({
+                                                        label: $t(`js.admin.settings.${setting.key}.values.${option}`) || option,
+                                                        value: option,
+                                                    })) || []),
+                                                ]}
+                                                modelValue={settings.value[setting.key] || setting.value || ''}
+                                                onUpdate:modelValue={(val: string) => updateValue(setting.key, val)}
+                                            />
                                         )}
 
                                         {/* Textarea */}
                                         {setting.type === 'textarea' && (
-                                            <textarea
-                                                value={settings.value[setting.key] || ''}
+                                            <CTextarea
+                                                modelValue={settings.value[setting.key] || ''}
                                                 onInput={(e: any) => updateValue(setting.key, e.target.value)}
-                                                class="settings-panel__textarea"
                                                 rows={3}
                                                 placeholder={$t(`js.admin.settings.${setting.key}.title`) || ''}
                                             />

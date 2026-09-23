@@ -107,6 +107,17 @@ RSpec.describe SvgSprite do
       expect(icons).to include("foo")
       expect(icons).to include("bar")
     end
+
+    it "includes custom_registry_icons from register_custom_icon" do
+      plugin = double("Plugin", enabled?: true)
+      PluginRegistry.register_custom_svg_icon({ name: "my-ad", svg: '<path d="M0 0"/>' }, plugin)
+
+      icons = described_class.all_icons
+      expect(icons).to include("my-ad")
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
+    end
   end
 
   describe ".settings_icons" do
@@ -153,12 +164,59 @@ RSpec.describe SvgSprite do
     end
   end
 
+  describe ".custom_registry_icons" do
+    it "returns icon names from PluginRegistry.custom_svg_icons" do
+      plugin = double("Plugin", enabled?: true)
+      PluginRegistry.register_custom_svg_icon({ name: "my-ad", svg: '<path d="M0 0"/>' }, plugin)
+
+      expect(described_class.custom_registry_icons).to include("my-ad")
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
+    end
+
+    it "returns empty array when no custom icons registered" do
+      expect(described_class.custom_registry_icons).to eq([])
+    end
+  end
+
+  describe ".custom_registry_symbol" do
+    it "generates a <symbol> element for registered custom icons" do
+      plugin = double("Plugin", enabled?: true)
+      svg = '<path d="M5 3l14 9-14 9V3z"/>'
+      PluginRegistry.register_custom_svg_icon({ name: "my-ad", svg: svg }, plugin)
+
+      symbol = described_class.custom_registry_symbol("my-ad")
+      expect(symbol).to include('<symbol id="my-ad"')
+      expect(symbol).to include('viewBox="0 0 24 24"')
+      expect(symbol).to include(svg)
+      expect(symbol).to include("</symbol>")
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
+    end
+
+    it "returns nil for nonexistent custom icon" do
+      expect(described_class.custom_registry_symbol("nonexistent")).to be_nil
+    end
+  end
+
   describe ".resolve_source" do
     it "returns :lucide for icons that exist in lucide-static" do
       path = Rails.root.join("node_modules", "lucide-static", "icons", "play.svg")
       allow(File).to receive(:exist?).and_call_original
       allow(File).to receive(:exist?).with(path).and_return(true)
       expect(described_class.resolve_source("play")).to eq(:lucide)
+    end
+
+    it "returns :custom_registry for icons registered via register_custom_icon" do
+      plugin = double("Plugin", enabled?: true)
+      PluginRegistry.register_custom_svg_icon({ name: "my-ad", svg: '<path d="M0 0"/>' }, plugin)
+
+      expect(described_class.resolve_source("my-ad")).to eq(:custom_registry)
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
     end
 
     it "returns nil for icons that don't exist anywhere" do
@@ -201,6 +259,19 @@ RSpec.describe SvgSprite do
 
     it "returns nil for nonexistent icons" do
       expect(described_class.icon_symbol("nonexistent-icon-xyz")).to be_nil
+    end
+
+    it "generates a <symbol> element for custom registry icons" do
+      plugin = double("Plugin", enabled?: true)
+      svg = '<path d="M5 3l14 9-14 9V3z"/>'
+      PluginRegistry.register_custom_svg_icon({ name: "my-ad", svg: svg }, plugin)
+
+      symbol = described_class.icon_symbol("my-ad")
+      expect(symbol).to include('<symbol id="my-ad"')
+      expect(symbol).to include(svg)
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
     end
   end
 
@@ -276,6 +347,18 @@ RSpec.describe SvgSprite do
     it "returns empty array when no match" do
       results = described_class.icon_picker_search("zzz-nonexistent-zzz")
       expect(results).to eq([])
+    end
+
+    it "includes custom registry icons in search" do
+      plugin = double("Plugin", enabled?: true)
+      PluginRegistry.register_custom_svg_icon({ name: "my-custom-ad", svg: '<path d="M0 0"/>' }, plugin)
+
+      results = described_class.icon_picker_search("my-custom")
+      ids = results.map { |r| r[:id] }
+      expect(ids).to include("my-custom-ad")
+    ensure
+      PluginRegistry.clear_all
+      PluginRegistry.reset!
     end
   end
 

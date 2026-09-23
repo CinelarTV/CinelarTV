@@ -2,7 +2,7 @@
 
 module Admin
   class LiveTvChannelsController < Admin::BaseController
-    before_action :set_channel, only: [:update, :destroy]
+    before_action :set_channel, only: %i[update destroy]
 
     def index
       @channels = LiveTvChannel.order(:position)
@@ -21,6 +21,7 @@ module Admin
       @channel = LiveTvChannel.new(channel_params)
 
       if @channel.save
+        audit_logger.log_create_live_tv_channel(@channel)
         respond_to do |format|
           format.html { redirect_to admin_live_tv_channels_path, notice: "Channel created successfully." }
           format.json { render json: @channel, status: :created }
@@ -35,6 +36,7 @@ module Admin
 
     def update
       if @channel.update(channel_params)
+        audit_logger.log_update_live_tv_channel(@channel)
         handle_xmltv_channel_change
 
         respond_to do |format|
@@ -50,6 +52,7 @@ module Admin
     end
 
     def destroy
+      audit_logger.log_delete_live_tv_channel(@channel)
       @channel.destroy
       respond_to do |format|
         format.html { redirect_to admin_live_tv_channels_path, notice: "Channel deleted successfully." }
@@ -72,6 +75,10 @@ module Admin
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def set_channel
       @channel = LiveTvChannel.find(params[:id])

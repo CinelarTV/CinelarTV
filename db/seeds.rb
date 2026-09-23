@@ -5,6 +5,11 @@
 
 puts "Seeding database..."
 
+# --- System User ---
+puts "Seeding system user..."
+User.ensure_system_user!
+puts "  System user ready (id: #{User::SYSTEM_USER_UUID})"
+
 # Create default Doorkeeper application for API auth
 unless Doorkeeper::Application.exists?(name: "Default API Client")
   Doorkeeper::Application.create!(

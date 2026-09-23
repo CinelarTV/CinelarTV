@@ -41,7 +41,7 @@
     "hls.js": "^1.6.9",
     "i18n-js": "3.9.2",
     "json-editor-vue": "^0.10.15",
-    "lucide-static": "^0.536.0",
+    "lucide-static": "^1.47.0",
     "lucide-vue-next": "^0.268.0",
     "message-bus-client": "^4.4.1",
     "monaco-editor": "^0.55.1",

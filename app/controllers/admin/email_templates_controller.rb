@@ -7,14 +7,14 @@ module Admin
     AVAILABLE_LOCALES = %w[en es pt-BR].freeze
 
     SAMPLE_DATA = {
-      'username' => 'John Doe',
-      'email' => 'john@example.com',
-      'confirmation_url' => ->(s) { "#{s}/users/confirmation?confirmation_token=sample_token" },
-      'edit_password_url' => ->(s) { "#{s}/users/password/edit?reset_password_token=sample_token" },
-      'unlock_url' => ->(s) { "#{s}/users/unlock?unlock_token=sample_token" },
-      'site_name' => ->(_s) { SiteSetting.site_name || 'CinelarTV' },
-      'site_url' => ->(_s) { SiteSetting.site_url || 'https://example.com' },
-      'new_email' => 'newemail@example.com'
+      "username" => "John Doe",
+      "email" => "john@example.com",
+      "confirmation_url" => ->(s) { "#{s}/users/confirmation?confirmation_token=sample_token" },
+      "edit_password_url" => ->(s) { "#{s}/users/password/edit?reset_password_token=sample_token" },
+      "unlock_url" => ->(s) { "#{s}/users/unlock?unlock_token=sample_token" },
+      "site_name" => ->(_s) { SiteSetting.site_name || "CinelarTV" },
+      "site_url" => ->(_s) { SiteSetting.site_url || "https://example.com" },
+      "new_email" => "newemail@example.com"
     }.freeze
 
     def index
@@ -36,7 +36,7 @@ module Admin
       end
 
       respond_to do |format|
-        format.html { redirect_to '/admin/email-templates' }
+        format.html { redirect_to "/admin/email-templates" }
         format.json { render json: { templates: } }
       end
     end
@@ -65,6 +65,7 @@ module Admin
         interpolation_variables: get_interpolation_variables(params[:key])
       )
 
+      audit_logger.log_change_email_template(params[:key])
       Rails.logger.info "[EmailTemplate] Updated DB override for #{params[:key]}/#{params[:locale]}"
 
       render json: { success: true }
@@ -74,6 +75,7 @@ module Admin
       template = EmailTemplate.for_key_and_locale(params[:key], params[:locale]).first
       template&.destroy
 
+      audit_logger.log_change_email_template(params[:key])
       Rails.logger.info "[EmailTemplate] Reverted DB override for #{params[:key]}/#{params[:locale]}"
 
       render json: { success: true }
@@ -86,7 +88,7 @@ module Admin
 
       interpolated_subject, interpolated_body = interpolate_templates(subject, body)
 
-      layout_file = Rails.root.join('app', 'views', 'layouts', 'mailer.html.erb')
+      layout_file = Rails.root.join("app", "views", "layouts", "mailer.html.erb")
       layout_template = File.read(layout_file)
 
       final_html = render_with_layout(layout_template, interpolated_subject, interpolated_body)
@@ -101,7 +103,7 @@ module Admin
     def test_send
       recipient = params[:recipient_email]
       unless recipient.present? && URI::MailTo::EMAIL_REGEXP.match?(recipient)
-        return render json: { error: 'Invalid email address' }, status: :unprocessable_entity
+        return render json: { error: "Invalid email address" }, status: :unprocessable_entity
       end
 
       template = find_template
@@ -122,6 +124,10 @@ module Admin
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def template_keys
       EmailTemplateResolver.available_templates.keys
@@ -146,14 +152,14 @@ module Admin
       meta = EmailTemplateResolver.available_templates[key]
       return meta[:variables] if meta
 
-      subject = I18n.t("email_templates.#{key}.subject", locale: :en, default: '')
-      body = I18n.t("email_templates.#{key}.body", locale: :en, default: '')
+      subject = I18n.t("email_templates.#{key}.subject", locale: :en, default: "")
+      body = I18n.t("email_templates.#{key}.body", locale: :en, default: "")
       EmailTemplateResolver.extract_variables(subject, body)
     end
 
     def interpolate_templates(subject, body)
       variables = get_interpolation_variables(params[:key])
-      site_url = SiteSetting.site_url || 'https://example.com'
+      site_url = SiteSetting.site_url || "https://example.com"
 
       interpolated_subject = subject.dup
       interpolated_body = body.dup
@@ -173,16 +179,16 @@ module Admin
     end
 
     def render_with_layout(_layout_content, subject, body)
-      layout_path = Rails.root.join('app', 'views', 'layouts', 'mailer.html.erb')
+      layout_path = Rails.root.join("app", "views", "layouts", "mailer.html.erb")
       layout_src = File.read(layout_path)
 
-      layout_src.gsub!('<%= yield %>', 'MAILER_BODY_PLACEHOLDER')
+      layout_src.gsub!("<%= yield %>", "MAILER_BODY_PLACEHOLDER")
 
       @subject = subject
-      @recipient_email = 'preview@example.com'
+      @recipient_email = "preview@example.com"
 
       rendered = ERB.new(layout_src).result(binding)
-      rendered.gsub('MAILER_BODY_PLACEHOLDER', body)
+      rendered.gsub("MAILER_BODY_PLACEHOLDER", body)
     end
   end
 end

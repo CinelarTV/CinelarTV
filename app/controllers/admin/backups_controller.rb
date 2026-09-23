@@ -10,8 +10,8 @@ module Admin
       per_page = (params[:per_page] || 20).to_i
       total = Backup.count
       @backups = Backup.order(created_at: :desc)
-                        .offset((page - 1) * per_page)
-                        .limit(per_page)
+                       .offset((page - 1) * per_page)
+                       .limit(per_page)
 
       render json: {
         data: @backups.map { |b| backup_json(b) },
@@ -43,6 +43,7 @@ module Admin
         encrypt: encrypt
       )
 
+      audit_logger.log_backup_create(backup)
       render json: { data: backup_json(backup), message: "Backup created successfully" }, status: :created
     rescue BackupManager::BackupError => e
       render json: { error: e.message }, status: :unprocessable_entity
@@ -61,6 +62,7 @@ module Admin
       end
 
       @backup.append_audit("restore_requested", "user_id=#{current_user&.id}")
+      audit_logger.log_backup_restore(@backup)
 
       RestoreJob.perform_async(@backup.id, force: force, restore_files: restore_files)
 
@@ -80,6 +82,7 @@ module Admin
       end
 
       @backup.append_audit("downloaded", "user_id=#{current_user&.id}")
+      audit_logger.log_backup_download(@backup)
 
       send_file @backup.path,
                 filename: @backup.filename,
@@ -100,6 +103,7 @@ module Admin
     # DELETE /admin/backups/:id
     def destroy
       @backup.append_audit("deleted", "user_id=#{current_user&.id}")
+      audit_logger.log_backup_delete(@backup)
       @backup.destroy_file!
       render json: { message: "Backup deleted" }
     end
@@ -123,6 +127,10 @@ module Admin
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def set_backup
       @backup = Backup.find(params[:id])
@@ -198,6 +206,7 @@ module Admin
 
     def human_size(bytes)
       return "0 B" if bytes.zero?
+
       units = %w[B KB MB GB TB]
       exp = (Math.log(bytes) / Math.log(1024)).to_i
       exp = units.length - 1 if exp >= units.length

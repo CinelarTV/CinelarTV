@@ -631,6 +631,34 @@ es:
       removed_from_dislikes: "&quot;{{title}} &quot;Eliminado de tus no me gusta"
       like_error: "Error al dar me gusta"
       dislike_error: "Error al dar no me gusta"
+    preferences:
+      title: "Preferencias"
+      description: "Gestiona tus preferencias de usuario"
+      loading: "Cargando preferencias..."
+      saving: "Guardando..."
+      save: "Guardar cambios"
+      saved: "Preferencias guardadas correctamente"
+      error: "Error al guardar preferencias"
+      no_changes: "No hay cambios para guardar"
+      categories:
+        notifications: "Notificaciones"
+        account: "Cuenta"
+      settings:
+        email_notifications:
+          title: "Notificaciones por email"
+          description: "Recibe notificaciones por email sobre actualizaciones importantes"
+        notification_email:
+          title: "Email de notificaciones"
+          description: "Dirección de email donde se enviarán las notificaciones"
+        notify_new_content:
+          title: "Notificaciones de nuevo contenido"
+          description: "Recibe notificaciones cuando haya nuevo contenido disponible"
+        notify_subscription_updates:
+          title: "Actualizaciones de suscripción"
+          description: "Recibe notificaciones sobre cambios en tu suscripción"
+        notify_recommendations:
+          title: "Recomendaciones"
+          description: "Recibe recomendaciones personalizadas de contenido"
     video_player:
       back: "Volver"
       next_episode: "Siguiente episodio"

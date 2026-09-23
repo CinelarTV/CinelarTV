@@ -69,6 +69,17 @@ en:
             name:
               blank: "Name cannot be blank"
               too_short: "Name is too short, it must be at least %{count} characters"
+        user:
+          attributes:
+            username:
+              blank: "Username cannot be blank"
+              short: "Username is too short, it must be at least %{count} characters"
+              long: "Username is too long, it must be at most %{count} characters"
+              characters: "Username can only contain letters, numbers, hyphens, periods and underscores"
+              must_begin_with_alphanumeric_or_underscore: "Username must begin with a letter or underscore"
+              must_end_with_alphanumeric: "Username must end with a letter or number"
+              must_not_contain_two_special_chars_in_seq: "Username must not contain two special characters in sequence"
+              must_not_contain_at_symbol: "Username cannot contain the @ symbol"
   dashboard:
     memory_warning: "Your server is running with less than 1 GB of total memory.
       CinelarTV recommends at least 1 GB of memory to run properly."
@@ -647,6 +658,34 @@ en:
       removed_from_dislikes: "\"{{title}}\" removed from your dislikes"
       like_error: "Error toggling like"
       dislike_error: "Error toggling dislike"
+    preferences:
+      title: "Preferences"
+      description: "Manage your user preferences"
+      loading: "Loading preferences..."
+      saving: "Saving..."
+      save: "Save changes"
+      saved: "Preferences saved successfully"
+      error: "Error saving preferences"
+      no_changes: "No changes to save"
+      categories:
+        notifications: "Notifications"
+        account: "Account"
+      settings:
+        email_notifications:
+          title: "Email notifications"
+          description: "Receive email notifications about important updates"
+        notification_email:
+          title: "Notification email"
+          description: "Email address where notifications will be sent"
+        notify_new_content:
+          title: "New content notifications"
+          description: "Receive notifications when new content is available"
+        notify_subscription_updates:
+          title: "Subscription updates"
+          description: "Receive notifications about subscription changes"
+        notify_recommendations:
+          title: "Recommendations"
+          description: "Receive personalized content recommendations"
     video_player:
       back: "Back"
       next_episode: "Next episode"

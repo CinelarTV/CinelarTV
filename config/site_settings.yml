@@ -855,3 +855,17 @@ backup:
     client: false
     default: true
     type: "boolean"
+
+audit_log:
+  audit_log_enabled:
+    client: false
+    default: true
+    type: "boolean"
+    description: "Enable audit logging for admin actions"
+  audit_log_retention_days:
+    client: false
+    default: 90
+    type: "integer"
+    min: 7
+    max: 365
+    description: "Number of days to retain audit logs"

@@ -205,6 +205,14 @@ const AdminRoutes = {
             meta: {
                 requireAdmin: true
             }
+        },
+        {
+            name: 'admin.audit_logs',
+            path: 'audit-logs',
+            component: () => import('../views/admin/AuditLogs.tsx'),
+            meta: {
+                requireAdmin: true
+            }
         }
     ],
     meta: {

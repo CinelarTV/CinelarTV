@@ -7,6 +7,8 @@
 # required_version: 1.0.0
 
 enabled_site_setting :cinelar_ads_enabled
+register_svg_icon "ad"
+
 
 # Models, controllers and serializers under app/ are loaded automatically by
 # Rails autoloader — no require_relative needed here.

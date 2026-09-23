@@ -2,13 +2,9 @@
   <div class="admin-dashboard wrap">
     <div class="admin-nav">
       <div class="admin-nav__scroll">
-        <router-link
-          v-for="link in adminLinks"
+        <router-link v-for="link in adminLinks"
           :key="typeof link.to === 'string' ? link.to : link.to?.name || JSON.stringify(link.to)"
-          class="admin-nav__item"
-          :to="link.to"
-          active-class="admin-nav__item--active"
-        >
+          class="admin-nav__item" :to="link.to" active-class="admin-nav__item--active">
           <CIcon v-if="link.icon" :icon="link.icon" :size="16" class="admin-nav__icon" />
           <span class="admin-nav__label">{{ link.title }}</span>
         </router-link>
@@ -98,6 +94,11 @@ const adminLinks = computed(() => {
       icon: 'webhook',
       to: '/admin/webhooks/logs',
       enabled: SiteSettings.enable_subscription || false
+    },
+    {
+      title: $t("js.admin.nav.audit_logs") || 'Audit Logs',
+      icon: 'gavel',
+      to: '/admin/audit-logs'
     },
     {
       title: $t("js.admin.nav.backups") || 'Backups',

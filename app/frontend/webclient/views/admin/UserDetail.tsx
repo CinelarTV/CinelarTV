@@ -380,11 +380,11 @@ export default defineComponent({
                                                 <h4 class="user-detail-admin__action-label">Suspend User</h4>
                                                 <label class="user-detail-admin__action-field">
                                                     <span>Until (optional)</span>
-                                                    <input v-model={suspendUntil.value} type="datetime-local" />
+                                                    <CInput v-model={suspendUntil.value} type="datetime-local" />
                                                 </label>
                                                 <label class="user-detail-admin__action-field">
                                                     <span>Reason</span>
-                                                    <input v-model={suspendReason.value} placeholder="Reason for suspension" />
+                                                    <CInput v-model={suspendReason.value} placeholder="Reason for suspension" />
                                                 </label>
                                                 <CButton
                                                     variant="danger"
@@ -401,7 +401,7 @@ export default defineComponent({
                                                 <h4 class="user-detail-admin__action-label">Deactivate User</h4>
                                                 <label class="user-detail-admin__action-field">
                                                     <span>Reason</span>
-                                                    <input v-model={deactivateReason.value} placeholder="Reason for deactivation" />
+                                                    <CInput v-model={deactivateReason.value} placeholder="Reason for deactivation" />
                                                 </label>
                                                 <CButton
                                                     variant="danger"

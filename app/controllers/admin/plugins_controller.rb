@@ -6,10 +6,10 @@ module Admin
       registry = Rails.configuration.x.plugin_registry
 
       plugins = if registry
-        registry.records.map { |record| plugin_payload(record) }
-      else
-        []
-      end
+                  registry.records.map { |record| plugin_payload(record) }
+                else
+                  []
+                end
 
       respond_to do |format|
         format.html
@@ -38,6 +38,8 @@ module Admin
       current_value = SiteSetting.send(setting_name)
       SiteSetting.send("#{setting_name}=", !current_value)
 
+      audit_logger.log_plugin_toggle(setting_name, SiteSetting.send(setting_name))
+
       render json: {
         id: record.id,
         enabled_site_setting: setting_name,
@@ -46,6 +48,10 @@ module Admin
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def plugin_payload(record)
       manifest = record.manifest

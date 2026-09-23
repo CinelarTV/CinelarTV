@@ -112,7 +112,7 @@ export default defineComponent({
             <div>
               <p class="admin-house-ads-form__eyebrow">Admin Console</p>
               <h1 class="admin-house-ads-form__title">
-                <CIcon icon="rectangle-ad" size={28} />
+                <CIcon icon="ad" size={28} />
                 {" "}{isEdit.value ? "Edit House Ad" : "New House Ad"}
               </h1>
             </div>

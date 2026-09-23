@@ -37,25 +37,21 @@ const label = computed(() => {
 <template>
   <Listbox :model-value="props.modelValue" :multiple="props.multiple"
     @update:modelValue="value => emit('update:modelValue', value)">
-    <div class="relative">
-      <ListboxButton
-        class="relative w-full flex items-center justify-between px-3 py-2.5 text-sm text-left rounded-lg bg-white/5 ring-1 ring-white/10 hover:ring-white/20 focus:outline-none focus:ring-[var(--c-primary-color)] focus:ring-offset-0 transition-colors"
-      >
-        <span v-if="label" class="block truncate text-white">{{ label }}</span>
-        <span v-else class="block truncate text-white/40">{{ props.placeholder }}</span>
-        <span class="pointer-events-none flex items-center pr-1">
-          <ChevronDownIcon class="h-4 w-4 text-white/40" aria-hidden="true" />
+    <div class="c-select">
+      <ListboxButton class="c-select__trigger">
+        <span v-if="label" class="c-select__label">{{ label }}</span>
+        <span v-else class="c-select__placeholder">{{ props.placeholder }}</span>
+        <span class="c-select__chevron">
+          <ChevronDownIcon class="c-select__chevron-icon" aria-hidden="true" />
         </span>
       </ListboxButton>
 
       <transition
-        leave-active-class="transition duration-100 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
+        leave-active-class="c-select__transition-leave"
+        leave-from-class="c-select__transition-leave-from"
+        leave-to-class="c-select__transition-leave-to"
       >
-        <ListboxOptions
-          class="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-[#1a1a1a] ring-1 ring-white/10 shadow-xl focus:outline-none py-1"
-        >
+        <ListboxOptions class="c-select__dropdown">
           <ListboxOption
             v-for="option in props.options"
             :key="option.label"
@@ -65,18 +61,18 @@ const label = computed(() => {
           >
             <li
               :class="[
-                'relative cursor-pointer select-none px-3 py-2 text-sm transition-colors',
-                active ? 'bg-white/10 text-white' : 'text-white/80',
+                'c-select__option',
+                active && 'c-select__option--active',
               ]"
             >
-              <div class="flex items-center justify-between">
+              <div class="c-select__option-content">
                 <span :class="[
-                  'block truncate',
-                  selected ? 'font-medium' : 'font-normal',
+                  'c-select__option-text',
+                  selected && 'c-select__option-text--selected',
                 ]">{{ option.label }}</span>
                 <CheckIcon
                   v-if="selected"
-                  class="h-4 w-4 text-[var(--c-primary-color)]"
+                  class="c-select__option-check"
                   aria-hidden="true"
                 />
               </div>
@@ -85,7 +81,7 @@ const label = computed(() => {
         </ListboxOptions>
       </transition>
 
-      <div v-if="props.error" class="text-xs text-red-400 mt-1.5">
+      <div v-if="props.error" class="c-select__error">
         {{ props.error }}
       </div>
     </div>

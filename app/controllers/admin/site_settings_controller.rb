@@ -39,7 +39,9 @@ module Admin
           logo_uploader = LogoUploader.new
           image_payload = key == "site_favicon" ? resized_favicon_blob(setting_params[key]) : setting_params[key]
           logo_uploader.store!(image_payload)
+          old_value = SiteSetting.send(key)
           SiteSetting.send("#{key}=", logo_uploader.url)
+          audit_logger.log_site_setting_change(key, old_value, SiteSetting.send(key))
         else
           # Si no, actualizar el valor de la configuración
           setting = SiteSetting.new(var: key)
@@ -56,7 +58,9 @@ module Admin
           # Si el campo es el de la imagen del sitio, ya lo actualizamos, por lo que no necesitamos hacer nada aquí
           next if %w[site_logo site_mobile_logo site_favicon].include?(key)
 
+          old_value = SiteSetting.send(key)
           SiteSetting.send("#{key}=", setting_params[key]) unless setting_params[key].nil?
+          audit_logger.log_site_setting_change(key, old_value, setting_params[key])
         end
 
         update_carrierwave_setting if is_storage_related?(setting_params.keys)
@@ -76,6 +80,10 @@ module Admin
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def setting_params
       params.require(:setting).permit(settings_keys.map(&:to_sym))
@@ -103,7 +111,7 @@ module Admin
     def test_connection
       storage_provider = SiteSetting.storage_provider
 
-      if storage_provider == 'local'
+      if storage_provider == "local"
         return {
           success: true,
           message: "Local storage is configured",
@@ -127,7 +135,7 @@ module Admin
       s3_client = Aws::S3::Client.new(
         access_key_id: SiteSetting.s3_access_key_id,
         secret_access_key: SiteSetting.s3_secret_access_key,
-        region: SiteSetting.s3_region || 'us-east-1',
+        region: SiteSetting.s3_region || "us-east-1",
         endpoint: SiteSetting.s3_endpoint.presence
       )
 
@@ -141,8 +149,8 @@ module Admin
         details = {
           storage_provider: "s3",
           bucket: bucket_name,
-          region: SiteSetting.s3_region || 'us-east-1',
-          endpoint: SiteSetting.s3_endpoint.presence || 'AWS Standard',
+          region: SiteSetting.s3_region || "us-east-1",
+          endpoint: SiteSetting.s3_endpoint.presence || "AWS Standard",
           bucket_accessible: true
         }
 

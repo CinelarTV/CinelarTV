@@ -1,0 +1,66 @@
+#
+# User Preferences Configuration
+# This file defines all configurable user preferences
+# Each preference is scoped to a profile and can be accessed per-profile
+#
+# Format:
+# <preference_key>:
+#   client: true/false # If the setting is exposed to the client
+#   default: <default_value>
+#   type: <type> # boolean, string, integer, enum, list
+#   profile_access: "all" | "owner_only" # Who can access this setting
+#   readonly: true/false
+#   allowed_values: <allowed_values> # For enum type
+#   min: <min_value>
+#   max: <max_value>
+#   regex: <regex> # For string validation
+#   maxlength: <maxlength>
+#
+---
+notifications:
+  email_notifications:
+    client: true
+    default: true
+    type: "boolean"
+    profile_access: "all"
+
+  notification_email:
+    client: true
+    default: ""
+    type: "string"
+    profile_access: "all"
+    maxlength: 254
+
+  notify_new_content:
+    client: true
+    default: true
+    type: "boolean"
+    profile_access: "all"
+
+  notify_subscription_updates:
+    client: true
+    default: true
+    type: "boolean"
+    profile_access: "all"
+
+  notify_recommendations:
+    client: true
+    default: true
+    type: "boolean"
+    profile_access: "all"
+
+account:
+  change_email:
+    client: true
+    type: "action"
+    profile_access: "owner_only"
+
+  change_password:
+    client: true
+    type: "action"
+    profile_access: "owner_only"
+
+  linked_accounts:
+    client: true
+    type: "action"
+    profile_access: "owner_only"

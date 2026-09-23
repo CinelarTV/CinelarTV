@@ -21,6 +21,14 @@ let AccountRoute = {
             }
         },
         {
+            name: 'account.preferences',
+            path: 'preferences',
+            component: () => import(/* webpackChunkName: "account" */ '../views/account/preferences.vue'),
+            meta: {
+                requireAuth: true
+            }
+        },
+        {
             name: 'account.catchall',
             path: ':pathMatch(.*)*',
             component: () => import(/* webpackChunkName: "account" */ '../views/account/not-found.vue'),

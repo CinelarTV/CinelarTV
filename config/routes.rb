@@ -56,6 +56,15 @@ Rails.application.routes.draw do
 
   get "/user/default-avatars", to: "profiles#default_avatars"
 
+  # User Preferences
+  get  "/user/preferences", to: "user_preferences#index"
+  put  "/user/preferences", to: "user_preferences#update"
+
+  # User Account Settings (OWNER only)
+  put  "/user/update-email", to: "user_account#update_email"
+  put  "/user/update-password", to: "user_account#update_password"
+  get  "/user/linked-accounts", to: "user_account#linked_accounts"
+
   get "/search", to: "contents#search"
 
   post "/contents/:id/like", to: "likes#like"
@@ -68,7 +77,7 @@ Rails.application.routes.draw do
 
 
   get "/contents/:id", to: "contents#show"
-  get "/c/:id", to: redirect("/contents/%<id>s"), as: :content_short_url
+  get "/c/:id", to: redirect("/contents/%{id}"), as: :content_short_url
 
   # Player routes
   get "/watch/:id", to: "player#watch"

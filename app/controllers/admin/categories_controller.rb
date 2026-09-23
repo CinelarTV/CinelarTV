@@ -2,7 +2,7 @@
 
 module Admin
   class CategoriesController < Admin::BaseController
-    before_action :set_category, only: [:show, :update, :destroy]
+    before_action :set_category, only: %i[show update destroy]
 
     def index
       categories = Category.all.order(:name)
@@ -23,6 +23,7 @@ module Admin
       @category = Category.new(category_params)
 
       if @category.save
+        audit_logger.log_category_create(@category)
         respond_to do |format|
           format.html { redirect_to admin_categories_path, notice: "Category created successfully" }
           format.json { render json: { data: @category, message: "Category created successfully" }, status: :created }
@@ -37,6 +38,7 @@ module Admin
 
     def update
       if @category.update(category_params)
+        audit_logger.log_category_update(@category)
         respond_to do |format|
           format.html { redirect_to admin_categories_path, notice: "Category updated successfully" }
           format.json { render json: { data: @category, message: "Category updated successfully" } }
@@ -51,6 +53,7 @@ module Admin
 
     def destroy
       if @category.destroy
+        audit_logger.log_category_delete(@category)
         respond_to do |format|
           format.html { redirect_to admin_categories_path, notice: "Category deleted successfully" }
           format.json { render json: { message: "Category deleted successfully" } }
@@ -64,7 +67,10 @@ module Admin
     end
 
     def populate_from_tmdb
-      return render json: { error: "TMDB API Key is not set" }, status: :unprocessable_entity if SiteSetting.tmdb_api_key.blank?
+      if SiteSetting.tmdb_api_key.blank?
+        return render json: { error: "TMDB API Key is not set" },
+                      status: :unprocessable_entity
+      end
 
       configure_tmdb_api
       created_categories = []
@@ -115,13 +121,15 @@ module Admin
       end
 
       respond_to do |format|
-        format.json { render json: {
-          message: "Categories populated from TMDB successfully",
-          created: created_categories.count,
-          skipped: skipped_categories.count,
-          created_categories: created_categories,
-          skipped_categories: skipped_categories
-        } }
+        format.json do
+          render json: {
+            message: "Categories populated from TMDB successfully",
+            created: created_categories.count,
+            skipped: skipped_categories.count,
+            created_categories: created_categories,
+            skipped_categories: skipped_categories
+          }
+        end
       end
     rescue Tmdb::Error => e
       render json: { error: "TMDB API error: #{e.message}" }, status: :unprocessable_entity
@@ -130,6 +138,10 @@ module Admin
     end
 
     private
+
+    def audit_logger
+      @audit_logger ||= StaffActionLogger.new(current_user)
+    end
 
     def set_category
       @category = Category.find(params[:id])

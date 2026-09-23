@@ -44,22 +44,23 @@ export class PluginHost {
   constructor(private readonly registry: PluginRegistryEntry[]) {}
 
   async initialize(): Promise<void> {
-    for (const entry of this.registry) {
+    const enabled = this.registry.filter(entry => {
       if (entry.status && entry.status !== "enabled") {
         console.warn(`[PluginHost] ${entry.id} is ${entry.status}: ${entry.reason || "unknown reason"}`);
-        continue;
+        return false;
       }
+      return true;
+    });
 
-      try {
+    await Promise.allSettled(
+      enabled.map(async (entry) => {
         // Plugin URLs are server-generated, fingerprinted assets. Vite must not
         // transform this dynamic import back into a source import.
         const module = await import(/* @vite-ignore */ entry.entry);
         await this.initializeDefinition(entry.id, module.default);
         console.info(`[PluginHost] initialized ${entry.id}@${entry.version}`);
-      } catch (error) {
-        console.error(`[PluginHost] failed to initialize ${entry.id}`, error);
-      }
-    }
+      })
+    );
   }
 
   async initializeDefinition(expectedId: string, definition: PluginDefinition | { init?: () => unknown }): Promise<void> {

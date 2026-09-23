@@ -321,14 +321,12 @@
 
                             <div v-if="isScheduled" class="mt-3 space-y-2">
                                 <div class="flex gap-2">
-                                    <input type="date"
+                                    <CInput type="date"
                                         v-model="scheduleDate"
                                         :min="todayStr"
-                                        class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]" />
-                                    <select v-model="scheduleHour"
-                                        class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 [color-scheme:dark]">
-                                        <option v-for="h in hours" :key="h" :value="h">{{ h }}:00</option>
-                                    </select>
+                                        class="flex-1" />
+                                    <CSelect v-model="scheduleHour"
+                                        :options="hours.map(h => ({ label: h + ':00', value: h }))" />
                                 </div>
                                 <p class="text-[10px] text-blue-300/70">
                                     Se publicará el {{ formattedScheduleDate }}
@@ -489,6 +487,8 @@ import draggable from 'vuedraggable';
 import { ajax } from '../../../lib/Ajax';
 import CVideoableManager from "@/components/CVideoableManager";
 import CTrailerManagerModal from "../../../components/modals/trailer-manager.modal";
+import CInput from '@/components/forms/c-input.vue';
+import CSelect from '@/components/forms/c-select.vue';
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 

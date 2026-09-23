@@ -571,6 +571,7 @@ DEPENDENCIES
   carrierwave (~> 3.0)
   carrierwave-aws (~> 1.6)
   carrierwave-bombshelter (~> 0.2.2)
+  concurrent-ruby (~> 1.2)
   connection_pool (~> 2.4)
   countries
   csv

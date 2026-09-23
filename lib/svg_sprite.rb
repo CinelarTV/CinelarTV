@@ -4,7 +4,7 @@ module SvgSprite
   # All icons that are always included in the sprite.
   # Names use the project convention (camelCase or kebab-case as used in templates).
   SVG_ICONS = Set.new(%w[
-    activity award airplay arrowRightLeft arrowRight arrowLeft box check
+    activity antenna award airplay arrowRightLeft arrowRight arrowLeft box check
     copy checkCircle chevronDown chevronLeft chevronRight
     chevronUp clapperboard creditCard gripVertical helpCircle info
     calendar clock lock
@@ -20,7 +20,7 @@ module SvgSprite
     list list-ordered quote code minus link
     undo redo braces monitor smartphone
     mail-check key-round unlock users closed-caption
-    chart-pie toy-brick image-off key
+    chart-pie toy-brick image-off key gavel
   ]).freeze
 
   # Player icons need duplicate vjs-icon-* symbols for Video.js compatibility.
@@ -36,6 +36,7 @@ module SvgSprite
     icons.merge(additional_icons)
     icons.merge(plugin_icons)
     icons.merge(custom_icons)
+    icons.merge(custom_registry_icons)
     icons.delete_if { |i| i.blank? || i.include?("/") }
     icons.map!(&:strip)
     icons.to_a.sort
@@ -91,6 +92,8 @@ module SvgSprite
       lucide_symbol(icon_name)
     when :plugin_svg
       plugin_svg_symbol(icon_name)
+    when :custom_registry
+      custom_registry_symbol(icon_name)
     else
       nil
     end
@@ -100,6 +103,11 @@ module SvgSprite
     # Check if it's a custom icon from a plugin SVG file
     custom_icons.each do |custom_name|
       return :plugin_svg if custom_name == name
+    end
+
+    # Check if it's a custom icon registered via register_custom_icon
+    custom_registry_icons.each do |custom_name|
+      return :custom_registry if custom_name == name
     end
 
     # Otherwise try Lucide
@@ -187,6 +195,18 @@ module SvgSprite
     PluginRegistry.svg_icons || []
   end
 
+  def self.custom_registry_icons
+    (PluginRegistry.custom_svg_icons || []).map { |entry| entry[:name] }
+  end
+
+  def self.custom_registry_symbol(icon_name)
+    entry = (PluginRegistry.custom_svg_icons || []).find { |e| e[:name] == icon_name }
+    return nil unless entry
+
+    id = to_kebab_case(icon_name)
+    "<symbol id=\"#{id}\" viewBox=\"0 0 24 24\">#{entry[:svg]}</symbol>"
+  end
+
   def self.custom_icons
     icons = []
     Dir.glob(Rails.root.join("plugins", "*", "svg-icons", "*.svg")).each do |path|
@@ -205,6 +225,8 @@ module SvgSprite
     parts << additional_icons.sort.join(",")
     parts << plugin_icons.sort.join(",")
     parts << custom_icons.sort.join(",")
+    parts << custom_registry_icons.sort.join(",")
+    parts << custom_registry_fingerprint
     parts << plugin_svg_mtime
     Digest::SHA1.hexdigest(parts.join("|"))
   end
@@ -213,6 +235,11 @@ module SvgSprite
     files = Dir.glob(Rails.root.join("plugins", "*", "svg-icons", "*.svg")).sort
     mtimes = files.map { |f| File.mtime(f).to_i }
     mtimes.join(",")
+  end
+
+  def self.custom_registry_fingerprint
+    entries = PluginRegistry.custom_svg_icons || []
+    entries.sort_by { |e| e[:name] }.map { |e| "#{e[:name]}:#{Digest::SHA1.hexdigest(e[:svg])}" }.join("|")
   end
 
   # ─── Naming helpers ──────────────────────────────────────────────────────────

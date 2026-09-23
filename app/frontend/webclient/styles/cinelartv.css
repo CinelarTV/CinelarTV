@@ -20,6 +20,7 @@
 @import "./common/components/offline-indicator.css";
 @import "./components/videoable-manager.css";
 @import "./components/account/billing.css";
+@import "./common/account/preferences.css";
 @import "./components/image-upload.css";
 @import "./components/video-upload.css";
 @import "./components/segment-manager.css";

@@ -80,6 +80,7 @@ module PluginRegistry
       define_filtered_register :player_controls
       define_filtered_register :search_filters
       define_filtered_register :svg_icons
+      define_filtered_register :custom_svg_icons
     end
   end
 

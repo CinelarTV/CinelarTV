@@ -95,7 +95,7 @@ export default definePlugin({
 
     api.admin.addTab({
       label: "Ads",
-      icon: "rectangle-ad",
+      icon: "ad",
       route: "admin.ads.house-ads",
     });
   },

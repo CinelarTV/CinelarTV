@@ -120,6 +120,10 @@ module Plugin
       PluginRegistry.register_svg_icon(icon.strip, self)
     end
 
+    def register_custom_icon(name, svg)
+      PluginRegistry.register_custom_svg_icon({ name: name.strip, svg: svg }, self)
+    end
+
     def register_serializer_extension(serializer_class, attribute_name, if: nil, &block)
       plugin_name = self.name
       Plugin::SerializerExtensionRegistry.register(

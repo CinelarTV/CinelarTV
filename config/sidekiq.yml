@@ -1,5 +1,6 @@
 :queues:
   - [ video_transcoding, 7 ]
   - [ subscriptions, 5 ]
+  - [ audit_log, 4 ]
   - [ default, 3 ]
   - [ xmltv, 2 ]

@@ -5,7 +5,7 @@ class Season < ApplicationRecord
   belongs_to :content, touch: true
   has_many :episodes, dependent: :destroy
 
-  after_commit :touch_content, on: %i[create update destroy]
+  after_commit :touch_content, on: %i[create update]
 
   validates :title, presence: true
   validates :tmdb_id, uniqueness: true, allow_nil: true

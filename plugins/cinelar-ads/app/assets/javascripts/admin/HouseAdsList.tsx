@@ -67,7 +67,7 @@ export default defineComponent({
             <div>
               <p class="admin-house-ads__eyebrow">Admin Console</p>
               <h1 class="admin-house-ads__title">
-                <CIcon icon="rectangle-ad" size={28} /> House Ads
+                <CIcon icon="ad" size={28} /> House Ads
               </h1>
               <p class="admin-house-ads__subtitle">
                 Create and manage your own ad creatives

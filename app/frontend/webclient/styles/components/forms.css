@@ -159,3 +159,236 @@
         background: rgba(var(--c-tertiary-color-rgb), 0.06);
     }
 }
+
+/* ── CSelect (Headless UI Listbox) ───────────────────────── */
+.c-select {
+    position: relative;
+    width: 100%;
+}
+
+.c-select__trigger {
+    @apply relative w-full flex items-center justify-between;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    text-align: left;
+    border-radius: var(--c-radius-md);
+    background: var(--c-surface-1);
+    border: 1px solid var(--c-border-default);
+    color: var(--c-text-primary);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+
+    &:hover {
+        border-color: var(--c-border-strong);
+        background: var(--c-surface-2);
+    }
+
+    &:focus {
+        border-color: var(--c-tertiary-color);
+        box-shadow: 0 0 0 3px rgba(var(--c-tertiary-color-rgb), 0.12);
+    }
+}
+
+.c-select__label {
+    display: block;
+    truncate: true;
+    color: var(--c-text-primary);
+}
+
+.c-select__placeholder {
+    display: block;
+    truncate: true;
+    color: var(--c-text-faint);
+}
+
+.c-select__chevron {
+    @apply pointer-events-none flex items-center;
+    padding-right: 2px;
+}
+
+.c-select__chevron-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--c-text-muted);
+}
+
+.c-select__dropdown {
+    position: absolute;
+    z-index: 20;
+    margin-top: 4px;
+    width: 100%;
+    max-height: 240px;
+    overflow: auto;
+    border-radius: var(--c-radius-md);
+    background: var(--c-surface-elevated);
+    border: 1px solid var(--c-border-default);
+    box-shadow: var(--c-shadow-lg);
+    padding: 4px 0;
+    outline: none;
+}
+
+.c-select__option {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: var(--c-text-secondary);
+    transition: background 0.1s ease, color 0.1s ease;
+    list-style: none;
+}
+
+.c-select__option--active {
+    background: var(--c-surface-3);
+    color: var(--c-text-primary);
+}
+
+.c-select__option-content {
+    @apply flex items-center justify-between;
+}
+
+.c-select__option-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+.c-select__option-text--selected {
+    font-weight: 500;
+    color: var(--c-text-primary);
+}
+
+.c-select__option-check {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--c-tertiary-color);
+}
+
+.c-select__transition-leave {
+    transition: opacity 100ms ease-in;
+}
+
+.c-select__transition-leave-from {
+    opacity: 1;
+}
+
+.c-select__transition-leave-to {
+    opacity: 0;
+}
+
+.c-select__error {
+    font-size: 0.75rem;
+    color: var(--c-danger);
+    margin-top: 6px;
+}
+
+/* ── CImageUpload TSX (Uppy wrapper) ─────────────────────── */
+.c-image-upload-tsx {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--c-surface-1);
+    border: 1px solid var(--c-border-default);
+    border-radius: var(--c-radius-md);
+}
+
+.c-image-upload-tsx__label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--c-text-primary);
+    margin-bottom: 4px;
+    align-self: flex-start;
+}
+
+.c-image-upload-tsx__container {
+    width: 100%;
+}
+
+/* Uppy dashboard dark theme overrides */
+.c-image-upload-tsx .uppy-Dashboard {
+    background: var(--c-surface-0) !important;
+    border: 1px dashed var(--c-border-strong) !important;
+    border-radius: var(--c-radius-md) !important;
+    color: var(--c-text-secondary) !important;
+}
+
+.c-image-upload-tsx .uppy-Dashboard-AddFiles {
+    color: var(--c-text-secondary) !important;
+}
+
+.c-image-upload-tsx .uppy-Dashboard-AddFiles-title {
+    color: var(--c-text-primary) !important;
+}
+
+.c-image-upload-tsx .uppy-Dashboard-browse {
+    color: var(--c-tertiary-color) !important;
+}
+
+.c-image-upload-tsx .uppy-Dashboard-Note {
+    color: var(--c-text-muted) !important;
+}
+
+.c-image-upload-tsx .uppy-StatusBar {
+    background: var(--c-surface-2) !important;
+    color: var(--c-text-primary) !important;
+}
+
+.c-image-upload-tsx .uppy-StatusBar-progress {
+    background: var(--c-tertiary-color) !important;
+}
+
+.c-image-upload-tsx .uppy-StatusBar-actionBtn--retry {
+    background: var(--c-tertiary-color) !important;
+    color: #fff !important;
+}
+
+.c-image-upload-tsx .uppy-FileInput-btn {
+    background: var(--c-tertiary-color) !important;
+    color: #fff !important;
+    border-radius: var(--c-radius-full) !important;
+}
+
+.c-image-upload-tsx .uppy-Dashboard-Item-remove {
+    color: var(--c-danger) !important;
+}
+
+.c-image-upload-tsx__status {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.c-image-upload-tsx__status--uploading {
+    color: var(--c-tertiary-color);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.c-image-upload-tsx__status--error {
+    color: var(--c-danger);
+}
+
+.c-image-upload-tsx__preview {
+    @apply flex flex-col items-center;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.c-image-upload-tsx__preview-label {
+    font-size: 0.8rem;
+    color: var(--c-text-muted);
+    margin-bottom: 6px;
+}
+
+.c-image-upload-tsx__preview-img {
+    max-height: 12rem;
+    object-fit: contain;
+    border-radius: var(--c-radius-md);
+    border: 1px solid var(--c-border-default);
+    max-width: 100%;
+}

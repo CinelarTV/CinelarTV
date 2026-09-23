@@ -27,6 +27,7 @@ module Admin
 
     def update
       if @video_source.update(video_source_params)
+        StaffActionLogger.new(current_user).log_video_source_update(@video_source, request: request)
         render json: @video_source
       else
         render json: { errors: @video_source.errors.full_messages }, status: :unprocessable_entity
@@ -34,6 +35,7 @@ module Admin
     end
 
     def destroy
+      StaffActionLogger.new(current_user).log_video_source_delete(@video_source, request: request)
       @video_source.destroy
       head :no_content
     end
@@ -105,6 +107,7 @@ module Admin
 
       if @video_source.save
         VideoTranscodingJob.perform_async(@video_source.id)
+        StaffActionLogger.new(current_user).log_video_source_create(@video_source, request: request)
         render json: @video_source, status: :created
       else
         render json: { errors: @video_source.errors.full_messages }, status: :unprocessable_entity
@@ -114,6 +117,7 @@ module Admin
     def handle_url_creation
       @video_source = @videoable.video_sources.new(video_source_params.merge(status: 'completed'))
       if @video_source.save
+        StaffActionLogger.new(current_user).log_video_source_create(@video_source, request: request)
         render json: @video_source, status: :created
       else
         render json: { errors: @video_source.errors.full_messages }, status: :unprocessable_entity
