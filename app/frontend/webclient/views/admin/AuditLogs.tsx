@@ -8,6 +8,7 @@ import CSelect from "@/components/forms/c-select.vue";
 import CBadge from "@/components/CBadge";
 import CSkeleton from "@/components/CSkeleton";
 import CAlert from "@/components/CAlert";
+import CModal from "@/components/CModal.vue";
 
 interface AuditLogUser {
   id: number;
@@ -92,7 +93,7 @@ export default defineComponent({
     const logs = ref<AuditLog[]>([]);
     const meta = ref<AuditLogMeta | null>(null);
     const loading = ref(false);
-    const expandedId = ref<number | null>(null);
+    const selectedLog = ref<AuditLog | null>(null);
     const actionTypes = ref<Record<string, string>>({});
     const currentPage = ref(1);
 
@@ -181,12 +182,12 @@ export default defineComponent({
 
     const goToPage = (page: number) => {
       currentPage.value = page;
-      expandedId.value = null;
+      selectedLog.value = null;
       fetchLogs();
     };
 
-    const toggleDetail = (id: number) => {
-      expandedId.value = expandedId.value === id ? null : id;
+    const toggleDetail = (log: AuditLog) => {
+      selectedLog.value = log;
     };
 
     onMounted(() => {
@@ -315,8 +316,8 @@ export default defineComponent({
                   {logs.value.map(log => (
                     <tr
                       key={log.id}
-                      class={`audit-logs__row ${expandedId.value === log.id ? "audit-logs__row--expanded" : ""}`}
-                      onClick={() => toggleDetail(log.id)}
+                      class="audit-logs__row"
+                      onClick={() => toggleDetail(log)}
                     >
                       <td class="audit-logs__td">
                         {log.user ? (
@@ -350,65 +351,6 @@ export default defineComponent({
                 </tbody>
               </table>
             </section>
-
-            {logs.value.map(log => (
-              expandedId.value === log.id ? (
-                <section key={`detail-${log.id}`} class="audit-logs__card audit-logs__detail">
-                  <div class="audit-logs__detail-grid">
-                    {log.target_user && (
-                      <div class="audit-logs__detail-item">
-                        <span class="audit-logs__detail-label">Target User</span>
-                        <span class="audit-logs__detail-value">
-                          {log.target_user.username} ({log.target_user.email})
-                        </span>
-                      </div>
-                    )}
-                    {log.previous_value && (
-                      <div class="audit-logs__detail-item">
-                        <span class="audit-logs__detail-label">Previous Value</span>
-                        <span class="audit-logs__detail-value audit-logs__detail-value--code">
-                          {log.previous_value}
-                        </span>
-                      </div>
-                    )}
-                    {log.new_value && (
-                      <div class="audit-logs__detail-item">
-                        <span class="audit-logs__detail-label">New Value</span>
-                        <span class="audit-logs__detail-value audit-logs__detail-value--code">
-                          {log.new_value}
-                        </span>
-                      </div>
-                    )}
-                    {log.ip_address && (
-                      <div class="audit-logs__detail-item">
-                        <span class="audit-logs__detail-label">IP Address</span>
-                        <span class="audit-logs__detail-value">{log.ip_address}</span>
-                      </div>
-                    )}
-                    {log.auditable_type && (
-                      <div class="audit-logs__detail-item">
-                        <span class="audit-logs__detail-label">Resource</span>
-                        <span class="audit-logs__detail-value">
-                          {log.auditable_type} #{log.auditable_id}
-                        </span>
-                      </div>
-                    )}
-                    {log.result && (
-                      <div class="audit-logs__detail-item">
-                        <span class="audit-logs__detail-label">Result</span>
-                        <span class="audit-logs__detail-value">{log.result}</span>
-                      </div>
-                    )}
-                    {log.details && (
-                      <div class="audit-logs__detail-item audit-logs__detail-item--full">
-                        <span class="audit-logs__detail-label">Details</span>
-                        <pre class="audit-logs__detail-pre">{formatDetails(log.details)}</pre>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              ) : null
-            ))}
           </>
         )}
 
@@ -463,6 +405,108 @@ export default defineComponent({
             </span>
           </div>
         )}
+
+        <CModal
+          modelValue={selectedLog.value !== null}
+          onUpdate:modelValue={(v: boolean) => { if (!v) selectedLog.value = null; }}
+          title="Log Detail"
+          size="lg"
+        >
+          {selectedLog.value && (
+            <div class="audit-logs__detail-grid">
+              {selectedLog.value.user && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">User</span>
+                  <span class="audit-logs__detail-value">
+                    {selectedLog.value.user.username} ({selectedLog.value.user.email})
+                  </span>
+                </div>
+              )}
+              <div class="audit-logs__detail-item">
+                <span class="audit-logs__detail-label">Action</span>
+                <span class="audit-logs__detail-value">{selectedLog.value.action_label}</span>
+              </div>
+              <div class="audit-logs__detail-item">
+                <span class="audit-logs__detail-label">When</span>
+                <span class="audit-logs__detail-value">{selectedLog.value.created_at}</span>
+              </div>
+              {selectedLog.value.source && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Source</span>
+                  <CBadge variant="muted">{selectedLog.value.source}</CBadge>
+                </div>
+              )}
+              {selectedLog.value.context && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Context</span>
+                  <span class="audit-logs__detail-value">{selectedLog.value.context}</span>
+                </div>
+              )}
+              {selectedLog.value.ip_address && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">IP Address</span>
+                  <span class="audit-logs__detail-value">{selectedLog.value.ip_address}</span>
+                </div>
+              )}
+              {selectedLog.value.target_user && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Target User</span>
+                  <span class="audit-logs__detail-value">
+                    {selectedLog.value.target_user.username} ({selectedLog.value.target_user.email})
+                  </span>
+                </div>
+              )}
+              {selectedLog.value.subject && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Subject</span>
+                  <span class="audit-logs__detail-value">{selectedLog.value.subject}</span>
+                </div>
+              )}
+              {selectedLog.value.description && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Description</span>
+                  <span class="audit-logs__detail-value">{selectedLog.value.description}</span>
+                </div>
+              )}
+              {selectedLog.value.auditable_type && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Resource</span>
+                  <span class="audit-logs__detail-value">
+                    {selectedLog.value.auditable_type} #{selectedLog.value.auditable_id}
+                  </span>
+                </div>
+              )}
+              {selectedLog.value.result && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Result</span>
+                  <span class="audit-logs__detail-value">{selectedLog.value.result}</span>
+                </div>
+              )}
+              {selectedLog.value.previous_value && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">Previous Value</span>
+                  <span class="audit-logs__detail-value audit-logs__detail-value--code">
+                    {selectedLog.value.previous_value}
+                  </span>
+                </div>
+              )}
+              {selectedLog.value.new_value && (
+                <div class="audit-logs__detail-item">
+                  <span class="audit-logs__detail-label">New Value</span>
+                  <span class="audit-logs__detail-value audit-logs__detail-value--code">
+                    {selectedLog.value.new_value}
+                  </span>
+                </div>
+              )}
+              {selectedLog.value.details && (
+                <div class="audit-logs__detail-item audit-logs__detail-item--full">
+                  <span class="audit-logs__detail-label">Details</span>
+                  <pre class="audit-logs__detail-pre">{formatDetails(selectedLog.value.details)}</pre>
+                </div>
+              )}
+            </div>
+          )}
+        </CModal>
       </div>
     );
   },
