@@ -108,6 +108,15 @@
   background: color-mix(in srgb, var(--c-primary-color, #111) 82%, transparent 18%);
 }
 
+.content-meta__badge--merchandising {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--c-primary-300);
+  border: 1px solid color-mix(in srgb, var(--c-primary-300) 60%, transparent 40%);
+  background: color-mix(in srgb, var(--c-primary-color, #111) 82%, transparent 18%);
+}
+
 .content-meta__rating {
   display: inline-flex;
   align-items: center;

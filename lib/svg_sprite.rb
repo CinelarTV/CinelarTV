@@ -26,12 +26,19 @@ module SvgSprite
   # Player icons need duplicate vjs-icon-* symbols for Video.js compatibility.
   PLAYER_ICONS = Set.new(%w[play pause maximize minimize volume2 volumeX]).freeze
 
+  # Core custom SVG icons — inline definitions that don't come from Lucide.
+  # Add new entries here with the icon name as key and the inner SVG content as value.
+  CUSTOM_SVG_SYMBOLS = {
+    "bullhorn" => '<path d="M18 8a3 3 0 0 1 0 6" /><path d="M10 8v11a1 1 0 0 1 -1 1h-1a1 1 0 0 1 -1 -1v-5" /><path d="M12 8l4.524 -3.77a.9 .9 0 0 1 1.476 .692v12.156a.9 .9 0 0 1 -1.476 .692l-4.524 -3.77h-8a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h8" />',
+  }.freeze
+
   CACHE_KEY_PREFIX = "svg_sprite/v2"
 
   # ─── Public API ──────────────────────────────────────────────────────────────
 
   def self.all_icons
     icons = Set.new(SVG_ICONS)
+    icons.merge(core_custom_icons)
     icons.merge(settings_icons)
     icons.merge(additional_icons)
     icons.merge(plugin_icons)
@@ -88,6 +95,8 @@ module SvgSprite
     source = resolve_source(icon_name)
 
     case source
+    when :core_custom
+      core_custom_symbol(icon_name)
     when :lucide
       lucide_symbol(icon_name)
     when :plugin_svg
@@ -100,6 +109,9 @@ module SvgSprite
   end
 
   def self.resolve_source(name)
+    # Check if it's a core custom icon (inline SVG defined in CUSTOM_SVG_SYMBOLS)
+    return :core_custom if CUSTOM_SVG_SYMBOLS.key?(name)
+
     # Check if it's a custom icon from a plugin SVG file
     custom_icons.each do |custom_name|
       return :plugin_svg if custom_name == name
@@ -140,6 +152,20 @@ module SvgSprite
     end
 
     symbol
+  end
+
+  # ─── Core custom SVG icons ───────────────────────────────────────────────────
+
+  def self.core_custom_icons
+    CUSTOM_SVG_SYMBOLS.keys
+  end
+
+  def self.core_custom_symbol(icon_name)
+    inner = CUSTOM_SVG_SYMBOLS[icon_name]
+    return nil unless inner
+
+    id = to_kebab_case(icon_name)
+    "<symbol id=\"#{id}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\">#{inner}</symbol>"
   end
 
   # ─── Custom plugin SVG icons ─────────────────────────────────────────────────
@@ -221,6 +247,7 @@ module SvgSprite
   def self.sources_fingerprint
     parts = []
     parts << SVG_ICONS.sort.join(",")
+    parts << core_custom_icons.sort.join(",")
     parts << settings_icons.sort.join(",")
     parts << additional_icons.sort.join(",")
     parts << plugin_icons.sort.join(",")

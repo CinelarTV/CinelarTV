@@ -336,6 +336,87 @@
                     </div>
                 </div>
 
+                <!-- Merchandising Badge -->
+                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
+                    <h2 class="text-lg font-semibold text-white mb-4">
+                        Merchandising Badge
+                    </h2>
+                    <p class="text-sm text-white/50 mb-4">
+                        Badge inline que se muestra en el hero y detalle del contenido.
+                    </p>
+
+                    <div class="space-y-4">
+                        <c-select
+                            :options="badgeTypeOptions"
+                            v-model="badge.badge_type"
+                            label="Tipo"
+                        />
+
+                        <c-input
+                            v-model="badge.label"
+                            placeholder="Texto del badge"
+                            label="Label"
+                        />
+
+                        <div>
+                            <label class="block text-sm font-medium text-white/80 mb-1">
+                                Icono
+                            </label>
+                            <CIconPicker v-model="badge.icon" placeholder="Seleccionar icono…" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-white/80 mb-1">
+                                Color
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input
+                                    type="color"
+                                    v-model="badge.color"
+                                    class="w-10 h-10 rounded-lg border border-white/20 bg-transparent cursor-pointer"
+                                />
+                                <c-input
+                                    v-model="badge.color"
+                                    placeholder="#ffffff"
+                                    class="flex-1"
+                                />
+                            </div>
+                        </div>
+
+                        <div v-if="showBadgeExpiry">
+                            <c-input
+                                type="datetime-local"
+                                v-model="badge.expires_at"
+                                label="Expira el"
+                            />
+                        </div>
+
+                        <div class="flex gap-2 pt-2">
+                            <c-button @click="saveBadge" :loading="loadingButton" class="flex-1 justify-center">
+                                {{ hasBadge ? 'Actualizar' : 'Crear' }} badge
+                            </c-button>
+                            <c-button
+                                v-if="hasBadge"
+                                @click="deleteBadge"
+                                class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
+                            >
+                                Eliminar
+                            </c-button>
+                        </div>
+
+                        <div v-if="hasBadge" class="rounded-lg bg-white/5 p-3 ring-1 ring-white/10">
+                            <p class="text-xs text-white/40 mb-2">Preview:</p>
+                            <span
+                                class="inline-flex items-center gap-1.5 text-sm"
+                                :style="{ color: badge.color || 'rgba(255,255,255,0.8)' }"
+                            >
+                                <c-icon v-if="badge.icon" :icon="badge.icon" :size="14" />
+                                {{ badge.label || 'Badge text' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Actions -->
                 <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10 space-y-3">
                     <h2 class="text-lg font-semibold text-white mb-4">
@@ -489,6 +570,7 @@ import CVideoableManager from "@/components/CVideoableManager";
 import CTrailerManagerModal from "../../../components/modals/trailer-manager.modal";
 import CInput from '@/components/forms/c-input.vue';
 import CSelect from '@/components/forms/c-select.vue';
+import CIconPicker from '@/components/forms/CIconPicker';
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -535,6 +617,103 @@ const ratingsLoading = ref(false);
 const descriptors = ref([]);
 const descriptorsLoading = ref(false);
 
+// Badge state
+const badge = ref({
+    badge_type: 'programming',
+    label: '',
+    icon: '',
+    color: '',
+    expires_at: null,
+});
+const hasBadge = computed(() => {
+    return content.value.content_badges?.length > 0;
+});
+const existingBadge = computed(() => {
+    return content.value.content_badges?.[0] || null;
+});
+const badgeTypeOptions = ref([
+    { value: 'programming', label: 'Programación / Estado' },
+    { value: 'prestige', label: 'Prestigio / Premios' },
+    { value: 'availability', label: 'Disponibilidad / Urgencia' },
+]);
+const showBadgeExpiry = computed(() => badge.value.badge_type === 'availability');
+
+const initBadgeFromContent = () => {
+    const b = existingBadge.value;
+    if (b) {
+        badge.value = {
+            badge_type: b.badge_type || 'programming',
+            label: b.label || '',
+            icon: b.icon || '',
+            color: b.color || '',
+            expires_at: b.expires_at ? format(parseISO(b.expires_at), "yyyy-MM-dd'T'HH:mm") : null,
+        };
+    }
+};
+
+const saveBadge = async () => {
+    if (!badge.value.label.trim()) {
+        toast.error('El label del badge es obligatorio');
+        return;
+    }
+
+    loadingButton.value = true;
+    try {
+        const badgeData = {
+            badge_type: badge.value.badge_type,
+            label: badge.value.label.trim(),
+            icon: badge.value.icon || null,
+            color: badge.value.color || null,
+            expires_at: badge.value.expires_at || null,
+            position: 0,
+            active: true,
+        };
+
+        if (existingBadge.value) {
+            badgeData.id = existingBadge.value.id;
+        }
+
+        const formData = new FormData();
+        formData.append('content[content_badges_attributes][][id]', badgeData.id || '');
+        formData.append('content[content_badges_attributes][][badge_type]', badgeData.badge_type);
+        formData.append('content[content_badges_attributes][][label]', badgeData.label);
+        formData.append('content[content_badges_attributes][][icon]', badgeData.icon || '');
+        formData.append('content[content_badges_attributes][][color]', badgeData.color || '');
+        formData.append('content[content_badges_attributes][][expires_at]', badgeData.expires_at || '');
+        formData.append('content[content_badges_attributes][][position]', badgeData.position);
+        formData.append('content[content_badges_attributes][][active]', 'true');
+
+        await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
+        toast.success('Badge guardado');
+        await fetchContent();
+    } catch (error) {
+        toast.error('Error al guardar el badge');
+    } finally {
+        loadingButton.value = false;
+    }
+};
+
+const deleteBadge = async () => {
+    if (!existingBadge.value) return;
+    if (!confirm('¿Eliminar el badge?')) return;
+
+    loadingButton.value = true;
+    try {
+        const formData = new FormData();
+        formData.append('content[content_badges_attributes][][id]', existingBadge.value.id);
+        formData.append('content[content_badges_attributes][][_destroy]', '1');
+
+        await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
+        badge.value = { badge_type: 'programming', label: '', icon: '', color: '', expires_at: null };
+        toast.success('Badge eliminado');
+        await fetchContent();
+    } catch (error) {
+        toast.error('Error al eliminar el badge');
+    } finally {
+        loadingButton.value = false;
+    }
+};
+
 const fetchContent = async () => {
     try {
         const response = await ajax.get(`/admin/content-manager/${contentId}.json`);
@@ -553,6 +732,9 @@ const fetchContent = async () => {
             scheduleDate.value = format(dt, 'yyyy-MM-dd');
             scheduleHour.value = format(dt, 'HH');
         }
+
+        // Initialize badge from content
+        initBadgeFromContent();
     } catch (error) {
         console.log(error);
         toast.error('Error al cargar el contenido');

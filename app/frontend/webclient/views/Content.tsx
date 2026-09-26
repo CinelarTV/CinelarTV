@@ -6,6 +6,18 @@ import SubscriptionPaywallModal from '../components/modals/subscription-paywall.
 import Content from '../app/models/Content';
 import CButton from '../components/forms/c-button';
 import CSpinner from '../components/c-spinner';
+
+const IconInline = ({ icon, size = 14 }: { icon: string; size?: number }) => {
+    const normalized = icon
+        .replace(/([a-z])([A-Z])/g, '$1-$2')
+        .replace(/([a-zA-Z])(\d)/g, '$1-$2')
+        .toLowerCase();
+    return (
+        <svg class="icon" width={size} height={size} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }}>
+            <use xlinkHref={`#${normalized}`} />
+        </svg>
+    );
+};
 import EpisodesList from "@/components/content/EpisodesList";
 import ResponsiveImage from '../components/ResponsiveImage';
 import PluginOutlet from '../components/PluginOutlet';
@@ -172,7 +184,18 @@ export default defineComponent({
                                     {(() => {
                                         const metaItems: any[] = [];
 
-                                        if (content?.isNew) {
+                                        if (content?.contentBadge) {
+                                            const b = content.contentBadge;
+                                            metaItems.push(
+                                                <span
+                                                    class="content-meta__text"
+                                                    style={b.color ? { color: b.color } : undefined}
+                                                >
+                                                    {b.icon && <IconInline icon={b.icon} size={14} />}
+                                                    {b.label}
+                                                </span>
+                                            );
+                                        } else if (content?.isNew) {
                                             metaItems.push(
                                                 <span class="content-meta__badge content-meta__badge--new">Nuevo</span>
                                             );

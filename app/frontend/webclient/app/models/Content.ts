@@ -145,6 +145,10 @@ class Content extends RestModel {
         return this.data.continue_watching ? new ContinueWatching(this.data.continue_watching) : null;
     }
 
+    get contentBadge(): { badge_type: string; label: string; icon?: string; color?: string } | null {
+        return (this.data as any).content_badge ?? null;
+    }
+
     get isMovie(): boolean {
         return this.contentType === ContentType.Movie;
     }

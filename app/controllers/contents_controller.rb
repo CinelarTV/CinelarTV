@@ -38,7 +38,7 @@ class ContentsController < ApplicationController
   end
 
   def show
-    @content = Content.includes(:categories, :trailer_video_sources, :image_variants,
+    @content = Content.includes(:categories, :trailer_video_sources, :image_variants, :content_badges,
                                 cast_members: :person,
                                 seasons: { episodes: :image_variants })
                       .find_by(id: params[:id])

@@ -14,6 +14,8 @@ class Content < ApplicationRecord
   has_many :reproductions, dependent: :destroy
   has_many :watch_sessions, dependent: :destroy
   has_one :content_analytic, dependent: :destroy
+  has_many :content_badges, -> { order(:position) }, dependent: :destroy
+  accepts_nested_attributes_for :content_badges, allow_destroy: true
 
   belongs_to :content_rating, optional: true
   has_many :content_content_descriptors, dependent: :destroy
@@ -125,6 +127,10 @@ class Content < ApplicationRecord
 
   def effective_content_rating
     content_rating || rating_from_first_episode
+  end
+
+  def active_badge
+    content_badges.active.ordered.first
   end
 
   def effective_descriptors(locale: I18n.locale)

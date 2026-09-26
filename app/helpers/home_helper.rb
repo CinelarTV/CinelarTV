@@ -516,6 +516,11 @@ module HomeHelper
     backdrop = content.image_variants_for("backdrop", only: allowed_variants)
     logo = content.image_variants_for("logo", only: allowed_variants)
 
+    badge = content.active_badge
+    badge_data = if badge
+      { badge_type: badge.badge_type, label: badge.label, icon: badge.icon, color: badge.color }
+    end
+
     {
       id: content.id,
       title: content.title,
@@ -526,6 +531,7 @@ module HomeHelper
       cover_resized: poster.dig("medium", "webp"),
       liked: liked_content_ids.include?(content.id),
       disliked: disliked_content_ids.include?(content.id),
+      content_badge: badge_data,
       images: {
         poster: poster,
         backdrop: backdrop,

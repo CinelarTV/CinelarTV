@@ -41,6 +41,7 @@ class ContentSerializer < ApplicationSerializer
   attribute :categories
   attribute :cast_members
   attribute :trailer_video_sources
+  attribute :content_badge
 
   def images
     {
@@ -158,6 +159,18 @@ class ContentSerializer < ApplicationSerializer
         url: vs.url,
       }
     end
+  end
+
+  def content_badge
+    badge = object.active_badge
+    return nil unless badge
+
+    {
+      badge_type: badge.badge_type,
+      label: badge.label,
+      icon: badge.icon,
+      color: badge.color
+    }
   end
 
   private

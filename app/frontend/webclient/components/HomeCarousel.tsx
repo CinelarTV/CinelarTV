@@ -22,6 +22,12 @@ interface BannerItem {
     rating?: string;
     genres?: string[];
     seasonCount?: number;
+    content_badge?: {
+        badge_type: string;
+        label: string;
+        icon?: string;
+        color?: string;
+    };
 }
 
 export default defineComponent({
@@ -276,10 +282,22 @@ export default defineComponent({
 
                                 <div class="home-carousel__info">
                                     <div class="home-carousel__eyebrow-row">
-                                        <span class="home-carousel__eyebrow">
-                                            <CIcon icon="star" class="home-carousel__eyebrow-icon" />
-                                            {$t('js.home_carousel.featured')}
-                                        </span>
+                                        {item.content_badge ? (
+                                            <span
+                                                class="home-carousel__eyebrow"
+                                                style={item.content_badge.color ? { color: item.content_badge.color } : undefined}
+                                            >
+                                                {item.content_badge.icon && (
+                                                    <CIcon icon={item.content_badge.icon} class="home-carousel__eyebrow-icon" />
+                                                )}
+                                                {item.content_badge.label}
+                                            </span>
+                                        ) : (
+                                            <span class="home-carousel__eyebrow">
+                                                <CIcon icon="star" class="home-carousel__eyebrow-icon" />
+                                                {$t('js.home_carousel.featured')}
+                                            </span>
+                                        )}
                                         <span class="home-carousel__counter">
                                             {$t('js.home_carousel.counter', { current: index + 1, total: props.items.length })}
                                         </span>

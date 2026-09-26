@@ -1,4 +1,4 @@
-\restrict fpmnxB5dxOQYHdjcOF6JEcgRgUSpauwxzPvM0K586zgCYwmutfNcTFK8ykCSm4M
+\restrict QJzrWgP5iYqrlJIEb45N4a3o9l6kteYyt8oRWWE6BNkUtrPUSq2DWwy6aa3HjR9
 
 -- Dumped from database version 15.18
 -- Dumped by pg_dump version 15.18
@@ -417,6 +417,25 @@ CREATE TABLE public.content_analytics (
     completion_rate double precision DEFAULT 0.0 NOT NULL,
     avg_watch_percentage double precision DEFAULT 0.0 NOT NULL,
     last_watched_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: content_badges; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.content_badges (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    content_id uuid NOT NULL,
+    badge_type character varying NOT NULL,
+    label character varying NOT NULL,
+    icon character varying,
+    color character varying,
+    expires_at timestamp(6) without time zone,
+    "position" integer DEFAULT 0,
+    active boolean DEFAULT true,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -1973,6 +1992,14 @@ ALTER TABLE ONLY public.content_analytics
 
 
 --
+-- Name: content_badges content_badges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.content_badges
+    ADD CONSTRAINT content_badges_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: content_categories content_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2611,6 +2638,27 @@ CREATE INDEX index_content_analytics_on_last_watched_at ON public.content_analyt
 --
 
 CREATE INDEX index_content_analytics_on_total_views ON public.content_analytics USING btree (total_views);
+
+
+--
+-- Name: index_content_badges_on_badge_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_content_badges_on_badge_type ON public.content_badges USING btree (badge_type);
+
+
+--
+-- Name: index_content_badges_on_content_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_content_badges_on_content_id ON public.content_badges USING btree (content_id);
+
+
+--
+-- Name: index_content_badges_on_content_id_and_position; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_content_badges_on_content_id_and_position ON public.content_badges USING btree (content_id, "position");
 
 
 --
@@ -4028,6 +4076,14 @@ ALTER TABLE ONLY public.live_events
 
 
 --
+-- Name: content_badges fk_rails_d7b0b07959; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.content_badges
+    ADD CONSTRAINT fk_rails_d7b0b07959 FOREIGN KEY (content_id) REFERENCES public.contents(id);
+
+
+--
 -- Name: preferences fk_rails_d84f5acc1e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4103,11 +4159,12 @@ ALTER TABLE ONLY public.payments
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fpmnxB5dxOQYHdjcOF6JEcgRgUSpauwxzPvM0K586zgCYwmutfNcTFK8ykCSm4M
+\unrestrict QJzrWgP5iYqrlJIEb45N4a3o9l6kteYyt8oRWWE6BNkUtrPUSq2DWwy6aa3HjR9
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260926142922'),
 ('20260922160710'),
 ('20260921120000'),
 ('20260920185504'),

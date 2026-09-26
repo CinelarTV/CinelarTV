@@ -160,6 +160,13 @@ module CinelarTV
         log("")
         percent(10)
         run("git fetch origin test-passed")
+        run("git reset --hard origin/test-passed")
+
+        CinelarTV.instance_variable_set(:@git_version, nil)
+        CinelarTV.instance_variable_set(:@git_branch, nil)
+        CinelarTV.instance_variable_set(:@last_commit_date, nil)
+        CinelarTV.instance_variable_set(:@full_version, nil)
+        CinelarTV.instance_variable_set(:@is_git_repo, nil)
         percent(25)
         log("*** Installing Ruby Gems ***")
         run("bundle config set --local without 'development test'")

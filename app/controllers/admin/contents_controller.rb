@@ -800,6 +800,19 @@ module Admin
         }
       end
 
+      content_data[:content_badges] = content.content_badges.ordered.map do |badge|
+        {
+          id: badge.id,
+          badge_type: badge.badge_type,
+          label: badge.label,
+          icon: badge.icon,
+          color: badge.color,
+          expires_at: badge.expires_at,
+          position: badge.position,
+          active: badge.active
+        }
+      end
+
       content_data
     end
 
@@ -839,7 +852,8 @@ module Admin
 
     def content_params
       params.require(:content).permit(:title, :description, :banner, :cover, :logo, :content_type, :year, :available, :premium, :tmdb_id, :trailer_url,
-                                      :scheduled_launch_at, :content_rating_id, category_ids: [], content_descriptor_ids: [], content_descriptor_keys: [])
+                                      :scheduled_launch_at, :content_rating_id, category_ids: [], content_descriptor_ids: [], content_descriptor_keys: [],
+                                      content_badges_attributes: [:id, :badge_type, :label, :icon, :color, :expires_at, :position, :active, :_destroy])
     end
 
     def season_params
