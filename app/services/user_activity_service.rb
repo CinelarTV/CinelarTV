@@ -71,8 +71,8 @@ class UserActivityService
                             .order(Arel.sql("COALESCE(played_at, created_at) DESC"))
                             .offset(offset)
                             .limit(@per_page)
-      episode_map = batch_episode_map(records.map { |r| [r.profile_id, r.content_id] })
-      [records.map { |r| reproduction_to_activity(r, episode: episode_map[[r.profile_id, r.content_id]]) }, counts[:reproduction]]
+      episode_map = batch_episode_map_for_reproductions(records)
+      [records.map { |r| reproduction_to_activity(r, episode: episode_map[r.id]) }, counts[:reproduction]]
 
     when "like"
       records = Like.where(profile_id: @profile_ids)
@@ -132,13 +132,13 @@ class UserActivityService
                       .order(created_at: :desc)
                       .limit(fetch_limit)
 
-    all_pairs = (reproductions.map { |r| [r.profile_id, r.content_id] } +
-                 likes.map { |l| [l.profile_id, l.content_id] } +
+    all_pairs = (likes.map { |l| [l.profile_id, l.content_id] } +
                  dislikes.map { |d| [d.profile_id, d.content_id] }).uniq
 
     episode_map = batch_episode_map(all_pairs)
+    reproduction_episode_map = batch_episode_map_for_reproductions(reproductions)
 
-    reproductions = reproductions.map { |r| reproduction_to_activity(r, episode: episode_map[[r.profile_id, r.content_id]]) }
+    reproductions = reproductions.map { |r| reproduction_to_activity(r, episode: reproduction_episode_map[r.id]) }
     likes = likes.map { |l| like_to_activity(l, episode: episode_map[[l.profile_id, l.content_id]]) }
     dislikes = dislikes.map { |d| dislike_to_activity(d, episode: episode_map[[d.profile_id, d.content_id]]) }
 
@@ -304,17 +304,53 @@ class UserActivityService
     profile_ids = unique_pairs.map(&:first).uniq
     content_ids = unique_pairs.map(&:last).uniq
 
-    latest_sessions = WatchSession.where(profile_id: profile_ids, content_id: content_ids)
-                                  .where.not(episode_id: nil)
-                                  .order(Arel.sql("COALESCE(ended_at, started_at) DESC"))
-                                  .includes(episode: :season)
-                                  .group_by { |ws| [ws.profile_id, ws.content_id] }
+    all_sessions = WatchSession.where(profile_id: profile_ids, content_id: content_ids)
+                               .where.not(episode_id: nil)
+                               .includes(episode: :season)
+                               .order(Arel.sql("COALESCE(ended_at, started_at) DESC"))
+
+    by_pair = {}
+    all_sessions.each do |ws|
+      key = [ws.profile_id, ws.content_id]
+      (by_pair[key] ||= []) << ws
+    end
 
     result = {}
-    latest_sessions.each do |key, sessions|
-      ws = sessions.first
-      episode = ws&.episode
-      result[key] = episode if episode
+    by_pair.each do |key, sessions|
+      result[key] = sessions.first&.episode
+    end
+    result
+  end
+
+  def batch_episode_map_for_reproductions(reproductions)
+    return {} if reproductions.empty?
+
+    pairs = reproductions.map { |r| [r.id, r.profile_id, r.content_id, r.played_at || r.created_at] }
+    profile_ids = pairs.map { |p| p[1] }.uniq
+    content_ids = pairs.map { |p| p[2] }.uniq
+
+    all_sessions = WatchSession.where(profile_id: profile_ids, content_id: content_ids)
+                               .where.not(episode_id: nil)
+                               .includes(episode: :season)
+
+    sessions_by_pair = {}
+    all_sessions.each do |ws|
+      key = [ws.profile_id, ws.content_id]
+      (sessions_by_pair[key] ||= []) << ws
+    end
+
+    result = {}
+    pairs.each do |rep_id, profile_id, content_id, played_at|
+      key = [profile_id, content_id]
+      sessions = sessions_by_pair[key]
+      next unless sessions&.any?
+
+      closest = if played_at
+                  sessions.min_by { |ws| (ws.started_at - played_at).abs }
+                else
+                  sessions.first
+                end
+      result[rep_id] = closest&.episode
     end
     result
   end
