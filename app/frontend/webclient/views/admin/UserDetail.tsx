@@ -374,6 +374,17 @@ export default defineComponent({
                                     Actions
                                 </h2>
                                 <div class="user-detail-admin__actions-list">
+                                    <div class="user-detail-admin__action-block">
+                                        <CButton
+                                            variant="primary"
+                                            icon="activity"
+                                            onClick={() => router.push(`/admin/users/${id}/activity`)}
+                                            style={{ width: '100%' }}
+                                        >
+                                            View Full Activity
+                                        </CButton>
+                                    </div>
+
                                     {!user.value.suspended && !user.value.deactivated_at && (
                                         <>
                                             <div class="user-detail-admin__action-block">
