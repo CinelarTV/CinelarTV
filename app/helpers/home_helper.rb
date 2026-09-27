@@ -373,33 +373,41 @@ module HomeHelper
     Content.trending(15).includes(:image_variants).map { |c| content_to_hash(c, allowed_variants: allowed_variants) }
   end
 
-  def add_continue_watching(liked_ids)
+  def add_continue_watching(_liked_ids)
     return [] unless current_profile.present?
 
+    latest_cw_ids = ContinueWatching
+                    .joins(:content)
+                    .where(profile_id: current_profile.id, finished: false, contents: { available: true })
+                    .select("DISTINCT ON (content_id) continue_watchings.id")
+                    .order("content_id, last_watched_at DESC")
+
     ContinueWatching
-      .select("DISTINCT ON (content_id) continue_watchings.*, contents.title, contents.description, contents.banner")
-      .joins(:content)
-      .where(profile_id: current_profile.id)
-      .where(finished: false)
-      .where(contents: { available: true })
-      .order("content_id, last_watched_at DESC")
-      .limit(20)
+      .where(id: latest_cw_ids)
+      .order(last_watched_at: :desc)
+      .limit(50)
       .includes(content: :image_variants, episode: nil)
       .map do |cw|
         content = cw.content
         episode_key = cw.episode_id.presence || "movie"
         redis_data = CinelarTV.cache.read("progress/#{cw.profile_id}/#{cw.content_id}/#{episode_key}")
 
-        last_watched = redis_data&.dig(:last_watched_at) || cw.last_watched_at
+        raw_last_watched = redis_data&.dig(:last_watched_at) || cw.last_watched_at
+        last_watched_time = begin
+          raw_last_watched.is_a?(String) ? Time.zone.parse(raw_last_watched) : raw_last_watched
+        rescue StandardError
+          nil
+        end
 
         content_to_hash(content, allowed_variants: allowed_variants).merge(
           progress: redis_data&.dig(:progress) || cw.progress,
           duration: redis_data&.dig(:duration) || cw.duration,
-          last_watched_at: last_watched,
+          last_watched_at: last_watched_time || cw.last_watched_at,
           episode: cw.episode&.as_json(except: %i[created_at updated_at])
         )
       end
       .sort_by { |cw| -cw[:last_watched_at].to_i }
+      .first(20)
   end
 
   def build_personalized_sections(liked_ids)
