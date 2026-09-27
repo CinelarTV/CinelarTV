@@ -28,6 +28,7 @@ class PlayerController < ApplicationController
     reproduction = Reproduction.new(
       profile_id: profile.id,
       content_id: @content.id,
+      episode_id: @episode&.id,
       played_at: Time.now
     )
 

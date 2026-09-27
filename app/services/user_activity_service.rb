@@ -67,12 +67,11 @@ class UserActivityService
     case @activity_type
     when "reproduction"
       records = Reproduction.where(profile_id: @profile_ids)
-                            .includes(:content, :profile)
+                            .includes(:content, :profile, :episode)
                             .order(Arel.sql("COALESCE(played_at, created_at) DESC"))
                             .offset(offset)
                             .limit(@per_page)
-      episode_map = batch_episode_map_for_reproductions(records)
-      [records.map { |r| reproduction_to_activity(r, episode: episode_map[r.id]) }, counts[:reproduction]]
+      [records.map { |r| reproduction_to_activity(r) }, counts[:reproduction]]
 
     when "like"
       records = Like.where(profile_id: @profile_ids)
@@ -118,7 +117,7 @@ class UserActivityService
     fetch_limit = offset + limit
 
     reproductions = Reproduction.where(profile_id: @profile_ids)
-                                .includes(:content, :profile)
+                                .includes(:content, :profile, :episode)
                                 .order(Arel.sql("COALESCE(played_at, created_at) DESC"))
                                 .limit(fetch_limit)
 
@@ -136,9 +135,8 @@ class UserActivityService
                  dislikes.map { |d| [d.profile_id, d.content_id] }).uniq
 
     episode_map = batch_episode_map(all_pairs)
-    reproduction_episode_map = batch_episode_map_for_reproductions(reproductions)
 
-    reproductions = reproductions.map { |r| reproduction_to_activity(r, episode: reproduction_episode_map[r.id]) }
+    reproductions = reproductions.map { |r| reproduction_to_activity(r) }
     likes = likes.map { |l| like_to_activity(l, episode: episode_map[[l.profile_id, l.content_id]]) }
     dislikes = dislikes.map { |d| dislike_to_activity(d, episode: episode_map[[d.profile_id, d.content_id]]) }
 
@@ -175,7 +173,7 @@ class UserActivityService
             .map { |log| audit_log_to_activity(log) }
   end
 
-  def reproduction_to_activity(r, episode: nil)
+  def reproduction_to_activity(r)
     {
       id: "reproduction-#{r.id}",
       type: "reproduction",
@@ -184,7 +182,7 @@ class UserActivityService
       timestamp: (r.played_at || r.created_at)&.iso8601,
       profile: profile_payload(r.profile),
       content: content_payload(r.content),
-      episode: episode_payload(episode),
+      episode: episode_payload(r.episode),
       metadata: {
         country_code: r.country_code
       }
@@ -318,39 +316,6 @@ class UserActivityService
     result = {}
     by_pair.each do |key, sessions|
       result[key] = sessions.first&.episode
-    end
-    result
-  end
-
-  def batch_episode_map_for_reproductions(reproductions)
-    return {} if reproductions.empty?
-
-    pairs = reproductions.map { |r| [r.id, r.profile_id, r.content_id, r.played_at || r.created_at] }
-    profile_ids = pairs.map { |p| p[1] }.uniq
-    content_ids = pairs.map { |p| p[2] }.uniq
-
-    all_sessions = WatchSession.where(profile_id: profile_ids, content_id: content_ids)
-                               .where.not(episode_id: nil)
-                               .includes(episode: :season)
-
-    sessions_by_pair = {}
-    all_sessions.each do |ws|
-      key = [ws.profile_id, ws.content_id]
-      (sessions_by_pair[key] ||= []) << ws
-    end
-
-    result = {}
-    pairs.each do |rep_id, profile_id, content_id, played_at|
-      key = [profile_id, content_id]
-      sessions = sessions_by_pair[key]
-      next unless sessions&.any?
-
-      closest = if played_at
-                  sessions.min_by { |ws| (ws.started_at - played_at).abs }
-                else
-                  sessions.first
-                end
-      result[rep_id] = closest&.episode
     end
     result
   end

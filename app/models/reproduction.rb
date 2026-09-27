@@ -3,6 +3,7 @@
 class Reproduction < ApplicationRecord
   belongs_to :profile
   belongs_to :content
+  belongs_to :episode, optional: true
 
   validates :played_at, :country_code, presence: true
 
