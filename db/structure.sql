@@ -1,4 +1,4 @@
-\restrict QJzrWgP5iYqrlJIEb45N4a3o9l6kteYyt8oRWWE6BNkUtrPUSq2DWwy6aa3HjR9
+\restrict il9d1DKBvp10AYwXiVYc5aCkzSw0JTuo1PCLFakaYc3uftC9DPZBx4expv4Xyif
 
 -- Dumped from database version 15.18
 -- Dumped by pg_dump version 15.18
@@ -1128,7 +1128,8 @@ CREATE TABLE public.reproductions (
     played_at timestamp(6) without time zone NOT NULL,
     country_code character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    episode_id uuid
 );
 
 
@@ -3208,6 +3209,13 @@ CREATE INDEX index_reproductions_on_country_code ON public.reproductions USING b
 
 
 --
+-- Name: index_reproductions_on_episode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_reproductions_on_episode_id ON public.reproductions USING btree (episode_id);
+
+
+--
 -- Name: index_reproductions_on_played_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3708,6 +3716,14 @@ ALTER TABLE ONLY public.watch_sessions
 
 
 --
+-- Name: reproductions fk_rails_042ddc69e5; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reproductions
+    ADD CONSTRAINT fk_rails_042ddc69e5 FOREIGN KEY (episode_id) REFERENCES public.episodes(id);
+
+
+--
 -- Name: payments fk_rails_081dc04a02; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4159,11 +4175,12 @@ ALTER TABLE ONLY public.payments
 -- PostgreSQL database dump complete
 --
 
-\unrestrict QJzrWgP5iYqrlJIEb45N4a3o9l6kteYyt8oRWWE6BNkUtrPUSq2DWwy6aa3HjR9
+\unrestrict il9d1DKBvp10AYwXiVYc5aCkzSw0JTuo1PCLFakaYc3uftC9DPZBx4expv4Xyif
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260927000001'),
 ('20260926142922'),
 ('20260922160710'),
 ('20260921120000'),
