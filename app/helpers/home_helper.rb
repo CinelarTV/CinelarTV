@@ -381,6 +381,7 @@ module HomeHelper
       .joins(:content)
       .where(profile_id: current_profile.id)
       .where(finished: false)
+      .where(contents: { available: true })
       .order("content_id, last_watched_at DESC")
       .limit(20)
       .includes(content: :image_variants, episode: nil)

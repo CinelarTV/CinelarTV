@@ -171,7 +171,9 @@ class PlayerController < ApplicationController
     )
 
     if cw.finished?
-      cw.update!(progress: 0, finished: false)
+      cw.update!(progress: 0, finished: false, last_watched_at: Time.current)
+    else
+      cw.touch(:last_watched_at)
     end
 
     cw
