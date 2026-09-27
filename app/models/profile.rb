@@ -3,6 +3,10 @@
 class Profile < ApplicationRecord
   belongs_to :user, touch: true
   has_many :preferences, dependent: :destroy # Si se elimina un perfil, se eliminan sus preferencias
+  has_many :reproductions, dependent: :destroy
+  has_many :likes, dependent: :destroy
+  has_many :dislikes, dependent: :destroy
+  has_many :continue_watchings, dependent: :destroy
   has_and_belongs_to_many :liked_contents, class_name: "Content", join_table: "likes"
   has_and_belongs_to_many :disliked_contents, class_name: "Content", join_table: "dislikes"
   has_many :watch_sessions, dependent: :destroy

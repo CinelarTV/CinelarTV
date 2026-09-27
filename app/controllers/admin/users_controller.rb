@@ -83,6 +83,26 @@ module Admin
       render json: { data: json }
     end
 
+    def activity
+      user = User.find_by(id: params[:id])
+      return render(json: { error: "Not found" }, status: :not_found) unless user
+
+      service = UserActivityService.new(
+        user,
+        page: params[:page],
+        per_page: params[:per_page],
+        activity_type: params[:activity_type],
+        profile_id: params[:profile_id]
+      )
+
+      respond_to do |format|
+        format.html
+        format.json do
+          render json: service.call
+        end
+      end
+    end
+
     # Admin actions: suspend, unsuspend, deactivate, activate
     def suspend
       user = User.find_by(id: params[:id])

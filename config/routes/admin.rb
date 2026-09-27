@@ -67,6 +67,7 @@ namespace :admin do
   # Serve SPA for HTML requests to user detail; API JSON handled below
   get "/users/:id", to: "dashboard#index", constraints: ->(req) { req.format.html? }
   get "/users/:id", to: "users#show", defaults: { format: 'json' }
+  get "/users/:id/activity", to: "users#activity"
   post "/users/create_user", to: "users#create_user", defaults: { format: 'json' }
   post "/users/:id/suspend", to: "users#suspend", defaults: { format: 'json' }
   post "/users/:id/unsuspend", to: "users#unsuspend", defaults: { format: 'json' }
