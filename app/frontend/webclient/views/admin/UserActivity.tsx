@@ -23,6 +23,15 @@ interface ActivityContent {
   cover: any;
 }
 
+interface ActivityEpisode {
+  id: number;
+  title: string;
+  position: number;
+  season_number: number;
+  thumbnail: any;
+  images: any;
+}
+
 interface ActivityItem {
   id: string;
   type: 'reproduction' | 'like' | 'dislike' | 'billing' | 'security';
@@ -31,6 +40,7 @@ interface ActivityItem {
   timestamp: string;
   profile: ActivityProfile | null;
   content: ActivityContent | null;
+  episode: ActivityEpisode | null;
   metadata: Record<string, any>;
 }
 
@@ -55,6 +65,10 @@ function avatarColor(name: string): string {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function profileAvatarUrl(avatarId?: string | null): string {
+  return `/assets/default/avatars/${avatarId || 'coolCat'}.png`;
 }
 
 function relativeTime(dateStr?: string): string {
@@ -104,6 +118,18 @@ function contentImageUrl(content: ActivityContent): string | null {
   if (images.thumbnail?.webp) return images.thumbnail.webp;
   if (images.small?.webp) return images.small.webp;
   if (typeof images === 'string') return images;
+  return null;
+}
+
+function episodeThumbUrl(episode: ActivityEpisode): string | null {
+  const images = episode.images?.episode_thumbnail;
+  if (!images) {
+    if (episode.thumbnail && typeof episode.thumbnail === 'string') return episode.thumbnail;
+    return null;
+  }
+  if (images.original?.webp) return images.original.webp;
+  if (images.medium?.webp) return images.medium.webp;
+  if (images.small?.webp) return images.small.webp;
   return null;
 }
 
@@ -271,34 +297,59 @@ export default defineComponent({
 
                     {item.profile && (
                       <div class="user-activity-admin__item-profile">
-                        <div
+                        <img
                           class="user-activity-admin__mini-avatar"
-                          style={{ backgroundColor: avatarColor(item.profile.name) }}
-                        >
-                          {item.profile.name.charAt(0).toUpperCase()}
-                        </div>
+                          src={profileAvatarUrl(item.profile.avatar_id)}
+                          alt={item.profile.name}
+                          loading="lazy"
+                        />
                         <span>{item.profile.name}</span>
                       </div>
                     )}
 
                     {item.content && (
                       <div class="user-activity-admin__item-content">
-                        {contentImageUrl(item.content) ? (
-                          <img
-                            class="user-activity-admin__content-thumb"
-                            src={contentImageUrl(item.content)!}
-                            alt={item.content.title}
-                            loading="lazy"
-                          />
+                        {item.episode ? (
+                          <>
+                            {episodeThumbUrl(item.episode) ? (
+                              <img
+                                class="user-activity-admin__content-thumb user-activity-admin__content-thumb--episode"
+                                src={episodeThumbUrl(item.episode)!}
+                                alt={item.episode.title}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div class="user-activity-admin__content-thumb user-activity-admin__content-thumb--placeholder">
+                                <CIcon icon="film" size={20} />
+                              </div>
+                            )}
+                            <div class="user-activity-admin__content-info">
+                              <span class="user-activity-admin__content-title">{item.content.title}</span>
+                              <span class="user-activity-admin__episode-label">
+                                S{item.episode.season_number} E{item.episode.position} — {item.episode.title}
+                              </span>
+                            </div>
+                          </>
                         ) : (
-                          <div class="user-activity-admin__content-thumb user-activity-admin__content-thumb--placeholder">
-                            <CIcon icon="film" size={20} />
-                          </div>
+                          <>
+                            {contentImageUrl(item.content) ? (
+                              <img
+                                class="user-activity-admin__content-thumb"
+                                src={contentImageUrl(item.content)!}
+                                alt={item.content.title}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div class="user-activity-admin__content-thumb user-activity-admin__content-thumb--placeholder">
+                                <CIcon icon="film" size={20} />
+                              </div>
+                            )}
+                            <div class="user-activity-admin__content-info">
+                              <span class="user-activity-admin__content-title">{item.content.title}</span>
+                              <CBadge variant="muted">{item.content.content_type}</CBadge>
+                            </div>
+                          </>
                         )}
-                        <div class="user-activity-admin__content-info">
-                          <span class="user-activity-admin__content-title">{item.content.title}</span>
-                          <CBadge variant="muted">{item.content.content_type}</CBadge>
-                        </div>
                       </div>
                     )}
 

@@ -71,7 +71,8 @@ class UserActivityService
                             .order(Arel.sql("COALESCE(played_at, created_at) DESC"))
                             .offset(offset)
                             .limit(@per_page)
-      [records.map { |r| reproduction_to_activity(r) }, counts[:reproduction]]
+      episode_map = batch_episode_map(records.map { |r| [r.profile_id, r.content_id] })
+      [records.map { |r| reproduction_to_activity(r, episode: episode_map[[r.profile_id, r.content_id]]) }, counts[:reproduction]]
 
     when "like"
       records = Like.where(profile_id: @profile_ids)
@@ -79,7 +80,8 @@ class UserActivityService
                     .order(created_at: :desc)
                     .offset(offset)
                     .limit(@per_page)
-      [records.map { |l| like_to_activity(l) }, counts[:like]]
+      episode_map = batch_episode_map(records.map { |l| [l.profile_id, l.content_id] })
+      [records.map { |l| like_to_activity(l, episode: episode_map[[l.profile_id, l.content_id]]) }, counts[:like]]
 
     when "dislike"
       records = Dislike.where(profile_id: @profile_ids)
@@ -87,7 +89,8 @@ class UserActivityService
                        .order(created_at: :desc)
                        .offset(offset)
                        .limit(@per_page)
-      [records.map { |d| dislike_to_activity(d) }, counts[:dislike]]
+      episode_map = batch_episode_map(records.map { |d| [d.profile_id, d.content_id] })
+      [records.map { |d| dislike_to_activity(d, episode: episode_map[[d.profile_id, d.content_id]]) }, counts[:dislike]]
 
     when "billing"
       return [[], 0] if @profile_id.present?
@@ -118,19 +121,26 @@ class UserActivityService
                                 .includes(:content, :profile)
                                 .order(Arel.sql("COALESCE(played_at, created_at) DESC"))
                                 .limit(fetch_limit)
-                                .map { |r| reproduction_to_activity(r) }
 
     likes = Like.where(profile_id: @profile_ids)
                 .includes(:content, :profile)
                 .order(created_at: :desc)
                 .limit(fetch_limit)
-                .map { |l| like_to_activity(l) }
 
     dislikes = Dislike.where(profile_id: @profile_ids)
                       .includes(:content, :profile)
                       .order(created_at: :desc)
                       .limit(fetch_limit)
-                      .map { |d| dislike_to_activity(d) }
+
+    all_pairs = (reproductions.map { |r| [r.profile_id, r.content_id] } +
+                 likes.map { |l| [l.profile_id, l.content_id] } +
+                 dislikes.map { |d| [d.profile_id, d.content_id] }).uniq
+
+    episode_map = batch_episode_map(all_pairs)
+
+    reproductions = reproductions.map { |r| reproduction_to_activity(r, episode: episode_map[[r.profile_id, r.content_id]]) }
+    likes = likes.map { |l| like_to_activity(l, episode: episode_map[[l.profile_id, l.content_id]]) }
+    dislikes = dislikes.map { |d| dislike_to_activity(d, episode: episode_map[[d.profile_id, d.content_id]]) }
 
     billing = @profile_id.blank? ? fetch_billing_items(limit: fetch_limit) : []
     security = @profile_id.blank? ? fetch_security_items(limit: fetch_limit) : []
@@ -165,7 +175,7 @@ class UserActivityService
             .map { |log| audit_log_to_activity(log) }
   end
 
-  def reproduction_to_activity(r)
+  def reproduction_to_activity(r, episode: nil)
     {
       id: "reproduction-#{r.id}",
       type: "reproduction",
@@ -174,13 +184,14 @@ class UserActivityService
       timestamp: (r.played_at || r.created_at)&.iso8601,
       profile: profile_payload(r.profile),
       content: content_payload(r.content),
+      episode: episode_payload(episode),
       metadata: {
         country_code: r.country_code
       }
     }
   end
 
-  def like_to_activity(l)
+  def like_to_activity(l, episode: nil)
     {
       id: "like-#{l.id}",
       type: "like",
@@ -189,11 +200,12 @@ class UserActivityService
       timestamp: l.created_at&.iso8601,
       profile: profile_payload(l.profile),
       content: content_payload(l.content),
+      episode: episode_payload(episode),
       metadata: {}
     }
   end
 
-  def dislike_to_activity(d)
+  def dislike_to_activity(d, episode: nil)
     {
       id: "dislike-#{d.id}",
       type: "dislike",
@@ -202,6 +214,7 @@ class UserActivityService
       timestamp: d.created_at&.iso8601,
       profile: profile_payload(d.profile),
       content: content_payload(d.content),
+      episode: episode_payload(episode),
       metadata: {}
     }
   end
@@ -215,6 +228,7 @@ class UserActivityService
       timestamp: s.created_at&.iso8601,
       profile: nil,
       content: nil,
+      episode: nil,
       metadata: {
         provider: s.provider,
         status: s.status
@@ -231,6 +245,7 @@ class UserActivityService
       timestamp: p.created_at&.iso8601,
       profile: nil,
       content: nil,
+      episode: nil,
       metadata: {
         amount: p.amount,
         currency: p.currency,
@@ -249,6 +264,7 @@ class UserActivityService
       timestamp: log.created_at&.iso8601,
       profile: nil,
       content: nil,
+      episode: nil,
       metadata: {
         subject: log.subject,
         details: log.details,
@@ -278,6 +294,44 @@ class UserActivityService
       content_type: content.content_type,
       banner: content.banner,
       cover: content.cover
+    }
+  end
+
+  def batch_episode_map(pairs)
+    return {} if pairs.empty?
+
+    unique_pairs = pairs.uniq
+    profile_ids = unique_pairs.map(&:first).uniq
+    content_ids = unique_pairs.map(&:last).uniq
+
+    latest_sessions = WatchSession.where(profile_id: profile_ids, content_id: content_ids)
+                                  .where.not(episode_id: nil)
+                                  .order(Arel.sql("COALESCE(ended_at, started_at) DESC"))
+                                  .includes(episode: :season)
+                                  .group_by { |ws| [ws.profile_id, ws.content_id] }
+
+    result = {}
+    latest_sessions.each do |key, sessions|
+      ws = sessions.first
+      episode = ws&.episode
+      result[key] = episode if episode
+    end
+    result
+  end
+
+  def episode_payload(episode)
+    return nil unless episode
+
+    season = episode.season
+    {
+      id: episode.id,
+      title: episode.title,
+      position: episode.position,
+      season_number: season&.position || 0,
+      thumbnail: episode.thumbnail,
+      images: {
+        episode_thumbnail: episode.image_variants_for("episode_thumbnail")
+      }
     }
   end
 end

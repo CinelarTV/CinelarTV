@@ -3618,13 +3618,9 @@ body.is-mobile {
     width: 22px;
     height: 22px;
     border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: white;
+    object-fit: cover;
     flex-shrink: 0;
+    background: var(--c-surface-0);
 }
 
 .user-activity-admin__item-content {
@@ -3650,6 +3646,12 @@ body.is-mobile {
     color: var(--c-text-muted);
 }
 
+.user-activity-admin__content-thumb--episode {
+    width: 64px;
+    height: 36px;
+    border-radius: 4px;
+}
+
 .user-activity-admin__content-info {
     display: flex;
     flex-direction: column;
@@ -3661,6 +3663,14 @@ body.is-mobile {
     font-size: 0.82rem;
     color: var(--c-text-primary);
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-activity-admin__episode-label {
+    font-size: 0.73rem;
+    color: var(--c-text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
