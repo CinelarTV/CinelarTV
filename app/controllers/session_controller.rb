@@ -13,7 +13,7 @@ class SessionController < ApplicationController
   def profiles
     # Try to find the user profiles, if fails, return an empty array
     profiles = begin
-      current_user_with_doorkeeper.profiles
+      current_user_with_doorkeeper.profiles.order(:created_at)
     rescue StandardError
       []
     end
