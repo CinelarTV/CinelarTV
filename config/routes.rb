@@ -38,6 +38,7 @@ Rails.application.routes.draw do
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
   get "ads.txt" => "adstxt#index"
+  get "app-ads.txt" => "adstxt#app_index"
 
   get "explore" => "home#homepage", as: :explore
   get "explore/browse" => "home#browse", as: :explore_browse

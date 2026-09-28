@@ -13,4 +13,10 @@ class AdstxtController < ApplicationController
 
     render plain: SiteSetting.ads_txt, content_type: "text/plain"
   end
+
+  def app_index
+    raise CinelarTV::NotFound if SiteSetting.app_ads_txt.blank?
+
+    render plain: SiteSetting.app_ads_txt, content_type: "text/plain"
+  end
 end

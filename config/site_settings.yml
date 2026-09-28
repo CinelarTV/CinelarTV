@@ -550,6 +550,11 @@ monetization:
     refresh: true
     default: ""
     type: "code"
+  app_ads_txt:
+    client: false
+    refresh: true
+    default: ""
+    type: "code"
 
 storage:
   storage_provider:
