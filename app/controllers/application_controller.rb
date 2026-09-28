@@ -86,7 +86,7 @@ class ApplicationController < ActionController::Base
     if request.format&.json? || request.xhr?
       render json: create_errors_json(type, opts), status: status_code
     else
-      render "exceptions/#{status_code}", status: status_code, layout: "application"
+      render "exceptions/#{status_code}", status: status_code, layout: "application", formats: [:html]
     end
   end
 
