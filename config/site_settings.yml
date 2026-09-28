@@ -545,6 +545,12 @@ monetization:
     default: ""
     type: "string"
 
+  ads_txt:
+    client: false
+    refresh: true
+    default: ""
+    type: "code"
+
 storage:
   storage_provider:
     client: true

@@ -37,6 +37,8 @@ Rails.application.routes.draw do
 
   get "manifest.webmanifest" => "metadata#webmanifest", as: :manifest
 
+  get "ads.txt" => "adstxt#index"
+
   get "explore" => "home#homepage", as: :explore
   get "explore/browse" => "home#browse", as: :explore_browse
   get "shuffle_recommendations" => "home#shuffle_recommendations"
