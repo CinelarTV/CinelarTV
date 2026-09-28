@@ -64,6 +64,21 @@ module ApplicationHelper
     end.join.html_safe
   end
 
+  def render_custom_head_content
+    return "" if SiteSetting.custom_head_content.blank?
+    raw SiteSetting.custom_head_content
+  end
+
+  def render_custom_body_begin_content
+    return "" if SiteSetting.custom_body_begin_content.blank?
+    raw SiteSetting.custom_body_begin_content
+  end
+
+  def render_custom_body_end_content
+    return "" if SiteSetting.custom_body_end_content.blank?
+    raw SiteSetting.custom_body_end_content
+  end
+
   def resolve_stream_url(url)
     return url if url.blank?
     return url unless SiteSetting.live_tv_proxy_mode.to_s == "internal"

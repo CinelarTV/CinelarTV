@@ -32,8 +32,10 @@
     <%= csp_meta_tag %>
     <%= render partial: "partials/opengraph" %>
     <%= render partial: "partials/schema_web_site" %>
+    <%= render_custom_head_content %>
     </head>
     <body class="app-body<% if device == "mobile" %> is-mobile<% end %>" data-current-path="<%= request.env["PATH_INFO"] %>">
+    <%= render_custom_body_begin_content %>
     <cinelar-assets>
       <cinelar-plugins-assets>
       <%= render_third_party_plugins_css %>
@@ -73,6 +75,7 @@
     <%# PluginHost loads third-party module entries from plugin_bootstrap_script. %>
 
 
+    <%= render_custom_body_end_content %>
    
   </body>
 </html>

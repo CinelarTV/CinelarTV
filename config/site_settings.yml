@@ -701,6 +701,21 @@ customization:
     refresh: true
     default: "#0084F0FF"
     type: color
+  custom_head_content:
+    client: false
+    refresh: true
+    default: ""
+    type: "code"
+  custom_body_begin_content:
+    client: false
+    refresh: true
+    default: ""
+    type: "code"
+  custom_body_end_content:
+    client: false
+    refresh: true
+    default: ""
+    type: "code"
   custom_css:
     client: false # Javascript don't need to read it, because it's rendered on a <style> tag
     refresh: true
