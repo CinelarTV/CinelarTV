@@ -78,7 +78,7 @@ export default defineComponent({
     const visibleMenuItems = computed(() => menuItemsConfig.value.filter(item => item.visible));
 
     const handleProfileSelect = (profile: any) => {
-      ajax.post('/user/select-profile.json', { profile_id: profile.id })
+        ajax.post('/session/select-profile.json', { profile_id: profile.id })
         .then(() => { window.location.href = '/'; })
         .catch(console.log);
     };

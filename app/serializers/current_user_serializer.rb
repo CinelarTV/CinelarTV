@@ -18,12 +18,14 @@ class CurrentUserSerializer < ApplicationSerializer
   attribute :subscription, if: :include_subscription?
   attribute :profiles, if: :include_profiles?
   attribute :current_profile, if: :include_profiles?
+  attribute :profile_last_activity_at, if: :include_profiles?
   attribute :admin
 
   def as_json(options = {})
     include_profiles = @options[:include_profiles]
     include_subscription = @options.fetch(:include_subscription, true)
-    cache_key = "user_v1/#{object.cache_key_with_version}/profile/#{@options[:current_profile_id]}/p#{include_profiles}/s#{include_subscription}"
+    activity_key = @options[:profile_last_activity_at].respond_to?(:to_i) ? @options[:profile_last_activity_at].to_i : @options[:profile_last_activity_at]
+    cache_key = "user_v1/#{object.cache_key_with_version}/profile/#{@options[:current_profile_id]}/a#{activity_key}/p#{include_profiles}/s#{include_subscription}"
 
     CinelarTV.cache.fetch(cache_key, expires_in: 1.hour) do
       super(options)
@@ -40,6 +42,11 @@ class CurrentUserSerializer < ApplicationSerializer
 
   def current_profile
     object.profiles.find_by(id: @options[:current_profile_id])
+  end
+
+  def profile_last_activity_at
+    activity = @options[:profile_last_activity_at]
+    activity.respond_to?(:iso8601) ? activity.iso8601 : activity
   end
 
   def admin

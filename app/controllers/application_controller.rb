@@ -2,6 +2,7 @@
 
 class ApplicationController < ActionController::Base
   include JsonError
+  include ProfileSelectionExpiry
 
   SKIPPABLE_PATHS = [
     "/finish-installation",
@@ -19,6 +20,7 @@ class ApplicationController < ActionController::Base
   end
 
   before_action :check_profile_if_signed_in
+  before_action :touch_profile_activity!
   before_action :ensure_account_active
 
   def index; end
@@ -48,7 +50,7 @@ class ApplicationController < ActionController::Base
   def current_profile
     return @current_profile if defined?(@current_profile)
 
-    profile_id = using_doorkeeper? ? doorkeeper_token.current_profile_id : session[:current_profile_id]
+    profile_id = resolved_profile_id
     return @current_profile = nil if profile_id.blank?
 
     @current_profile = CinelarTV.cache.fetch("profile/#{profile_id}", expires_in: 30.minutes) do

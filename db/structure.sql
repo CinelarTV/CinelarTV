@@ -1,4 +1,4 @@
-\restrict il9d1DKBvp10AYwXiVYc5aCkzSw0JTuo1PCLFakaYc3uftC9DPZBx4expv4Xyif
+\restrict kbc1AyyNa1QYnSAVDVha8g6UNXbHuBo34o0gA7Djf3XlptVa8ar8AaQTciwrwlh
 
 -- Dumped from database version 15.18
 -- Dumped by pg_dump version 15.18
@@ -930,7 +930,8 @@ CREATE TABLE public.oauth_access_tokens (
     created_at timestamp(6) without time zone NOT NULL,
     revoked_at timestamp(6) without time zone,
     previous_refresh_token character varying DEFAULT ''::character varying NOT NULL,
-    current_profile_id uuid
+    current_profile_id uuid,
+    profile_last_activity_at timestamp(6) without time zone
 );
 
 
@@ -4175,11 +4176,12 @@ ALTER TABLE ONLY public.payments
 -- PostgreSQL database dump complete
 --
 
-\unrestrict il9d1DKBvp10AYwXiVYc5aCkzSw0JTuo1PCLFakaYc3uftC9DPZBx4expv4Xyif
+\unrestrict kbc1AyyNa1QYnSAVDVha8g6UNXbHuBo34o0gA7Djf3XlptVa8ar8AaQTciwrwlh
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260930000001'),
 ('20260927000001'),
 ('20260926142922'),
 ('20260922160710'),

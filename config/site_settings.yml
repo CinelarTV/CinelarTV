@@ -93,6 +93,13 @@ security:
     default: false
     hidden: true
     type: "boolean"
+  profile_selection_timeout_hours:
+    client: true
+    refresh: false
+    default: 12
+    type: "integer"
+    min: 0
+    max: 720
   enable_cors:
     client: true
     refresh: true

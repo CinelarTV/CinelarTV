@@ -13,6 +13,7 @@ class User {
     profiles: Profile[];
     admin: boolean;
     current_profile: Profile | null;
+    profile_last_activity_at: string | null;
     is_subscribed: boolean;
     confirmed: boolean;
     confirmation_deadline: string | null;
@@ -27,6 +28,7 @@ class User {
         this.profiles = (data.profiles || []).map((profileData: any) => new Profile(profileData));
         this.admin = data.admin;
         this.current_profile = data.current_profile ? new Profile(data.current_profile) : null;
+        this.profile_last_activity_at = data.profile_last_activity_at ?? null;
         this.is_subscribed = data.is_subscribed || false;
         this.confirmed = data.confirmed ?? true;
         this.confirmation_deadline = data.confirmation_deadline ?? null;

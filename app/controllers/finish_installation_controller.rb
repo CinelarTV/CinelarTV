@@ -19,7 +19,7 @@ class FinishInstallationController < ApplicationController
         @user = User.new(email:, username:, password: params[:password])
         if @user.save
           sign_in(@user)
-          session[:current_profile_id] = @user.profiles.first&.id
+          write_profile_selection!(@user.profiles.first&.id)
           format.html { redirect_to "/wizard" }
           format.json { render json: { message: "User created successfully", status: :ok } }
         else

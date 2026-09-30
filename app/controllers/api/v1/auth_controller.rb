@@ -103,10 +103,13 @@ module Api
             new_token = create_oauth_token(owner)
 
             if new_token
-              # Copy current_profile_id from old token to new token so client keeps selected profile after refresh
+              # Copy current_profile_id + activity from old token so client keeps selected profile after refresh
               begin
                 if token.current_profile_id.present?
-                  new_token.update_column(:current_profile_id, token.current_profile_id)
+                  new_token.update_columns(
+                    current_profile_id: token.current_profile_id,
+                    profile_last_activity_at: token.profile_last_activity_at || token.created_at
+                  )
                 end
               rescue => e
                 Rails.logger.error "[API Auth#refresh] Failed to copy current_profile_id: #{e.class} - #{e.message}"
@@ -364,35 +367,61 @@ module Api
         @api_current_user = User.find_by(id: doorkeeper_token.resource_owner_id)
       end
 
-      # Get current profile for the token
+      # Get current profile for the token (respects profile selection timeout)
       def current_profile_for_token(token)
-        profile_id = get_current_profile_id(token)
+        profile_id = resolved_profile_id_for_token(token)
         return nil unless profile_id.present?
 
         user = get_user_from_token
         user&.profiles&.find_by(id: profile_id)
       end
 
-      # Get stored profile ID for token
+      # Get stored profile ID for token, applying inactivity expiry
       def get_current_profile_id(token)
-        token.current_profile_id
+        resolved_profile_id_for_token(token)
+      end
+
+      def resolved_profile_id_for_token(token)
+        profile_id = token&.current_profile_id
+        return nil if profile_id.blank?
+
+        timeout_hours = SiteSetting.profile_selection_timeout_hours.to_i
+        return profile_id unless timeout_hours.positive?
+
+        last_activity = token.profile_last_activity_at
+        last_activity = Time.zone.parse(last_activity.to_s) if last_activity.is_a?(String)
+        return profile_id if last_activity.blank?
+
+        if last_activity < timeout_hours.hours.ago
+          token.update_columns(current_profile_id: nil, profile_last_activity_at: nil)
+          return nil
+        end
+
+        profile_id
+      rescue ArgumentError
+        profile_id
       end
 
       # Set profile ID for token
       def set_current_profile_id(token, profile_id)
-        token.update_column(:current_profile_id, profile_id)
+        now = profile_id.present? ? Time.current : nil
+        token.update_columns(
+          current_profile_id: profile_id,
+          profile_last_activity_at: now
+        )
       end
 
       # Clear profile from token
       def clear_profile_cache(token)
-        token.update_column(:current_profile_id, nil)
+        token.update_columns(current_profile_id: nil, profile_last_activity_at: nil)
       end
 
       # Serialize helpers
       def serialize_user(user, token)
         CurrentUserSerializer.new(user, {
           include_profiles: true,
-          current_profile_id: get_current_profile_id(token)
+          current_profile_id: get_current_profile_id(token),
+          profile_last_activity_at: token&.profile_last_activity_at
         }).as_json
       end
 

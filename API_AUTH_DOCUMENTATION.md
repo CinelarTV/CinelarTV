@@ -315,6 +315,10 @@ Authorization: Bearer <access_token>
 
 ## Flujo Típico en App Móvil
 
+> **Nota:** `/api/v1` se usa para **login/refresh/logout**. El resto (perfiles, contenido, etc.) usa los mismos endpoints que web bajo `/session/*` con `Authorization: Bearer`.
+>
+> **Expiración de perfil:** `SiteSetting.profile_selection_timeout_hours` (default 12, `0` = nunca). Tras X horas sin actividad, `current_profile` pasa a `null` en `/session/current` y el cliente debe mostrar el selector. Seleccionar un perfil reinicia el timer.
+
 ### 1. Login Inicial
 ```
 POST /api/v1/auth/login
@@ -325,26 +329,27 @@ POST /api/v1/auth/login
 
 ### 2. Al Abrir la App
 ```
-GET /api/v1/auth/profile-status (con access_token)
-→ Si needs_profile_selection = true, mostrar selector de perfiles
-→ Si has_profile_selected = true, ir al home con el perfil activo
+GET /session/current (con access_token)
+→ Si current_profile es null, mostrar selector de perfiles
+→ Si current_profile existe, ir al home con el perfil activo
 ```
 
 ### 3. Al Expirar el Token
 ```
 POST /api/v1/auth/refresh
 → Actualizar access_token y refresh_token en secure storage
+→ El profile seleccionado y su actividad se copian al token nuevo
 ```
 
 ### 4. Seleccionar Perfil
 ```
-POST /api/v1/auth/select-profile
+POST /session/select-profile
 → Actualizar UI con el perfil seleccionado
 ```
 
 ### 5. Cambiar de Perfil
 ```
-POST /api/v1/auth/select-profile (con otro profile_id)
+POST /session/select-profile (con otro profile_id)
 → Actualizar UI
 ```
 

@@ -8,6 +8,21 @@ import { pluginEvents } from '../lib/plugin-events'
 
 const { siteSettings } = useSiteSettings(PiniaStore)
 
+const isProfileSelectionExpired = (user) => {
+    if (!user?.current_profile) return false
+
+    const hours = Number(siteSettings?.profile_selection_timeout_hours ?? 0)
+    if (!hours || hours <= 0) return false
+
+    const last = user.profile_last_activity_at
+    if (!last) return false
+
+    const lastMs = new Date(last).getTime()
+    if (Number.isNaN(lastMs)) return false
+
+    return (Date.now() - lastMs) > hours * 60 * 60 * 1000
+}
+
 const loadRoutes = () => {
     console.log('🔄 Cargando rutas principales...');
     const modules = import.meta.glob('./**/*.route.js', { eager: true });
@@ -293,14 +308,22 @@ AppRouter.beforeEach((to, from, next) => {
         return;
     }
 
-    // Redirigir a home si ya tiene perfil
-    if (to.name === 'profile.select' && currentUser?.current_profile) {
+    const profileExpired = isProfileSelectionExpired(currentUser)
+
+    // Perfil expirado por inactividad → pedir re-selección
+    if (profileExpired && to.name !== 'profile.select' && !['application.wizard', 'wizard.step'].includes(String(to.name))) {
+        next({ name: 'profile.select', replace: true });
+        return;
+    }
+
+    // Redirigir a home si ya tiene perfil (y no expiró)
+    if (to.name === 'profile.select' && currentUser?.current_profile && !profileExpired) {
         next({ name: 'home.index', replace: true });
         return;
     }
 
     // Permitir acceso a selección de perfil si no tiene perfil
-    if (to.name === 'profile.select' && currentUser && !currentUser.current_profile) {
+    if (to.name === 'profile.select' && currentUser && (!currentUser.current_profile || profileExpired)) {
         next();
         return;
     }

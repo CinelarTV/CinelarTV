@@ -7,7 +7,8 @@ class SessionController < ApplicationController
     render json: current_user_with_doorkeeper,
            serializer: CurrentUserSerializer,
            include_profiles: true,
-           current_profile_id: get_current_profile_id
+           current_profile_id: get_current_profile_id,
+           profile_last_activity_at: profile_activity_last_at
   end
 
   def profiles
@@ -68,18 +69,10 @@ class SessionController < ApplicationController
   end
 
   def get_current_profile_id
-    if using_doorkeeper?
-      doorkeeper_token.current_profile_id
-    else
-      session[:current_profile_id]
-    end
+    resolved_profile_id
   end
 
   def set_current_profile_id(profile_id)
-    if using_doorkeeper?
-      doorkeeper_token&.update_column(:current_profile_id, profile_id)
-    else
-      session[:current_profile_id] = profile_id
-    end
+    write_profile_selection!(profile_id)
   end
 end

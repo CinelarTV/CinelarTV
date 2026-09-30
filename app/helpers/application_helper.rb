@@ -143,11 +143,13 @@ module ApplicationHelper
     return nil unless current_user
 
     is_admin_page = request.path.start_with?("/admin")
+    profile_id = resolved_profile_id
 
     CurrentUserSerializer.new(current_user, {
                                 include_profiles: true,
                                 include_subscription: !is_admin_page,
-                                current_profile_id: session[:current_profile_id]
+                                current_profile_id: profile_id,
+                                profile_last_activity_at: profile_id.present? ? profile_activity_last_at : nil
                               }).serializable_hash
   end
 end
