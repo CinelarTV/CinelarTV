@@ -22,6 +22,7 @@ module Admin
               readonly: setting[:readonly],
               value: SiteSetting.send(setting[:key]),
               options: setting[:options],
+              json_schema: SiteSetting.json_schema_for(setting[:key]),
             }
           end
 

@@ -21,11 +21,14 @@ export default defineComponent({
         seasonId: { type: String, required: false, default: null },
         episodeId: { type: String, required: false, default: null },
         initialVideoSources: { type: Array as PropType<VideoSource[]>, default: () => [] },
+        // When false, the "upload file" tab is hidden and transcoding status is not shown.
+        // Should be bound to SiteSettings.enable_transcoding.
+        enableTranscoding: { type: Boolean, default: true },
     },
     setup(props) {
         const videoSources = ref<VideoSource[]>(props.initialVideoSources || []);
         const creating = ref(false);
-        const sourceType = ref<'file' | 'url'>('file');
+        const sourceType = ref<'file' | 'url'>(props.enableTranscoding ? 'file' : 'url');
         const urlInput = ref('');
         const uploading = ref(false);
         const uploadError = ref<string | null>(null);
@@ -260,7 +263,7 @@ export default defineComponent({
                                             </div>
 
                                             {/* Transcoding progress */}
-                                            {vs.status === 'processing' && (
+                                            {vs.status === 'processing' && props.enableTranscoding && (
                                                 <div class="mt-3">
                                                     <CTranscodingProgress
                                                         videoSourceId={vs.id!}
@@ -316,6 +319,7 @@ export default defineComponent({
 
                         {/* Source Type Toggle */}
                         <div class="flex gap-2 mb-6">
+                            {props.enableTranscoding && (
                             <button
                                 onClick={() => sourceType.value = 'file'}
                                 class={[
@@ -332,6 +336,7 @@ export default defineComponent({
                                 </svg>
                                 Subir archivo
                             </button>
+                            )}
                             <button
                                 onClick={() => sourceType.value = 'url'}
                                 class={[
@@ -349,8 +354,8 @@ export default defineComponent({
                             </button>
                         </div>
 
-                        {/* File Upload */}
-                        {sourceType.value === 'file' && (
+                        {/* File Upload — only when transcoding is enabled */}
+                        {sourceType.value === 'file' && props.enableTranscoding && (
                             <div>
                                 <input
                                     ref={fileInput}

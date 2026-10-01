@@ -408,51 +408,16 @@ monetization:
     default: false
     type: "boolean"
 
-  mercadopago_access_token:
+  # Configures one MercadoPago account per country/site_id.
+  # MercadoPago credentials are NOT interoperable across countries — each country
+  # requires its own account (access_token, public_key, etc.).
+  # Use the JSON editor in Admin → Settings → Monetization to add accounts.
+  mercadopago_accounts:
     client: false
     refresh: true
-    default: ""
-    type: "string"
-    secret: true
-
-  mercadopago_public_key:
-    client: true
-    refresh: true
-    default: ""
-    type: "string"
-
-  mercadopago_webhook_secret:
-    client: false
-    refresh: true
-    default: ""
-    type: "string"
-    secret: true
-
-  mercadopago_plan_id:
-    client: false
-    refresh: true
-    default: ""
-    type: "string"
-
-  mercadopago_application_id:
-    client: false
-    refresh: true
-    default: ""
-    type: "string"
-
-  mercadopago_site_id:
-    client: true
-    refresh: true
-    default: MLU
-    type: "enum"
-    allowed_values:
-      - MLA
-      - MLB
-      - MLC
-      - MLM
-      - MPE
-      - MCO
-      - MLU
+    default: "[]"
+    type: "json_schema"
+    json_schema: "SiteSettings::MercadoPagoAccountsSchema"
 
   lemonsqueezy_api_key:
     client: false

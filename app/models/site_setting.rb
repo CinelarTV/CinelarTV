@@ -29,7 +29,9 @@ class SiteSetting < RailsSettings::Base
                   hidden: options["hidden"] || false,
                   maxlength: options["maxlength"] || nil,
                   min: options["min"] || nil,
-                  max: options["max"] || nil
+                  max: options["max"] || nil,
+                  json_schema: options["json_schema"] || nil,
+                  secret: options["secret"] || false
           end
         end
       end
@@ -54,6 +56,33 @@ class SiteSetting < RailsSettings::Base
         settings[field[:key]] = send(field[:key]) if field_options && field_options[:exposed_to_client]
       end
       settings
+    end
+
+    # Returns the resolved JSON Schema hash for a json_schema setting, or nil.
+    # The yaml value can be either a class name string ("MercadoPagoAccountsSchema")
+    # or already a Hash (inline schema).
+    def json_schema_for(key)
+      field = defined_fields.find { |f| f[:key].to_s == key.to_s }
+      return nil unless field
+
+      schema_ref = field.dig(:options, :json_schema)
+      return nil if schema_ref.blank?
+
+      return schema_ref if schema_ref.is_a?(Hash)
+
+      schema_class = schema_ref.to_s.safe_constantize
+      return nil unless schema_class.respond_to?(:schema)
+
+      schema_class.schema
+    end
+
+    # Parse a json_schema setting value. Returns parsed array/hash or nil.
+    def get_json(key)
+      raw = get(key).to_s
+      return nil if raw.blank?
+      JSON.parse(raw)
+    rescue JSON::ParserError
+      nil
     end
 
     def reload_settings

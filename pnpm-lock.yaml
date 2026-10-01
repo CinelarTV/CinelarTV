@@ -29,6 +29,9 @@ importers:
       '@headlessui/vue':
         specifier: ^1.7.23
         version: 1.7.23(vue@3.5.18(typescript@5.6.3))
+      '@json-editor/json-editor':
+        specifier: ^2.17.2
+        version: 2.17.2
       '@melloware/coloris':
         specifier: ^0.21.0
         version: 0.21.1
@@ -1517,6 +1520,10 @@ packages:
   '@jridgewell/trace-mapping@0.3.29':
     resolution: {integrity: sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ==}
 
+  '@json-editor/json-editor@2.17.2':
+    resolution: {integrity: sha512-np0V7s3wSxMq76/GA4S9yDO7iPpX7rFbuCW1C8VqJ3uOZmwatFTV9tirFWKl0rn05PQrnU9MPGo6sP6LUt+kGw==}
+    engines: {node: '>= 0.8.0'}
+
   '@kurkle/color@0.3.2':
     resolution: {integrity: sha512-fuscdXJ9G1qb7W8VdHi+IwRqij3lBkosAm4ydQtEmbY58OzHXqQhvlxqEkoz0yssNVn38bcpRWgA9PP+OGoisw==}
 
@@ -2364,6 +2371,9 @@ packages:
 
   core-js-compat@3.39.0:
     resolution: {integrity: sha512-VgEUx3VwlExr5no0tXlBt+silBvhTryPwCXRI2Id1PN8WTKu7MreethvddqOubrYxkFdv/RnYrqlv1sFNAUelw==}
+
+  core-js@3.50.0:
+    resolution: {integrity: sha512-BRWgOLKkFeCgRudR6zrs8p9XJZcE14grzKMMssoYrk6krtuEZ7MTKPIY5RzOnqsEKIR9kst7wNzphttraT+Yqw==}
 
   crelt@1.0.6:
     resolution: {integrity: sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g==}
@@ -4893,6 +4903,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@json-editor/json-editor@2.17.2':
+    dependencies:
+      core-js: 3.50.0
+
   '@kurkle/color@0.3.2': {}
 
   '@melloware/coloris@0.21.1': {}
@@ -5751,6 +5765,8 @@ snapshots:
   core-js-compat@3.39.0:
     dependencies:
       browserslist: 4.24.2
+
+  core-js@3.50.0: {}
 
   crelt@1.0.6: {}
 

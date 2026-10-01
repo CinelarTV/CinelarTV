@@ -10,6 +10,7 @@ import CInput from '@/components/forms/c-input.vue';
 import CSelect from '@/components/forms/c-select.vue';
 import CTextarea from '@/components/forms/c-textarea.vue';
 import MonacoTools from '@/app/lib/MonacoTools';
+import JsonSchemaEditorModal from '@/components/admin/JsonSchemaEditorModal.vue';
 
 
 interface Setting {
@@ -19,6 +20,7 @@ interface Setting {
     label?: string;
     options?: any;
     category?: string;
+    json_schema?: Record<string, any> | null;
 }
 
 export default defineComponent({
@@ -26,6 +28,7 @@ export default defineComponent({
     components: {
         CColorPicker,
         CSplitList,
+        JsonSchemaEditorModal,
         'vue-monaco-editor': (window as any).VueMonacoEditor || undefined,
     },
     props: {
@@ -47,6 +50,19 @@ export default defineComponent({
 
         // Switch local state for reactivity
         const switchValues = ref<Record<string, boolean>>({});
+
+        // JSON schema editor modal state
+        const jsonEditorOpen = ref(false);
+        const jsonEditorSetting = ref<Setting | null>(null);
+
+        const openJsonEditor = (setting: Setting) => {
+            jsonEditorSetting.value = setting;
+            jsonEditorOpen.value = true;
+        };
+
+        const onJsonSchemaSave = (key: string, newValue: string) => {
+            updateValue(key, newValue);
+        };
 
         // Get I18n translation function
         const { $t } = getCurrentInstance()!.appContext.config.globalProperties;
@@ -372,6 +388,33 @@ export default defineComponent({
                                             </div>
                                         )}
 
+                                        {/* JSON Schema structured editor */}
+                                        {setting.type === 'json_schema' && setting.json_schema && (
+                                            <div class="flex items-center justify-end gap-2">
+                                                <span class="text-xs text-white/40">
+                                                    {(() => {
+                                                        const raw = settings.value[setting.key];
+                                                        try {
+                                                            const parsed = raw ? JSON.parse(raw) : null;
+                                                            const count = Array.isArray(parsed) ? parsed.length : null;
+                                                            if (count !== null) return `${count} item${count !== 1 ? 's' : ''}`;
+                                                            return parsed ? '1 item' : 'Sin configurar';
+                                                        } catch {
+                                                            return 'JSON inválido';
+                                                        }
+                                                    })()}
+                                                </span>
+                                                <CButton
+                                                    variant="ghost"
+                                                    icon="pencil"
+                                                    size="sm"
+                                                    onClick={() => openJsonEditor(setting)}
+                                                >
+                                                    Editar
+                                                </CButton>
+                                            </div>
+                                        )}
+
                                         {/* Code editor */}
                                         {setting.type === 'code' && (
                                             <div class="settings-panel__code">
@@ -427,6 +470,18 @@ export default defineComponent({
                         </button>
                     </div>
                 </form>
+
+                {/* JSON Schema editor modal — rendered outside the form to avoid submit conflicts */}
+                {jsonEditorSetting.value && (
+                    <JsonSchemaEditorModal
+                        modelValue={jsonEditorOpen.value}
+                        onUpdate:modelValue={(v: boolean) => { jsonEditorOpen.value = v; }}
+                        settingKey={jsonEditorSetting.value.key}
+                        schema={jsonEditorSetting.value.json_schema!}
+                        value={settings.value[jsonEditorSetting.value.key] ?? jsonEditorSetting.value.value ?? ''}
+                        onSave={(newValue: string) => onJsonSchemaSave(jsonEditorSetting.value!.key, newValue)}
+                    />
+                )}
             </div>
         );
     },

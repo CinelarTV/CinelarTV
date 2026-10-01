@@ -5,12 +5,21 @@ module Subscriptions
     class MercadoPagoProvider < BaseProvider
       API_BASE_URL = "https://api.mercadopago.com"
 
+      # Optional site_id override. When nil, uses the first enabled account.
+      # Set by calling MercadoPagoProvider.new(site_id: "MLU")
+      attr_reader :site_id
+
+      def initialize(site_id: nil)
+        @site_id = site_id.to_s.upcase.presence
+      end
+
       def provider_key
         "mercado_pago"
       end
 
       def verify_webhook!(request)
-        return true if SiteSetting.mercadopago_webhook_secret.blank?
+        secret = current_account_webhook_secret(request)
+        return true if secret.blank?
 
         signature_header = request.headers["X-Signature"].to_s
         signature_header = request.headers["x-signature"].to_s if signature_header.blank?
@@ -27,7 +36,7 @@ module Subscriptions
                   parse_payload(request).dig("data", "id")
 
         manifest = webhook_manifest(data_id: data_id, request_id: request_id, ts: signature_parts[:ts])
-        local_signature = OpenSSL::HMAC.hexdigest("SHA256", SiteSetting.mercadopago_webhook_secret, manifest)
+        local_signature = OpenSSL::HMAC.hexdigest("SHA256", secret, manifest)
         secure_compare_hex(local_signature, signature_parts[:v1])
       end
 
@@ -65,17 +74,22 @@ module Subscriptions
       end
 
       def start_checkout(subscription:, return_url:)
-        plan_id = SiteSetting.mercadopago_plan_id.to_s
+        plan_id = account_value(:plan_id).to_s
         validate_credentials_consistency!
 
         offering = Billing::Offering.current
+        # Use the per-account price if configured, falling back to the global Offering
+        account = resolve_account
+        amount = account ? (account["amount_cents"].to_i / 100.0) : offering.amount
+        currency_id = account ? account["currency"].to_s : offering.currency
+
         payload = if plan_id.present?
                     preapproval_payload_with_plan(
                       subscription.user,
                       plan_id:,
                       success_url: return_url,
-                      amount: offering.amount,
-                      currency_id: offering.currency,
+                      amount: amount,
+                      currency_id: currency_id,
                       frequency: offering.interval_count,
                       frequency_type: "#{offering.interval_unit}s",
                       external_reference: subscription.id
@@ -84,8 +98,8 @@ module Subscriptions
                     preapproval_payload_without_plan(
                       subscription.user,
                       success_url: return_url,
-                      amount: offering.amount,
-                      currency_id: offering.currency,
+                      amount: amount,
+                      currency_id: currency_id,
                       frequency: offering.interval_count,
                       frequency_type: "#{offering.interval_unit}s",
                       external_reference: subscription.id
@@ -438,7 +452,7 @@ module Subscriptions
           }.compact,
           metadata: {
             user_id: user.id,
-            site_id: SiteSetting.mercadopago_site_id.presence || "MLU"
+            site_id: account_value(:site_id).presence || "MLU"
           }.compact
         }
       end
@@ -460,7 +474,7 @@ module Subscriptions
           },
           metadata: {
             user_id: user.id,
-            site_id: SiteSetting.mercadopago_site_id.presence || "MLU"
+            site_id: account_value(:site_id).presence || "MLU"
           }.compact
         }
       end
@@ -501,8 +515,8 @@ module Subscriptions
 
         if normalized_message.include?("cannot operate between different countries")
           return "Country mismatch: collector account, plan, and payer/card token must belong to the same country/site. " \
-                 "Align mercadopago_access_token, mercadopago_public_key, mercadopago_plan_id and SiteSetting.mercadopago_site_id=" \
-                 "#{SiteSetting.mercadopago_site_id}."
+                 "Ensure the account configured for site_id=#{account_value(:site_id) || "unknown"} in " \
+                 "mercadopago_accounts has matching access_token, public_key, plan_id and currency for that country."
         end
 
         if normalized_message.include?("both payer and collector must be real or test users")
@@ -514,14 +528,15 @@ module Subscriptions
       end
 
       def validate_credentials_consistency!
-        access_token_mode = credential_mode(SiteSetting.mercadopago_access_token)
-        public_key_mode = credential_mode(SiteSetting.mercadopago_public_key)
+        access_token_mode = credential_mode(account_value(:access_token))
+        public_key_mode = credential_mode(account_value(:public_key))
 
         return if access_token_mode == :unknown || public_key_mode == :unknown
         return if access_token_mode == public_key_mode
 
-        raise "MercadoPago credentials mismatch: mercadopago_access_token is #{access_token_mode.upcase} and " \
-              "mercadopago_public_key is #{public_key_mode.upcase}. Use both TEST-* or both APP_USR-* credentials."
+        raise "MercadoPago credentials mismatch: access_token is #{access_token_mode.upcase} and " \
+              "public_key is #{public_key_mode.upcase} for site_id=#{account_value(:site_id) || "unknown"}. " \
+              "Use both TEST-* or both APP_USR-* credentials."
       end
 
       def credential_mode(value)
@@ -533,8 +548,9 @@ module Subscriptions
       end
 
       def auth_headers
-        token = SiteSetting.mercadopago_access_token.to_s
-        raise "MercadoPago access token is missing" if token.blank?
+        token = account_value(:access_token).to_s
+        raise "MercadoPago access token is missing for site_id=#{@site_id || "default"}. " \
+              "Configure it in Admin → Settings → Monetization → mercadopago_accounts." if token.blank?
 
         {
           "Authorization" => "Bearer #{token}",
@@ -590,7 +606,7 @@ module Subscriptions
       end
 
       def configured_application_id
-        SiteSetting.mercadopago_application_id.to_s.presence
+        account_value(:application_id).to_s.presence
       end
 
       def filter_plans_by_application(plans, application_id)
@@ -600,24 +616,66 @@ module Subscriptions
       end
 
       def mercadopago_host
-        site_id = SiteSetting.mercadopago_site_id.to_s.upcase
+        resolved_site_id = account_value(:site_id).to_s.upcase.presence || "MLU"
 
-        case site_id
-        when "MLA"
-          "mercadopago.com.ar"
-        when "MLB"
-          "mercadopago.com.br"
-        when "MLC"
-          "mercadopago.cl"
-        when "MLM"
-          "mercadopago.com.mx"
-        when "MPE"
-          "mercadopago.com.pe"
-        when "MCO"
-          "mercadopago.com.co"
-        else
-          "mercadopago.com.uy"
+        case resolved_site_id
+        when "MLA" then "mercadopago.com.ar"
+        when "MLB" then "mercadopago.com.br"
+        when "MLC" then "mercadopago.cl"
+        when "MLM" then "mercadopago.com.mx"
+        when "MPE" then "mercadopago.com.pe"
+        when "MCO" then "mercadopago.com.co"
+        else            "mercadopago.com.uy"
         end
+      end
+
+      # ── Account resolution ────────────────────────────────────────────────────
+      #
+      # Resolves the MercadoPago account to use for this provider instance.
+      # If @site_id is set (e.g. via GeoIP), finds the matching enabled account.
+      # Otherwise falls back to the first enabled account in the list.
+      #
+      # Returns nil if mercadopago_accounts is empty or unparseable.
+      def resolve_account
+        return @resolved_account if defined?(@resolved_account)
+
+        raw = SiteSetting.mercadopago_accounts.to_s
+        return (@resolved_account = nil) if raw.blank? || raw == "[]"
+
+        accounts = JSON.parse(raw)
+        @resolved_account = if @site_id.present?
+          SiteSettings::MercadoPagoAccountsSchema.account_for(@site_id, accounts)
+        else
+          accounts.find { |a| a.is_a?(Hash) && a["enabled"] != false }
+        end
+      rescue JSON::ParserError
+        @resolved_account = nil
+      end
+
+      # Returns the value of a field from the resolved account, or nil.
+      def account_value(field)
+        resolve_account&.dig(field.to_s)
+      end
+
+      # Resolves the webhook secret for incoming requests. For webhooks we cannot
+      # know the site_id upfront, so we try the resolved account first and then
+      # fall back to checking all enabled accounts (MP sends one webhook per account).
+      def current_account_webhook_secret(request)
+        # Prefer the already-resolved account's secret
+        secret = account_value(:webhook_secret).to_s.presence
+        return secret if secret.present?
+
+        # If no site_id was set, check all accounts for one that has a secret
+        all_accounts_secrets
+      end
+
+      def all_accounts_secrets
+        raw = SiteSetting.mercadopago_accounts.to_s
+        return nil if raw.blank?
+        accounts = JSON.parse(raw)
+        accounts.map { |a| a.is_a?(Hash) ? a["webhook_secret"].to_s.presence : nil }.compact.first
+      rescue JSON::ParserError
+        nil
       end
     end
   end

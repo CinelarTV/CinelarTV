@@ -33,11 +33,17 @@ module Subscriptions
           build(key)
         end
 
-        def build(key)
+        def build(key, site_id: nil)
           provider_class_name = PROVIDERS[key.to_s]
           raise ArgumentError, "Unknown subscription provider: #{key}" if provider_class_name.blank?
 
-          provider_class_name.constantize.new
+          klass = provider_class_name.constantize
+          # MercadoPagoProvider accepts an optional site_id to select the right account
+          if site_id.present? && klass.instance_method(:initialize).parameters.any? { |_, n| n == :site_id }
+            klass.new(site_id: site_id)
+          else
+            klass.new
+          end
         end
 
         def enabled?(key)

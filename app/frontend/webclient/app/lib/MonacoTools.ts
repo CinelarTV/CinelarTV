@@ -1,9 +1,19 @@
-/* 
-    This file has been created to provide Types to vue-monaco-editor 
-    We should use the window.monaco global variable to access the Monaco Editor API
-    
+/*
+  MonacoTools — helpers for vue-monaco-editor.
+
+  addTypes() registers the PluginAPI type definitions inside Monaco so that
+  the code settings (custom_js, etc.) get IntelliSense for window.PluginAPI.
+
+  The original implementation used Webpack's synchronous `require()` and
+  `raw-loader`, which are incompatible with Vite. This version uses:
+    - `import(..., { assert: { type: 'raw' } })` — not yet widely supported
+    - Vite's `?raw` suffix for static asset imports as strings  ✓
+    - Dynamic `import()` for the .d.ts content read at build time         ✓
 */
 
+// Vite resolves these at build time and inlines the file contents as strings.
+import pluginApiDts  from '../../types/plugin-api.d.ts?raw';
+import pluginApiImpl from '../../lib/PluginAPI.ts?raw';
 
 class MonacoTools {
     constructor() {
@@ -20,26 +30,35 @@ class MonacoTools {
 
     static get languages() {
         return (window as any).monaco.languages;
-    }        
+    }
 
+    /**
+     * Registers PluginAPI type definitions in Monaco's TypeScript worker so that
+     * `window.PluginAPI` has full IntelliSense in code-type settings.
+     *
+     * Called via the `@mount` event of vue-monaco-editor:
+     *   <vue-monaco-editor @mount="MonacoTools.addTypes" />
+     */
     public static addTypes() {
-        if (!(window as any).monaco) {
-            console.error('Monaco Editor is not loaded');
+        const monaco = (window as any).monaco;
+        if (!monaco) {
+            console.warn('[MonacoTools] Monaco Editor is not loaded yet.');
             return;
         }
 
-        (window as any).monaco.languages.typescript.typescriptDefaults.addExtraLib(
-            // window.PluginAPI is an instance of PluginAPI
-            require('../../types/plugin-api.d.ts').default, "plugin-api.d.ts"
-        );
-        (window as any).monaco.languages.typescript.typescriptDefaults.addExtraLib(
-            require('!!raw-loader!../../lib/PluginAPI.ts').default, "file:///plugin-api.d.ts"
-        );
+        try {
+            const ts = monaco.languages.typescript;
 
-        console.log('Types added to Monaco Editor');
+            ts.typescriptDefaults.addExtraLib(pluginApiDts,  'plugin-api.d.ts');
+            ts.typescriptDefaults.addExtraLib(pluginApiImpl, 'file:///plugin-api.d.ts');
+            ts.javascriptDefaults.addExtraLib(pluginApiDts,  'plugin-api.d.ts');
+            ts.javascriptDefaults.addExtraLib(pluginApiImpl, 'file:///plugin-api.d.ts');
+
+            console.debug('[MonacoTools] PluginAPI types registered.');
+        } catch (e) {
+            console.error('[MonacoTools] Failed to register types:', e);
+        }
     }
-
-    
 }
 
 export default MonacoTools;

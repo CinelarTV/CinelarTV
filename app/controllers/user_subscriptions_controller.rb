@@ -25,7 +25,8 @@ class UserSubscriptionsController < ApplicationController
           geo: {
             country_code: country_code,
             country_name: ip_info[:country],
-            recommended_provider: recommend_provider(country_code)
+            recommended_provider: recommend_provider(country_code),
+            mp_site_id: COUNTRY_TO_MP_SITE_ID[country_code.to_s.upcase]
           }
         }
       end
@@ -124,12 +125,44 @@ class UserSubscriptionsController < ApplicationController
 
   def set_provider
     requested_provider = params[:provider].to_s.presence
+
     if requested_provider.present? && ::Subscriptions::Providers::Registry.enabled?(requested_provider)
-      @provider = ::Subscriptions::Providers::Registry.build(requested_provider)
+      @provider = ::Subscriptions::Providers::Registry.build(requested_provider, site_id: geoip_site_id)
     else
-      @provider = ::Subscriptions::Providers::Registry.current
+      # If the user already has an open subscription, keep its provider
+      existing = current_user.subscriptions.open.order(updated_at: :desc).first
+      if existing
+        @provider = ::Subscriptions::Providers::Registry.build(existing.provider_key, site_id: geoip_site_id)
+      else
+        @provider = ::Subscriptions::Providers::Registry.current
+        # Inject site_id if the resolved provider is MercadoPago
+        if @provider.respond_to?(:site_id) && geoip_site_id.present?
+          @provider = ::Subscriptions::Providers::Registry.build(@provider.provider_key, site_id: geoip_site_id)
+        end
+      end
     end
   end
+
+  # Maps the user's GeoIP country code to a MercadoPago site_id.
+  # Returns nil for countries not covered by MP.
+  def geoip_site_id
+    return @geoip_site_id if defined?(@geoip_site_id)
+
+    ip = request.headers["CF-Connecting-IP"] || request.remote_ip
+    country = IpInfo.lookup(ip)[:country_code].to_s.upcase
+
+    @geoip_site_id = COUNTRY_TO_MP_SITE_ID[country]
+  end
+
+  COUNTRY_TO_MP_SITE_ID = {
+    "AR" => "MLA",  # Argentina
+    "BR" => "MLB",  # Brazil
+    "CL" => "MLC",  # Chile
+    "MX" => "MLM",  # Mexico
+    "PE" => "MPE",  # Peru
+    "CO" => "MCO",  # Colombia
+    "UY" => "MLU"   # Uruguay
+  }.freeze
 
   def provider_label(provider_key)
     ::Subscriptions::Providers::Registry.label_for(provider_key)
@@ -167,4 +200,5 @@ class UserSubscriptionsController < ApplicationController
     return "mercado_pago" if country_code.present? && MERCADOPAGO_COUNTRIES.include?(country_code)
     "paypal"
   end
+
 end

@@ -1,1101 +1,1585 @@
 <template>
-    <div v-if="loading" class="flex items-center justify-center min-h-[400px]">
-        <div class="flex flex-col items-center gap-3">
-            <div class="animate-spin rounded-full h-12 w-12 border-2 border-white/30 border-t-[#00A8E1]"></div>
-            <p class="text-white/60 text-sm font-medium">Cargando...</p>
+  <div v-if="loading" class="edit-page__loader">
+    <div class="edit-page__loader-spinner" />
+    <p class="edit-page__loader-text">Cargando contenido…</p>
+  </div>
+
+  <div v-else class="edit-page">
+    <!-- ── Hero header ─────────────────────────────────────────────────────── -->
+    <div
+      class="edit-page__hero"
+      :style="content.banner ? `--hero-backdrop: url(${content.banner})` : ''"
+    >
+      <div class="edit-page__hero-backdrop" />
+      <div class="edit-page__hero-inner">
+        <button class="edit-page__back-btn" @click="router.back()">
+          <CIcon icon="arrowLeft" :size="18" />
+        </button>
+
+        <div class="edit-page__hero-meta">
+          <div class="edit-page__hero-badges">
+            <span class="edit-page__type-chip">
+              {{ contentTypeLabel }}
+            </span>
+            <span
+              v-if="editedData.available"
+              class="edit-page__status-chip edit-page__status-chip--available"
+            >
+              <CIcon icon="eye" :size="11" />
+              Publicado
+            </span>
+            <span v-else class="edit-page__status-chip edit-page__status-chip--hidden">
+              <CIcon icon="eyeOff" :size="11" />
+              Oculto
+            </span>
+            <span v-if="editedData.premium" class="edit-page__status-chip edit-page__status-chip--premium">
+              <CIcon icon="sparkles" :size="11" />
+              Premium
+            </span>
+          </div>
+
+          <h1 class="edit-page__hero-title">
+            {{ editedData.title || content.title || 'Sin título' }}
+          </h1>
+
+          <p v-if="scheduledCountdown" class="edit-page__scheduled-hint">
+            <CIcon icon="clock" :size="13" />
+            Estreno {{ scheduledCountdown }}
+          </p>
         </div>
+
+        <!-- Quick save -->
+        <div class="edit-page__hero-actions">
+          <CButton
+            variant="primary"
+            icon="check"
+            :loading="loadingButton"
+            @click="saveContent"
+          >
+            Guardar
+          </CButton>
+          <CButton
+            variant="danger"
+            icon="trash2"
+            @click="deleteContent"
+          />
+        </div>
+      </div>
     </div>
 
-    <div v-else class="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center gap-4 mb-2">
-                <button @click="router.back()" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="w-5 h-5">
-                        <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                </button>
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-white">
-                        Editar contenido
-                    </h1>
-                    <p class="text-sm text-white/60 mt-1">
-                        {{ editedData.title || content.title }}
-                    </p>
-                </div>
+    <!-- ── Body ───────────────────────────────────────────────────────────── -->
+    <div class="edit-page__body">
+      <!-- Left rail ─ tabs navigation -->
+      <nav class="edit-page__nav">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          class="edit-page__nav-item"
+          :class="{ 'edit-page__nav-item--active': activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          <CIcon :icon="tab.icon" :size="16" />
+          <span>{{ tab.label }}</span>
+        </button>
+      </nav>
+
+      <!-- Main content area -->
+      <div class="edit-page__main">
+
+        <!-- ══ TAB: General ══════════════════════════════════════════════════ -->
+        <section v-show="activeTab === 'general'" class="edit-page__section-grid">
+
+          <!-- Basic info -->
+          <div class="edit-card">
+            <h2 class="edit-card__title">
+              <CIcon icon="fileText" :size="16" />
+              Información básica
+            </h2>
+
+            <div class="edit-card__fields">
+              <CFormRow label="Título">
+                <c-input v-model="editedData.title" placeholder="Título del contenido" />
+              </CFormRow>
+
+              <CFormRow label="Tipo">
+                <c-select :options="contentTypes" v-model="editedData.content_type" />
+              </CFormRow>
+
+              <CFormRow label="Descripción">
+                <c-textarea v-model="editedData.description" placeholder="Sinopsis…" :rows="4" />
+              </CFormRow>
+
+              <CFormRow label="Año">
+                <c-input type="number" v-model="editedData.year" placeholder="2024" />
+              </CFormRow>
             </div>
-        </div>
+          </div>
 
-        <!-- Scheduled Launch Banner -->
-        <div v-if="scheduledCountdown"
-            class="mb-6 flex items-center gap-3 rounded-xl bg-blue-500/10 border border-blue-500/20 px-5 py-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="text-blue-400 shrink-0">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <p class="text-sm text-blue-200">
-                Este contenido se estrena <span class="font-semibold text-blue-100">{{ scheduledCountdown }}</span>
-            </p>
-        </div>
-
-        <!-- Main Form -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left Column - Basic Info -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Basic Information -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <h2 class="text-lg font-semibold text-white mb-4">
-                        Información básica
-                    </h2>
-                    <div class="space-y-4">
-                        <c-input v-model="editedData.title" placeholder="Título" label="Título" />
-
-                        <c-select :options="contentTypes" v-model="editedData.content_type" label="Tipo de contenido" />
-
-                        <c-textarea placeholder="Descripción" v-model="editedData.description" label="Descripción"
-                            :rows="4" />
-
-                        <c-input type="number" placeholder="Año" v-model="editedData.year" label="Año" />
-
-                        <!-- Categories -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="block text-sm font-medium text-white/80">
-                                    Categorías
-                                </label>
-                                <button v-if="content.tmdb_id && SiteSettings.enable_category_auto_assignment"
-                                    @click="syncCategoriesFromTmdb"
-                                    :disabled="syncingCategories"
-                                    class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <span v-if="syncingCategories">Sincronizando...</span>
-                                    <span v-else>Sincronizar de TMDB</span>
-                                </button>
-                            </div>
-                            <div v-if="categoriesLoading" class="text-white/60 text-sm">
-                                Cargando categorías...
-                            </div>
-                            <div v-else class="space-y-2 max-h-48 overflow-y-auto">
-                                <label v-for="category in categories" :key="category.id"
-                                    class="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
-                                    <input type="checkbox" :value="category.id" v-model="editedData.category_ids"
-                                        class="w-4 h-4 rounded border-white/30 bg-white/10 text-[#00A8E1] focus:ring-[#00A8E1] focus:ring-offset-0" />
-                                    <span class="text-white/80 text-sm">{{ category.name }}</span>
-                                </label>
-                            </div>
-                            <p v-if="categories.length === 0 && !categoriesLoading" class="text-white/40 text-sm mt-2">
-                                No hay categorías disponibles.
-                                <a href="/admin/content-manager/categories" class="text-[#00A8E1] hover:underline ml-1">
-                                    Crear categorías
-                                </a>
-                            </p>
-                        </div>
-
-                        <!-- Content Rating -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="block text-sm font-medium text-white/80">
-                                    Clasificación por edad
-                                </label>
-                                <button v-if="content.tmdb_id" @click="syncRatingFromTmdb"
-                                    :disabled="syncingRating"
-                                    class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <span v-if="syncingRating">Sincronizando...</span>
-                                    <span v-else>Obtener de TMDB</span>
-                                </button>
-                            </div>
-                            <div v-if="ratingsLoading" class="text-white/60 text-sm">
-                                Cargando clasificaciones...
-                            </div>
-                            <div v-else class="space-y-3">
-                                <c-select
-                                    :options="ratingOptions"
-                                    v-model="editedData.content_rating_id"
-                                    label="Rating"
-                                    placeholder="Seleccionar clasificación..."
-                                />
-                                <div v-if="editedData.content_rating_id" class="flex items-center gap-2">
-                                    <span class="text-xs text-white/40">Actual:</span>
-                                    <span class="text-xs px-2 py-0.5 rounded bg-white/10 text-white/80">
-                                        {{ currentRatingLabel }}
-                                    </span>
-                                    <button v-if="editedData.content_rating_id"
-                                        @click="editedData.content_rating_id = null"
-                                        class="text-xs text-red-400 hover:text-red-300">
-                                        Limpiar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Content Descriptors -->
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-2">
-                                Descriptores de contenido
-                            </label>
-                            <div v-if="descriptorsLoading" class="text-white/60 text-sm">
-                                Cargando descriptores...
-                            </div>
-                            <div v-else class="space-y-2 max-h-64 overflow-y-auto">
-                                <label v-for="descriptor in descriptors" :key="descriptor.key"
-                                    class="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
-                                    <input type="checkbox" :value="descriptor.key" v-model="editedData.descriptor_keys"
-                                        class="w-4 h-4 rounded border-white/30 bg-white/10 text-[#00A8E1] focus:ring-[#00A8E1] focus:ring-offset-0" />
-                                    <div class="flex-1 min-w-0">
-                                        <span class="text-white/80 text-sm">{{ descriptor.name }}</span>
-                                        <span class="text-[10px] text-white/40 ml-1">({{ descriptor.category }})</span>
-                                    </div>
-                                    <span :class="{
-                                        'bg-green-500/20 text-green-400': descriptor.severity_level === 1,
-                                        'bg-yellow-500/20 text-yellow-400': descriptor.severity_level === 2,
-                                        'bg-red-500/20 text-red-400': descriptor.severity_level === 3
-                                    }" class="text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                                        {{ descriptor.severity_level === 1 ? 'Bajo' : descriptor.severity_level === 2 ? 'Medio' : 'Alto' }}
-                                    </span>
-                                </label>
-                            </div>
-                            <p v-if="descriptors.length === 0 && !descriptorsLoading" class="text-white/40 text-sm mt-2">
-                                No hay descriptores disponibles.
-                            </p>
-                            <div v-if="editedData.descriptor_keys?.length > 0" class="mt-2 flex flex-wrap gap-1">
-                                <span v-for="key in editedData.descriptor_keys" :key="key"
-                                    class="text-[10px] px-2 py-0.5 rounded-full bg-[#00A8E1]/20 text-[#00A8E1]">
-                                    {{ getDescriptorName(key) }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Images -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <h2 class="text-lg font-semibold text-white mb-4">
-                        Imágenes
-                    </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-2">
-                                Poster (2:3)
-                            </label>
-                            <c-image-upload v-model="editedData.cover" :modelValue="editedData.cover || content.cover"
-                                aspect-ratio="2:3" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-2">
-                                Backdrop (16:9)
-                            </label>
-                            <c-image-upload v-model="editedData.banner"
-                                :modelValue="editedData.banner || content.banner" aspect-ratio="16:9" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Logo Manager -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h2 class="text-lg font-semibold text-white">
-                                Logo
-                            </h2>
-                            <p class="text-sm text-white/50 mt-1">
-                                Logotipo del contenido (PNG/WebP transparente). Reemplaza el título en el carrusel y detalle.
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <button v-if="content.images?.logo?.original?.webp" @click="deleteLogo"
-                                class="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors">
-                                Eliminar
-                            </button>
-                            <button v-if="content.tmdb_id" @click="syncLogoFromTmdb"
-                                :disabled="syncingLogo"
-                                class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span v-if="syncingLogo">Sincronizando...</span>
-                                <span v-else>Obtener de TMDB</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-2">
-                                Logo del contenido
-                            </label>
-                            <c-image-upload v-model="editedData.logo"
-                                :modelValue="editedData.logo || content.images?.logo?.original?.webp"
-                                aspect-ratio="3:1" />
-                        </div>
-                        <div v-if="content.images?.logo?.original?.webp" class="flex flex-col gap-2">
-                            <label class="block text-sm font-medium text-white/80 mb-2">
-                                Preview actual
-                            </label>
-                            <div class="rounded-lg bg-black/30 p-4 flex items-center justify-center min-h-[100px]">
-                                <img :src="content.images.logo.original.webp" alt="Logo preview"
-                                    class="max-h-16 object-contain" />
-                            </div>
-                            <p class="text-[11px] text-white/40">
-                                Variantes: {{ Object.keys(content.images.logo).join(', ') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Trailer -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-semibold text-white">
-                                Trailer
-                            </h2>
-                            <p class="text-sm text-white/60 mt-1">
-                                {{ hasTrailer ? trailerSummary : 'No trailer configured' }}
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <button v-if="hasTrailer" @click="deleteTrailer"
-                                class="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors">
-                                Delete
-                            </button>
-                            <CButton @click="trailerModalRef?.setIsOpen(true)">
-                                {{ hasTrailer ? 'Edit' : 'Add' }}
-                            </CButton>
-                        </div>
-                    </div>
-                </div>
-                <CTrailerManagerModal :content-id="content.id" ref="trailerModalRef" @updated="fetchContent" />
-
-                <!-- Video Sources - Only for Movies -->
-                <CVideoableManager v-if="(editedData.content_type || content.content_type) !== 'TVSHOW'" :content-id="content.id" :season-id="seasonId" :episode-id="episodeId"
-                    :initial-video-sources="content.video_sources" @video-source-added="fetchContent" />
+          <!-- Categories -->
+          <div class="edit-card">
+            <div class="edit-card__header">
+              <h2 class="edit-card__title">
+                <CIcon icon="tag" :size="16" />
+                Categorías
+              </h2>
+              <button
+                v-if="content.tmdb_id && SiteSettings.enable_category_auto_assignment"
+                class="edit-card__sync-btn"
+                :disabled="syncingCategories"
+                @click="syncCategoriesFromTmdb"
+              >
+                <CIcon icon="refreshCw" :size="13" :class="syncingCategories ? 'animate-spin' : ''" />
+                {{ syncingCategories ? 'Sincronizando…' : 'TMDB' }}
+              </button>
             </div>
 
-            <!-- Right Column - Settings -->
-            <div class="space-y-6">
-                <!-- Status -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <h2 class="text-lg font-semibold text-white mb-4">
-                        Estado
-                    </h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-white/80">
-                                Disponible para usuarios
-                            </span>
-                            <button @click="editedData.available = !editedData.available"
-                                :class="editedData.available ? 'bg-[#00A8E1]' : 'bg-white/20'"
-                                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A8E1] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]">
-                                <span :class="editedData.available ? 'translate-x-6' : 'translate-x-1'"
-                                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
-                            </button>
-                        </div>
-
-                        <div
-                            class="flex items-center justify-between p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-                            <div>
-                                <p class="text-xs font-bold text-white uppercase tracking-wider">Premium</p>
-                                <p class="text-[10px] text-white/40">Solo suscriptores</p>
-                            </div>
-                            <button @click="editedData.premium = !editedData.premium"
-                                :class="editedData.premium ? 'bg-yellow-500' : 'bg-white/20'"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none">
-                                <span :class="editedData.premium ? 'translate-x-5' : 'translate-x-1'"
-                                    class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
-                            </button>
-                        </div>
-
-                        <!-- Scheduled Launch -->
-                        <div class="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <p class="text-xs font-bold text-white uppercase tracking-wider">Programar estreno</p>
-                                    <p class="text-[10px] text-white/40">Publicar automticamente</p>
-                                </div>
-                                <button @click="toggleSchedule"
-                                    :class="isScheduled ? 'bg-blue-500' : 'bg-white/20'"
-                                    class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none">
-                                    <span :class="isScheduled ? 'translate-x-5' : 'translate-x-1'"
-                                        class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform" />
-                                </button>
-                            </div>
-
-                            <div v-if="isScheduled" class="mt-3 space-y-2">
-                                <div class="flex gap-2">
-                                    <CInput type="date"
-                                        v-model="scheduleDate"
-                                        :min="todayStr"
-                                        class="flex-1" />
-                                    <CSelect v-model="scheduleHour"
-                                        :options="hours.map(h => ({ label: h + ':00', value: h }))" />
-                                </div>
-                                <p class="text-[10px] text-blue-300/70">
-                                    Se publicará el {{ formattedScheduleDate }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Merchandising Badge -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10">
-                    <h2 class="text-lg font-semibold text-white mb-4">
-                        Merchandising Badge
-                    </h2>
-                    <p class="text-sm text-white/50 mb-4">
-                        Badge inline que se muestra en el hero y detalle del contenido.
-                    </p>
-
-                    <div class="space-y-4">
-                        <c-select
-                            :options="badgeTypeOptions"
-                            v-model="badge.badge_type"
-                            label="Tipo"
-                        />
-
-                        <c-input
-                            v-model="badge.label"
-                            placeholder="Texto del badge"
-                            label="Label"
-                        />
-
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-1">
-                                Icono
-                            </label>
-                            <CIconPicker v-model="badge.icon" placeholder="Seleccionar icono…" />
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-1">
-                                Color
-                            </label>
-                            <div class="flex items-center gap-3">
-                                <input
-                                    type="color"
-                                    v-model="badge.color"
-                                    class="w-10 h-10 rounded-lg border border-white/20 bg-transparent cursor-pointer"
-                                />
-                                <c-input
-                                    v-model="badge.color"
-                                    placeholder="#ffffff"
-                                    class="flex-1"
-                                />
-                            </div>
-                        </div>
-
-                        <div v-if="showBadgeExpiry">
-                            <c-input
-                                type="datetime-local"
-                                v-model="badge.expires_at"
-                                label="Expira el"
-                            />
-                        </div>
-
-                        <div class="flex gap-2 pt-2">
-                            <c-button @click="saveBadge" :loading="loadingButton" class="flex-1 justify-center">
-                                {{ hasBadge ? 'Actualizar' : 'Crear' }} badge
-                            </c-button>
-                            <c-button
-                                v-if="hasBadge"
-                                @click="deleteBadge"
-                                class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
-                            >
-                                Eliminar
-                            </c-button>
-                        </div>
-
-                        <div v-if="hasBadge" class="rounded-lg bg-white/5 p-3 ring-1 ring-white/10">
-                            <p class="text-xs text-white/40 mb-2">Preview:</p>
-                            <span
-                                class="inline-flex items-center gap-1.5 text-sm"
-                                :style="{ color: badge.color || 'rgba(255,255,255,0.8)' }"
-                            >
-                                <c-icon v-if="badge.icon" :icon="badge.icon" :size="14" />
-                                {{ badge.label || 'Badge text' }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="bg-white/5 rounded-xl p-6 ring-1 ring-white/10 space-y-3">
-                    <h2 class="text-lg font-semibold text-white mb-4">
-                        Acciones
-                    </h2>
-                    <c-button @click="saveContent" :loading="loadingButton" class="w-full justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="w-4 h-4 mr-2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17 21 17 13 7 13 7 21" />
-                            <polyline points="7 3 7 8 15 8" />
-                        </svg>
-                        Guardar cambios
-                    </c-button>
-
-                    <c-button
-                        class="w-full justify-center bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
-                        @click="deleteContent">
-                        <Trash2Icon class="w-4 h-4 mr-2" />
-                        Eliminar contenido
-                    </c-button>
-                </div>
+            <div v-if="categoriesLoading" class="edit-card__loading">
+              <div class="edit-card__loading-dot" />
+              Cargando…
             </div>
-        </div>
+            <div v-else-if="categories.length === 0" class="edit-card__empty">
+              No hay categorías.
+              <a href="/admin/content-manager/categories" class="edit-card__link">Crear categorías</a>
+            </div>
+            <div v-else class="edit-card__chip-grid">
+              <label
+                v-for="cat in categories"
+                :key="cat.id"
+                class="edit-card__chip"
+                :class="{ 'edit-card__chip--active': editedData.category_ids?.includes(cat.id) }"
+              >
+                <input
+                  type="checkbox"
+                  :value="cat.id"
+                  v-model="editedData.category_ids"
+                  class="sr-only"
+                />
+                {{ cat.name }}
+              </label>
+            </div>
+          </div>
 
-        <!-- Seasons Management (TV Shows) -->
-        <div v-if="(editedData.content_type || content.content_type) === 'TVSHOW'" class="mt-8">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-white">
-                    Temporadas
+          <!-- Content rating + descriptors -->
+          <div class="edit-card">
+            <div class="edit-card__header">
+              <h2 class="edit-card__title">
+                <CIcon icon="shieldAlert" :size="16" />
+                Clasificación
+              </h2>
+              <button
+                v-if="content.tmdb_id"
+                class="edit-card__sync-btn"
+                :disabled="syncingRating"
+                @click="syncRatingFromTmdb"
+              >
+                <CIcon icon="refreshCw" :size="13" :class="syncingRating ? 'animate-spin' : ''" />
+                {{ syncingRating ? 'Sincronizando…' : 'TMDB' }}
+              </button>
+            </div>
+
+            <div class="edit-card__fields">
+              <CFormRow label="Rating">
+                <div class="flex gap-2 items-center">
+                  <c-select
+                    class="flex-1"
+                    :options="ratingOptions"
+                    v-model="editedData.content_rating_id"
+                    placeholder="Sin clasificación"
+                  />
+                  <button
+                    v-if="editedData.content_rating_id"
+                    class="edit-card__clear-btn"
+                    @click="editedData.content_rating_id = null"
+                    title="Limpiar"
+                  >
+                    <CIcon icon="x" :size="14" />
+                  </button>
+                </div>
+              </CFormRow>
+            </div>
+
+            <div v-if="descriptors.length" class="mt-4">
+              <p class="edit-card__sublabel">Descriptores de contenido</p>
+              <div class="edit-card__chip-grid mt-2">
+                <label
+                  v-for="desc in descriptors"
+                  :key="desc.key"
+                  class="edit-card__chip"
+                  :class="{
+                    'edit-card__chip--active': editedData.descriptor_keys?.includes(desc.key),
+                    'edit-card__chip--low': desc.severity_level === 1,
+                    'edit-card__chip--mid': desc.severity_level === 2,
+                    'edit-card__chip--high': desc.severity_level === 3,
+                  }"
+                >
+                  <input
+                    type="checkbox"
+                    :value="desc.key"
+                    v-model="editedData.descriptor_keys"
+                    class="sr-only"
+                  />
+                  {{ desc.name }}
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ══ TAB: Multimedia ══════════════════════════════════════════════ -->
+        <section v-show="activeTab === 'media'" class="edit-page__section-grid">
+
+          <!-- Images -->
+          <div class="edit-card edit-card--full">
+            <h2 class="edit-card__title">
+              <CIcon icon="image" :size="16" />
+              Imágenes
+            </h2>
+            <div class="edit-card__image-grid">
+              <div>
+                <p class="edit-card__sublabel">Poster <span class="edit-card__ratio-hint">2:3</span></p>
+                <c-image-upload
+                  v-model="editedData.cover"
+                  :modelValue="editedData.cover || content.cover"
+                  aspect-ratio="2:3"
+                />
+              </div>
+              <div>
+                <p class="edit-card__sublabel">Backdrop <span class="edit-card__ratio-hint">16:9</span></p>
+                <c-image-upload
+                  v-model="editedData.banner"
+                  :modelValue="editedData.banner || content.banner"
+                  aspect-ratio="16:9"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Logo -->
+          <div class="edit-card edit-card--full">
+            <div class="edit-card__header">
+              <div>
+                <h2 class="edit-card__title">
+                  <CIcon icon="type" :size="16" />
+                  Logo
                 </h2>
-                <c-button @click="addSeason">
-                    <PlusIcon class="w-4 h-4 mr-2" />
-                    Agregar temporada
-                </c-button>
-            </div>
-
-            <draggable tag="div" v-model="content.seasons" class="space-y-3" :group="seasonGroup" handle=".handle"
-                ghost-class="opacity-50" @start="reorderingSeasons = true" @end="reorderingSeasons = false">
-                <template #item="{ element }">
-                    <div
-                        class="bg-white/5 rounded-lg p-4 ring-1 ring-white/10 flex items-center gap-4 group hover:ring-white/20 transition-all">
-                        <c-icon-button class="handle cursor-move text-white/40 hover:text-white/60"
-                            icon="grip-vertical" />
-
-                        <div class="flex-1">
-                            <h3 class="text-base font-semibold text-white">
-                                {{ element.title }}
-                            </h3>
-                            <p class="text-sm text-white/60 mt-0.5">
-                                {{ element.episodes_count || 0 }} episodios
-                            </p>
-                        </div>
-
-                        <div class="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <c-button @click="editSeason(element)" size="sm" variant="ghost">
-                                <EditIcon class="w-4 h-4" />
-                            </c-button>
-                            <c-button @click="editSeasonEpisodes(element.id)" size="sm" variant="ghost">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="w-4 h-4">
-                                    <path d="M12 20h9" />
-                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                                </svg>
-                                <span class="hidden sm:inline ml-1">Episodios</span>
-                            </c-button>
-                            <c-button class="text-red-400 hover:text-red-300" @click="deleteSeason(element)" size="sm"
-                                variant="ghost">
-                                <Trash2Icon class="w-4 h-4" />
-                            </c-button>
-                        </div>
-                    </div>
-                </template>
-            </draggable>
-        </div>
-
-        <add-season-modal v-if="(editedData.content_type || content.content_type) === 'TVSHOW'" :content="content"
-            ref="addSeasonModalRef" @season-created="fetchContent" />
-
-        <edit-season-modal v-if="(editedData.content_type || content.content_type) === 'TVSHOW'"
-            :content-id="contentId" ref="editSeasonModalRef" @season-updated="fetchContent" />
-
-        <!-- Cast / Characters -->
-        <div class="mt-8">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-white">
-                    Cast / Characters
-                </h2>
-                <button v-if="content.tmdb_id && SiteSettings.enable_metadata_recommendation"
-                    @click="syncCastFromTmdb"
-                    :disabled="syncingCast"
-                    class="text-xs px-3 py-1.5 rounded-lg bg-[#00A8E1]/20 hover:bg-[#00A8E1]/30 text-[#00A8E1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span v-if="syncingCast">Syncing...</span>
-                    <span v-else>Sync from TMDB</span>
+                <p class="edit-card__subtitle">PNG/WebP transparente. Reemplaza el título en el carrusel.</p>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  v-if="content.images?.logo?.original?.webp"
+                  class="edit-card__action-btn edit-card__action-btn--danger"
+                  @click="deleteLogo"
+                >
+                  <CIcon icon="trash2" :size="13" />
+                  Eliminar
                 </button>
+                <button
+                  v-if="content.tmdb_id"
+                  class="edit-card__sync-btn"
+                  :disabled="syncingLogo"
+                  @click="syncLogoFromTmdb"
+                >
+                  <CIcon icon="refreshCw" :size="13" :class="syncingLogo ? 'animate-spin' : ''" />
+                  {{ syncingLogo ? 'Sincronizando…' : 'TMDB' }}
+                </button>
+              </div>
             </div>
 
-            <div v-if="content.cast_members?.length" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                <div v-for="cm in content.cast_members" :key="cm.id"
-                    class="bg-white/5 rounded-lg p-3 ring-1 ring-white/10 group hover:ring-white/20 transition-all">
-                    <div class="aspect-[2/3] rounded-lg overflow-hidden mb-2 bg-white/10">
-                        <img v-if="cm.person?.profile_path"
-                            :src="`https://image.tmdb.org/t/p/w185${cm.person.profile_path}`"
-                            :alt="cm.person?.name"
-                            class="w-full h-full object-cover"
-                            loading="lazy" />
-                        <div v-else class="w-full h-full flex items-center justify-center text-white/30">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="text-xs font-semibold text-white truncate">{{ cm.person?.name }}</p>
-                    <p class="text-[10px] text-white/50 truncate">as {{ cm.character_name }}</p>
-                    <button @click="removeCastMember(cm.id)"
-                        class="mt-1 text-[10px] text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Remove
-                    </button>
+            <div class="edit-card__image-grid">
+              <div>
+                <c-image-upload
+                  v-model="editedData.logo"
+                  :modelValue="editedData.logo || content.images?.logo?.original?.webp"
+                  aspect-ratio="3:1"
+                />
+              </div>
+              <div
+                v-if="content.images?.logo?.original?.webp"
+                class="edit-card__logo-preview"
+              >
+                <p class="edit-card__sublabel">Preview actual</p>
+                <div class="edit-card__logo-box">
+                  <img
+                    :src="content.images.logo.original.webp"
+                    alt="Logo preview"
+                    class="max-h-14 object-contain"
+                  />
                 </div>
+              </div>
             </div>
+          </div>
 
-            <div v-else class="text-center py-8 bg-white/5 rounded-xl ring-1 ring-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 text-white/30">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                <p class="text-sm text-white/40">
-                    {{ content.tmdb_id ? 'No cast imported yet. Click "Sync from TMDB" to import.' : 'No TMDB ID available. Set a TMDB ID to sync cast.' }}
+          <!-- Trailer -->
+          <div class="edit-card edit-card--full">
+            <div class="edit-card__header">
+              <div>
+                <h2 class="edit-card__title">
+                  <CIcon icon="play" :size="16" />
+                  Trailer
+                </h2>
+                <p class="edit-card__subtitle">
+                  {{ hasTrailer ? trailerSummary : 'Sin trailer configurado' }}
                 </p>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  v-if="hasTrailer"
+                  class="edit-card__action-btn edit-card__action-btn--danger"
+                  @click="deleteTrailer"
+                >
+                  <CIcon icon="trash2" :size="13" />
+                  Eliminar
+                </button>
+                <CButton @click="trailerModalRef?.setIsOpen(true)" icon="pencil" variant="secondary" size="sm">
+                  {{ hasTrailer ? 'Editar' : 'Agregar' }}
+                </CButton>
+              </div>
             </div>
-        </div>
+          </div>
+          <CTrailerManagerModal
+            :content-id="content.id"
+            ref="trailerModalRef"
+            @updated="fetchContent"
+          />
+
+          <!-- Video sources — only for non-TV shows -->
+          <div
+            v-if="(editedData.content_type || content.content_type) !== 'TVSHOW'"
+            class="edit-card edit-card--full"
+          >
+            <h2 class="edit-card__title">
+              <CIcon icon="film" :size="16" />
+              Fuentes de video
+            </h2>
+            <CVideoableManager
+              :content-id="content.id"
+              :season-id="null"
+              :episode-id="null"
+              :initial-video-sources="content.video_sources"
+              :enable-transcoding="SiteSettings.enable_transcoding"
+              @video-source-added="fetchContent"
+            />
+          </div>
+
+        </section>
+
+        <!-- ══ TAB: Publicación ════════════════════════════════════════════ -->
+        <section v-show="activeTab === 'publish'" class="edit-page__section-grid">
+
+          <!-- Status toggles -->
+          <div class="edit-card">
+            <h2 class="edit-card__title">
+              <CIcon icon="toggleRight" :size="16" />
+              Estado
+            </h2>
+
+            <div class="edit-card__toggle-list">
+              <!-- Available -->
+              <div class="edit-card__toggle-row">
+                <div>
+                  <p class="edit-card__toggle-label">Visible para usuarios</p>
+                  <p class="edit-card__toggle-hint">Aparece en la plataforma</p>
+                </div>
+                <button
+                  class="edit-toggle"
+                  :class="editedData.available ? 'edit-toggle--on' : ''"
+                  @click="editedData.available = !editedData.available"
+                  :aria-pressed="editedData.available"
+                >
+                  <span class="edit-toggle__thumb" />
+                </button>
+              </div>
+
+              <!-- Premium -->
+              <div class="edit-card__toggle-row edit-card__toggle-row--premium">
+                <div>
+                  <p class="edit-card__toggle-label">
+                    <CIcon icon="sparkles" :size="13" />
+                    Premium
+                  </p>
+                  <p class="edit-card__toggle-hint">Solo suscriptores</p>
+                </div>
+                <button
+                  class="edit-toggle edit-toggle--premium"
+                  :class="editedData.premium ? 'edit-toggle--on' : ''"
+                  @click="editedData.premium = !editedData.premium"
+                  :aria-pressed="editedData.premium"
+                >
+                  <span class="edit-toggle__thumb" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scheduled launch -->
+          <div class="edit-card">
+            <div class="edit-card__header">
+              <div>
+                <h2 class="edit-card__title">
+                  <CIcon icon="calendarClock" :size="16" />
+                  Estreno programado
+                </h2>
+                <p class="edit-card__subtitle">Publicar automáticamente en una fecha</p>
+              </div>
+              <button
+                class="edit-toggle"
+                :class="isScheduled ? 'edit-toggle--on' : ''"
+                @click="toggleSchedule"
+                :aria-pressed="isScheduled"
+              >
+                <span class="edit-toggle__thumb" />
+              </button>
+            </div>
+
+            <transition name="fade">
+              <div v-if="isScheduled" class="edit-card__fields mt-4">
+                <CFormRow label="Fecha">
+                  <CInput type="date" v-model="scheduleDate" :min="todayStr" />
+                </CFormRow>
+                <CFormRow label="Hora">
+                  <c-select
+                    v-model="scheduleHour"
+                    :options="hours.map(h => ({ label: h + ':00', value: h }))"
+                  />
+                </CFormRow>
+                <p v-if="formattedScheduleDate" class="edit-card__schedule-hint">
+                  <CIcon icon="clock" :size="13" />
+                  Se publicará el {{ formattedScheduleDate }}
+                </p>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Merchandising badge -->
+          <div class="edit-card">
+            <h2 class="edit-card__title">
+              <CIcon icon="tag" :size="16" />
+              Badge merchandising
+            </h2>
+            <p class="edit-card__subtitle">
+              Badge inline en el hero y detalle del contenido.
+            </p>
+
+            <div class="edit-card__fields mt-4">
+              <CFormRow label="Tipo">
+                <c-select :options="badgeTypeOptions" v-model="badge.badge_type" />
+              </CFormRow>
+              <CFormRow label="Texto">
+                <c-input v-model="badge.label" placeholder="Ej: Nuevo episodio" />
+              </CFormRow>
+              <CFormRow label="Icono">
+                <CIconPicker v-model="badge.icon" placeholder="Seleccionar icono…" />
+              </CFormRow>
+              <CFormRow label="Color">
+                <div class="flex items-center gap-2">
+                  <input
+                    type="color"
+                    v-model="badge.color"
+                    class="edit-card__color-swatch"
+                  />
+                  <c-input v-model="badge.color" placeholder="#ffffff" class="flex-1" />
+                </div>
+              </CFormRow>
+              <CFormRow v-if="showBadgeExpiry" label="Expira el">
+                <c-input type="datetime-local" v-model="badge.expires_at" />
+              </CFormRow>
+            </div>
+
+            <!-- Preview -->
+            <div v-if="badge.label" class="edit-card__badge-preview">
+              <p class="edit-card__sublabel mb-2">Preview</p>
+              <span
+                class="inline-flex items-center gap-1.5 text-sm font-medium"
+                :style="{ color: badge.color || 'rgba(255,255,255,0.85)' }"
+              >
+                <CIcon v-if="badge.icon" :icon="badge.icon" :size="14" />
+                {{ badge.label }}
+              </span>
+            </div>
+
+            <div class="flex gap-2 mt-4">
+              <CButton
+                variant="primary"
+                icon="check"
+                :loading="loadingButton"
+                class="flex-1 justify-center"
+                @click="saveBadge"
+              >
+                {{ hasBadge ? 'Actualizar' : 'Crear' }} badge
+              </CButton>
+              <CButton
+                v-if="hasBadge"
+                variant="danger"
+                icon="trash2"
+                @click="deleteBadge"
+              />
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ══ TAB: Temporadas ════════════════════════════════════════════ -->
+        <section
+          v-show="activeTab === 'seasons'"
+          v-if="(editedData.content_type || content.content_type) === 'TVSHOW'"
+          class="edit-page__section-grid"
+        >
+          <div class="edit-card edit-card--full">
+            <div class="edit-card__header">
+              <h2 class="edit-card__title">
+                <CIcon icon="layers" :size="16" />
+                Temporadas
+              </h2>
+              <CButton icon="plus" @click="addSeason">Agregar</CButton>
+            </div>
+
+            <div v-if="!content.seasons?.length" class="edit-card__empty-lg">
+              <CIcon icon="layers" :size="36" class="mb-3 opacity-20" />
+              <p>No hay temporadas todavía.</p>
+            </div>
+
+            <draggable
+              v-else
+              tag="div"
+              v-model="content.seasons"
+              class="edit-card__season-list"
+              :group="seasonGroup"
+              handle=".handle"
+              ghost-class="opacity-40"
+              @start="reorderingSeasons = true"
+              @end="reorderingSeasons = false"
+            >
+              <template #item="{ element }">
+                <div class="edit-season-row">
+                  <CIcon icon="gripVertical" :size="16" class="handle edit-season-row__grip" />
+
+                  <div class="edit-season-row__info">
+                    <p class="edit-season-row__title">{{ element.title }}</p>
+                    <p class="edit-season-row__meta">
+                      {{ element.episodes_count || 0 }} episodios
+                    </p>
+                  </div>
+
+                  <div class="edit-season-row__actions">
+                    <button class="edit-season-row__btn" @click="editSeason(element)" title="Editar temporada">
+                      <CIcon icon="pencil" :size="14" />
+                    </button>
+                    <button class="edit-season-row__btn" @click="editSeasonEpisodes(element.id)" title="Ver episodios">
+                      <CIcon icon="list" :size="14" />
+                      <span>Episodios</span>
+                    </button>
+                    <button class="edit-season-row__btn edit-season-row__btn--danger" @click="deleteSeason(element)" title="Eliminar">
+                      <CIcon icon="trash2" :size="14" />
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+          </div>
+
+          <add-season-modal
+            :content="content"
+            ref="addSeasonModalRef"
+            @season-created="fetchContent"
+          />
+          <edit-season-modal
+            :content-id="contentId"
+            ref="editSeasonModalRef"
+            @season-updated="fetchContent"
+          />
+        </section>
+
+        <!-- ══ TAB: Cast ══════════════════════════════════════════════════ -->
+        <section v-show="activeTab === 'cast'" class="edit-page__section-grid">
+          <div class="edit-card edit-card--full">
+            <div class="edit-card__header">
+              <h2 class="edit-card__title">
+                <CIcon icon="users" :size="16" />
+                Cast
+              </h2>
+              <button
+                v-if="content.tmdb_id && SiteSettings.enable_metadata_recommendation"
+                class="edit-card__sync-btn"
+                :disabled="syncingCast"
+                @click="syncCastFromTmdb"
+              >
+                <CIcon icon="refreshCw" :size="13" :class="syncingCast ? 'animate-spin' : ''" />
+                {{ syncingCast ? 'Importando…' : 'Sincronizar TMDB' }}
+              </button>
+            </div>
+
+            <div v-if="!content.cast_members?.length" class="edit-card__empty-lg">
+              <CIcon icon="users" :size="36" class="mb-3 opacity-20" />
+              <p v-if="content.tmdb_id">
+                No hay cast importado.
+                <span v-if="SiteSettings.enable_metadata_recommendation">
+                  Haz clic en "Sincronizar TMDB".
+                </span>
+              </p>
+              <p v-else class="text-sm">Sin TMDB ID — asigna uno para poder importar el cast.</p>
+            </div>
+
+            <div v-else class="edit-card__cast-grid">
+              <div
+                v-for="cm in content.cast_members"
+                :key="cm.id"
+                class="cast-card"
+              >
+                <div class="cast-card__photo">
+                  <img
+                    v-if="cm.person?.profile_path"
+                    :src="`https://image.tmdb.org/t/p/w185${cm.person.profile_path}`"
+                    :alt="cm.person?.name"
+                    loading="lazy"
+                  />
+                  <CIcon v-else icon="user" :size="24" class="opacity-30" />
+                </div>
+                <p class="cast-card__name">{{ cm.person?.name }}</p>
+                <p class="cast-card__character">{{ cm.character_name }}</p>
+                <button class="cast-card__remove" @click="removeCastMember(cm.id)">
+                  <CIcon icon="x" :size="12" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup>
-import { Trash2Icon, PlusIcon, EditIcon } from 'lucide-vue-next';
-import { onMounted, ref, inject } from 'vue';
+import { ref, computed, inject, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Trash2Icon, PlusIcon, EditIcon } from 'lucide-vue-next';
 import { toast } from 'vue3-toastify';
-import { computed } from 'vue';
-import addSeasonModal from '../../../components/modals/add-season.modal.vue';
-import editSeasonModal from '../../../components/modals/edit-season.modal.vue';
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import draggable from 'vuedraggable';
-import { ajax } from '../../../lib/Ajax';
-import CVideoableManager from "@/components/CVideoableManager";
-import CTrailerManagerModal from "../../../components/modals/trailer-manager.modal";
+
+import { ajax } from '@/lib/Ajax';
+import CIcon from '@/components/c-icon.vue';
+import CButton from '@/components/forms/c-button';
+import CFormRow from '@/components/forms/CFormRow';
 import CInput from '@/components/forms/c-input.vue';
 import CSelect from '@/components/forms/c-select.vue';
 import CIconPicker from '@/components/forms/CIconPicker';
-import { format, parseISO, formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import CVideoableManager from '@/components/CVideoableManager';
+import CTrailerManagerModal from '@/components/modals/trailer-manager.modal';
+import addSeasonModal from '@/components/modals/add-season.modal.vue';
+import editSeasonModal from '@/components/modals/edit-season.modal.vue';
 
+// ── Injections ─────────────────────────────────────────────────────────────
 const SiteSettings = inject('SiteSettings');
-const i18n = inject('I18n');
-
 const route = useRoute();
 const router = useRouter();
 const contentId = route.params.id;
-const loading = ref(true);
-const content = ref({});
-const addSeasonModalRef = ref();
-const editSeasonModalRef = ref();
-const trailerModalRef = ref();
-const reorderingSeasons = ref(false);
 
-const hasTrailer = computed(() => {
-    return content.value.trailer_url || (content.value.trailer_video_sources?.length > 0);
+// ── Tab navigation ──────────────────────────────────────────────────────────
+const activeTab = ref('general');
+
+const tabs = computed(() => {
+  const base = [
+    { key: 'general',  label: 'General',     icon: 'fileText'   },
+    { key: 'media',    label: 'Multimedia',   icon: 'image'      },
+    { key: 'publish',  label: 'Publicación',  icon: 'send'       },
+    { key: 'cast',     label: 'Cast',         icon: 'users'      },
+  ];
+  if ((editedData.value.content_type || content.value.content_type) === 'TVSHOW') {
+    base.splice(3, 0, { key: 'seasons', label: 'Temporadas', icon: 'layers' });
+  }
+  return base;
 });
 
-const trailerSummary = computed(() => {
-    if (content.value.trailer_video_sources?.length > 0) {
-        const vs = content.value.trailer_video_sources[0];
-        return `${vs.format?.toUpperCase() || 'Video'} · ${vs.quality || ''}`;
-    }
-    if (content.value.trailer_url) {
-        return 'External URL';
-    }
-    return '';
-});
-const contentTypes = ref([
-    { value: 'MOVIE', label: 'Película' },
-    { value: 'TVSHOW', label: 'Serie' }
-]);
+// ── State ───────────────────────────────────────────────────────────────────
+const loading       = ref(true);
 const loadingButton = ref(false);
-const categories = ref([]);
+const content       = ref({});
+const editedData    = ref({});
+
+// Refs for child components
+const addSeasonModalRef  = ref();
+const editSeasonModalRef = ref();
+const trailerModalRef    = ref();
+const reorderingSeasons  = ref(false);
+
+// Categories
+const categories        = ref([]);
 const categoriesLoading = ref(false);
 const syncingCategories = ref(false);
-const syncingCast = ref(false);
-const syncingLogo = ref(false);
-const syncingRating = ref(false);
-const contentRatings = ref([]);
-const ratingsLoading = ref(false);
-const descriptors = ref([]);
+
+// Ratings & descriptors
+const contentRatings    = ref([]);
+const ratingsLoading    = ref(false);
+const descriptors       = ref([]);
 const descriptorsLoading = ref(false);
+const syncingRating     = ref(false);
 
-// Badge state
-const badge = ref({
-    badge_type: 'programming',
-    label: '',
-    icon: '',
-    color: '',
-    expires_at: null,
-});
-const hasBadge = computed(() => {
-    return content.value.content_badges?.length > 0;
-});
-const existingBadge = computed(() => {
-    return content.value.content_badges?.[0] || null;
-});
-const badgeTypeOptions = ref([
-    { value: 'programming', label: 'Programación / Estado' },
-    { value: 'prestige', label: 'Prestigio / Premios' },
-    { value: 'availability', label: 'Disponibilidad / Urgencia' },
-]);
-const showBadgeExpiry = computed(() => badge.value.badge_type === 'availability');
+// Cast / logo / trailer sync
+const syncingCast  = ref(false);
+const syncingLogo  = ref(false);
 
-const initBadgeFromContent = () => {
-    const b = existingBadge.value;
-    if (b) {
-        badge.value = {
-            badge_type: b.badge_type || 'programming',
-            label: b.label || '',
-            icon: b.icon || '',
-            color: b.color || '',
-            expires_at: b.expires_at ? format(parseISO(b.expires_at), "yyyy-MM-dd'T'HH:mm") : null,
-        };
-    }
-};
-
-const saveBadge = async () => {
-    if (!badge.value.label.trim()) {
-        toast.error('El label del badge es obligatorio');
-        return;
-    }
-
-    loadingButton.value = true;
-    try {
-        const badgeData = {
-            badge_type: badge.value.badge_type,
-            label: badge.value.label.trim(),
-            icon: badge.value.icon || null,
-            color: badge.value.color || null,
-            expires_at: badge.value.expires_at || null,
-            position: 0,
-            active: true,
-        };
-
-        if (existingBadge.value) {
-            badgeData.id = existingBadge.value.id;
-        }
-
-        const formData = new FormData();
-        formData.append('content[content_badges_attributes][][id]', badgeData.id || '');
-        formData.append('content[content_badges_attributes][][badge_type]', badgeData.badge_type);
-        formData.append('content[content_badges_attributes][][label]', badgeData.label);
-        formData.append('content[content_badges_attributes][][icon]', badgeData.icon || '');
-        formData.append('content[content_badges_attributes][][color]', badgeData.color || '');
-        formData.append('content[content_badges_attributes][][expires_at]', badgeData.expires_at || '');
-        formData.append('content[content_badges_attributes][][position]', badgeData.position);
-        formData.append('content[content_badges_attributes][][active]', 'true');
-
-        await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
-        toast.success('Badge guardado');
-        await fetchContent();
-    } catch (error) {
-        toast.error('Error al guardar el badge');
-    } finally {
-        loadingButton.value = false;
-    }
-};
-
-const deleteBadge = async () => {
-    if (!existingBadge.value) return;
-    if (!confirm('¿Eliminar el badge?')) return;
-
-    loadingButton.value = true;
-    try {
-        const formData = new FormData();
-        formData.append('content[content_badges_attributes][][id]', existingBadge.value.id);
-        formData.append('content[content_badges_attributes][][_destroy]', '1');
-
-        await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
-        badge.value = { badge_type: 'programming', label: '', icon: '', color: '', expires_at: null };
-        toast.success('Badge eliminado');
-        await fetchContent();
-    } catch (error) {
-        toast.error('Error al eliminar el badge');
-    } finally {
-        loadingButton.value = false;
-    }
-};
-
-const fetchContent = async () => {
-    try {
-        const response = await ajax.get(`/admin/content-manager/${contentId}.json`);
-        content.value = response.data.data;
-        editedData.value = Object.fromEntries(Object.entries(content.value).filter(([key, value]) => !['banner', 'cover'].includes(key)));
-        // Initialize category_ids from content
-        editedData.value.category_ids = content.value.categories?.map(c => c.id) || [];
-        // Initialize content_rating_id from content
-        editedData.value.content_rating_id = content.value.content_rating?.code || content.value.content_rating_id || null;
-        // Initialize descriptor_keys from content
-        editedData.value.descriptor_keys = content.value.content_descriptors?.map(d => d.key) || [];
-
-        // Initialize schedule fields from existing data
-        if (content.value.scheduled_launch_at) {
-            const dt = parseISO(content.value.scheduled_launch_at);
-            scheduleDate.value = format(dt, 'yyyy-MM-dd');
-            scheduleHour.value = format(dt, 'HH');
-        }
-
-        // Initialize badge from content
-        initBadgeFromContent();
-    } catch (error) {
-        console.log(error);
-        toast.error('Error al cargar el contenido');
-    } finally {
-        loading.value = false;
-    }
-};
-
-const fetchCategories = async () => {
-    categoriesLoading.value = true;
-    try {
-        const response = await ajax.get('/admin/categories.json');
-        categories.value = response.data.data || [];
-    } catch (error) {
-        console.error('Failed to fetch categories:', error);
-    } finally {
-        categoriesLoading.value = false;
-    }
-};
-
-const fetchContentRatings = async () => {
-    ratingsLoading.value = true;
-    try {
-        const response = await ajax.get('/admin/content-ratings.json');
-        contentRatings.value = response.data.data || [];
-    } catch (error) {
-        console.error('Failed to fetch content ratings:', error);
-    } finally {
-        ratingsLoading.value = false;
-    }
-};
-
-const fetchContentDescriptors = async () => {
-    descriptorsLoading.value = true;
-    try {
-        const response = await ajax.get('/admin/content-descriptors.json');
-        descriptors.value = response.data.data || [];
-    } catch (error) {
-        console.error('Failed to fetch content descriptors:', error);
-    } finally {
-        descriptorsLoading.value = false;
-    }
-};
-
-const ratingOptions = computed(() => {
-    return contentRatings.value.map(r => ({
-        value: r.code,
-        label: `${r.name} — ${r.description || ''}`
-    }));
-});
-
-const currentRatingLabel = computed(() => {
-    if (!editedData.value.content_rating_id) return '';
-    const rating = contentRatings.value.find(r => r.code === editedData.value.content_rating_id);
-    return rating ? `${rating.name} — ${rating.description || ''}` : '';
-});
-
-const getDescriptorName = (key) => {
-    const descriptor = descriptors.value.find(d => d.key === key);
-    return descriptor ? descriptor.name : key;
-};
-
-const syncRatingFromTmdb = async () => {
-    if (!confirm('Obtener clasificación de TMDB? Esto reemplazará la clasificación actual.')) {
-        return;
-    }
-
-    syncingRating.value = true;
-    try {
-        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-rating.json`);
-        toast.success(response.data.message || 'Clasificación sincronizada desde TMDB');
-        await fetchContent();
-    } catch (error) {
-        toast.error(error.response?.data?.error || 'Error al sincronizar clasificación desde TMDB');
-    } finally {
-        syncingRating.value = false;
-    }
-};
-
-const syncCategoriesFromTmdb = async () => {
-    if (!confirm('This will sync categories from TMDB. Continue?')) {
-        return;
-    }
-
-    syncingCategories.value = true;
-    try {
-        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-categories.json`);
-        toast.success(`Categories synced successfully: ${response.data.assigned_count} categories assigned`);
-        await fetchContent();
-    } catch (error) {
-        console.error('Failed to sync categories from TMDB:', error);
-        toast.error('Failed to sync categories from TMDB. Check console for details.');
-    } finally {
-        syncingCategories.value = false;
-    }
-};
-
-const syncCastFromTmdb = async () => {
-    if (!confirm('This will sync cast from TMDB. Continue?')) {
-        return;
-    }
-
-    syncingCast.value = true;
-    try {
-        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-cast.json`);
-        toast.success(`Cast synced: ${response.data.assigned_count} members imported`);
-        await fetchContent();
-    } catch (error) {
-        console.error('Failed to sync cast from TMDB:', error);
-        toast.error('Failed to sync cast from TMDB.');
-    } finally {
-        syncingCast.value = false;
-    }
-};
-
-const removeCastMember = async (castMemberId) => {
-    if (!confirm('Remove this cast member?')) {
-        return;
-    }
-
-    try {
-        await ajax.delete(`/admin/content-manager/${contentId}/cast-members/${castMemberId}.json`);
-        toast.success('Cast member removed');
-        await fetchContent();
-    } catch (error) {
-        toast.error('Failed to remove cast member');
-    }
-};
-
-const syncLogoFromTmdb = async () => {
-    syncingLogo.value = true;
-    try {
-        const response = await ajax.post(`/admin/content-manager/${contentId}/sync-logo.json`);
-        toast.success(response.data.message || 'Logo sincronizado desde TMDB');
-        await fetchContent();
-    } catch (error) {
-        toast.error(error.response?.data?.error || 'Error al sincronizar logo desde TMDB');
-    } finally {
-        syncingLogo.value = false;
-    }
-};
-
-const deleteLogo = async () => {
-    if (!confirm('Eliminar logo?')) {
-        return;
-    }
-
-    try {
-        const formData = new FormData();
-        formData.append('content[logo]', '');
-        await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
-        toast.success('Logo eliminado');
-        await fetchContent();
-    } catch (error) {
-        toast.error('Error al eliminar logo');
-    }
-};
-
-const deleteTrailer = async () => {
-    if (!confirm('Delete this trailer?')) {
-        return;
-    }
-
-    try {
-        // Delete trailer video sources
-        if (content.value.trailer_video_sources?.length > 0) {
-            for (const vs of content.value.trailer_video_sources) {
-                await ajax.delete(`/admin/video_sources/${vs.id}.json`);
-            }
-        }
-        // Clear trailer_url if set
-        if (content.value.trailer_url) {
-            const formData = new FormData();
-            formData.append('content[trailer_url]', '');
-            await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
-        }
-        toast.success('Trailer deleted');
-        await fetchContent();
-    } catch (error) {
-        toast.error('Failed to delete trailer');
-    }
-};
-
-const editedData = ref({});
-
-const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-const todayStr = new Date().toISOString().split('T')[0];
-
-const isScheduled = computed(() => {
-    return !!editedData.value.scheduled_launch_at || !!scheduleDate.value;
-});
-
+// Schedule
 const scheduleDate = ref('');
 const scheduleHour = ref('20');
+const hours        = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const todayStr     = new Date().toISOString().split('T')[0];
+
+// Badge
+const badge = ref({ badge_type: 'programming', label: '', icon: '', color: '', expires_at: null });
+const badgeTypeOptions = [
+  { value: 'programming',  label: 'Programación / Estado'    },
+  { value: 'prestige',     label: 'Prestigio / Premios'      },
+  { value: 'availability', label: 'Disponibilidad / Urgencia' },
+];
+
+// ── Computed ────────────────────────────────────────────────────────────────
+const contentTypes = [
+  { value: 'MOVIE',  label: 'Película' },
+  { value: 'TVSHOW', label: 'Serie'    },
+];
+
+const contentTypeLabel = computed(() => {
+  const t = editedData.value.content_type || content.value.content_type;
+  return t === 'TVSHOW' ? 'Serie' : 'Película';
+});
+
+const hasTrailer = computed(() =>
+  content.value.trailer_url || content.value.trailer_video_sources?.length > 0
+);
+
+const trailerSummary = computed(() => {
+  if (content.value.trailer_video_sources?.length) {
+    const vs = content.value.trailer_video_sources[0];
+    return `${vs.format?.toUpperCase() || 'Video'} · ${vs.quality || ''}`;
+  }
+  return content.value.trailer_url ? 'URL externa' : '';
+});
+
+const isScheduled = computed(() =>
+  !!editedData.value.scheduled_launch_at || !!scheduleDate.value
+);
 
 const formattedScheduleDate = computed(() => {
-    if (!scheduleDate.value) return '';
-    const d = new Date(`${scheduleDate.value}T${scheduleHour.value}:00:00`);
-    return format(d, 'EEEE d \'de\' MMMM', { locale: es }) + ` a las ${scheduleHour.value}:00`;
+  if (!scheduleDate.value) return '';
+  const d = new Date(`${scheduleDate.value}T${scheduleHour.value}:00:00`);
+  return format(d, "EEEE d 'de' MMMM", { locale: es }) + ` a las ${scheduleHour.value}:00`;
 });
 
 const scheduledCountdown = computed(() => {
-    if (!content.value.scheduled_launch_at) return '';
-    const dt = parseISO(content.value.scheduled_launch_at);
-    if (dt <= new Date()) return '';
-    return formatDistanceToNow(dt, { addSuffix: true, locale: es });
+  if (!content.value.scheduled_launch_at) return '';
+  const dt = parseISO(content.value.scheduled_launch_at);
+  if (dt <= new Date()) return '';
+  return formatDistanceToNow(dt, { addSuffix: true, locale: es });
 });
 
+const ratingOptions = computed(() =>
+  contentRatings.value.map(r => ({ value: r.code, label: `${r.name} — ${r.description || ''}` }))
+);
+
+const hasBadge     = computed(() => content.value.content_badges?.length > 0);
+const existingBadge = computed(() => content.value.content_badges?.[0] || null);
+const showBadgeExpiry = computed(() => badge.value.badge_type === 'availability');
+
+const seasonGroup = { name: 'seasons', put: true, pull: true };
+
+// ── Watchers ────────────────────────────────────────────────────────────────
+watch(scheduleDate, syncScheduleToEditedData);
+watch(scheduleHour, syncScheduleToEditedData);
+
+watch(reorderingSeasons, async (val) => {
+  if (val === false) await saveSeasonsOrder();
+});
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function syncScheduleToEditedData() {
+  if (scheduleDate.value) {
+    editedData.value.scheduled_launch_at =
+      new Date(`${scheduleDate.value}T${scheduleHour.value}:00:00`).toISOString();
+  }
+}
+
+// ── Data fetchers ────────────────────────────────────────────────────────────
+const fetchContent = async () => {
+  try {
+    const { data } = await ajax.get(`/admin/content-manager/${contentId}.json`);
+    content.value = data.data;
+    editedData.value = Object.fromEntries(
+      Object.entries(content.value).filter(([k]) => !['banner', 'cover'].includes(k))
+    );
+    editedData.value.category_ids    = content.value.categories?.map(c => c.id) || [];
+    editedData.value.content_rating_id = content.value.content_rating?.code || content.value.content_rating_id || null;
+    editedData.value.descriptor_keys = content.value.content_descriptors?.map(d => d.key) || [];
+
+    if (content.value.scheduled_launch_at) {
+      const dt = parseISO(content.value.scheduled_launch_at);
+      scheduleDate.value = format(dt, 'yyyy-MM-dd');
+      scheduleHour.value = format(dt, 'HH');
+    }
+
+    initBadgeFromContent();
+  } catch {
+    toast.error('Error al cargar el contenido');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchCategories = async () => {
+  categoriesLoading.value = true;
+  try {
+    const { data } = await ajax.get('/admin/categories.json');
+    categories.value = data.data || [];
+  } finally {
+    categoriesLoading.value = false;
+  }
+};
+
+const fetchContentRatings = async () => {
+  ratingsLoading.value = true;
+  try {
+    const { data } = await ajax.get('/admin/content-ratings.json');
+    contentRatings.value = data.data || [];
+  } finally {
+    ratingsLoading.value = false;
+  }
+};
+
+const fetchContentDescriptors = async () => {
+  descriptorsLoading.value = true;
+  try {
+    const { data } = await ajax.get('/admin/content-descriptors.json');
+    descriptors.value = data.data || [];
+  } finally {
+    descriptorsLoading.value = false;
+  }
+};
+
+// ── Badge ────────────────────────────────────────────────────────────────────
+const initBadgeFromContent = () => {
+  const b = existingBadge.value;
+  badge.value = b
+    ? {
+        badge_type: b.badge_type || 'programming',
+        label:      b.label      || '',
+        icon:       b.icon       || '',
+        color:      b.color      || '',
+        expires_at: b.expires_at ? format(parseISO(b.expires_at), "yyyy-MM-dd'T'HH:mm") : null,
+      }
+    : { badge_type: 'programming', label: '', icon: '', color: '', expires_at: null };
+};
+
+const saveBadge = async () => {
+  if (!badge.value.label.trim()) { toast.error('El label del badge es obligatorio'); return; }
+  loadingButton.value = true;
+  try {
+    const f = new FormData();
+    if (existingBadge.value?.id) f.append('content[content_badges_attributes][][id]', existingBadge.value.id);
+    f.append('content[content_badges_attributes][][badge_type]', badge.value.badge_type);
+    f.append('content[content_badges_attributes][][label]',      badge.value.label.trim());
+    f.append('content[content_badges_attributes][][icon]',       badge.value.icon  || '');
+    f.append('content[content_badges_attributes][][color]',      badge.value.color || '');
+    f.append('content[content_badges_attributes][][expires_at]', badge.value.expires_at || '');
+    f.append('content[content_badges_attributes][][position]',   '0');
+    f.append('content[content_badges_attributes][][active]',     'true');
+    await ajax.put(`/admin/content-manager/${contentId}.json`, f);
+    toast.success('Badge guardado');
+    await fetchContent();
+  } catch { toast.error('Error al guardar el badge'); }
+  finally { loadingButton.value = false; }
+};
+
+const deleteBadge = async () => {
+  if (!existingBadge.value || !confirm('¿Eliminar el badge?')) return;
+  loadingButton.value = true;
+  try {
+    const f = new FormData();
+    f.append('content[content_badges_attributes][][id]',       existingBadge.value.id);
+    f.append('content[content_badges_attributes][][_destroy]', '1');
+    await ajax.put(`/admin/content-manager/${contentId}.json`, f);
+    toast.success('Badge eliminado');
+    await fetchContent();
+  } catch { toast.error('Error al eliminar el badge'); }
+  finally { loadingButton.value = false; }
+};
+
+// ── Sync helpers ─────────────────────────────────────────────────────────────
+const syncCategoriesFromTmdb = async () => {
+  if (!confirm('Sincronizar categorías de TMDB?')) return;
+  syncingCategories.value = true;
+  try {
+    const { data } = await ajax.post(`/admin/content-manager/${contentId}/sync-categories.json`);
+    toast.success(`${data.assigned_count} categorías asignadas`);
+    await fetchContent();
+  } catch { toast.error('Error al sincronizar categorías'); }
+  finally { syncingCategories.value = false; }
+};
+
+const syncRatingFromTmdb = async () => {
+  if (!confirm('Obtener clasificación de TMDB?')) return;
+  syncingRating.value = true;
+  try {
+    const { data } = await ajax.post(`/admin/content-manager/${contentId}/sync-rating.json`);
+    toast.success(data.message || 'Clasificación sincronizada');
+    await fetchContent();
+  } catch (e) { toast.error(e.response?.data?.error || 'Error al sincronizar'); }
+  finally { syncingRating.value = false; }
+};
+
+const syncLogoFromTmdb = async () => {
+  syncingLogo.value = true;
+  try {
+    const { data } = await ajax.post(`/admin/content-manager/${contentId}/sync-logo.json`);
+    toast.success(data.message || 'Logo sincronizado');
+    await fetchContent();
+  } catch (e) { toast.error(e.response?.data?.error || 'Error al sincronizar logo'); }
+  finally { syncingLogo.value = false; }
+};
+
+const deleteLogo = async () => {
+  if (!confirm('Eliminar logo?')) return;
+  const f = new FormData();
+  f.append('content[logo]', '');
+  await ajax.put(`/admin/content-manager/${contentId}.json`, f);
+  toast.success('Logo eliminado');
+  await fetchContent();
+};
+
+const deleteTrailer = async () => {
+  if (!confirm('¿Eliminar el trailer?')) return;
+  try {
+    if (content.value.trailer_video_sources?.length) {
+      for (const vs of content.value.trailer_video_sources)
+        await ajax.delete(`/admin/video_sources/${vs.id}.json`);
+    }
+    if (content.value.trailer_url) {
+      const f = new FormData();
+      f.append('content[trailer_url]', '');
+      await ajax.put(`/admin/content-manager/${contentId}.json`, f);
+    }
+    toast.success('Trailer eliminado');
+    await fetchContent();
+  } catch { toast.error('Error al eliminar el trailer'); }
+};
+
+const syncCastFromTmdb = async () => {
+  if (!confirm('Sincronizar cast de TMDB?')) return;
+  syncingCast.value = true;
+  try {
+    const { data } = await ajax.post(`/admin/content-manager/${contentId}/sync-cast.json`);
+    toast.success(`${data.assigned_count} miembros importados`);
+    await fetchContent();
+  } catch { toast.error('Error al sincronizar cast'); }
+  finally { syncingCast.value = false; }
+};
+
+const removeCastMember = async (id) => {
+  if (!confirm('¿Quitar este miembro del cast?')) return;
+  await ajax.delete(`/admin/content-manager/${contentId}/cast-members/${id}.json`);
+  toast.success('Miembro eliminado');
+  await fetchContent();
+};
+
+// ── Schedule ─────────────────────────────────────────────────────────────────
 const toggleSchedule = () => {
-    if (isScheduled.value) {
-        editedData.value.scheduled_launch_at = null;
-        scheduleDate.value = '';
-        scheduleHour.value = '20';
-    } else {
-        scheduleDate.value = todayStr;
-        scheduleHour.value = '20';
-        syncScheduleToEditedData();
-    }
+  if (isScheduled.value) {
+    editedData.value.scheduled_launch_at = null;
+    scheduleDate.value = '';
+    scheduleHour.value = '20';
+  } else {
+    scheduleDate.value = todayStr;
+    scheduleHour.value = '20';
+    syncScheduleToEditedData();
+  }
 };
 
-const syncScheduleToEditedData = () => {
-    if (scheduleDate.value) {
-        const local = new Date(`${scheduleDate.value}T${scheduleHour.value}:00:00`);
-        editedData.value.scheduled_launch_at = local.toISOString();
-    }
+// ── Seasons ───────────────────────────────────────────────────────────────────
+const addSeason        = () => addSeasonModalRef.value?.setIsOpen(true);
+const editSeason       = (s) => editSeasonModalRef.value?.setIsOpen(true, s);
+const editSeasonEpisodes = (id) => router.push(`/admin/content-manager/${contentId}/seasons/${id}/episodes`);
+
+const deleteSeason = async (season) => {
+  if (!confirm(`¿Eliminar "${season.title}"?`)) return;
+  await ajax.delete(`/admin/content-manager/${contentId}/seasons/${season.id}.json`);
+  toast.success('Temporada eliminada');
+  await fetchContent();
 };
-
-watch(scheduleDate, () => syncScheduleToEditedData());
-watch(scheduleHour, () => syncScheduleToEditedData());
-
-const seasonGroup = {
-    name: 'seasons',
-    put: true,
-    pull: true
-};
-
-import { watch } from 'vue';
-watch(reorderingSeasons, async (value) => {
-    if (value === false) {
-        await saveSeasonsOrder();
-    }
-});
 
 const saveSeasonsOrder = async () => {
-    try {
-        const response = await ajax.put(`/admin/content-manager/${contentId}/reorder-seasons.json`, {
-            season_order: content.value.seasons.map((season) => season.id)
-        });
-        toast.success('Orden de temporadas actualizado');
-        await fetchContent();
-    } catch (error) {
-        console.log(error);
-        toast.error('Error al reordenar las temporadas');
-    }
+  await ajax.put(`/admin/content-manager/${contentId}/reorder-seasons.json`, {
+    season_order: content.value.seasons.map(s => s.id),
+  });
 };
 
+// ── Save / Delete content ─────────────────────────────────────────────────────
 const saveContent = async (e) => {
-    e.preventDefault();
-    loadingButton.value = true;
-    try {
-        const formData = new FormData();
-        Object.entries(editedData.value).forEach(([key, value]) => {
-            if (['id', 'created_at', 'updated_at', 'seasons'].includes(key)) {
-                return;
-            }
-            // Only skip undefined — allow null for fields like scheduled_launch_at
-            // so the backend can explicitly clear them
-            if (value === undefined) {
-                return;
-            }
-            // Allow null values for specific fields that need explicit clearing
-            if (value === null) {
-                const nullableFields = ['scheduled_launch_at'];
-                if (!nullableFields.includes(key)) {
-                    return;
-                }
-            }
-            // Handle category_ids array
-            if (key === 'category_ids' && Array.isArray(value)) {
-                value.forEach(id => {
-                    formData.append(`content[category_ids][]`, id);
-                });
-            } else if (key === 'descriptor_keys' && Array.isArray(value)) {
-                value.forEach(key => {
-                    formData.append(`content[content_descriptor_keys][]`, key);
-                });
-            } else if (key === 'content_rating_id') {
-                // Send content_rating_id — null clears it
-                formData.append(`content[content_rating_id]`, value || '');
-            } else {
-                formData.append(`content[${key}]`, value);
-            }
-        });
+  if (e?.preventDefault) e.preventDefault();
+  loadingButton.value = true;
+  try {
+    const f = new FormData();
+    const skip = ['id', 'created_at', 'updated_at', 'seasons'];
+    const nullable = ['scheduled_launch_at'];
 
-        if (formData.entries().next().done) {
-            toast.info('No se ha modificado ningún dato.');
-            loadingButton.value = false;
-            return;
-        }
+    for (const [key, value] of Object.entries(editedData.value)) {
+      if (skip.includes(key) || value === undefined) continue;
+      if (value === null && !nullable.includes(key)) continue;
 
-        const response = await ajax.put(`/admin/content-manager/${contentId}.json`, formData);
-        toast.success('Contenido guardado con éxito.');
-        await fetchContent();
-    } catch (error) {
-        console.log(error);
-        toast.error('Error al guardar el contenido: ' + error.error);
-    } finally {
-        loadingButton.value = false;
+      if (key === 'category_ids' && Array.isArray(value)) {
+        value.forEach(id => f.append('content[category_ids][]', id));
+      } else if (key === 'descriptor_keys' && Array.isArray(value)) {
+        value.forEach(k  => f.append('content[content_descriptor_keys][]', k));
+      } else if (key === 'content_rating_id') {
+        f.append('content[content_rating_id]', value || '');
+      } else {
+        f.append(`content[${key}]`, value);
+      }
     }
+
+    if ([...f.entries()].length === 0) {
+      toast.info('No se ha modificado ningún dato.');
+      return;
+    }
+
+    await ajax.put(`/admin/content-manager/${contentId}.json`, f);
+    toast.success('Contenido guardado.');
+    await fetchContent();
+  } catch (e) {
+    toast.error('Error al guardar: ' + (e?.response?.data?.error || e.message));
+  } finally {
+    loadingButton.value = false;
+  }
 };
 
 const deleteContent = async () => {
-    try {
-        if (!confirm('¿Estás seguro de que quieres eliminar este contenido?')) {
-            return;
-        }
-
-        await ajax.delete(`/admin/content-manager/${contentId}.json`);
-        router.push({
-            name: 'admin.content.manager.all'
-        });
-        toast.success('Contenido eliminado');
-    } catch (error) {
-        console.log(error);
-        toast.error('Error al eliminar el contenido');
-    }
+  if (!confirm('¿Eliminar este contenido? Esta acción no se puede deshacer.')) return;
+  await ajax.delete(`/admin/content-manager/${contentId}.json`);
+  toast.success('Contenido eliminado');
+  router.push({ name: 'admin.content.manager.all' });
 };
 
-const addSeason = () => {
-    addSeasonModalRef.value.setIsOpen(true);
-};
-
-const editSeason = (season) => {
-    editSeasonModalRef.value.setIsOpen(true, season);
-};
-
-const editSeasonEpisodes = (id) => {
-    router.push({
-        path: `/admin/content-manager/${contentId}/seasons/${id}/episodes`
-    });
-};
-
-const deleteSeason = async (season) => {
-    if (!confirm(`¿Eliminar "${season.title}"? Esta acción no se puede deshacer.`)) {
-        return;
-    }
-
-    try {
-        await ajax.delete(`/admin/content-manager/${contentId}/seasons/${season.id}.json`);
-        toast.success('Temporada eliminada');
-        await fetchContent();
-    } catch (error) {
-        console.log(error);
-        toast.error('Error al eliminar la temporada');
-    }
-};
-
+// ── Mount ─────────────────────────────────────────────────────────────────────
 onMounted(() => {
-    fetchContent();
-    fetchCategories();
-    fetchContentRatings();
-    fetchContentDescriptors();
+  fetchContent();
+  fetchCategories();
+  fetchContentRatings();
+  fetchContentDescriptors();
 });
 </script>
+
+<style scoped>
+/* ── Loader ──────────────────────────────────────────────────────────────── */
+.edit-page__loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: var(--space-3);
+}
+.edit-page__loader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255,255,255,.15);
+  border-top-color: var(--c-primary-color, #00A8E1);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.edit-page__loader-text { font-size: .875rem; color: rgba(255,255,255,.45); }
+
+/* ── Page shell ──────────────────────────────────────────────────────────── */
+.edit-page { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.edit-page__hero {
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-7);
+  overflow: hidden;
+  background: var(--c-background-secondary, #111);
+}
+.edit-page__hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-backdrop);
+  background-size: cover;
+  background-position: center top;
+  opacity: .12;
+  filter: blur(24px);
+  pointer-events: none;
+}
+.edit-page__hero-inner {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.edit-page__back-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(255,255,255,.08);
+  border: none;
+  color: rgba(255,255,255,.7);
+  cursor: pointer;
+  transition: background .15s;
+}
+.edit-page__back-btn:hover { background: rgba(255,255,255,.14); }
+
+.edit-page__hero-meta { flex: 1; min-width: 0; }
+
+.edit-page__hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.edit-page__type-chip {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.7);
+}
+.edit-page__status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
+}
+.edit-page__status-chip--available { background: rgba(34,197,94,.15); color: #4ade80; }
+.edit-page__status-chip--hidden    { background: rgba(255,255,255,.08); color: rgba(255,255,255,.4); }
+.edit-page__status-chip--premium   { background: rgba(234,179,8,.15);  color: #fbbf24; }
+
+.edit-page__hero-title {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  line-height: 1.2;
+}
+.edit-page__scheduled-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: var(--space-2);
+  font-size: .8rem;
+  color: rgba(99,179,237,.9);
+}
+.edit-page__hero-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-end;
+}
+
+/* ── Body (nav + main) ───────────────────────────────────────────────────── */
+.edit-page__body {
+  display: flex;
+  flex: 1;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  gap: var(--space-6);
+}
+
+/* ── Left nav ────────────────────────────────────────────────────────────── */
+.edit-page__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 180px;
+  flex-shrink: 0;
+}
+.edit-page__nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,.5);
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  text-align: left;
+}
+.edit-page__nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.8); }
+.edit-page__nav-item--active {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+/* ── Main content ────────────────────────────────────────────────────────── */
+.edit-page__main { flex: 1; min-width: 0; }
+
+.edit-page__section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+@media (max-width: 900px) {
+  .edit-page__body { flex-direction: column; }
+  .edit-page__nav { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .edit-page__section-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.edit-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.edit-card--full { grid-column: 1 / -1; }
+.edit-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: .9rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+.edit-card__subtitle { font-size: .8rem; color: rgba(255,255,255,.4); margin: 0; }
+.edit-card__sublabel {
+  font-size: .75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.45);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.edit-card__ratio-hint {
+  font-size: .7rem;
+  font-weight: 400;
+  color: rgba(255,255,255,.3);
+}
+.edit-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.edit-card__fields { display: flex; flex-direction: column; gap: var(--space-3); }
+.edit-card__image-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+.edit-card__logo-box {
+  background: rgba(0,0,0,.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+/* Sync button */
+.edit-card__sync-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  border-radius: var(--radius-full, 9999px);
+  border: none;
+  background: rgba(var(--c-primary-rgb, 0,168,225), .15);
+  color: var(--c-primary-color, #00A8E1);
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.edit-card__sync-btn:hover { background: rgba(var(--c-primary-rgb, 0,168,225), .25); }
+.edit-card__sync-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.edit-card__action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: .72rem;
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  border: none;
+  cursor: pointer;
+  transition: background .15s;
+}
+.edit-card__action-btn--danger {
+  background: rgba(239,68,68,.12);
+  color: #f87171;
+}
+.edit-card__action-btn--danger:hover { background: rgba(239,68,68,.2); }
+
+.edit-card__clear-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: none;
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+}
+
+/* Loading / empty */
+.edit-card__loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: .8rem;
+  color: rgba(255,255,255,.4);
+}
+.edit-card__loading-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--c-primary-color, #00A8E1);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+.edit-card__empty { font-size: .82rem; color: rgba(255,255,255,.35); }
+.edit-card__link { color: var(--c-primary-color, #00A8E1); }
+.edit-card__empty-lg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  color: rgba(255,255,255,.35);
+  font-size: .875rem;
+  text-align: center;
+}
+
+/* Chip grid (categories / descriptors) */
+.edit-card__chip-grid { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.edit-card__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: .78rem;
+  font-weight: 500;
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+  transition: all .15s;
+  background: transparent;
+  user-select: none;
+}
+.edit-card__chip:hover { border-color: rgba(255,255,255,.2); color: rgba(255,255,255,.8); }
+.edit-card__chip--active {
+  background: rgba(var(--c-primary-rgb, 0,168,225), .18);
+  border-color: rgba(var(--c-primary-rgb, 0,168,225), .4);
+  color: var(--c-primary-color, #00A8E1);
+}
+.edit-card__chip--low    { --chip-active: rgba(34,197,94,.18);  --chip-text: #4ade80; }
+.edit-card__chip--mid    { --chip-active: rgba(234,179,8,.18);  --chip-text: #fbbf24; }
+.edit-card__chip--high   { --chip-active: rgba(239,68,68,.18);  --chip-text: #f87171; }
+.edit-card__chip--low.edit-card__chip--active,
+.edit-card__chip--mid.edit-card__chip--active,
+.edit-card__chip--high.edit-card__chip--active {
+  background: var(--chip-active);
+  color: var(--chip-text);
+  border-color: var(--chip-text);
+}
+
+/* Badge preview */
+.edit-card__badge-preview {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+/* Color swatch */
+.edit-card__color-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,.15);
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* Schedule hint */
+.edit-card__schedule-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .8rem;
+  color: rgba(99,179,237,.85);
+}
+
+/* ── Toggle ──────────────────────────────────────────────────────────────── */
+.edit-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 40px;
+  height: 22px;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(255,255,255,.15);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+.edit-toggle--on { background: var(--c-primary-color, #00A8E1); }
+.edit-toggle--premium.edit-toggle--on { background: #eab308; }
+.edit-toggle__thumb {
+  position: absolute;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .2s;
+}
+.edit-toggle--on .edit-toggle__thumb { transform: translateX(18px); }
+
+.edit-card__toggle-list { display: flex; flex-direction: column; gap: var(--space-3); }
+.edit-card__toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+}
+.edit-card__toggle-row--premium {
+  background: rgba(234,179,8,.05);
+  border-color: rgba(234,179,8,.12);
+}
+.edit-card__toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
+  margin: 0;
+}
+.edit-card__toggle-hint { font-size: .75rem; color: rgba(255,255,255,.35); margin: 2px 0 0; }
+
+/* ── Seasons list ────────────────────────────────────────────────────────── */
+.edit-card__season-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.edit-season-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  transition: border-color .15s;
+}
+.edit-season-row:hover { border-color: rgba(255,255,255,.14); }
+.edit-season-row__grip { color: rgba(255,255,255,.25); cursor: grab; }
+.edit-season-row__info { flex: 1; min-width: 0; }
+.edit-season-row__title { font-size: .875rem; font-weight: 600; color: #fff; margin: 0; }
+.edit-season-row__meta  { font-size: .75rem; color: rgba(255,255,255,.4); margin: 2px 0 0; }
+.edit-season-row__actions { display: flex; align-items: center; gap: var(--space-1); }
+.edit-season-row__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.55);
+  font-size: .75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+.edit-season-row__btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.edit-season-row__btn--danger:hover { background: rgba(239,68,68,.12); color: #f87171; }
+
+/* ── Cast grid ───────────────────────────────────────────────────────────── */
+.edit-card__cast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.cast-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.cast-card__photo {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cast-card__photo img { width: 100%; height: 100%; object-fit: cover; }
+.cast-card__name      { font-size: .72rem; font-weight: 600; color: #fff; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cast-card__character { font-size: .65rem; color: rgba(255,255,255,.4); text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cast-card__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.6);
+  border: none;
+  color: rgba(255,255,255,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.cast-card:hover .cast-card__remove { opacity: 1; }
+.cast-card__remove:hover { background: rgba(239,68,68,.8); color: #fff; }
+
+/* ── Transitions ─────────────────────────────────────────────────────────── */
+.fade-enter-active, .fade-leave-active { transition: opacity .2s, transform .2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-6px); }
+</style>
